@@ -75,8 +75,8 @@ public class PersonsControllerTests
     [Fact]
     public async Task Post_ValidCommand_ReturnsCreated()
     {
-        var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "secret123" };
-        var person  = new PersonEntity { Id = "507f1f77bcf86cd799439011", FirstName = "John", LastName = "Doe", Password = "secret123" };
+        var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
+        var person  = new PersonEntity { Id = "507f1f77bcf86cd799439011", FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
         _serviceMock.Setup(s => s.CreatePersonAsync(command)).ReturnsAsync(person);
 
         var result = await _controller.Post(command);
@@ -110,6 +110,18 @@ public class PersonsControllerTests
         Assert.IsType<BadRequestObjectResult>(result);
     }
 
+    [Fact]
+    public async Task Post_WeakPassword_ReturnsBadRequest()
+    {
+        var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "weak" };
+        _serviceMock.Setup(s => s.CreatePersonAsync(command))
+                    .ThrowsAsync(new WeakPasswordException("Password must be at least 8 characters long."));
+
+        var result = await _controller.Post(command);
+
+        Assert.IsType<BadRequestObjectResult>(result);
+    }
+
     // -----------------------------------------------------------------------
     // PUT
     // -----------------------------------------------------------------------
@@ -118,7 +130,7 @@ public class PersonsControllerTests
     public async Task Update_ValidCommand_ReturnsNoContent()
     {
         var id      = "507f1f77bcf86cd799439011";
-        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe", Password = "newpass" };
+        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe", Password = "Strong@Pass2" };
         _serviceMock.Setup(s => s.UpdatePersonAsync(It.IsAny<UpdatePersonCommand>()))
                     .Returns(Task.CompletedTask);
 
@@ -131,7 +143,7 @@ public class PersonsControllerTests
     public async Task Update_PersonNotFound_ReturnsNotFound()
     {
         var id      = "507f1f77bcf86cd799439011";
-        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe", Password = "newpass" };
+        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe", Password = "Strong@Pass2" };
         _serviceMock.Setup(s => s.UpdatePersonAsync(It.IsAny<UpdatePersonCommand>()))
                     .ThrowsAsync(new InvalidOperationException("Person with ID 'x' not found."));
 
@@ -144,13 +156,26 @@ public class PersonsControllerTests
     public async Task Update_DuplicateName_ReturnsConflict()
     {
         var id      = "507f1f77bcf86cd799439011";
-        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe", Password = "newpass" };
+        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe", Password = "Strong@Pass2" };
         _serviceMock.Setup(s => s.UpdatePersonAsync(It.IsAny<UpdatePersonCommand>()))
                     .ThrowsAsync(new DuplicatePersonException("Jane", "Doe"));
 
         var result = await _controller.Update(id, command);
 
         Assert.IsType<ConflictObjectResult>(result);
+    }
+
+    [Fact]
+    public async Task Update_WeakPassword_ReturnsBadRequest()
+    {
+        var id      = "507f1f77bcf86cd799439011";
+        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe", Password = "weak" };
+        _serviceMock.Setup(s => s.UpdatePersonAsync(It.IsAny<UpdatePersonCommand>()))
+                    .ThrowsAsync(new WeakPasswordException("Password must be at least 8 characters long."));
+
+        var result = await _controller.Update(id, command);
+
+        Assert.IsType<BadRequestObjectResult>(result);
     }
 
     // -----------------------------------------------------------------------

@@ -79,8 +79,8 @@ public class PersonApplicationServiceTests
     [Fact]
     public async Task CreatePersonAsync_ValidCommand_CreatesAndReturnsPerson()
     {
-        var command  = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "secret123" };
-        var expected = new PersonEntity { Id = "new1", FirstName = "John", LastName = "Doe", Password = "secret123" };
+        var command  = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
+        var expected = new PersonEntity { Id = "new1", FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
 
         _domainServiceMock
             .Setup(d => d.EnsureUniqueAsync("John", "Doe", null))
@@ -120,6 +120,15 @@ public class PersonApplicationServiceTests
             () => _sut.CreatePersonAsync(command));
     }
 
+    [Fact]
+    public async Task CreatePersonAsync_WeakPassword_ThrowsWeakPasswordException()
+    {
+        var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "weak" };
+
+        await Assert.ThrowsAsync<WeakPasswordException>(
+            () => _sut.CreatePersonAsync(command));
+    }
+
     // -----------------------------------------------------------------------
     // Update
     // -----------------------------------------------------------------------
@@ -127,7 +136,7 @@ public class PersonApplicationServiceTests
     [Fact]
     public async Task UpdatePersonAsync_ValidCommand_UpdatesPerson()
     {
-        var command  = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Doe", Password = "newpass" };
+        var command  = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Doe", Password = "Strong@Pass2" };
         var existing = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe" };
 
         _repositoryMock.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(existing);
@@ -167,6 +176,18 @@ public class PersonApplicationServiceTests
             .ThrowsAsync(new DuplicatePersonException("Jane", "Smith"));
 
         await Assert.ThrowsAsync<DuplicatePersonException>(
+            () => _sut.UpdatePersonAsync(command));
+    }
+
+    [Fact]
+    public async Task UpdatePersonAsync_WeakPassword_ThrowsWeakPasswordException()
+    {
+        var command  = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Doe", Password = "weak" };
+        var existing = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe" };
+
+        _repositoryMock.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(existing);
+
+        await Assert.ThrowsAsync<WeakPasswordException>(
             () => _sut.UpdatePersonAsync(command));
     }
 

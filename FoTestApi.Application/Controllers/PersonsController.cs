@@ -94,6 +94,10 @@ namespace FoTestApi.Controllers
             {
                 return Conflict(new { error = ex.Message });
             }
+            catch (WeakPasswordException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
             catch (InvalidOperationException ex)
             {
                 return BadRequest(new { error = ex.Message });
@@ -128,6 +132,10 @@ namespace FoTestApi.Controllers
             catch (DuplicatePersonException ex)
             {
                 return Conflict(new { error = ex.Message });
+            }
+            catch (WeakPasswordException ex)
+            {
+                return BadRequest(new { error = ex.Message });
             }
             catch (InvalidOperationException ex)
             {

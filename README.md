@@ -70,10 +70,20 @@ FoTestApi.Domain/
 |------|--------|
 | `FirstName` is required | Cannot be null or whitespace |
 | `LastName` is required | Cannot be null or whitespace |
+| `Password` is optional | Can be null or empty; if provided, must meet strength requirements |
+| Password strength | Must be at least 8 characters with uppercase, lowercase, digit, and special character |
 | No duplicate persons | Two persons are duplicates if `FirstName` and `LastName` match case-insensitively |
 | Duplicate check scope | Enforced on both **create** and **update** |
-| Duplicate violation | Raises `DuplicatePersonException` ? translated to HTTP `409 Conflict` |
-| Equality method | `PersonEntity.MatchesByFullName(other)` � OrdinalIgnoreCase full-name comparison |
+| Duplicate violation | Raises `DuplicatePersonException` → translated to HTTP `409 Conflict` |
+| Weak password | Raises `WeakPasswordException` → translated to HTTP `400 Bad Request` |
+| Equality method | `PersonEntity.MatchesByFullName(other)` – OrdinalIgnoreCase full-name comparison |
+
+**Password Requirements** (if provided):
+- Minimum 8 characters
+- At least one uppercase letter (A-Z)
+- At least one lowercase letter (a-z)
+- At least one digit (0-9)
+- At least one special character: `!@#$%^&*()_+-=[]{}';:"\\|,.<>?`
 
 ---
 
@@ -229,7 +239,8 @@ Base URL: `http://localhost:5279/api`
 ```json
 {
   "firstName": "string",
-  "lastName": "string"
+  "lastName": "string",
+  "password": "string (optional, must meet strength requirements if provided)"
 }
 ```
 

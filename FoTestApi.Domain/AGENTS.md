@@ -14,16 +14,26 @@ This project has **zero infrastructure dependencies** by design.
 ## Domain Rules
 - `FirstName` must not be null or whitespace
 - `LastName` must not be null or whitespace
+- `Password` is optional; if provided, must be at least 8 characters with uppercase, lowercase, digit, and special character
 - Two persons are considered duplicates if `FirstName` and `LastName` match case-insensitively
 - Duplicate checking is delegated to `IPersonDomainService.EnsureUniqueAsync`
 - `PersonEntity.MatchesByFullName()` provides in-memory full-name equality for guard comparisons
+
+### Password Strength Rules (if provided)
+- Minimum 8 characters
+- At least one uppercase letter (A-Z)
+- At least one lowercase letter (a-z)
+- At least one digit (0-9)
+- At least one special character: `!@#$%^&*()_+-=[]{}';:"\\|,.<>?`
 
 ## Key files
 - `Entities/PersonEntity.cs` — aggregate root with `Validate()` and `MatchesByFullName()`
 - `Repositories/IPersonRepository.cs` — repository contract
 - `Services/IPersonDomainService.cs` — domain service interface
 - `Services/PersonDomainService.cs` — enforces uniqueness, throws `DuplicatePersonException`
+- `Services/PasswordValidator.cs` — validates password strength, throws `WeakPasswordException`
 - `Exceptions/DuplicatePersonException.cs` — thrown on duplicate create/update
+- `Exceptions/WeakPasswordException.cs` — thrown when password does not meet strength requirements
 
 ## Commands
 - `dotnet build FoTestApi.Domain/FoTestApi.Domain.csproj`
