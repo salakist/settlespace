@@ -16,6 +16,7 @@ namespace FoTestApi.Application.Services
         private readonly AuthSettings _authSettings;
         private readonly IPersonRepository _personRepository;
         private readonly IPasswordHashingService _passwordHashingService;
+        private readonly PasswordValidator _passwordValidator = new();
 
         public AuthService(
             IPersonRepository personRepository,
@@ -29,16 +30,8 @@ namespace FoTestApi.Application.Services
 
         public async Task<LoginResponseDto?> LoginAsync(LoginCommand command)
         {
-            var separatorIndex = command.Username.IndexOf('.');
-            if (separatorIndex <= 0 || separatorIndex >= command.Username.Length - 1)
-            {
-                return null;
-            }
-
-            var firstName = command.Username[..separatorIndex].Trim();
-            var lastName = command.Username[(separatorIndex + 1)..].Trim();
-
-            if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName))
+            var (firstName, lastName) = ParseUsername(command.Username);
+            if (firstName is null || lastName is null)
             {
                 return null;
             }
@@ -92,6 +85,52 @@ namespace FoTestApi.Application.Services
                 Username = resolvedUsername,
                 ExpiresAtUtc = expiresAtUtc
             };
+        }
+
+        public async Task<bool> ChangePasswordAsync(string username, ChangePasswordCommand command)
+        {
+            var (firstName, lastName) = ParseUsername(username);
+            if (firstName is null || lastName is null)
+            {
+                return false;
+            }
+
+            var person = await _personRepository.FindByFullNameAsync(firstName, lastName);
+            if (person is null || string.IsNullOrEmpty(person.Password) || string.IsNullOrEmpty(person.Id))
+            {
+                return false;
+            }
+
+            var currentPasswordMatches = _passwordHashingService.IsPasswordHash(person.Password)
+                ? _passwordHashingService.VerifyPassword(command.CurrentPassword, person.Password)
+                : string.Equals(command.CurrentPassword, person.Password, StringComparison.Ordinal);
+
+            if (!currentPasswordMatches)
+            {
+                return false;
+            }
+
+            _passwordValidator.Validate(command.NewPassword);
+
+            person.Password = _passwordHashingService.HashPassword(command.NewPassword);
+            await _personRepository.UpdateAsync(person.Id, person);
+            return true;
+        }
+
+        private static (string? FirstName, string? LastName) ParseUsername(string username)
+        {
+            var separatorIndex = username.IndexOf('.');
+            if (separatorIndex <= 0 || separatorIndex >= username.Length - 1)
+            {
+                return (null, null);
+            }
+
+            var firstName = username[..separatorIndex].Trim();
+            var lastName = username[(separatorIndex + 1)..].Trim();
+
+            return string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName)
+                ? (null, null)
+                : (firstName, lastName);
         }
     }
 }

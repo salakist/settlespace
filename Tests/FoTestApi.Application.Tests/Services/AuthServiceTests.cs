@@ -2,6 +2,7 @@ using FoTestApi.Application.Authentication;
 using FoTestApi.Application.Commands;
 using FoTestApi.Application.Services;
 using FoTestApi.Domain.Entities;
+using FoTestApi.Domain.Exceptions;
 using FoTestApi.Domain.Repositories;
 using FoTestApi.Domain.Services;
 using Microsoft.Extensions.Options;
@@ -106,5 +107,90 @@ public class AuthServiceTests
 
         Assert.Null(result);
         _personRepositoryMock.Verify(repository => repository.FindByFullNameAsync(It.IsAny<string>(), It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ChangePasswordAsync_WithValidCurrentPassword_UpdatesStoredHash()
+    {
+        var sut = CreateService();
+        var existingHash = _passwordHashingService.HashPassword("Admin@123");
+        PersonEntity? updatedPerson = null;
+
+        _personRepositoryMock
+            .Setup(repository => repository.FindByFullNameAsync("john", "doe"))
+            .ReturnsAsync(new PersonEntity
+            {
+                Id = "1",
+                FirstName = "John",
+                LastName = "Doe",
+                Password = existingHash
+            });
+        _personRepositoryMock
+            .Setup(repository => repository.UpdateAsync("1", It.IsAny<PersonEntity>()))
+            .Callback<string, PersonEntity>((_, person) => updatedPerson = person)
+            .Returns(Task.CompletedTask);
+
+        var result = await sut.ChangePasswordAsync("john.doe", new ChangePasswordCommand
+        {
+            CurrentPassword = "Admin@123",
+            NewPassword = "NewStrong@123"
+        });
+
+        Assert.True(result);
+        Assert.NotNull(updatedPerson);
+        Assert.True(_passwordHashingService.VerifyPassword("NewStrong@123", updatedPerson!.Password!));
+        _personRepositoryMock.Verify(repository => repository.UpdateAsync("1", It.IsAny<PersonEntity>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task ChangePasswordAsync_WithInvalidCurrentPassword_ReturnsFalse()
+    {
+        var sut = CreateService();
+        var existingHash = _passwordHashingService.HashPassword("Admin@123");
+
+        _personRepositoryMock
+            .Setup(repository => repository.FindByFullNameAsync("john", "doe"))
+            .ReturnsAsync(new PersonEntity
+            {
+                Id = "1",
+                FirstName = "John",
+                LastName = "Doe",
+                Password = existingHash
+            });
+
+        var result = await sut.ChangePasswordAsync("john.doe", new ChangePasswordCommand
+        {
+            CurrentPassword = "Wrong@123",
+            NewPassword = "NewStrong@123"
+        });
+
+        Assert.False(result);
+        _personRepositoryMock.Verify(repository => repository.UpdateAsync(It.IsAny<string>(), It.IsAny<PersonEntity>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ChangePasswordAsync_WithWeakNewPassword_ThrowsWeakPasswordException()
+    {
+        var sut = CreateService();
+        var existingHash = _passwordHashingService.HashPassword("Admin@123");
+
+        _personRepositoryMock
+            .Setup(repository => repository.FindByFullNameAsync("john", "doe"))
+            .ReturnsAsync(new PersonEntity
+            {
+                Id = "1",
+                FirstName = "John",
+                LastName = "Doe",
+                Password = existingHash
+            });
+
+        await Assert.ThrowsAsync<WeakPasswordException>(() =>
+            sut.ChangePasswordAsync("john.doe", new ChangePasswordCommand
+            {
+                CurrentPassword = "Admin@123",
+                NewPassword = "weak"
+            }));
+
+        _personRepositoryMock.Verify(repository => repository.UpdateAsync(It.IsAny<string>(), It.IsAny<PersonEntity>()), Times.Never);
     }
 }

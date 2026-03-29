@@ -16,6 +16,9 @@ Unit test project for the Application layer. Tests `PersonApplicationService`, `
 - Invalid password returns null
 - Legacy plaintext passwords are upgraded to hashes on successful login
 - Invalid username format returns null
+- Password change succeeds when current password is valid and new password is strong
+- Password change fails for invalid current password
+- Password change rejects weak new passwords
 
 ### `PersonsControllerTests`
 - GET all → 200 with mapped DTOs
@@ -27,6 +30,8 @@ Unit test project for the Application layer. Tests `PersonApplicationService`, `
 ### `AuthControllerTests`
 - 200 for successful login
 - 401 for invalid credentials
+- 204 for successful authenticated password change
+- 400 for invalid current password during password change
 
 ### `ExceptionHandlingMiddlewareTests`
 - Maps domain and framework exceptions to the expected HTTP responses

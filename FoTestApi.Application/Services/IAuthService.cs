@@ -6,5 +6,6 @@ namespace FoTestApi.Application.Services
     public interface IAuthService
     {
         Task<LoginResponseDto?> LoginAsync(LoginCommand command);
+        Task<bool> ChangePasswordAsync(string username, ChangePasswordCommand command);
     }
 }

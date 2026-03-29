@@ -7,7 +7,7 @@ Application layer and API host — orchestrates domain logic, handles HTTP, and 
 ```
 FoTestApi.Application/
 ├── Authentication/ AuthSettings
-├── Commands/        LoginCommand, CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
+├── Commands/        LoginCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
 ├── Controllers/     AuthController, PersonsController
 ├── DTOs/            LoginResponseDto, PersonDto
 ├── Services/        AuthService, IPersonApplicationService, PersonApplicationService
@@ -18,6 +18,7 @@ FoTestApi.Application/
 ## Responsibilities
 - Expose a demo login endpoint via `AuthController` and issue JWT bearer tokens through `AuthService`
 - Authenticate against MongoDB persons via `IPersonRepository` using `firstName.lastName` usernames
+- Expose an authenticated password-change endpoint for the current user
 - Expose REST endpoints via `PersonsController` (focused on orchestration, not error handling)
 - Orchestrate commands and queries in `PersonApplicationService`
 - Auto-generate strong passwords when none provided on person creation
@@ -45,10 +46,10 @@ FoTestApi.Application/
 - `Services/AuthService.cs` — validates person credentials and mints JWTs
 - `Services/IPersonApplicationService.cs` — application service interface
 - `Services/PersonApplicationService.cs` — command/query orchestration
-- `Commands/` — LoginCommand, CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
+- `Commands/` — LoginCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
 - `DTOs/LoginResponseDto.cs` — outbound JWT response payload
 - `DTOs/PersonDto.cs` — outbound API data shape
-- `Controllers/AuthController.cs` — login endpoint
+- `Controllers/AuthController.cs` — login and password change endpoints
 - `Controllers/PersonsController.cs` — REST endpoints
 - `appsettings.json` — MongoDB and JWT configuration
 

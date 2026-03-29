@@ -19,7 +19,7 @@ A full-stack demonstration project showcasing Domain-Driven Design (DDD) with a 
 - **HTTP Client:** Axios
 - **UI Library:** Material UI (MUI) with dark mode
 - **Build Tool:** Create React App
-- **Access Control:** Login page with token persistence in local storage
+- **Access Control:** Login page with token persistence in local storage and in-session password change option
 
 ---
 
@@ -155,7 +155,7 @@ dotnet test Tests/FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj
 ### Test isolation strategy
 - **Domain tests** — no mocks; plain object instantiation
 - **Infrastructure tests** — mock `IMongoCollection<T>` injected via `internal` constructor; no live MongoDB needed
-- **Application tests** — mock `IPersonRepository` + `IPersonDomainService` for service tests; mock `IPersonApplicationService` for controller tests
+- **Application tests** — mock `IPersonRepository` + `IPersonDomainService` + `IPasswordHashingService` for service tests; mock `IPersonApplicationService` for controller tests
 
 ---
 
@@ -167,6 +167,7 @@ React SPA with login-gated access, full CRUD, search, and Material UI dark theme
 fotest-react/src/
 +-- App.tsx           # App shell, auth gating, state management, dark ThemeProvider
 +-- LoginPage.tsx     # Login screen for JWT-based access
++-- ChangePasswordForm.tsx # Authenticated user password change form
 +-- PersonForm.tsx    # Create / edit form
 +-- PersonList.tsx    # Person cards with edit/delete actions
 +-- SearchBar.tsx     # Case-insensitive search input
@@ -231,6 +232,7 @@ Base URL: `http://localhost:5279/api`
 | Method | Endpoint | Description | Body | Response |
 |--------|----------|-------------|------|----------|
 | POST | `/auth/login` | Authenticate and receive a JWT | `LoginCommand` | `200` LoginResponseDto, `401` |
+| POST | `/auth/change-password` | Change password for the current authenticated user | `ChangePasswordCommand` | `204`, `400`, `401` |
 | GET | `/persons` | Get all persons | none | `200` Array of PersonDto, `401` |
 | GET | `/persons/{id}` | Get by ID | none | `200` PersonDto, `404`, `401` |
 | GET | `/persons/search/{query}` | Search by name (case-insensitive) | none | `200` Array, `401` |
@@ -260,6 +262,18 @@ Passwords are stored as PBKDF2 hashes. If an older plaintext password is encount
   "expiresAtUtc": "2026-03-29T16:00:00Z"
 }
 ```
+
+### ChangePasswordCommand
+
+```json
+{
+  "currentPassword": "Strong@Pass1",
+  "newPassword": "NewStrong@Pass2"
+}
+```
+
+`/auth/change-password` requires a valid bearer token and changes the password of the currently authenticated user.
+Frontend users can access this action from the header, next to the log out button, once logged in.
 
 ### PersonDto
 

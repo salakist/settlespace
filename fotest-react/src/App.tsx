@@ -7,6 +7,7 @@ import PersonList from './PersonList';
 import PersonForm from './PersonForm';
 import SearchBar from './SearchBar';
 import LoginPage from './LoginPage';
+import ChangePasswordForm from './ChangePasswordForm';
 
 const darkTheme = createTheme({
   palette: {
@@ -33,6 +34,8 @@ function App() {
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(authStorage.isAuthenticated());
   const [username, setUsername] = useState(authStorage.getUsername() ?? '');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordLoading, setPasswordLoading] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -86,10 +89,20 @@ function App() {
     authStorage.clearSession();
     setIsAuthenticated(false);
     setUsername('');
+    setIsChangingPassword(false);
     setPersons([]);
     setEditingPerson(undefined);
     setShowForm(false);
     setError(null);
+  };
+
+  const handlePasswordChange = async (currentPassword: string, newPassword: string) => {
+    setPasswordLoading(true);
+    try {
+      await authApi.changePassword({ currentPassword, newPassword });
+    } finally {
+      setPasswordLoading(false);
+    }
   };
 
   const handleSearch = async (query: string) => {
@@ -174,10 +187,22 @@ function App() {
                 Signed in as {username}
               </Typography>
             </div>
-            <Button variant="outlined" color="secondary" onClick={handleLogout}>
-              Log Out
-            </Button>
+            <Stack direction="row" spacing={1.5}>
+              <Button
+                variant="outlined"
+                onClick={() => setIsChangingPassword((value) => !value)}
+              >
+                {isChangingPassword ? 'Hide Password Form' : 'Change Password'}
+              </Button>
+              <Button variant="outlined" color="secondary" onClick={handleLogout}>
+                Log Out
+              </Button>
+            </Stack>
           </Stack>
+
+          {isChangingPassword && (
+            <ChangePasswordForm onSubmit={handlePasswordChange} loading={passwordLoading} />
+          )}
 
           <SearchBar onSearch={handleSearch} />
 

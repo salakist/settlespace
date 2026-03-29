@@ -2,7 +2,9 @@ using FoTestApi.Application.Commands;
 using FoTestApi.Application.DTOs;
 using FoTestApi.Application.Services;
 using FoTestApi.Controllers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Moq;
 
 namespace FoTestApi.Application.Tests.Controllers;
@@ -47,5 +49,61 @@ public class AuthControllerTests
         var result = await _controller.Login(request);
 
         Assert.IsType<UnauthorizedObjectResult>(result.Result);
+    }
+
+    [Fact]
+    public async Task ChangePassword_WithValidRequest_ReturnsNoContent()
+    {
+        var request = new ChangePasswordCommand
+        {
+            CurrentPassword = "Admin@123",
+            NewPassword = "NewStrong@123"
+        };
+
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(
+                    new[] { new Claim(ClaimTypes.Name, "john.doe") },
+                    "TestAuth"))
+            }
+        };
+
+        _authServiceMock
+            .Setup(service => service.ChangePasswordAsync("john.doe", request))
+            .ReturnsAsync(true);
+
+        var result = await _controller.ChangePassword(request);
+
+        Assert.IsType<NoContentResult>(result);
+    }
+
+    [Fact]
+    public async Task ChangePassword_WithInvalidCurrentPassword_ReturnsBadRequest()
+    {
+        var request = new ChangePasswordCommand
+        {
+            CurrentPassword = "wrong",
+            NewPassword = "NewStrong@123"
+        };
+
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(
+                    new[] { new Claim(ClaimTypes.Name, "john.doe") },
+                    "TestAuth"))
+            }
+        };
+
+        _authServiceMock
+            .Setup(service => service.ChangePasswordAsync("john.doe", request))
+            .ReturnsAsync(false);
+
+        var result = await _controller.ChangePassword(request);
+
+        Assert.IsType<BadRequestObjectResult>(result);
     }
 }
