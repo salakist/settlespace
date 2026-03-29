@@ -38,8 +38,8 @@ Unit test project for the Application layer. Tests `PersonApplicationService`, `
 - Maps domain and framework exceptions to the expected HTTP responses
 
 ## Test strategy
-- `PersonApplicationService` is tested with mocked `IPersonRepository`, `IPersonDomainService`, and `IPasswordHashingService`
-- `AuthService` uses a mocked `IPersonRepository` and a real `PasswordHashingService` for verification behavior
+- `PersonApplicationService` is tested with mocked `IPersonRepository`, `IPersonDomainService`, `IPasswordHashingService`, and `IPasswordValidator`
+- `AuthService` is tested with mocked `IPersonRepository`, `IPersonApplicationService`, `IPasswordHashingService`, and `IPasswordValidator`
 - `PersonsController` is tested with a mocked `IPersonApplicationService` — verifies HTTP status code mapping only
 - Middleware tests use mocked framework dependencies where needed
 - Both services depend on interfaces, enabling pure Moq isolation

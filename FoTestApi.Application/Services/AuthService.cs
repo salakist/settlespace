@@ -16,16 +16,21 @@ namespace FoTestApi.Application.Services
         private readonly AuthSettings _authSettings;
         private readonly IPersonRepository _personRepository;
         private readonly IPasswordHashingService _passwordHashingService;
-        private readonly PasswordValidator _passwordValidator = new();
+        private readonly IPersonApplicationService _personApplicationService;
+        private readonly IPasswordValidator _passwordValidator;
 
         public AuthService(
             IPersonRepository personRepository,
             IOptions<AuthSettings> authOptions,
-            IPasswordHashingService passwordHashingService)
+            IPasswordHashingService passwordHashingService,
+            IPersonApplicationService personApplicationService,
+            IPasswordValidator passwordValidator)
         {
             _personRepository = personRepository;
             _authSettings = authOptions.Value;
             _passwordHashingService = passwordHashingService;
+            _personApplicationService = personApplicationService;
+            _passwordValidator = passwordValidator;
         }
 
         public async Task<LoginResponseDto?> LoginAsync(LoginCommand command)
@@ -85,6 +90,24 @@ namespace FoTestApi.Application.Services
                 Username = resolvedUsername,
                 ExpiresAtUtc = expiresAtUtc
             };
+        }
+
+        public async Task<LoginResponseDto> RegisterAsync(RegisterCommand command)
+        {
+            var createdPerson = await _personApplicationService.CreatePersonAsync(new CreatePersonCommand
+            {
+                FirstName = command.FirstName,
+                LastName = command.LastName,
+                Password = command.Password
+            });
+
+            var loginResponse = await LoginAsync(new LoginCommand
+            {
+                Username = $"{createdPerson.FirstName}.{createdPerson.LastName}",
+                Password = command.Password
+            });
+
+            return loginResponse ?? throw new InvalidOperationException("Registration succeeded but auto-login failed.");
         }
 
         public async Task<bool> ChangePasswordAsync(string username, ChangePasswordCommand command)

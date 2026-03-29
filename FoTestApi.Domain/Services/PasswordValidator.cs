@@ -6,7 +6,7 @@ namespace FoTestApi.Domain.Services
     /// <summary>
     /// Service for validating password strength against security standards.
     /// </summary>
-    public class PasswordValidator
+    public class PasswordValidator : IPasswordValidator
     {
         private const int MinimumLength = 8;
         private const string UppercasePattern = "[A-Z]";

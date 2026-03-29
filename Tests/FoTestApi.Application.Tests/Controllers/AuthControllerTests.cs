@@ -2,7 +2,6 @@ using FoTestApi.Application.Commands;
 using FoTestApi.Application.DTOs;
 using FoTestApi.Application.Services;
 using FoTestApi.Controllers;
-using FoTestApi.Domain.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -13,12 +12,11 @@ namespace FoTestApi.Application.Tests.Controllers;
 public class AuthControllerTests
 {
     private readonly Mock<IAuthService> _authServiceMock = new();
-    private readonly Mock<IPersonApplicationService> _personApplicationServiceMock = new();
     private readonly AuthController _controller;
 
     public AuthControllerTests()
     {
-        _controller = new AuthController(_authServiceMock.Object, _personApplicationServiceMock.Object);
+        _controller = new AuthController(_authServiceMock.Object);
     }
 
     [Fact]
@@ -63,23 +61,8 @@ public class AuthControllerTests
             Password = "Strong@Pass1"
         };
 
-        _personApplicationServiceMock
-            .Setup(service => service.CreatePersonAsync(It.Is<CreatePersonCommand>(command =>
-                command.FirstName == "John" &&
-                command.LastName == "Doe" &&
-                command.Password == "Strong@Pass1")))
-            .ReturnsAsync(new PersonEntity
-            {
-                Id = "1",
-                FirstName = "John",
-                LastName = "Doe",
-                Password = "hashed"
-            });
-
         _authServiceMock
-            .Setup(service => service.LoginAsync(It.Is<LoginCommand>(command =>
-                command.Username == "John.Doe" &&
-                command.Password == "Strong@Pass1")))
+            .Setup(service => service.RegisterAsync(request))
             .ReturnsAsync(new LoginResponseDto
             {
                 Token = "token",

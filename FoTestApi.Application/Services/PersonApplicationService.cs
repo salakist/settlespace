@@ -15,15 +15,18 @@ namespace FoTestApi.Application.Services
         private readonly IPersonRepository _repository;
         private readonly IPersonDomainService _domainService;
         private readonly IPasswordHashingService _passwordHashingService;
+        private readonly IPasswordValidator _passwordValidator;
 
         public PersonApplicationService(
             IPersonRepository repository,
             IPersonDomainService domainService,
-            IPasswordHashingService passwordHashingService)
+            IPasswordHashingService passwordHashingService,
+            IPasswordValidator passwordValidator)
         {
             _repository = repository;
             _domainService = domainService;
             _passwordHashingService = passwordHashingService;
+            _passwordValidator = passwordValidator;
         }
 
         // Queries
@@ -59,6 +62,7 @@ namespace FoTestApi.Application.Services
             };
 
             newPerson.Validate();
+            _passwordValidator.Validate(password);
 
             await _domainService.EnsureUniqueAsync(newPerson.FirstName, newPerson.LastName);
 
@@ -85,6 +89,10 @@ namespace FoTestApi.Application.Services
             };
 
             updatedPerson.Validate();
+            if (hasNewPassword)
+            {
+                _passwordValidator.Validate(command.Password);
+            }
 
             await _domainService.EnsureUniqueAsync(updatedPerson.FirstName, updatedPerson.LastName, command.Id);
 

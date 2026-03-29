@@ -1,5 +1,4 @@
 using FoTestApi.Domain.Entities;
-using FoTestApi.Domain.Exceptions;
 
 namespace FoTestApi.Domain.Tests.Entities;
 
@@ -87,73 +86,4 @@ public class PersonEntityTests
         Assert.Null(person.Password);
     }
 
-    [Fact]
-    public void Validate_WithStrongPassword_DoesNotThrow()
-    {
-        var person = new PersonEntity { FirstName = "John", LastName = "Doe", Password = "StrongP@ss1" };
-
-        var ex = Record.Exception(() => person.Validate());
-
-        Assert.Null(ex);
-    }
-
-    [Fact]
-    public void Validate_PasswordTooShort_ThrowsWeakPasswordException()
-    {
-        var person = new PersonEntity { FirstName = "John", LastName = "Doe", Password = "Short1!" };
-
-        Assert.Throws<WeakPasswordException>(() => person.Validate());
-    }
-
-    [Fact]
-    public void Validate_PasswordNoUppercase_ThrowsWeakPasswordException()
-    {
-        var person = new PersonEntity { FirstName = "John", LastName = "Doe", Password = "weakpass1!" };
-
-        Assert.Throws<WeakPasswordException>(() => person.Validate());
-    }
-
-    [Fact]
-    public void Validate_PasswordNoLowercase_ThrowsWeakPasswordException()
-    {
-        var person = new PersonEntity { FirstName = "John", LastName = "Doe", Password = "WEAKPASS1!" };
-
-        Assert.Throws<WeakPasswordException>(() => person.Validate());
-    }
-
-    [Fact]
-    public void Validate_PasswordNoDigit_ThrowsWeakPasswordException()
-    {
-        var person = new PersonEntity { FirstName = "John", LastName = "Doe", Password = "WeakPass!" };
-
-        Assert.Throws<WeakPasswordException>(() => person.Validate());
-    }
-
-    [Fact]
-    public void Validate_PasswordNoSpecialChar_ThrowsWeakPasswordException()
-    {
-        var person = new PersonEntity { FirstName = "John", LastName = "Doe", Password = "WeakPass1" };
-
-        Assert.Throws<WeakPasswordException>(() => person.Validate());
-    }
-
-    [Fact]
-    public void Validate_NullPasswordIsValid()
-    {
-        var person = new PersonEntity { FirstName = "John", LastName = "Doe", Password = null };
-
-        var ex = Record.Exception(() => person.Validate());
-
-        Assert.Null(ex);
-    }
-
-    [Fact]
-    public void Validate_EmptyPasswordIsValid()
-    {
-        var person = new PersonEntity { FirstName = "John", LastName = "Doe", Password = string.Empty };
-
-        var ex = Record.Exception(() => person.Validate());
-
-        Assert.Null(ex);
-    }
 }

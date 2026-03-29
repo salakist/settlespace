@@ -1,5 +1,3 @@
-using FoTestApi.Domain.Services;
-
 namespace FoTestApi.Domain.Entities
 {
     /// <summary>
@@ -29,11 +27,11 @@ namespace FoTestApi.Domain.Entities
         public string? Password { get; set; }
 
         /// <summary>
-        /// Validates that the person has non-empty first and last names,
-        /// and that the password (if provided) meets security requirements.
+        /// Validates that the person has non-empty first and last names.
+        /// Password strength validation is handled at the application boundary
+        /// before passwords are hashed for persistence.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when names are null or empty.</exception>
-        /// <exception cref="WeakPasswordException">Thrown when password does not meet security requirements.</exception>
         public void Validate()
         {
             if (string.IsNullOrWhiteSpace(FirstName))
@@ -41,13 +39,6 @@ namespace FoTestApi.Domain.Entities
 
             if (string.IsNullOrWhiteSpace(LastName))
                 throw new InvalidOperationException("LastName cannot be empty.");
-
-            // Validate password strength if provided
-            if (!string.IsNullOrEmpty(Password))
-            {
-                var passwordValidator = new PasswordValidator();
-                passwordValidator.Validate(Password);
-            }
         }
 
         /// <summary>

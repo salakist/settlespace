@@ -44,6 +44,7 @@ This project has **zero infrastructure dependencies** by design.
 - `Entities/PersonEntity.cs` — aggregate root with `Validate()` and `MatchesByFullName()`
 - `Repositories/IPersonRepository.cs` — repository contract
 - `Services/IPersonDomainService.cs` — domain service interface
+- `Services/IPasswordValidator.cs` — password strength validation interface
 - `Services/IPasswordHashingService.cs` — password hashing service interface
 - `Services/PersonDomainService.cs` — enforces uniqueness, throws `DuplicatePersonException`
 - `Services/PasswordValidator.cs` — validates password strength, throws `WeakPasswordException`

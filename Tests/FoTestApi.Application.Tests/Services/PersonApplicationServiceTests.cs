@@ -13,10 +13,15 @@ public class PersonApplicationServiceTests
     private readonly Mock<IPersonRepository> _repositoryMock = new();
     private readonly Mock<IPersonDomainService> _domainServiceMock = new();
     private readonly Mock<IPasswordHashingService> _passwordHashingServiceMock = new();
+    private readonly Mock<IPasswordValidator> _passwordValidatorMock = new();
     private readonly PersonApplicationService _sut;
 
     public PersonApplicationServiceTests()
     {
+        _passwordValidatorMock
+            .Setup(service => service.Validate("weak"))
+            .Throws(new WeakPasswordException("Password is too weak."));
+
         _passwordHashingServiceMock
             .Setup(service => service.HashPassword(It.IsAny<string>()))
             .Returns<string>(password => $"hashed::{password}");
@@ -24,7 +29,8 @@ public class PersonApplicationServiceTests
         _sut = new PersonApplicationService(
             _repositoryMock.Object,
             _domainServiceMock.Object,
-            _passwordHashingServiceMock.Object);
+            _passwordHashingServiceMock.Object,
+            _passwordValidatorMock.Object);
     }
 
     // -----------------------------------------------------------------------

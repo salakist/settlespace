@@ -35,6 +35,7 @@ FoTestApi.Application/
 ## Interfaces
 - `IPersonApplicationService` — abstraction consumed by `PersonsController` (enables controller unit testing)
 - `IPersonDomainService` (from Domain) — consumed by `PersonApplicationService` (enables service unit testing)
+- `IPasswordValidator` (from Domain) — consumed by application services to enforce password policy via DI
 
 ## Dependency direction
 - References: `FoTestApi.Domain`, `FoTestApi.Infrastructure`
