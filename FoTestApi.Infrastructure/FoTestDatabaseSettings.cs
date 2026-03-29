@@ -1,4 +1,4 @@
-namespace FoTestApi.Models
+namespace FoTestApi.Infrastructure
 {
     public class FoTestDatabaseSettings
     {

@@ -1,8 +1,11 @@
 using FoTestApi.Domain.Entities;
 using FoTestApi.Domain.Repositories;
-using FoTestApi.Models;
+using FoTestApi.Infrastructure;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
+using MongoDB.Bson.Serialization.IdGenerators;
+using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
 using System.Text.RegularExpressions;
 
@@ -11,10 +14,27 @@ namespace FoTestApi.Infrastructure.Repositories
     /// <summary>
     /// MongoDB implementation of the IPersonRepository.
     /// Handles all persistence operations for PersonEntity.
+    /// Registers Bson mapping here to keep the Domain layer persistence-agnostic.
     /// </summary>
     public class PersonRepository : IPersonRepository
     {
         private readonly IMongoCollection<PersonEntity> _personsCollection;
+
+        static PersonRepository()
+        {
+            if (!BsonClassMap.IsClassMapRegistered(typeof(PersonEntity)))
+            {
+                BsonClassMap.RegisterClassMap<PersonEntity>(cm =>
+                {
+                    cm.AutoMap();
+                    cm.MapIdMember(p => p.Id)
+                      .SetIdGenerator(StringObjectIdGenerator.Instance)
+                      .SetSerializer(new StringSerializer(BsonType.ObjectId));
+                    cm.MapMember(p => p.FirstName).SetElementName("firstName");
+                    cm.MapMember(p => p.LastName).SetElementName("lastName");
+                });
+            }
+        }
 
         public PersonRepository(IOptions<FoTestDatabaseSettings> foTestDatabaseSettings)
         {

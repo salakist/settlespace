@@ -1,7 +1,7 @@
 using FoTestApi.Application;
 using FoTestApi.Domain.Repositories;
+using FoTestApi.Infrastructure;
 using FoTestApi.Infrastructure.Repositories;
-using FoTestApi.Models;
 using System.IO;
 using System.Reflection;
 

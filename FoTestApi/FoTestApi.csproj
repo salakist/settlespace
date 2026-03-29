@@ -11,8 +11,12 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.25" />
-    <PackageReference Include="MongoDB.Driver" Version="3.7.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\FoTestApi.Domain\FoTestApi.Domain.csproj" />
+    <ProjectReference Include="..\FoTestApi.Infrastructure\FoTestApi.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
