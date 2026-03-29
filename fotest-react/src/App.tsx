@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { Button, CircularProgress, Container, CssBaseline, Stack, Typography } from '@mui/material';
 import './App.css';
 import { Person } from './types';
 import { personApi } from './api';
@@ -89,31 +90,39 @@ function App() {
 
   return (
     <div className="App">
-      <header className="App-header">
-        <h1>FoTest Person Manager</h1>
-      </header>
-      <main>
-        <div className="container">
-          <SearchBar onSearch={handleSearch} />
-          <button onClick={() => setShowForm(true)} disabled={showForm}>
+      <CssBaseline />
+      <Container maxWidth="md">
+        <Typography variant="h3" align="center" gutterBottom sx={{ mt: 4 }}>
+          FoTest Person Manager
+        </Typography>
+
+        <SearchBar onSearch={handleSearch} />
+
+        <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+          <Typography variant="subtitle1">Manage persons in the database</Typography>
+          <Button variant="contained" onClick={() => setShowForm(true)} disabled={showForm}>
             Add New Person
-          </button>
-          {showForm && (
-            <PersonForm
-              person={editingPerson}
-              onSave={handleSave}
-              onCancel={handleCancel}
-            />
-          )}
-          {loading && <p>Loading...</p>}
-          {error && <p className="error">{error}</p>}
-          <PersonList
-            persons={persons}
-            onEdit={handleEdit}
-            onDelete={handleDelete}
-          />
-        </div>
-      </main>
+          </Button>
+        </Stack>
+
+        {showForm && (
+          <PersonForm person={editingPerson} onSave={handleSave} onCancel={handleCancel} />
+        )}
+
+        {loading ? (
+          <Stack alignItems="center" sx={{ mt: 4 }}>
+            <CircularProgress />
+          </Stack>
+        ) : (
+          <PersonList persons={persons} onEdit={handleEdit} onDelete={handleDelete} />
+        )}
+
+        {error && (
+          <Typography color="error" sx={{ mt: 2 }}>
+            {error}
+          </Typography>
+        )}
+      </Container>
     </div>
   );
 }

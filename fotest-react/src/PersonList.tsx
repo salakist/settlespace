@@ -1,4 +1,5 @@
 import React from 'react';
+import { Button, Card, CardContent, CardActions, Typography, Stack } from '@mui/material';
 import { Person } from './types';
 
 interface PersonListProps {
@@ -9,20 +10,34 @@ interface PersonListProps {
 
 const PersonList: React.FC<PersonListProps> = ({ persons, onEdit, onDelete }) => {
   return (
-    <div className="person-list">
-      <h2>Persons</h2>
+    <div>
+      <Typography variant="h5" gutterBottom>
+        Persons
+      </Typography>
       {persons.length === 0 ? (
-        <p>No persons found.</p>
+        <Typography>No persons found.</Typography>
       ) : (
-        <ul>
+        <Stack spacing={2}>
           {persons.map((person) => (
-            <li key={person.id}>
-              {person.firstName} {person.lastName}
-              <button onClick={() => onEdit(person)}>Edit</button>
-              <button onClick={() => person.id && onDelete(person.id)}>Delete</button>
-            </li>
+            <Card key={person.id ?? `${person.firstName}-${person.lastName}`}>
+              <CardContent>
+                <Typography variant="subtitle1">
+                  {person.firstName} {person.lastName}
+                </Typography>
+              </CardContent>
+              <CardActions>
+                <Button size="small" onClick={() => onEdit(person)}>
+                  Edit
+                </Button>
+                {person.id ? (
+                  <Button size="small" color="error" onClick={() => onDelete(person.id!)}>
+                    Delete
+                  </Button>
+                ) : null}
+              </CardActions>
+            </Card>
           ))}
-        </ul>
+        </Stack>
       )}
     </div>
   );

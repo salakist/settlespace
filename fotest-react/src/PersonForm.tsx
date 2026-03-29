@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
+import { Button, Paper, Stack, TextField, Typography } from '@mui/material';
 import { Person } from './types';
 
 interface PersonFormProps {
@@ -19,29 +20,37 @@ const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel }) => 
   };
 
   return (
-    <form onSubmit={handleSubmit} className="person-form">
-      <h3>{person ? 'Edit Person' : 'Add New Person'}</h3>
-      <div>
-        <label>First Name:</label>
-        <input
-          type="text"
-          value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
-          required
-        />
-      </div>
-      <div>
-        <label>Last Name:</label>
-        <input
-          type="text"
-          value={lastName}
-          onChange={(e) => setLastName(e.target.value)}
-          required
-        />
-      </div>
-      <button type="submit">{person ? 'Update' : 'Add'}</button>
-      <button type="button" onClick={onCancel}>Cancel</button>
-    </form>
+    <Paper sx={{ p: 3, mb: 3 }} elevation={4}>
+      <Typography variant="h6" gutterBottom>
+        {person ? 'Edit Person' : 'Add New Person'}
+      </Typography>
+      <form onSubmit={handleSubmit}>
+        <Stack spacing={2}>
+          <TextField
+            label="First Name"
+            value={firstName}
+            onChange={(e) => setFirstName(e.target.value)}
+            required
+            fullWidth
+          />
+          <TextField
+            label="Last Name"
+            value={lastName}
+            onChange={(e) => setLastName(e.target.value)}
+            required
+            fullWidth
+          />
+          <Stack direction="row" spacing={2}>
+            <Button type="submit" variant="contained" color="primary">
+              {person ? 'Update' : 'Add'}
+            </Button>
+            <Button variant="outlined" onClick={onCancel}>
+              Cancel
+            </Button>
+          </Stack>
+        </Stack>
+      </form>
+    </Paper>
   );
 };
 
