@@ -11,11 +11,12 @@ import {
 
 interface LoginPageProps {
   onLogin: (username: string, password: string) => Promise<void>;
+  onShowRegister: () => void;
   error: string | null;
   loading: boolean;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onLogin, error, loading }) => {
+const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowRegister, error, loading }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
 
@@ -64,6 +65,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, error, loading }) => {
               />
               <Button type="submit" variant="contained" size="large" disabled={loading}>
                 {loading ? 'Signing In...' : 'Log In'}
+              </Button>
+              <Button variant="text" onClick={onShowRegister} disabled={loading}>
+                Create Account
               </Button>
             </Stack>
           </form>

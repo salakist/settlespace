@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ChangePasswordRequest, LoginRequest, LoginResponse, Person } from './types';
+import { ChangePasswordRequest, LoginRequest, LoginResponse, Person, RegisterRequest } from './types';
 
 const API_BASE_URL = 'http://localhost:5279/api';
 const TOKEN_STORAGE_KEY = 'fotest.auth.token';
@@ -34,6 +34,7 @@ export const authStorage = {
 
 export const authApi = {
   login: (request: LoginRequest) => api.post<LoginResponse>('/auth/login', request),
+  register: (request: RegisterRequest) => api.post<LoginResponse>('/auth/register', request),
   changePassword: (request: ChangePasswordRequest) => api.post('/auth/change-password', request),
 };
 

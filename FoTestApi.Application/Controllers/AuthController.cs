@@ -12,10 +12,14 @@ namespace FoTestApi.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthService _authService;
+        private readonly IPersonApplicationService _personApplicationService;
 
-        public AuthController(IAuthService authService)
+        public AuthController(
+            IAuthService authService,
+            IPersonApplicationService personApplicationService)
         {
             _authService = authService;
+            _personApplicationService = personApplicationService;
         }
 
         [AllowAnonymous]
@@ -31,6 +35,34 @@ namespace FoTestApi.Controllers
             }
 
             return Ok(response);
+        }
+
+        [AllowAnonymous]
+        [HttpPost("register")]
+        [ProducesResponseType(typeof(LoginResponseDto), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(409)]
+        public async Task<ActionResult<LoginResponseDto>> Register([FromBody] RegisterCommand command)
+        {
+            var createdPerson = await _personApplicationService.CreatePersonAsync(new CreatePersonCommand
+            {
+                FirstName = command.FirstName,
+                LastName = command.LastName,
+                Password = command.Password
+            });
+
+            var loginResponse = await _authService.LoginAsync(new LoginCommand
+            {
+                Username = $"{createdPerson.FirstName}.{createdPerson.LastName}",
+                Password = command.Password
+            });
+
+            if (loginResponse is null)
+            {
+                throw new InvalidOperationException("Registration succeeded but auto-login failed.");
+            }
+
+            return Ok(loginResponse);
         }
 
         [Authorize]

@@ -30,6 +30,7 @@ Unit test project for the Application layer. Tests `PersonApplicationService`, `
 ### `AuthControllerTests`
 - 200 for successful login
 - 401 for invalid credentials
+- 200 for successful register with automatic login response
 - 204 for successful authenticated password change
 - 400 for invalid current password during password change
 

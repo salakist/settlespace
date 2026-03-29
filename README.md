@@ -167,6 +167,7 @@ React SPA with login-gated access, full CRUD, search, and Material UI dark theme
 fotest-react/src/
 +-- App.tsx           # App shell, auth gating, state management, dark ThemeProvider
 +-- LoginPage.tsx     # Login screen for JWT-based access
++-- RegisterPage.tsx  # Public registration screen with auto-login
 +-- ChangePasswordForm.tsx # Authenticated user password change form
 +-- PersonForm.tsx    # Create / edit form
 +-- PersonList.tsx    # Person cards with edit/delete actions
@@ -232,6 +233,7 @@ Base URL: `http://localhost:5279/api`
 | Method | Endpoint | Description | Body | Response |
 |--------|----------|-------------|------|----------|
 | POST | `/auth/login` | Authenticate and receive a JWT | `LoginCommand` | `200` LoginResponseDto, `401` |
+| POST | `/auth/register` | Register a new person and automatically sign in | `RegisterCommand` | `200` LoginResponseDto, `400`, `409` |
 | POST | `/auth/change-password` | Change password for the current authenticated user | `ChangePasswordCommand` | `204`, `400`, `401` |
 | GET | `/persons` | Get all persons | none | `200` Array of PersonDto, `401` |
 | GET | `/persons/{id}` | Get by ID | none | `200` PersonDto, `404`, `401` |
@@ -262,6 +264,18 @@ Passwords are stored as PBKDF2 hashes. If an older plaintext password is encount
   "expiresAtUtc": "2026-03-29T16:00:00Z"
 }
 ```
+
+### RegisterCommand
+
+```json
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "password": "Strong@Pass1"
+}
+```
+
+`/auth/register` is public and returns a valid JWT response so the user is logged in immediately after registration.
 
 ### ChangePasswordCommand
 

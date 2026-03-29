@@ -9,6 +9,12 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface RegisterRequest {
+  firstName: string;
+  lastName: string;
+  password: string;
+}
+
 export interface ChangePasswordRequest {
   currentPassword: string;
   newPassword: string;

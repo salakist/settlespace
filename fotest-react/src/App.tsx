@@ -8,6 +8,9 @@ import PersonForm from './PersonForm';
 import SearchBar from './SearchBar';
 import LoginPage from './LoginPage';
 import ChangePasswordForm from './ChangePasswordForm';
+import RegisterPage from './RegisterPage';
+
+type AuthView = 'login' | 'register';
 
 const darkTheme = createTheme({
   palette: {
@@ -36,6 +39,7 @@ function App() {
   const [username, setUsername] = useState(authStorage.getUsername() ?? '');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
+  const [authView, setAuthView] = useState<AuthView>('login');
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -79,6 +83,24 @@ function App() {
       setError(null);
     } catch (err) {
       setAuthError('Invalid username or password.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRegister = async (firstName: string, lastName: string, password: string) => {
+    try {
+      setLoading(true);
+      const response = await authApi.register({ firstName, lastName, password });
+      authStorage.saveSession(response.data);
+      setUsername(response.data.username);
+      setIsAuthenticated(true);
+      setAuthError(null);
+      setError(null);
+    } catch (err) {
+      const axiosError = err as { response?: { data?: { error?: string } } };
+      setAuthError(axiosError.response?.data?.error ?? 'Registration failed.');
       console.error(err);
     } finally {
       setLoading(false);
@@ -165,7 +187,27 @@ function App() {
     return (
       <ThemeProvider theme={darkTheme}>
         <CssBaseline />
-        <LoginPage onLogin={handleLogin} error={authError} loading={loading} />
+        {authView === 'login' ? (
+          <LoginPage
+            onLogin={handleLogin}
+            onShowRegister={() => {
+              setAuthError(null);
+              setAuthView('register');
+            }}
+            error={authError}
+            loading={loading}
+          />
+        ) : (
+          <RegisterPage
+            onRegister={handleRegister}
+            onShowLogin={() => {
+              setAuthError(null);
+              setAuthView('login');
+            }}
+            error={authError}
+            loading={loading}
+          />
+        )}
       </ThemeProvider>
     );
   }
