@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { Alert, Button, CircularProgress, Container, CssBaseline, Stack, Typography, ThemeProvider, createTheme } from '@mui/material';
 import '../styles/App.css';
 import { Person, RegisterRequest } from '../shared/types';
@@ -10,8 +11,10 @@ import LoginPage from '../features/auth/components/LoginPage';
 import RegisterPage from '../features/auth/components/RegisterPage';
 import ProfilePage from '../features/profile/components/ProfilePage';
 
-type AuthView = 'login' | 'register';
-type AppView = 'directory' | 'profile';
+const ROUTE_LOGIN = '/login';
+const ROUTE_REGISTER = '/register';
+const ROUTE_DIRECTORY = '/directory';
+const ROUTE_PROFILE = '/profile';
 
 const darkTheme = createTheme({
   palette: {
@@ -30,6 +33,7 @@ const darkTheme = createTheme({
 });
 
 function App() {
+  const navigate = useNavigate();
   const [persons, setPersons] = useState<Person[]>([]);
   const [currentPerson, setCurrentPerson] = useState<Person | null>(null);
   const [editingPerson, setEditingPerson] = useState<Person | undefined>();
@@ -43,8 +47,6 @@ function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(authStorage.isAuthenticated());
   const [username, setUsername] = useState(authStorage.getUsername() ?? '');
   const [passwordLoading, setPasswordLoading] = useState(false);
-  const [authView, setAuthView] = useState<AuthView>('login');
-  const [appView, setAppView] = useState<AppView>('directory');
 
   const normalizePerson = (person: Person): Person => ({
     ...person,
@@ -61,8 +63,8 @@ function App() {
     setCurrentPerson(null);
     setAuthError('Your session expired. Please log in again.');
     setPersons([]);
-    setAppView('directory');
-  }, []);
+    navigate(ROUTE_LOGIN);
+  }, [navigate]);
 
   const loadPersons = useCallback(async () => {
     try {
@@ -129,6 +131,7 @@ function App() {
       setIsAuthenticated(true);
       setAuthError(null);
       setError(null);
+      navigate(ROUTE_DIRECTORY);
     } catch (err) {
       setAuthError('Invalid username or password.');
       console.error(err);
@@ -146,6 +149,7 @@ function App() {
       setIsAuthenticated(true);
       setAuthError(null);
       setError(null);
+      navigate(ROUTE_DIRECTORY);
     } catch (err) {
       const axiosError = err as { response?: { data?: { error?: string } } };
       setAuthError(axiosError.response?.data?.error ?? 'Registration failed.');
@@ -165,7 +169,7 @@ function App() {
     setShowForm(false);
     setError(null);
     setProfileError(null);
-    setAppView('directory');
+    navigate(ROUTE_LOGIN);
   };
 
   const handlePasswordChange = async (currentPassword: string, newPassword: string) => {
@@ -251,27 +255,37 @@ function App() {
     return (
       <ThemeProvider theme={darkTheme}>
         <CssBaseline />
-        {authView === 'login' ? (
-          <LoginPage
-            onLogin={handleLogin}
-            onShowRegister={() => {
-              setAuthError(null);
-              setAuthView('register');
-            }}
-            error={authError}
-            loading={loading}
+        <Routes>
+          <Route
+            path={ROUTE_LOGIN}
+            element={
+              <LoginPage
+                onLogin={handleLogin}
+                onShowRegister={() => {
+                  setAuthError(null);
+                  navigate(ROUTE_REGISTER);
+                }}
+                error={authError}
+                loading={loading}
+              />
+            }
           />
-        ) : (
-          <RegisterPage
-            onRegister={handleRegister}
-            onShowLogin={() => {
-              setAuthError(null);
-              setAuthView('login');
-            }}
-            error={authError}
-            loading={loading}
+          <Route
+            path={ROUTE_REGISTER}
+            element={
+              <RegisterPage
+                onRegister={handleRegister}
+                onShowLogin={() => {
+                  setAuthError(null);
+                  navigate(ROUTE_LOGIN);
+                }}
+                error={authError}
+                loading={loading}
+              />
+            }
           />
-        )}
+          <Route path="*" element={<Navigate to={ROUTE_LOGIN} replace />} />
+        </Routes>
       </ThemeProvider>
     );
   }
@@ -296,9 +310,9 @@ function App() {
             <Stack direction="row" spacing={1.5}>
               <Button
                 variant="outlined"
-                onClick={() => setAppView((view) => (view === 'profile' ? 'directory' : 'profile'))}
+                onClick={() => navigate(window.location.pathname === ROUTE_PROFILE ? ROUTE_DIRECTORY : ROUTE_PROFILE)}
               >
-                {appView === 'profile' ? 'Back to Persons' : 'Profile'}
+                {window.location.pathname === ROUTE_PROFILE ? 'Back to Persons' : 'Profile'}
               </Button>
               <Button variant="outlined" color="secondary" onClick={handleLogout}>
                 Log Out
@@ -306,42 +320,52 @@ function App() {
             </Stack>
           </Stack>
 
-          {appView === 'profile' ? (
-            <ProfilePage
-              person={currentPerson}
-              loading={profileLoading}
-              error={profileError}
-              saveLoading={profileSaveLoading}
-              passwordLoading={passwordLoading}
-              onSave={handleProfileSave}
-              onChangePassword={handlePasswordChange}
+          <Routes>
+            <Route
+              path={ROUTE_PROFILE}
+              element={
+                <ProfilePage
+                  person={currentPerson}
+                  loading={profileLoading}
+                  error={profileError}
+                  saveLoading={profileSaveLoading}
+                  passwordLoading={passwordLoading}
+                  onSave={handleProfileSave}
+                  onChangePassword={handlePasswordChange}
+                />
+              }
             />
-          ) : (
-            <>
-              <SearchBar onSearch={handleSearch} />
+            <Route
+              path={ROUTE_DIRECTORY}
+              element={
+                <>
+                  <SearchBar onSearch={handleSearch} />
 
-              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-                <Typography variant="subtitle1">Manage persons in the database</Typography>
-                <Button variant="contained" onClick={() => setShowForm(true)} disabled={showForm}>
-                  Add New Person
-                </Button>
-              </Stack>
+                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+                    <Typography variant="subtitle1">Manage persons in the database</Typography>
+                    <Button variant="contained" onClick={() => setShowForm(true)} disabled={showForm}>
+                      Add New Person
+                    </Button>
+                  </Stack>
 
-              {showForm && (
-                <PersonForm person={editingPerson} onSave={handleSave} onCancel={handleCancel} />
-              )}
+                  {showForm && (
+                    <PersonForm person={editingPerson} onSave={handleSave} onCancel={handleCancel} />
+                  )}
 
-              {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+                  {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
 
-              {loading ? (
-                <Stack alignItems="center" sx={{ mt: 4 }}>
-                  <CircularProgress />
-                </Stack>
-              ) : (
-                <PersonList persons={persons} onEdit={handleEdit} onDelete={handleDelete} />
-              )}
-            </>
-          )}
+                  {loading ? (
+                    <Stack alignItems="center" sx={{ mt: 4 }}>
+                      <CircularProgress />
+                    </Stack>
+                  ) : (
+                    <PersonList persons={persons} onEdit={handleEdit} onDelete={handleDelete} />
+                  )}
+                </>
+              }
+            />
+            <Route path="*" element={<Navigate to={ROUTE_DIRECTORY} replace />} />
+          </Routes>
         </Container>
       </div>
     </ThemeProvider>
