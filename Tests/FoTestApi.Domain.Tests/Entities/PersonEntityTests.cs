@@ -69,4 +69,20 @@ public class PersonEntityTests
 
         Assert.False(person.MatchesByFullName(other));
     }
+
+    [Fact]
+    public void Person_WithPassword_CanBeSetAndRetrieved()
+    {
+        var person = new PersonEntity { FirstName = "John", LastName = "Doe", Password = "secret123" };
+
+        Assert.Equal("secret123", person.Password);
+    }
+
+    [Fact]
+    public void Person_PasswordCanBeNull()
+    {
+        var person = new PersonEntity { FirstName = "John", LastName = "Doe", Password = null };
+
+        Assert.Null(person.Password);
+    }
 }

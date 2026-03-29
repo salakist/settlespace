@@ -161,6 +161,6 @@ namespace FoTestApi.Controllers
         /// Maps a PersonEntity to a PersonDto.
         /// </summary>
         private static PersonDto MapToDto(PersonEntity entity) =>
-            new PersonDto { Id = entity.Id, FirstName = entity.FirstName, LastName = entity.LastName };
+            new PersonDto { Id = entity.Id, FirstName = entity.FirstName, LastName = entity.LastName, Password = entity.Password };
     }
 }

@@ -46,7 +46,8 @@ namespace FoTestApi.Application.Services
             var newPerson = new PersonEntity
             {
                 FirstName = command.FirstName,
-                LastName = command.LastName
+                LastName = command.LastName,
+                Password = command.Password
             };
 
             newPerson.Validate();
@@ -72,7 +73,8 @@ namespace FoTestApi.Application.Services
             {
                 Id = command.Id,
                 FirstName = command.FirstName,
-                LastName = command.LastName
+                LastName = command.LastName,
+                Password = command.Password
             };
 
             updatedPerson.Validate();

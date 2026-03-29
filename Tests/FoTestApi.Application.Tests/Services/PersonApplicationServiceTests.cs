@@ -79,8 +79,8 @@ public class PersonApplicationServiceTests
     [Fact]
     public async Task CreatePersonAsync_ValidCommand_CreatesAndReturnsPerson()
     {
-        var command  = new CreatePersonCommand { FirstName = "John", LastName = "Doe" };
-        var expected = new PersonEntity { Id = "new1", FirstName = "John", LastName = "Doe" };
+        var command  = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "secret123" };
+        var expected = new PersonEntity { Id = "new1", FirstName = "John", LastName = "Doe", Password = "secret123" };
 
         _domainServiceMock
             .Setup(d => d.EnsureUniqueAsync("John", "Doe", null))
@@ -127,7 +127,7 @@ public class PersonApplicationServiceTests
     [Fact]
     public async Task UpdatePersonAsync_ValidCommand_UpdatesPerson()
     {
-        var command  = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Doe" };
+        var command  = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Doe", Password = "newpass" };
         var existing = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe" };
 
         _repositoryMock.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(existing);

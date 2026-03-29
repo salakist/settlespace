@@ -75,8 +75,8 @@ public class PersonsControllerTests
     [Fact]
     public async Task Post_ValidCommand_ReturnsCreated()
     {
-        var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe" };
-        var person  = new PersonEntity { Id = "507f1f77bcf86cd799439011", FirstName = "John", LastName = "Doe" };
+        var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "secret123" };
+        var person  = new PersonEntity { Id = "507f1f77bcf86cd799439011", FirstName = "John", LastName = "Doe", Password = "secret123" };
         _serviceMock.Setup(s => s.CreatePersonAsync(command)).ReturnsAsync(person);
 
         var result = await _controller.Post(command);
@@ -118,7 +118,7 @@ public class PersonsControllerTests
     public async Task Update_ValidCommand_ReturnsNoContent()
     {
         var id      = "507f1f77bcf86cd799439011";
-        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
+        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe", Password = "newpass" };
         _serviceMock.Setup(s => s.UpdatePersonAsync(It.IsAny<UpdatePersonCommand>()))
                     .Returns(Task.CompletedTask);
 
@@ -131,7 +131,7 @@ public class PersonsControllerTests
     public async Task Update_PersonNotFound_ReturnsNotFound()
     {
         var id      = "507f1f77bcf86cd799439011";
-        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
+        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe", Password = "newpass" };
         _serviceMock.Setup(s => s.UpdatePersonAsync(It.IsAny<UpdatePersonCommand>()))
                     .ThrowsAsync(new InvalidOperationException("Person with ID 'x' not found."));
 
@@ -144,7 +144,7 @@ public class PersonsControllerTests
     public async Task Update_DuplicateName_ReturnsConflict()
     {
         var id      = "507f1f77bcf86cd799439011";
-        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
+        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe", Password = "newpass" };
         _serviceMock.Setup(s => s.UpdatePersonAsync(It.IsAny<UpdatePersonCommand>()))
                     .ThrowsAsync(new DuplicatePersonException("Jane", "Doe"));
 

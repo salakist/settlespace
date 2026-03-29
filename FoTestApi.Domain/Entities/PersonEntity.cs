@@ -22,6 +22,11 @@ namespace FoTestApi.Domain.Entities
         public string LastName { get; set; } = null!;
 
         /// <summary>
+        /// The password for the person (not validated at domain level).
+        /// </summary>
+        public string? Password { get; set; }
+
+        /// <summary>
         /// Validates that the person has non-empty first and last names.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown when names are null or empty.</exception>
