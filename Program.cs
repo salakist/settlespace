@@ -6,7 +6,7 @@ using System.Reflection;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.Configure<FoTestDatabaseSettings>(
+builder.Services.Configure<FoTestApi.Models.FoTestDatabaseSettings>(
     builder.Configuration.GetSection("FoTestDatabase"));
 
 builder.Services.AddSingleton<PersonService>();
