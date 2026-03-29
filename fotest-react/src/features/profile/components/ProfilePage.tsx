@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material';
-import PersonAddressEditor from './PersonAddressEditor';
-import ChangePasswordForm from './ChangePasswordForm';
-import { Address, Person } from './types';
+import ChangePasswordForm from '../../auth/components/ChangePasswordForm';
+import PersonAddressEditor from '../../persons/components/PersonAddressEditor';
+import { Address, Person } from '../../../shared/types';
 
 interface ProfilePageProps {
   person: Person | null;

@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Button, CircularProgress, Container, CssBaseline, Stack, Typography, ThemeProvider, createTheme } from '@mui/material';
-import './App.css';
-import { Person, RegisterRequest } from './types';
-import { authApi, authStorage, personApi } from './api';
-import PersonList from './PersonList';
-import PersonForm from './PersonForm';
-import SearchBar from './SearchBar';
-import LoginPage from './LoginPage';
-import RegisterPage from './RegisterPage';
-import ProfilePage from './ProfilePage';
+import '../styles/App.css';
+import { Person, RegisterRequest } from '../shared/types';
+import { authApi, authStorage, personApi } from '../shared/api/api';
+import PersonList from '../features/persons/components/PersonList';
+import PersonForm from '../features/persons/components/PersonForm';
+import SearchBar from '../features/persons/components/SearchBar';
+import LoginPage from '../features/auth/components/LoginPage';
+import RegisterPage from '../features/auth/components/RegisterPage';
+import ProfilePage from '../features/profile/components/ProfilePage';
 
 type AuthView = 'login' | 'register';
 type AppView = 'directory' | 'profile';

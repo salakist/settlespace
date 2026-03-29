@@ -7,6 +7,31 @@
 $RepoRoot    = Split-Path -Parent $PSScriptRoot
 $GitHooksDir = Join-Path $RepoRoot ".git\hooks"
 
+function Test-HookInstalled {
+    param(
+        [string]$HookName
+    )
+
+    $sourcePath = Join-Path $RepoRoot "scripts\hooks\$HookName"
+    $installedPath = Join-Path $GitHooksDir $HookName
+
+    if (-not (Test-Path $installedPath)) {
+        Write-Host "  [FAIL] $HookName hook not found after install" -ForegroundColor Red
+        return $false
+    }
+
+    $sourceHash = (Get-FileHash -Path $sourcePath -Algorithm SHA256).Hash
+    $installedHash = (Get-FileHash -Path $installedPath -Algorithm SHA256).Hash
+
+    if ($sourceHash -ne $installedHash) {
+        Write-Host "  [FAIL] $HookName hook content does not match scripts\hooks\$HookName" -ForegroundColor Red
+        return $false
+    }
+
+    Write-Host "  [OK] $HookName hook installed and verified" -ForegroundColor Green
+    return $true
+}
+
 if (-not (Test-Path $GitHooksDir)) {
     Write-Error "ERROR: .git\hooks directory not found. Are you in the fo-test repository?"
     exit 1
@@ -22,8 +47,16 @@ Copy-Item -Path (Join-Path $RepoRoot "scripts\hooks\pre-push") `
           -Destination (Join-Path $GitHooksDir "pre-push") `
           -Force
 
-Write-Host "  [OK] pre-commit hook installed" -ForegroundColor Green
-Write-Host "  [OK] pre-push hook installed" -ForegroundColor Green
+$hooksVerified = $true
+if (-not (Test-HookInstalled "pre-commit")) { $hooksVerified = $false }
+if (-not (Test-HookInstalled "pre-push")) { $hooksVerified = $false }
+
+if (-not $hooksVerified) {
+    Write-Host ""
+    Write-Host "Hook installation verification failed. Fix the issues above and rerun setup-hooks." -ForegroundColor Red
+    exit 1
+}
+
 Write-Host ""
 Write-Host "Changed-code quality gates will now run automatically before every commit and push."
 Write-Host "To run changed-code checks manually: .\scripts\run-checks.ps1"

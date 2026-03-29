@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button, Card, CardContent, CardActions, Typography, Stack } from '@mui/material';
-import { Person } from './types';
+import { Person } from '../../../shared/types';
 
 interface PersonListProps {
   persons: Person[];

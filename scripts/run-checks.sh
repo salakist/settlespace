@@ -11,6 +11,25 @@ CHANGED_LIST_PATH="$ARTIFACTS_ROOT/changed-files.txt"
 COVERAGE_ROOT="$ARTIFACTS_ROOT/coverage/changed"
 FAILED=0
 CHANGE_SCOPE=""
+declare -a PUSH_RANGES=()
+declare -a PUSH_NEW_SHAS=()
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --push-range)
+      PUSH_RANGES+=("$2")
+      shift 2
+      ;;
+    --push-new-sha)
+      PUSH_NEW_SHAS+=("$2")
+      shift 2
+      ;;
+    *)
+      echo "ERROR: Unknown argument '$1'"
+      exit 2
+      ;;
+  esac
+done
 
 print_header() {
   echo ""
@@ -20,6 +39,32 @@ print_header() {
 }
 
 get_changed_files() {
+  if [ "${#PUSH_RANGES[@]}" -gt 0 ] || [ "${#PUSH_NEW_SHAS[@]}" -gt 0 ]; then
+    local explicit_files=()
+
+    for range in "${PUSH_RANGES[@]}"; do
+      mapfile -t range_files < <(git diff --name-only --diff-filter=ACMR "$range" | awk 'NF' | sort -u)
+      explicit_files+=("${range_files[@]}")
+    done
+
+    for sha in "${PUSH_NEW_SHAS[@]}"; do
+      mapfile -t new_commits < <(git rev-list "$sha" --not --remotes | awk 'NF')
+      if [ "${#new_commits[@]}" -eq 0 ]; then
+        mapfile -t new_files < <(git diff-tree --no-commit-id --name-only -r --diff-filter=ACMR "$sha" | awk 'NF' | sort -u)
+        explicit_files+=("${new_files[@]}")
+      else
+        for commit in "${new_commits[@]}"; do
+          mapfile -t commit_files < <(git diff-tree --no-commit-id --name-only -r --diff-filter=ACMR "$commit" | awk 'NF' | sort -u)
+          explicit_files+=("${commit_files[@]}")
+        done
+      fi
+    done
+
+    CHANGE_SCOPE="explicit push refs"
+    mapfile -t CHANGED_FILES < <(printf '%s\n' "${explicit_files[@]}" | awk 'NF' | sort -u)
+    return
+  fi
+
   local staged=()
   mapfile -t staged < <(git diff --cached --name-only --diff-filter=ACMR | awk 'NF' | sort -u)
   if [ "${#staged[@]}" -gt 0 ]; then
@@ -87,6 +132,8 @@ invoke_csharp_coverage() {
 
 cd "$REPO_ROOT"
 mkdir -p "$ARTIFACTS_ROOT"
+
+echo "[mandatory] changed-code gate: run before every commit and push"
 
 declare -a CHANGED_FILES=()
 get_changed_files

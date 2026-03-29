@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ChangePasswordRequest, LoginRequest, LoginResponse, Person, RegisterRequest } from './types';
+import { ChangePasswordRequest, LoginRequest, LoginResponse, Person, RegisterRequest } from '../types';
 
 const API_BASE_URL = 'http://localhost:5279/api';
 const TOKEN_STORAGE_KEY = 'fotest.auth.token';

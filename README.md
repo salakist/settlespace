@@ -212,7 +212,20 @@ sh scripts/setup-hooks.sh
 ### Git hooks
 
 - `pre-commit` and `pre-push` call the changed-code gate
+- `pre-push` evaluates the exact refs being pushed (remote SHA..local SHA) so commits about to be pushed are analyzed as new code
 - Do not bypass the hooks with `--no-verify`
+
+### Verify hook installation
+
+```powershell
+Get-ChildItem .git\hooks\pre-commit, .git\hooks\pre-push
+```
+
+```bash
+ls -l .git/hooks/pre-commit .git/hooks/pre-push
+```
+
+If a hook is missing or does not match `scripts/hooks/`, re-run `setup-hooks`.
 
 ---
 
@@ -222,17 +235,19 @@ React SPA with login-gated access, full CRUD, search, and Material UI dark theme
 
 ```
 fotest-react/src/
-+-- App.tsx           # App shell, auth gating, state management, dark ThemeProvider
-+-- LoginPage.tsx     # Login screen for JWT-based access
-+-- RegisterPage.tsx  # Public registration screen with auto-login and optional profile fields
-+-- ProfilePage.tsx   # Authenticated profile screen for personal info + password updates
-+-- ChangePasswordForm.tsx # Password change form embedded in the profile page
-+-- PersonAddressEditor.tsx # Shared address list editor used by registration and profile
-+-- PersonForm.tsx    # Create / edit form
-+-- PersonList.tsx    # Person cards with edit/delete actions
-+-- SearchBar.tsx     # Case-insensitive search input
-+-- api.ts            # Axios API calls, login, token storage helpers
-+-- types.ts          # TypeScript interfaces
++-- app/
+|   +-- App.tsx                     # App shell, auth gating, state management, dark ThemeProvider
++-- features/
+|   +-- auth/components/            # Login, registration, password change UI
+|   +-- persons/components/         # Person list, form, search, address editor
+|   +-- profile/components/         # Authenticated profile page
++-- shared/
+|   +-- api/api.ts                  # Axios API calls, login, token storage helpers
+|   +-- types/index.ts              # Shared TypeScript interfaces
++-- styles/
+|   +-- App.css
+|   +-- index.css
++-- index.tsx                       # React entry point
 ```
 
 ### Frontend commands

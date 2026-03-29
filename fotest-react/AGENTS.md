@@ -4,15 +4,13 @@
 React frontend for person entity management using `FoTestApi`.
 
 ## Responsibilities
-- App shell, auth gating, and state management in `App.tsx`
-- Login UI and credential submission in `LoginPage.tsx`
-- Public registration UI and auto-login flow in `RegisterPage.tsx`
-- Authenticated profile UI in `ProfilePage.tsx` (including password change)
-- Shared address editing UI in `PersonAddressEditor.tsx`
-- Person form handling in `PersonForm.tsx`
-- Listing and action controls in `PersonList.tsx`
-- Search flow in `SearchBar.tsx`
-- API calls, login, registration, password change, token persistence, and auth header attachment in `api.ts`
+- `src/app/` owns the app shell and top-level orchestration.
+- `src/features/auth/components/` owns login, registration, and password change UI.
+- `src/features/persons/components/` owns person list, form, search, and address editor UI.
+- `src/features/profile/components/` owns authenticated profile editing.
+- `src/shared/api/` owns API calls, auth storage, and request interception.
+- `src/shared/types/` owns shared frontend domain types.
+- Tests are colocated with the components they validate.
 
 ## Commands
 - `npm install`
@@ -30,3 +28,4 @@ Authenticated users can open the profile page from the header and change their p
 Unauthenticated users can open a register page and are automatically signed in after creating an account.
 Frontend quality gates are executed from repository root scripts, not from a frontend-only wrapper.
 Frontend coverage scope targets production files under `src/` and excludes test/bootstrap files such as `*.test.tsx`, `setupTests.ts`, `reportWebVitals.ts`, `index.tsx`, and `react-app-env.d.ts`.
+The frontend source tree follows a feature-oriented layout (`app`, `features`, `shared`, `styles`) rather than a flat `src/` structure.

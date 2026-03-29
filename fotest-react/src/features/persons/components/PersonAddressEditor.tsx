@@ -1,7 +1,7 @@
 import React from 'react';
 import { Button, IconButton, Paper, Stack, TextField, Typography } from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
-import { Address } from './types';
+import { Address } from '../../../shared/types';
 
 interface PersonAddressEditorProps {
   addresses: Address[];

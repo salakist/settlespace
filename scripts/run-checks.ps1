@@ -6,6 +6,11 @@
 #   3. React/TS ESLint on changed frontend files
 #   4. React/TS coverage on changed production frontend files (threshold: 80%)
 
+param(
+    [string[]]$PushRange = @(),
+    [string[]]$PushNewSha = @()
+)
+
 $ErrorActionPreference = "Continue"
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
@@ -28,6 +33,36 @@ function Get-UniqueLines([string[]]$Lines) {
 }
 
 function Get-ChangedContext {
+    param(
+        [string[]]$PushRanges,
+        [string[]]$PushNewShas
+    )
+
+    if ($PushRanges.Count -gt 0 -or $PushNewShas.Count -gt 0) {
+        $explicitFiles = @()
+
+        foreach ($range in $PushRanges) {
+            $rangeFiles = Get-UniqueLines @(git diff --name-only --diff-filter=ACMR $range)
+            $explicitFiles = @($explicitFiles + $rangeFiles)
+        }
+
+        foreach ($sha in $PushNewShas) {
+            $newCommits = Get-UniqueLines @(git rev-list $sha --not --remotes)
+            if ($newCommits.Count -eq 0) {
+                $newFiles = Get-UniqueLines @(git diff-tree --no-commit-id --name-only -r --diff-filter=ACMR $sha)
+                $explicitFiles = @($explicitFiles + $newFiles)
+            }
+            else {
+                foreach ($commit in $newCommits) {
+                    $commitFiles = Get-UniqueLines @(git diff-tree --no-commit-id --name-only -r --diff-filter=ACMR $commit)
+                    $explicitFiles = @($explicitFiles + $commitFiles)
+                }
+            }
+        }
+
+        return @{ Source = "explicit push refs"; Files = (Get-UniqueLines $explicitFiles) }
+    }
+
     $staged = Get-UniqueLines @(git diff --cached --name-only --diff-filter=ACMR)
     if ($staged.Count -gt 0) {
         return @{ Source = "staged changes"; Files = $staged }
@@ -78,9 +113,11 @@ function Invoke-CSharpCoverage([string]$ProjectPath, [string]$OutputPrefix) {
     return $LASTEXITCODE
 }
 
-$changedContext = Get-ChangedContext
+$changedContext = Get-ChangedContext -PushRanges $PushRange -PushNewShas $PushNewSha
 $changedFiles = @($changedContext.Files | ForEach-Object { $_.Replace('\\', '/') })
 $changedFiles = Get-UniqueLines $changedFiles
+
+Write-Host "[mandatory] changed-code gate: run before every commit and push" -ForegroundColor Yellow
 
 Write-Header "Changed-code analysis target"
 Write-Host "Scope: $($changedContext.Source)" -ForegroundColor Yellow

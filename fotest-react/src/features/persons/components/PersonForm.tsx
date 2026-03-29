@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Button, Paper, Stack, TextField, Typography } from '@mui/material';
-import { Person } from './types';
+import { Person } from '../../../shared/types';
 
 interface PersonFormProps {
   person?: Person;

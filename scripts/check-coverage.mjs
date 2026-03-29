@@ -64,6 +64,30 @@ function isProductionCSharpFile(relativePath) {
     && !/\/(bin|obj)\//i.test(normalized);
 }
 
+function fileLikelyHasExecutableCSharp(filePath, repoRoot) {
+  const absolutePath = path.resolve(repoRoot, filePath);
+  if (!fs.existsSync(absolutePath)) {
+    return true;
+  }
+
+  const content = fs.readFileSync(absolutePath, "utf8");
+  const compact = content
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\/\/.*$/gm, "")
+    .trim();
+
+  if (/\binterface\b/i.test(compact)) {
+    return false;
+  }
+
+  // Empty marker/derived types with no bodies or executable syntax should not fail coverage.
+  if (/\b(class|record|struct)\b/i.test(compact) && !/(=>|\bif\b|\bfor\b|\bwhile\b|\bswitch\b|\breturn\b|\bthrow\b|\bawait\b|\bnew\b)/i.test(compact)) {
+    return false;
+  }
+
+  return true;
+}
+
 function isProductionReactFile(relativePath) {
   const normalized = normalizePath(relativePath);
   return /^fotest-react\/src\/.*\.(ts|tsx)$/i.test(normalized)
@@ -164,8 +188,12 @@ function evaluateCSharpCoverage(args) {
     const coverageByLine = coverletCoverage.get(relativePath);
 
     if (!coverageByLine) {
-      console.log(`[MISS] ${relativePath} - no coverage data found.`);
-      missingCoverageData = true;
+      if (fileLikelyHasExecutableCSharp(relativePath, repoRoot)) {
+        console.log(`[MISS] ${relativePath} - no coverage data found.`);
+        missingCoverageData = true;
+      } else {
+        console.log(`[SKIP] ${relativePath} - no executable lines expected.`);
+      }
       continue;
     }
 
@@ -208,7 +236,7 @@ function loadReactSummary(reportPath, repoRoot) {
     const normalizedKey = normalizePath(key);
     const relativePath = normalizedKey.toLowerCase().startsWith("src/")
       ? `fotest-react/${normalizedKey}`
-      : toRepoRelativePath(normalizedKey, repoRoot);
+      : toRepoRelativePath(key, repoRoot);
 
     summary.set(relativePath, value.lines ?? { total: 0, covered: 0, pct: 0 });
   }

@@ -8,8 +8,8 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import PersonAddressEditor from './PersonAddressEditor';
-import { Address, RegisterRequest } from './types';
+import PersonAddressEditor from '../../persons/components/PersonAddressEditor';
+import { Address, RegisterRequest } from '../../../shared/types';
 
 interface RegisterPageProps {
   onRegister: (request: RegisterRequest) => Promise<void>;

@@ -18,4 +18,20 @@ if [ ! -f "scripts/run-checks.sh" ]; then
   exit 1
 fi
 
-sh scripts/run-checks.sh
+ZERO_SHA="0000000000000000000000000000000000000000"
+set --
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  # Deletion push: no new content to analyze for this ref.
+  if [ "$local_sha" = "$ZERO_SHA" ]; then
+    continue
+  fi
+
+  if [ "$remote_sha" = "$ZERO_SHA" ]; then
+    set -- "$@" "--push-new-sha" "$local_sha"
+  else
+    set -- "$@" "--push-range" "$remote_sha..$local_sha"
+  fi
+done
+
+sh scripts/run-checks.sh "$@"
