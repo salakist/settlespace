@@ -26,11 +26,14 @@ A full-stack demonstration project showcasing Domain-Driven Design (DDD) with a 
 ```
 fo-test/
 ├── FoTestApi.sln
-├── FoTestApi.Domain/           # Domain layer — business rules and contracts
-├── FoTestApi.Infrastructure/   # Infrastructure layer — MongoDB persistence
-├── FoTestApi.Application/      # Application layer — API, controllers, commands
-├── fotest-react/               # React SPA frontend
-├── AGENTS.md                   # Root agent index
+├── FoTestApi.Domain/               # Domain layer — business rules and contracts
+├── FoTestApi.Infrastructure/       # Infrastructure layer — MongoDB persistence
+├── FoTestApi.Application/          # Application layer — API, controllers, commands
+├── FoTestApi.Domain.Tests/         # Unit tests — Domain layer
+├── FoTestApi.Infrastructure.Tests/ # Unit tests — Infrastructure layer
+├── FoTestApi.Application.Tests/    # Unit tests — Application layer
+├── fotest-react/                   # React SPA frontend
+├── AGENTS.md                       # Root agent index
 └── README.md
 ```
 
@@ -55,6 +58,7 @@ Pure domain layer. No NuGet packages. No infrastructure coupling.
 FoTestApi.Domain/
 ├── Entities/PersonEntity.cs
 ├── Repositories/IPersonRepository.cs
+├── Services/IPersonDomainService.cs
 ├── Services/PersonDomainService.cs
 └── Exceptions/DuplicatePersonException.cs
 ```
@@ -97,16 +101,47 @@ FoTestApi.Application/
 ├── Commands/        CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
 ├── Controllers/     PersonsController
 ├── DTOs/            PersonDto
-├── Services/        PersonApplicationService
+├── Services/        IPersonApplicationService, PersonApplicationService
 ├── Program.cs
 └── appsettings.json
 ```
 
-`PersonApplicationService` orchestrates: validate entity → delegate duplicate check to `PersonDomainService` → persist via repository.
+`PersonApplicationService` orchestrates: validate entity → delegate duplicate check to `IPersonDomainService` → persist via repository.
 
 ---
 
-### fotest-react
+## Unit Tests
+
+Each DDD layer has a dedicated xUnit + Moq test project.
+
+| Project | Tests | Scope |
+|---|---|---|
+| `FoTestApi.Domain.Tests` | 13 | `PersonEntity` rules, `PersonDomainService` uniqueness |
+| `FoTestApi.Infrastructure.Tests` | 10 | `PersonRepository` CRUD via mocked `IMongoCollection<T>` |
+| `FoTestApi.Application.Tests` | 25 | `PersonApplicationService` commands/queries, `PersonsController` HTTP status codes |
+
+### Run all tests
+
+```bash
+dotnet test FoTestApi.sln
+```
+
+### Run a single layer
+
+```bash
+dotnet test FoTestApi.Domain.Tests/FoTestApi.Domain.Tests.csproj
+dotnet test FoTestApi.Infrastructure.Tests/FoTestApi.Infrastructure.Tests.csproj
+dotnet test FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj
+```
+
+### Test isolation strategy
+- **Domain tests** — no mocks; plain object instantiation
+- **Infrastructure tests** — mock `IMongoCollection<T>` injected via `internal` constructor; no live MongoDB needed
+- **Application tests** — mock `IPersonRepository` + `IPersonDomainService` for service tests; mock `IPersonApplicationService` for controller tests
+
+---
+
+## fotest-react
 
 React SPA with full CRUD, search, and Material UI dark theme.
 

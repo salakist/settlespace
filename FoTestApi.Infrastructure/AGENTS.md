@@ -9,10 +9,16 @@ Implements the `IPersonRepository` interface defined in the Domain project.
 - Register `BsonClassMap` for `PersonEntity` (keeping Domain persistence-agnostic)
 - Hold `FoTestDatabaseSettings` configuration model
 - Provide case-insensitive search and full-name duplicate detection via regex
+- Expose an `internal` test constructor on `PersonRepository` for unit testing without a live database
 
 ## Key files
 - `Repositories/PersonRepository.cs` — MongoDB implementation of `IPersonRepository`
 - `FoTestDatabaseSettings.cs` — connection string, database name, collection name config
+
+## Testability
+- `PersonRepository` has an `internal PersonRepository(IMongoCollection<PersonEntity>)` constructor
+- `FoTestApi.Infrastructure.Tests` is listed in `InternalsVisibleTo` so tests can inject a mock collection
+- Tests mock `IMongoCollection<T>` and `IAsyncCursor<T>` — no live MongoDB required
 
 ## Dependency direction
 - References: `FoTestApi.Domain`
@@ -20,6 +26,7 @@ Implements the `IPersonRepository` interface defined in the Domain project.
 
 ## Commands
 - `dotnet build FoTestApi.Infrastructure/FoTestApi.Infrastructure.csproj`
+- `dotnet test FoTestApi.Infrastructure.Tests/FoTestApi.Infrastructure.Tests.csproj`
 
 ## NuGet packages
 - `MongoDB.Driver`
