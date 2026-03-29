@@ -1,15 +1,19 @@
-using FoTestApi.Services;
-using FoTestApi;
+using FoTestApi.Application;
+using FoTestApi.Domain.Repositories;
+using FoTestApi.Infrastructure.Repositories;
+using FoTestApi.Models;
 using System.IO;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.Configure<FoTestApi.Models.FoTestDatabaseSettings>(
+builder.Services.Configure<FoTestDatabaseSettings>(
     builder.Configuration.GetSection("FoTestDatabase"));
 
-builder.Services.AddSingleton<PersonService>();
+// Register DDD pattern services
+builder.Services.AddScoped<IPersonRepository, PersonRepository>();
+builder.Services.AddScoped<PersonApplicationService>();
 
 builder.Services.AddControllers();
 builder.Services.AddCors(options =>
