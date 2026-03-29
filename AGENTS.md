@@ -34,6 +34,12 @@ Each production layer has a corresponding xUnit + Moq test project:
 Run all tests: `dotnet test FoTestApi.sln`
 - Test projects live under `Tests/` to keep them separate from production projects.
 
+## Running the API host
+
+- From the repository root (`fo-test/`), run `dotnet run --project .\FoTestApi.Application\FoTestApi.Application.csproj`.
+- If the current terminal is one level above the repo (for example the workspace root is `Repos/`), run `dotnet run --project .\fo-test\FoTestApi.Application\FoTestApi.Application.csproj` instead.
+- Do not assume the terminal cwd is the repository root; verify the current directory before using a relative project path.
+
 ## Quality gates — mandatory before every commit and push
 
 There are now two analysis modes:

@@ -61,6 +61,12 @@ FoTestApi.Application/
 - `appsettings.json` — MongoDB and JWT configuration
 
 ## Commands
-- `dotnet build`
-- `dotnet run`
-- `dotnet test FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj`
+- From `FoTestApi.Application/`: `dotnet build`
+- From `FoTestApi.Application/`: `dotnet run`
+- From repository root: `dotnet run --project .\FoTestApi.Application\FoTestApi.Application.csproj`
+- From workspace root one level above the repo: `dotnet run --project .\fo-test\FoTestApi.Application\FoTestApi.Application.csproj`
+- From repository root: `dotnet test Tests/FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj`
+
+## Working directory note
+- `dotnet run` without `--project` only works when the terminal cwd is `FoTestApi.Application/`.
+- If the cwd is different, always use an explicit `--project` path that matches the current directory depth.

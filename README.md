@@ -293,8 +293,23 @@ mongod --dbpath "C:\data\db"
 
 ### 3. Run the API
 
+From the repository root (`fo-test`):
+
 ```bash
 dotnet run --project FoTestApi.Application\FoTestApi.Application.csproj
+```
+
+If your terminal is one level above the repository (for example the VS Code workspace root is `Repos/`), use the repository-prefixed path instead:
+
+```bash
+dotnet run --project fo-test\FoTestApi.Application\FoTestApi.Application.csproj
+```
+
+Alternatively, change into the project directory first and run `dotnet run` there:
+
+```bash
+cd fo-test\FoTestApi.Application
+dotnet run
 ```
 
 API starts on `http://localhost:5279`.
