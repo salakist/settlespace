@@ -7,7 +7,7 @@ Application layer and API host — orchestrates domain logic, handles HTTP, and 
 ```
 FoTestApi.Application/
 ├── Authentication/ AuthSettings, CustomClaimTypes
-├── Commands/        LoginCommand, RegisterCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand, AddressCommand
+├── Commands/        LoginCommand, RegisterCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, PersonMutationCommand, DeletePersonCommand, AddressCommand
 ├── Controllers/     AuthController, PersonsController
 ├── Mapping/         IPersonMapper, PersonMapper
 ├── DTOs/            LoginResponseDto, PersonDto, AddressDto
@@ -29,6 +29,7 @@ FoTestApi.Application/
 - Define commands in `Commands/` (input contracts for create/update/delete)
 - Define auth and response DTOs in `DTOs/`
 - Keep mapping logic in `Mapping/` to avoid controller/service inline mapping
+- Keep update IDs outside request body models and pass them via route/claims into service methods
 - Register DI in `Program.cs` (repository, domain service, auth service, application service, CORS, Swagger, JWT auth)
 - Register `ExceptionHandlingMiddleware` to translate domain exceptions to HTTP responses (409 Conflict, 404 Not Found, 400 Bad Request)
 - Require JWT authentication for person management endpoints
@@ -50,7 +51,7 @@ FoTestApi.Application/
 - `Services/AuthService.cs` — validates person credentials and mints JWTs
 - `Services/IPersonApplicationService.cs` — application service interface
 - `Services/PersonApplicationService.cs` — command/query orchestration
-- `Commands/` — LoginCommand, RegisterCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
+- `Commands/` — LoginCommand, RegisterCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, PersonMutationCommand, DeletePersonCommand
 - `Commands/AddressCommand.cs` — inbound address shape for create/register/update commands
 - `DTOs/LoginResponseDto.cs` — outbound JWT response payload
 - `DTOs/PersonDto.cs` and `DTOs/AddressDto.cs` — outbound API data shape

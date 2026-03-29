@@ -121,7 +121,7 @@ public class PersonsControllerTests
     {
         var id      = "507f1f77bcf86cd799439011";
         var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
-        _serviceMock.Setup(s => s.UpdatePersonAsync(It.IsAny<UpdatePersonCommand>()))
+        _serviceMock.Setup(s => s.UpdatePersonAsync(id, command))
                     .Returns(Task.CompletedTask);
 
         var result = await _controller.Update(id, command);
@@ -134,7 +134,7 @@ public class PersonsControllerTests
     {
         var id = "507f1f77bcf86cd799439011";
         var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
-        _serviceMock.Setup(s => s.UpdatePersonAsync(It.Is<UpdatePersonCommand>(update => update.Id == id)))
+        _serviceMock.Setup(s => s.UpdatePersonAsync(id, command))
             .Returns(Task.CompletedTask);
         _controller.ControllerContext = new ControllerContext
         {

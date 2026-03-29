@@ -70,21 +70,26 @@ namespace FoTestApi.Application.Services
             return await _repository.AddAsync(newPerson);
         }
 
-        public async Task UpdatePersonAsync(UpdatePersonCommand command)
+        public async Task UpdatePersonAsync(string id, UpdatePersonCommand command)
         {
-            var existingPerson = await _repository.GetByIdAsync(command.Id);
-            if (existingPerson == null)
+            if (string.IsNullOrWhiteSpace(id))
             {
-                throw new InvalidOperationException($"Person with ID '{command.Id}' not found.");
+                throw new InvalidOperationException("Person ID is required for update.");
             }
 
-            var updatedPerson = _personMapper.ToEntity(command, existingPerson.Password);
+            var existingPerson = await _repository.GetByIdAsync(id);
+            if (existingPerson == null)
+            {
+                throw new InvalidOperationException($"Person with ID '{id}' not found.");
+            }
+
+            var updatedPerson = _personMapper.ToEntity(id, command, existingPerson.Password);
 
             updatedPerson.Validate();
 
-            await _domainService.EnsureUniqueAsync(updatedPerson.FirstName, updatedPerson.LastName, command.Id);
+            await _domainService.EnsureUniqueAsync(updatedPerson.FirstName, updatedPerson.LastName, id);
 
-            await _repository.UpdateAsync(command.Id, updatedPerson);
+            await _repository.UpdateAsync(id, updatedPerson);
         }
 
         public async Task DeletePersonAsync(DeletePersonCommand command)

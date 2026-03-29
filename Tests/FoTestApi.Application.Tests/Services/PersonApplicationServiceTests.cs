@@ -215,7 +215,7 @@ public class PersonApplicationServiceTests
     [Fact]
     public async Task UpdatePersonAsync_ValidCommand_UpdatesPerson()
     {
-        var command  = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Doe" };
+        var command  = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
         var existing = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe", Password = "hashed::Old@Pass1" };
         PersonEntity? capturedPerson = null;
 
@@ -227,7 +227,7 @@ public class PersonApplicationServiceTests
                        .Callback<string, PersonEntity>((_, person) => capturedPerson = person)
                        .Returns(Task.CompletedTask);
 
-        await _sut.UpdatePersonAsync(command);
+        await _sut.UpdatePersonAsync("1", command);
 
         _domainServiceMock.Verify(d => d.EnsureUniqueAsync("Jane", "Doe", "1"), Times.Once);
         _repositoryMock.Verify(r => r.UpdateAsync("1", It.IsAny<PersonEntity>()), Times.Once);
@@ -239,7 +239,7 @@ public class PersonApplicationServiceTests
     [Fact]
     public async Task UpdatePersonAsync_PreservesExistingPassword()
     {
-        var command  = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Doe" };
+        var command  = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
         var existing = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe", Password = "hashed::Existing@Pass1" };
         var capturedPerson = (PersonEntity?)null;
 
@@ -251,7 +251,7 @@ public class PersonApplicationServiceTests
                        .Callback<string, PersonEntity>((id, p) => capturedPerson = p)
                        .Returns(Task.CompletedTask);
 
-        await _sut.UpdatePersonAsync(command);
+        await _sut.UpdatePersonAsync("1", command);
 
         Assert.NotNull(capturedPerson);
         Assert.Equal("hashed::Existing@Pass1", capturedPerson!.Password);
@@ -261,19 +261,33 @@ public class PersonApplicationServiceTests
     [Fact]
     public async Task UpdatePersonAsync_PersonNotFound_ThrowsInvalidOperationException()
     {
-        var command = new UpdatePersonCommand { Id = "missing", FirstName = "Jane", LastName = "Doe" };
+        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
 
         _repositoryMock.Setup(r => r.GetByIdAsync("missing"))
                        .ReturnsAsync((PersonEntity?)null);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _sut.UpdatePersonAsync(command));
+            () => _sut.UpdatePersonAsync("missing", command));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public async Task UpdatePersonAsync_EmptyOrWhitespaceId_ThrowsInvalidOperationException(string id)
+    {
+        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
+
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _sut.UpdatePersonAsync(id, command));
+
+        _repositoryMock.Verify(repository => repository.GetByIdAsync(It.IsAny<string>()), Times.Never);
+        _repositoryMock.Verify(repository => repository.UpdateAsync(It.IsAny<string>(), It.IsAny<PersonEntity>()), Times.Never);
     }
 
     [Fact]
     public async Task UpdatePersonAsync_NameTakenByAnotherPerson_ThrowsDuplicatePersonException()
     {
-        var command  = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Smith" };
+        var command  = new UpdatePersonCommand { FirstName = "Jane", LastName = "Smith" };
         var existing = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe" };
 
         _repositoryMock.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(existing);
@@ -282,7 +296,7 @@ public class PersonApplicationServiceTests
             .ThrowsAsync(new DuplicatePersonException("Jane", "Smith"));
 
         await Assert.ThrowsAsync<DuplicatePersonException>(
-            () => _sut.UpdatePersonAsync(command));
+            () => _sut.UpdatePersonAsync("1", command));
     }
 
     // -----------------------------------------------------------------------

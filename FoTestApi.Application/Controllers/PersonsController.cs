@@ -149,8 +149,7 @@ namespace FoTestApi.Controllers
         [ProducesResponseType(401)]
         public async Task<IActionResult> Update(string id, [FromBody] UpdatePersonCommand command)
         {
-            command.Id = id;
-            await _applicationService.UpdatePersonAsync(command);
+            await _applicationService.UpdatePersonAsync(id, command);
             return NoContent();
         }
 
@@ -171,8 +170,7 @@ namespace FoTestApi.Controllers
                 return Unauthorized();
             }
 
-            command.Id = personId;
-            await _applicationService.UpdatePersonAsync(command);
+            await _applicationService.UpdatePersonAsync(personId, command);
             return NoContent();
         }
 

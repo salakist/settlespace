@@ -9,7 +9,7 @@ namespace FoTestApi.Application.Services
         Task<PersonEntity?> GetPersonByIdAsync(string id);
         Task<List<PersonEntity>> SearchPersonsAsync(string query);
         Task<PersonEntity> CreatePersonAsync(CreatePersonCommand command);
-        Task UpdatePersonAsync(UpdatePersonCommand command);
+        Task UpdatePersonAsync(string id, UpdatePersonCommand command);
         Task DeletePersonAsync(DeletePersonCommand command);
     }
 }

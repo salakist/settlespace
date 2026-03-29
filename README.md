@@ -115,7 +115,7 @@ Application layer and API host.
 
 ```
 FoTestApi.Application/
-├── Commands/        LoginCommand, RegisterCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand, AddressCommand
+├── Commands/        LoginCommand, RegisterCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, PersonMutationCommand, DeletePersonCommand, AddressCommand
 ├── Controllers/     AuthController, PersonsController
 ├── Authentication/  AuthSettings, CustomClaimTypes
 ├── Mapping/         IPersonMapper, PersonMapper
@@ -388,6 +388,7 @@ Frontend users can access this action from the authenticated profile page.
 If `password` is omitted on creation, the API generates a strong password automatically.
 Provided create/register passwords are validated before being hashed for storage.
 `UpdatePersonCommand` does not accept a password field; use `/auth/change-password` instead.
+`UpdatePersonCommand` also does not carry an `id`; the id comes from route (`/persons/{id}`) or auth claim (`/persons/me`).
 When a person edits their own profile, the frontend uses `/persons/me`; administrative CRUD continues to use `/persons/{id}`.
 
 ### Error response (409 Conflict)

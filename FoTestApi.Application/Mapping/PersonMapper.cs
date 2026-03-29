@@ -19,24 +19,18 @@ namespace FoTestApi.Application.Mapping
             };
 
         public PersonEntity ToEntity(CreatePersonCommand command, string password) =>
+            BuildPersonEntity(command, null, password);
+
+        public PersonEntity ToEntity(string id, UpdatePersonCommand command, string? existingPassword) =>
+            BuildPersonEntity(command, id, existingPassword);
+
+        private static PersonEntity BuildPersonEntity(PersonMutationCommand command, string? id, string? password) =>
             new()
             {
+                Id = id,
                 FirstName = command.FirstName,
                 LastName = command.LastName,
                 Password = password,
-                PhoneNumber = command.PhoneNumber,
-                Email = command.Email,
-                DateOfBirth = command.DateOfBirth,
-                Addresses = command.Addresses.Select(ToEntity).ToList()
-            };
-
-        public PersonEntity ToEntity(UpdatePersonCommand command, string? existingPassword) =>
-            new()
-            {
-                Id = command.Id,
-                FirstName = command.FirstName,
-                LastName = command.LastName,
-                Password = existingPassword,
                 PhoneNumber = command.PhoneNumber,
                 Email = command.Email,
                 DateOfBirth = command.DateOfBirth,

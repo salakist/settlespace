@@ -8,6 +8,6 @@ namespace FoTestApi.Application.Mapping
     {
         PersonDto ToDto(PersonEntity entity);
         PersonEntity ToEntity(CreatePersonCommand command, string password);
-        PersonEntity ToEntity(UpdatePersonCommand command, string? existingPassword);
+        PersonEntity ToEntity(string id, UpdatePersonCommand command, string? existingPassword);
     }
 }
