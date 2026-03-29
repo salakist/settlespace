@@ -11,11 +11,16 @@ namespace FoTestApi.Application.Middleware
     {
         private readonly RequestDelegate _next;
         private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+        private readonly IHostEnvironment _environment;
 
-        public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+        public ExceptionHandlingMiddleware(
+            RequestDelegate next,
+            ILogger<ExceptionHandlingMiddleware> logger,
+            IHostEnvironment environment)
         {
             _next = next;
             _logger = logger;
+            _environment = environment;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -30,12 +35,12 @@ namespace FoTestApi.Application.Middleware
             }
         }
 
-        private static Task HandleExceptionAsync(HttpContext context, Exception exception)
+        private Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
+            _logger.LogError(exception, "Unhandled exception while processing {Path}", context.Request.Path);
             context.Response.ContentType = "application/json";
 
             var response = new { error = exception.Message };
-            string jsonResponse = JsonSerializer.Serialize(response);
 
             switch (exception)
             {
@@ -57,8 +62,9 @@ namespace FoTestApi.Application.Middleware
 
                 default:
                     context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                    response = new { error = "An unexpected error occurred." };
-                    jsonResponse = JsonSerializer.Serialize(response);
+                    response = _environment.IsDevelopment()
+                        ? new { error = exception.Message }
+                        : new { error = "An unexpected error occurred." };
                     break;
             }
 

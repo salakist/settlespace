@@ -32,6 +32,7 @@ namespace FoTestApi.Infrastructure.Repositories
                       .SetSerializer(new StringSerializer(BsonType.ObjectId));
                     cm.MapMember(p => p.FirstName).SetElementName("firstName");
                     cm.MapMember(p => p.LastName).SetElementName("lastName");
+                    cm.MapMember(p => p.Password).SetElementName("password");
                 });
             }
         }
