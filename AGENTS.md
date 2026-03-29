@@ -98,6 +98,14 @@ sh scripts/run-full-checks.sh
 6. During `git push`, the `pre-push` hook evaluates the exact refs being pushed (the commit range from remote SHA to local SHA), not just generic local state.
 7. Run the full-base script only when explicitly requested.
 
+### Frontend testing convention
+
+- For `fotest-react`, keep test ownership split by responsibility:
+   - `src/app/App.test.tsx` for composition/wiring assertions.
+   - `src/app/App.integration.test.tsx` for end-to-end app flow assertions (with mocked UI boundaries).
+   - `src/features/**/hooks/*.test.tsx` for hook-specific behavior and branch coverage.
+- When refactoring app logic into hooks, migrate behavior tests with the logic instead of expanding `App.test.tsx`.
+
 ### First-time setup (install the git hook)
 
 ```powershell

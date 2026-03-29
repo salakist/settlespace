@@ -15,5 +15,7 @@ export const Navigate = ({ to, replace }: { to: string; replace?: boolean }) => 
 
 export const useNavigate = () => jest.fn();
 
+export const useLocation = () => ({ pathname: '/directory' });
+
 
 

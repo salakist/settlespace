@@ -1,15 +1,17 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import React, { useCallback, useEffect } from 'react';
+import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Alert, Button, CircularProgress, Container, CssBaseline, Stack, Typography, ThemeProvider, createTheme } from '@mui/material';
 import '../styles/App.css';
-import { Person, RegisterRequest } from '../shared/types';
-import { authApi, authStorage, personApi } from '../shared/api/api';
+import { RegisterRequest } from '../shared/types';
 import PersonList from '../features/persons/components/PersonList';
 import PersonForm from '../features/persons/components/PersonForm';
 import SearchBar from '../features/persons/components/SearchBar';
 import LoginPage from '../features/auth/components/LoginPage';
 import RegisterPage from '../features/auth/components/RegisterPage';
 import ProfilePage from '../features/profile/components/ProfilePage';
+import { useAuth } from '../features/auth/hooks/useAuth';
+import { usePersons } from '../features/persons/hooks/usePersons';
+import { useProfile } from '../features/profile/hooks/useProfile';
 
 const ROUTE_LOGIN = '/login';
 const ROUTE_REGISTER = '/register';
@@ -34,82 +36,58 @@ const darkTheme = createTheme({
 
 function App() {
   const navigate = useNavigate();
-  const [persons, setPersons] = useState<Person[]>([]);
-  const [currentPerson, setCurrentPerson] = useState<Person | null>(null);
-  const [editingPerson, setEditingPerson] = useState<Person | undefined>();
-  const [showForm, setShowForm] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [profileLoading, setProfileLoading] = useState(false);
-  const [profileSaveLoading, setProfileSaveLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [profileError, setProfileError] = useState<string | null>(null);
-  const [authError, setAuthError] = useState<string | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(authStorage.isAuthenticated());
-  const [username, setUsername] = useState(authStorage.getUsername() ?? '');
-  const [passwordLoading, setPasswordLoading] = useState(false);
-
-  const normalizePerson = (person: Person): Person => ({
-    ...person,
-    dateOfBirth: person.dateOfBirth?.slice(0, 10),
-    addresses: person.addresses ?? [],
-  });
-
-  const formatUsername = (person: Pick<Person, 'firstName' | 'lastName'>) => `${person.firstName}.${person.lastName}`;
-
+  const location = useLocation();
+  const {
+    authError,
+    authLoading,
+    clearAuthError,
+    expireSession,
+    isAuthenticated,
+    login,
+    logout,
+    register,
+    setAuthUsername,
+    username,
+  } = useAuth();
+  const {
+    clearPersonsError,
+    clearPersonsState,
+    editingPerson,
+    error,
+    handleCancel,
+    handleDelete,
+    handleEdit,
+    handleSave,
+    handleSearch,
+    loadPersons,
+    loading,
+    persons,
+    setDirectoryIdle,
+    setPersonInList,
+    showCreateForm,
+    showForm,
+  } = usePersons({ expireSession });
   const handleUnauthorized = useCallback(() => {
-    authStorage.clearSession();
-    setIsAuthenticated(false);
-    setUsername('');
-    setCurrentPerson(null);
-    setAuthError('Your session expired. Please log in again.');
-    setPersons([]);
-    navigate(ROUTE_LOGIN);
-  }, [navigate]);
+    clearPersonsState();
+    expireSession('Your session expired. Please log in again.');
+  }, [clearPersonsState, expireSession]);
 
-  const loadPersons = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await personApi.getAll();
-      setPersons(response.data.map(normalizePerson));
-      setError(null);
-    } catch (err) {
-      if (typeof err === 'object' && err && 'response' in err && (err as { response?: { status?: number } }).response?.status === 401) {
-        handleUnauthorized();
-        return;
-      }
-      setError('Failed to load persons');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  }, [handleUnauthorized]);
-
-  const loadCurrentPerson = useCallback(async () => {
-    try {
-      setProfileLoading(true);
-      const response = await personApi.getCurrent();
-      const person = normalizePerson(response.data);
-      setCurrentPerson(person);
-      setPersons((currentPersons) =>
-        person.id
-          ? currentPersons.map((current) => (current.id === person.id ? person : current))
-          : currentPersons);
-      const nextUsername = formatUsername(person);
-      setUsername(nextUsername);
-      authStorage.setUsername(nextUsername);
-      setProfileError(null);
-    } catch (err) {
-      if (typeof err === 'object' && err && 'response' in err && (err as { response?: { status?: number } }).response?.status === 401) {
-        handleUnauthorized();
-        return;
-      }
-
-      setProfileError('Failed to load your profile.');
-      console.error(err);
-    } finally {
-      setProfileLoading(false);
-    }
-  }, [handleUnauthorized]);
+  const {
+    clearProfileState,
+    currentPerson,
+    handlePasswordChange,
+    handleProfileSave,
+    loadCurrentPerson,
+    passwordLoading,
+    profileError,
+    profileLoading,
+    profileSaveLoading,
+    setProfileIdle,
+  } = useProfile({
+    handleUnauthorized,
+    setAuthUsername,
+    setPersonInList,
+  });
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -118,137 +96,28 @@ function App() {
       return;
     }
 
-    setLoading(false);
-    setProfileLoading(false);
-  }, [isAuthenticated, loadCurrentPerson, loadPersons]);
+    setDirectoryIdle();
+    setProfileIdle();
+  }, [isAuthenticated, loadCurrentPerson, loadPersons, setDirectoryIdle, setProfileIdle]);
 
   const handleLogin = async (loginUsername: string, loginPassword: string) => {
-    try {
-      setLoading(true);
-      const response = await authApi.login({ username: loginUsername, password: loginPassword });
-      authStorage.saveSession(response.data);
-      setUsername(response.data.username);
-      setIsAuthenticated(true);
-      setAuthError(null);
-      setError(null);
-      navigate(ROUTE_DIRECTORY);
-    } catch (err) {
-      setAuthError('Invalid username or password.');
-      console.error(err);
-    } finally {
-      setLoading(false);
+    const success = await login(loginUsername, loginPassword);
+    if (success) {
+      clearPersonsError();
     }
   };
 
   const handleRegister = async (request: RegisterRequest) => {
-    try {
-      setLoading(true);
-      const response = await authApi.register(request);
-      authStorage.saveSession(response.data);
-      setUsername(response.data.username);
-      setIsAuthenticated(true);
-      setAuthError(null);
-      setError(null);
-      navigate(ROUTE_DIRECTORY);
-    } catch (err) {
-      const axiosError = err as { response?: { data?: { error?: string } } };
-      setAuthError(axiosError.response?.data?.error ?? 'Registration failed.');
-      console.error(err);
-    } finally {
-      setLoading(false);
+    const success = await register(request);
+    if (success) {
+      clearPersonsError();
     }
   };
 
   const handleLogout = () => {
-    authStorage.clearSession();
-    setIsAuthenticated(false);
-    setUsername('');
-    setPersons([]);
-    setCurrentPerson(null);
-    setEditingPerson(undefined);
-    setShowForm(false);
-    setError(null);
-    setProfileError(null);
-    navigate(ROUTE_LOGIN);
-  };
-
-  const handlePasswordChange = async (currentPassword: string, newPassword: string) => {
-    setPasswordLoading(true);
-    try {
-      await authApi.changePassword({ currentPassword, newPassword });
-    } finally {
-      setPasswordLoading(false);
-    }
-  };
-
-  const handleSearch = async (query: string) => {
-    if (!query.trim()) {
-      loadPersons();
-      return;
-    }
-    try {
-      setLoading(true);
-      const response = await personApi.search(query);
-      setPersons(response.data);
-      setError(null);
-    } catch (err) {
-      setError('Search failed');
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSave = async (personData: Omit<Person, 'id'>) => {
-    try {
-      if (editingPerson?.id) {
-        await personApi.update(editingPerson.id, {
-          ...editingPerson,
-          ...personData,
-          addresses: editingPerson.addresses ?? [],
-        });
-      } else {
-        await personApi.create(personData);
-      }
-      setEditingPerson(undefined);
-      setShowForm(false);
-      loadPersons();
-    } catch (err) {
-      setError('Failed to save person');
-      console.error(err);
-    }
-  };
-
-  const handleProfileSave = async (personData: Omit<Person, 'id'>) => {
-    setProfileSaveLoading(true);
-    try {
-      await personApi.updateCurrent(personData);
-      await loadCurrentPerson();
-    } finally {
-      setProfileSaveLoading(false);
-    }
-  };
-
-  const handleEdit = (person: Person) => {
-    setEditingPerson(person);
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id: string) => {
-    if (window.confirm('Are you sure you want to delete this person?')) {
-      try {
-        await personApi.delete(id);
-        loadPersons();
-      } catch (err) {
-        setError('Failed to delete person');
-        console.error(err);
-      }
-    }
-  };
-
-  const handleCancel = () => {
-    setEditingPerson(undefined);
-    setShowForm(false);
+    clearPersonsState();
+    clearProfileState();
+    logout();
   };
 
   if (!isAuthenticated) {
@@ -262,11 +131,11 @@ function App() {
               <LoginPage
                 onLogin={handleLogin}
                 onShowRegister={() => {
-                  setAuthError(null);
+                  clearAuthError();
                   navigate(ROUTE_REGISTER);
                 }}
                 error={authError}
-                loading={loading}
+                loading={authLoading}
               />
             }
           />
@@ -276,11 +145,11 @@ function App() {
               <RegisterPage
                 onRegister={handleRegister}
                 onShowLogin={() => {
-                  setAuthError(null);
+                  clearAuthError();
                   navigate(ROUTE_LOGIN);
                 }}
                 error={authError}
-                loading={loading}
+                loading={authLoading}
               />
             }
           />
@@ -289,6 +158,8 @@ function App() {
       </ThemeProvider>
     );
   }
+
+  const isProfileRoute = location.pathname === ROUTE_PROFILE;
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -310,9 +181,9 @@ function App() {
             <Stack direction="row" spacing={1.5}>
               <Button
                 variant="outlined"
-                onClick={() => navigate(window.location.pathname === ROUTE_PROFILE ? ROUTE_DIRECTORY : ROUTE_PROFILE)}
+                onClick={() => navigate(isProfileRoute ? ROUTE_DIRECTORY : ROUTE_PROFILE)}
               >
-                {window.location.pathname === ROUTE_PROFILE ? 'Back to Persons' : 'Profile'}
+                {isProfileRoute ? 'Back to Persons' : 'Profile'}
               </Button>
               <Button variant="outlined" color="secondary" onClick={handleLogout}>
                 Log Out
@@ -343,7 +214,7 @@ function App() {
 
                   <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
                     <Typography variant="subtitle1">Manage persons in the database</Typography>
-                    <Button variant="contained" onClick={() => setShowForm(true)} disabled={showForm}>
+                    <Button variant="contained" onClick={showCreateForm} disabled={showForm}>
                       Add New Person
                     </Button>
                   </Stack>

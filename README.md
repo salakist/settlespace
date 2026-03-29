@@ -16,6 +16,7 @@ A full-stack demonstration project showcasing Domain-Driven Design (DDD) with a 
 
 ### Frontend
 - **Framework:** React 18 with TypeScript
+- **Routing:** React Router with browser history support (`/login`, `/register`, `/directory`, `/profile`)
 - **HTTP Client:** Axios
 - **UI Library:** Material UI (MUI) with dark mode
 - **Build Tool:** Create React App
@@ -236,19 +237,36 @@ React SPA with login-gated access, full CRUD, search, and Material UI dark theme
 ```
 fotest-react/src/
 +-- app/
-|   +-- App.tsx                     # App shell, auth gating, state management, dark ThemeProvider
+|   +-- App.tsx                     # App shell and route composition
+|   +-- App.test.tsx                # App composition tests (hook contracts + shell rendering)
+|   +-- App.integration.test.tsx    # App integration behavior tests (auth, directory, profile flows)
 +-- features/
 |   +-- auth/components/            # Login, registration, password change UI
+|   +-- auth/hooks/                 # Auth/session hook (useAuth)
 |   +-- persons/components/         # Person list, form, search, address editor
+|   +-- persons/hooks/              # Persons domain hook (usePersons)
 |   +-- profile/components/         # Authenticated profile page
+|   +-- profile/hooks/              # Profile domain hook (useProfile)
 +-- shared/
 |   +-- api/api.ts                  # Axios API calls, login, token storage helpers
 |   +-- types/index.ts              # Shared TypeScript interfaces
 +-- styles/
 |   +-- App.css
 |   +-- index.css
++-- __mocks__/
+|   +-- react-router-dom.tsx        # Test mock for router utilities
 +-- index.tsx                       # React entry point
 ```
+
+### Frontend architecture notes
+
+- `App.tsx` now focuses on composition and routing, while feature logic lives in hooks.
+- Domain hooks:
+  - `useAuth` handles authentication/session transitions.
+  - `usePersons` handles directory CRUD/search/form state.
+  - `useProfile` handles profile load/save/password flows.
+- Routes are URL-driven and support browser back/forward navigation.
+- Backend route generation is configured to lowercase URLs.
 
 ### Frontend commands
 
@@ -265,6 +283,15 @@ npx eslint src --ext .ts,.tsx --max-warnings=0
 - Coverage targets production files under `fotest-react/src/`
 - Excluded from frontend coverage scope: `*.test.tsx`, `setupTests.ts`, `reportWebVitals.ts`, `index.tsx`, `react-app-env.d.ts`
 - Repository gate scripts (`scripts/run-checks.*`, `scripts/run-full-checks.*`) are the source of truth for frontend quality validation
+
+### Frontend test strategy
+
+- `src/app/App.test.tsx` validates app composition and hook/component wiring contracts.
+- `src/app/App.integration.test.tsx` validates integrated user flows with mocked feature UI controls.
+- Hook-specific behavior is tested in dedicated files:
+  - `src/features/auth/hooks/useAuth.test.tsx`
+  - `src/features/persons/hooks/usePersons.test.tsx`
+  - `src/features/profile/hooks/useProfile.test.tsx`
 
 ---
 
