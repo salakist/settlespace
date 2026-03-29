@@ -17,7 +17,9 @@ FoTestApi.Application/
 ## Responsibilities
 - Expose REST endpoints via `PersonsController` (focused on orchestration, not error handling)
 - Orchestrate commands and queries in `PersonApplicationService`
-- Validate password strength using `PasswordValidator` before persisting
+- Auto-generate strong passwords when none provided on person creation
+- Preserve existing password when none provided on person update
+- Validate password strength using `PasswordValidator` before persisting (unless auto-generated)
 - Accept `IPersonDomainService` (not the concrete class) for strict layer isolation
 - Define commands in `Commands/` (input contracts for create/update/delete)
 - Define `PersonDto` in `DTOs/` as the public API response shape

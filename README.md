@@ -70,7 +70,8 @@ FoTestApi.Domain/
 |------|--------|
 | `FirstName` is required | Cannot be null or whitespace |
 | `LastName` is required | Cannot be null or whitespace |
-| `Password` is optional | Can be null or empty; if provided, must meet strength requirements |
+| `Password` is optional on creation | If not provided, a random strong password is auto-generated |
+| `Password` preservation on update | When updating, if no password is provided, the existing password is preserved |
 | Password strength | Must be at least 8 characters with uppercase, lowercase, digit, and special character |
 | No duplicate persons | Two persons are duplicates if `FirstName` and `LastName` match case-insensitively |
 | Duplicate check scope | Enforced on both **create** and **update** |
@@ -84,6 +85,8 @@ FoTestApi.Domain/
 - At least one lowercase letter (a-z)
 - At least one digit (0-9)
 - At least one special character: `!@#$%^&*()_+-=[]{}';:"\\|,.<>?`
+
+**Auto-generated passwords** are 12+ characters and always meet all requirements.
 
 ---
 

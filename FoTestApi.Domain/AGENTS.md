@@ -14,7 +14,9 @@ This project has **zero infrastructure dependencies** by design.
 ## Domain Rules
 - `FirstName` must not be null or whitespace
 - `LastName` must not be null or whitespace
-- `Password` is optional; if provided, must be at least 8 characters with uppercase, lowercase, digit, and special character
+- `Password` is optional on creation; a random strong password is auto-generated if not provided
+- On updates, if no password is provided, the existing password is preserved
+- `Password` if provided must be at least 8 characters with uppercase, lowercase, digit, and special character
 - Two persons are considered duplicates if `FirstName` and `LastName` match case-insensitively
 - Duplicate checking is delegated to `IPersonDomainService.EnsureUniqueAsync`
 - `PersonEntity.MatchesByFullName()` provides in-memory full-name equality for guard comparisons
@@ -26,12 +28,19 @@ This project has **zero infrastructure dependencies** by design.
 - At least one digit (0-9)
 - At least one special character: `!@#$%^&*()_+-=[]{}';:"\\|,.<>?`
 
+### Auto-generated Passwords
+- Generated when a person is created without providing a password
+- Always 12+ characters
+- Always contain uppercase, lowercase, digit, and special character
+- Randomly shuffled to ensure security diversity
+
 ## Key files
 - `Entities/PersonEntity.cs` — aggregate root with `Validate()` and `MatchesByFullName()`
 - `Repositories/IPersonRepository.cs` — repository contract
 - `Services/IPersonDomainService.cs` — domain service interface
 - `Services/PersonDomainService.cs` — enforces uniqueness, throws `DuplicatePersonException`
 - `Services/PasswordValidator.cs` — validates password strength, throws `WeakPasswordException`
+- `Services/PasswordGenerator.cs` — generates random strong passwords
 - `Exceptions/DuplicatePersonException.cs` — thrown on duplicate create/update
 - `Exceptions/WeakPasswordException.cs` — thrown when password does not meet strength requirements
 

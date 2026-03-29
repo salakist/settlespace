@@ -47,7 +47,9 @@ namespace FoTestApi.Application.Services
             {
                 FirstName = command.FirstName,
                 LastName = command.LastName,
-                Password = command.Password
+                Password = string.IsNullOrEmpty(command.Password) 
+                    ? PasswordGenerator.GeneratePassword()
+                    : command.Password
             };
 
             newPerson.Validate();
@@ -74,7 +76,9 @@ namespace FoTestApi.Application.Services
                 Id = command.Id,
                 FirstName = command.FirstName,
                 LastName = command.LastName,
-                Password = command.Password
+                Password = string.IsNullOrEmpty(command.Password) 
+                    ? existingPerson.Password  // Preserve existing password if not provided
+                    : command.Password
             };
 
             updatedPerson.Validate();

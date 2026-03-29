@@ -94,6 +94,48 @@ public class PersonApplicationServiceTests
         _domainServiceMock.Verify(d => d.EnsureUniqueAsync("John", "Doe", null), Times.Once);
     }
 
+    [Fact]
+    public async Task CreatePersonAsync_NoPassword_GeneratesValidPassword()
+    {
+        var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = null };
+        var capturedPerson = (PersonEntity?)null;
+
+        _domainServiceMock
+            .Setup(d => d.EnsureUniqueAsync("John", "Doe", null))
+            .Returns(Task.CompletedTask);
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<PersonEntity>()))
+                       .Callback<PersonEntity>(p => capturedPerson = p)
+                       .ReturnsAsync(new PersonEntity { Id = "new1", FirstName = "John", LastName = "Doe", Password = "Generated" });
+
+        await _sut.CreatePersonAsync(command);
+
+        Assert.NotNull(capturedPerson);
+        Assert.NotNull(capturedPerson!.Password);
+        Assert.NotEmpty(capturedPerson.Password);
+        Assert.True(capturedPerson.Password.Length >= 8);
+    }
+
+    [Fact]
+    public async Task CreatePersonAsync_EmptyPassword_GeneratesValidPassword()
+    {
+        var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "" };
+        var capturedPerson = (PersonEntity?)null;
+
+        _domainServiceMock
+            .Setup(d => d.EnsureUniqueAsync("John", "Doe", null))
+            .Returns(Task.CompletedTask);
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<PersonEntity>()))
+                       .Callback<PersonEntity>(p => capturedPerson = p)
+                       .ReturnsAsync(new PersonEntity { Id = "new1", FirstName = "John", LastName = "Doe", Password = "Generated" });
+
+        await _sut.CreatePersonAsync(command);
+
+        Assert.NotNull(capturedPerson);
+        Assert.NotNull(capturedPerson!.Password);
+        Assert.NotEmpty(capturedPerson.Password);
+        Assert.True(capturedPerson.Password.Length >= 8);
+    }
+
     [Theory]
     [InlineData("", "Doe")]
     [InlineData("John", "")]
@@ -150,6 +192,48 @@ public class PersonApplicationServiceTests
 
         _domainServiceMock.Verify(d => d.EnsureUniqueAsync("Jane", "Doe", "1"), Times.Once);
         _repositoryMock.Verify(r => r.UpdateAsync("1", It.IsAny<PersonEntity>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdatePersonAsync_NoPassword_PreservesExistingPassword()
+    {
+        var command  = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Doe", Password = null };
+        var existing = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe", Password = "Existing@Pass1" };
+        var capturedPerson = (PersonEntity?)null;
+
+        _repositoryMock.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(existing);
+        _domainServiceMock
+            .Setup(d => d.EnsureUniqueAsync("Jane", "Doe", "1"))
+            .Returns(Task.CompletedTask);
+        _repositoryMock.Setup(r => r.UpdateAsync("1", It.IsAny<PersonEntity>()))
+                       .Callback<string, PersonEntity>((id, p) => capturedPerson = p)
+                       .Returns(Task.CompletedTask);
+
+        await _sut.UpdatePersonAsync(command);
+
+        Assert.NotNull(capturedPerson);
+        Assert.Equal("Existing@Pass1", capturedPerson!.Password);
+    }
+
+    [Fact]
+    public async Task UpdatePersonAsync_EmptyPassword_PreservesExistingPassword()
+    {
+        var command  = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Doe", Password = "" };
+        var existing = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe", Password = "Existing@Pass1" };
+        var capturedPerson = (PersonEntity?)null;
+
+        _repositoryMock.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(existing);
+        _domainServiceMock
+            .Setup(d => d.EnsureUniqueAsync("Jane", "Doe", "1"))
+            .Returns(Task.CompletedTask);
+        _repositoryMock.Setup(r => r.UpdateAsync("1", It.IsAny<PersonEntity>()))
+                       .Callback<string, PersonEntity>((id, p) => capturedPerson = p)
+                       .Returns(Task.CompletedTask);
+
+        await _sut.UpdatePersonAsync(command);
+
+        Assert.NotNull(capturedPerson);
+        Assert.Equal("Existing@Pass1", capturedPerson!.Password);
     }
 
     [Fact]
