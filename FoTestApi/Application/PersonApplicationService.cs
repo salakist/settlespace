@@ -1,21 +1,24 @@
 using FoTestApi.Application.Commands;
 using FoTestApi.Domain.Entities;
-using FoTestApi.Domain.Exceptions;
 using FoTestApi.Domain.Repositories;
+using FoTestApi.Domain.Services;
 
 namespace FoTestApi.Application
 {
     /// <summary>
     /// Application service for handling person-related commands and queries.
     /// Orchestrates domain logic and repository operations.
+    /// Uniqueness rules are enforced by <see cref="PersonDomainService"/>.
     /// </summary>
     public class PersonApplicationService
     {
         private readonly IPersonRepository _repository;
+        private readonly PersonDomainService _domainService;
 
-        public PersonApplicationService(IPersonRepository repository)
+        public PersonApplicationService(IPersonRepository repository, PersonDomainService domainService)
         {
             _repository = repository;
+            _domainService = domainService;
         }
 
         // Queries
@@ -48,12 +51,8 @@ namespace FoTestApi.Application
 
             newPerson.Validate();
 
-            // Check for duplicates
-            var existingPerson = await _repository.FindByFullNameAsync(newPerson.FirstName, newPerson.LastName);
-            if (existingPerson != null)
-            {
-                throw new DuplicatePersonException(newPerson.FirstName, newPerson.LastName);
-            }
+            // Delegate uniqueness rule to Domain Service
+            await _domainService.EnsureUniqueAsync(newPerson.FirstName, newPerson.LastName);
 
             // Persist to repository
             return await _repository.AddAsync(newPerson);
@@ -78,12 +77,8 @@ namespace FoTestApi.Application
 
             updatedPerson.Validate();
 
-            // Check for duplicates (excluding current person)
-            var duplicatePerson = await _repository.FindByFullNameAsync(updatedPerson.FirstName, updatedPerson.LastName);
-            if (duplicatePerson != null && duplicatePerson.Id != command.Id)
-            {
-                throw new DuplicatePersonException(updatedPerson.FirstName, updatedPerson.LastName);
-            }
+            // Delegate uniqueness rule to Domain Service (excluding current person)
+            await _domainService.EnsureUniqueAsync(updatedPerson.FirstName, updatedPerson.LastName, command.Id);
 
             // Persist update
             await _repository.UpdateAsync(command.Id, updatedPerson);

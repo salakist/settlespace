@@ -1,5 +1,6 @@
 using FoTestApi.Application;
 using FoTestApi.Domain.Repositories;
+using FoTestApi.Domain.Services;
 using FoTestApi.Infrastructure;
 using FoTestApi.Infrastructure.Repositories;
 using System.IO;
@@ -13,6 +14,7 @@ builder.Services.Configure<FoTestDatabaseSettings>(
 
 // Register DDD pattern services
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();
+builder.Services.AddScoped<PersonDomainService>();
 builder.Services.AddScoped<PersonApplicationService>();
 
 builder.Services.AddControllers();
