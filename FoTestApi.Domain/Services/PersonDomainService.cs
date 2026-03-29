@@ -8,7 +8,7 @@ namespace FoTestApi.Domain.Services
     /// This service owns the business rule: no two persons may share the same
     /// first name and last name (case-insensitive).
     /// </summary>
-    public class PersonDomainService
+    public class PersonDomainService : IPersonDomainService
     {
         private readonly IPersonRepository _repository;
 

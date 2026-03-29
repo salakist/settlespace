@@ -11,12 +11,12 @@ namespace FoTestApi.Application.Tests.Services;
 public class PersonApplicationServiceTests
 {
     private readonly Mock<IPersonRepository> _repositoryMock = new();
+    private readonly Mock<IPersonDomainService> _domainServiceMock = new();
     private readonly PersonApplicationService _sut;
 
     public PersonApplicationServiceTests()
     {
-        var domainService = new PersonDomainService(_repositoryMock.Object);
-        _sut = new PersonApplicationService(_repositoryMock.Object, domainService);
+        _sut = new PersonApplicationService(_repositoryMock.Object, _domainServiceMock.Object);
     }
 
     // -----------------------------------------------------------------------
@@ -82,14 +82,16 @@ public class PersonApplicationServiceTests
         var command  = new CreatePersonCommand { FirstName = "John", LastName = "Doe" };
         var expected = new PersonEntity { Id = "new1", FirstName = "John", LastName = "Doe" };
 
-        _repositoryMock.Setup(r => r.FindByFullNameAsync("John", "Doe"))
-                       .ReturnsAsync((PersonEntity?)null);
+        _domainServiceMock
+            .Setup(d => d.EnsureUniqueAsync("John", "Doe", null))
+            .Returns(Task.CompletedTask);
         _repositoryMock.Setup(r => r.AddAsync(It.IsAny<PersonEntity>()))
                        .ReturnsAsync(expected);
 
         var result = await _sut.CreatePersonAsync(command);
 
         Assert.Equal(expected, result);
+        _domainServiceMock.Verify(d => d.EnsureUniqueAsync("John", "Doe", null), Times.Once);
     }
 
     [Theory]
@@ -108,11 +110,11 @@ public class PersonApplicationServiceTests
     [Fact]
     public async Task CreatePersonAsync_DuplicatePerson_ThrowsDuplicatePersonException()
     {
-        var command  = new CreatePersonCommand { FirstName = "John", LastName = "Doe" };
-        var existing = new PersonEntity { Id = "existing1", FirstName = "John", LastName = "Doe" };
+        var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe" };
 
-        _repositoryMock.Setup(r => r.FindByFullNameAsync("John", "Doe"))
-                       .ReturnsAsync(existing);
+        _domainServiceMock
+            .Setup(d => d.EnsureUniqueAsync("John", "Doe", null))
+            .ThrowsAsync(new DuplicatePersonException("John", "Doe"));
 
         await Assert.ThrowsAsync<DuplicatePersonException>(
             () => _sut.CreatePersonAsync(command));
@@ -129,13 +131,15 @@ public class PersonApplicationServiceTests
         var existing = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe" };
 
         _repositoryMock.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(existing);
-        _repositoryMock.Setup(r => r.FindByFullNameAsync("Jane", "Doe"))
-                       .ReturnsAsync((PersonEntity?)null);
+        _domainServiceMock
+            .Setup(d => d.EnsureUniqueAsync("Jane", "Doe", "1"))
+            .Returns(Task.CompletedTask);
         _repositoryMock.Setup(r => r.UpdateAsync("1", It.IsAny<PersonEntity>()))
                        .Returns(Task.CompletedTask);
 
         await _sut.UpdatePersonAsync(command);
 
+        _domainServiceMock.Verify(d => d.EnsureUniqueAsync("Jane", "Doe", "1"), Times.Once);
         _repositoryMock.Verify(r => r.UpdateAsync("1", It.IsAny<PersonEntity>()), Times.Once);
     }
 
@@ -154,13 +158,13 @@ public class PersonApplicationServiceTests
     [Fact]
     public async Task UpdatePersonAsync_NameTakenByAnotherPerson_ThrowsDuplicatePersonException()
     {
-        var command   = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Smith" };
-        var existing  = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe" };
-        var duplicate = new PersonEntity { Id = "2", FirstName = "Jane", LastName = "Smith" };
+        var command  = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Smith" };
+        var existing = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe" };
 
         _repositoryMock.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(existing);
-        _repositoryMock.Setup(r => r.FindByFullNameAsync("Jane", "Smith"))
-                       .ReturnsAsync(duplicate);
+        _domainServiceMock
+            .Setup(d => d.EnsureUniqueAsync("Jane", "Smith", "1"))
+            .ThrowsAsync(new DuplicatePersonException("Jane", "Smith"));
 
         await Assert.ThrowsAsync<DuplicatePersonException>(
             () => _sut.UpdatePersonAsync(command));

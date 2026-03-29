@@ -13,9 +13,9 @@ namespace FoTestApi.Application.Services
     public class PersonApplicationService : IPersonApplicationService
     {
         private readonly IPersonRepository _repository;
-        private readonly PersonDomainService _domainService;
+        private readonly IPersonDomainService _domainService;
 
-        public PersonApplicationService(IPersonRepository repository, PersonDomainService domainService)
+        public PersonApplicationService(IPersonRepository repository, IPersonDomainService domainService)
         {
             _repository = repository;
             _domainService = domainService;
