@@ -1,9 +1,11 @@
 using FoTestApi.Application.Commands;
 using FoTestApi.Application.DTOs;
 using FoTestApi.Application.Services;
+using FoTestApi.Application.Authentication;
 using FoTestApi.Domain.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FoTestApi.Controllers
 {
@@ -51,15 +53,15 @@ namespace FoTestApi.Controllers
         [ProducesResponseType(401)]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command)
         {
-            var username = User.Identity?.Name;
-            if (string.IsNullOrWhiteSpace(username))
+            var personId = User.FindFirstValue(CustomClaimTypes.PersonId);
+            if (string.IsNullOrWhiteSpace(personId))
             {
                 return Unauthorized(new { error = "Authentication context is missing." });
             }
 
             try
             {
-                var changed = await _authService.ChangePasswordAsync(username, command);
+                var changed = await _authService.ChangePasswordAsync(personId, command);
                 if (!changed)
                 {
                     return BadRequest(new { error = "Current password is invalid." });

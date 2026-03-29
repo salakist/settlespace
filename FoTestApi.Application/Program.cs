@@ -1,5 +1,6 @@
 using System.Text;
 using FoTestApi.Application.Authentication;
+using FoTestApi.Application.Mapping;
 using FoTestApi.Application.Services;
 using FoTestApi.Application.Middleware;
 using FoTestApi.Domain.Repositories;
@@ -44,6 +45,7 @@ builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 builder.Services.AddScoped<IPersonDomainService, PersonDomainService>();
 builder.Services.AddScoped<IPasswordValidator, PasswordValidator>();
 builder.Services.AddScoped<IPasswordHashingService, PasswordHashingService>();
+builder.Services.AddScoped<IPersonMapper, PersonMapper>();
 builder.Services.AddScoped<IPersonApplicationService, PersonApplicationService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 

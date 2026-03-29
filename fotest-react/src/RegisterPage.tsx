@@ -8,9 +8,11 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import PersonAddressEditor from './PersonAddressEditor';
+import { Address, RegisterRequest } from './types';
 
 interface RegisterPageProps {
-  onRegister: (firstName: string, lastName: string, password: string) => Promise<void>;
+  onRegister: (request: RegisterRequest) => Promise<void>;
   onShowLogin: () => void;
   error: string | null;
   loading: boolean;
@@ -26,7 +28,14 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
   const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [email, setEmail] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [validationError, setValidationError] = useState<string | null>(null);
+
+  const sanitizeAddresses = (items: Address[]) =>
+    items.filter((address) => Object.values(address).some((value) => value?.trim()));
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -37,7 +46,15 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
       return;
     }
 
-    await onRegister(firstName, lastName, password);
+    await onRegister({
+      firstName,
+      lastName,
+      password,
+      phoneNumber: phoneNumber.trim() || undefined,
+      email: email.trim() || undefined,
+      dateOfBirth: dateOfBirth || undefined,
+      addresses: sanitizeAddresses(addresses),
+    });
   };
 
   return (
@@ -86,6 +103,31 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
                 fullWidth
                 required
               />
+              <TextField
+                label="Phone Number"
+                type="tel"
+                value={phoneNumber}
+                onChange={(event) => setPhoneNumber(event.target.value)}
+                autoComplete="tel"
+                fullWidth
+              />
+              <TextField
+                label="Email"
+                type="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                autoComplete="email"
+                fullWidth
+              />
+              <TextField
+                label="Date of Birth"
+                type="date"
+                value={dateOfBirth}
+                onChange={(event) => setDateOfBirth(event.target.value)}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+              />
+              <PersonAddressEditor addresses={addresses} onChange={setAddresses} disabled={loading} />
               <TextField
                 label="Confirm Password"
                 type="password"

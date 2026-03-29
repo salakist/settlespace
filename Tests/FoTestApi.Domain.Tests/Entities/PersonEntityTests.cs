@@ -86,4 +86,88 @@ public class PersonEntityTests
         Assert.Null(person.Password);
     }
 
+    [Fact]
+    public void Validate_WithValidOptionalFields_DoesNotThrow()
+    {
+        var person = new PersonEntity
+        {
+            FirstName = "John",
+            LastName = "Doe",
+            PhoneNumber = "+33 6 12 34 56 78",
+            Email = "john.doe@example.com",
+            DateOfBirth = new DateOnly(1990, 5, 2),
+            Addresses =
+            [
+                new Address
+                {
+                    Label = "Home",
+                    StreetLine1 = "1 Main Street",
+                    PostalCode = "75001",
+                    City = "Paris",
+                    Country = "France"
+                }
+            ]
+        };
+
+        var ex = Record.Exception(() => person.Validate());
+
+        Assert.Null(ex);
+    }
+
+    [Theory]
+    [InlineData("bad-email")]
+    [InlineData("john@")]
+    public void Validate_WithInvalidEmail_ThrowsInvalidOperationException(string email)
+    {
+        var person = new PersonEntity { FirstName = "John", LastName = "Doe", Email = email };
+
+        Assert.Throws<InvalidOperationException>(() => person.Validate());
+    }
+
+    [Theory]
+    [InlineData("12")]
+    [InlineData("abc")]
+    public void Validate_WithInvalidPhoneNumber_ThrowsInvalidOperationException(string phoneNumber)
+    {
+        var person = new PersonEntity { FirstName = "John", LastName = "Doe", PhoneNumber = phoneNumber };
+
+        Assert.Throws<InvalidOperationException>(() => person.Validate());
+    }
+
+    [Fact]
+    public void Validate_WithFutureDateOfBirth_ThrowsInvalidOperationException()
+    {
+        var person = new PersonEntity
+        {
+            FirstName = "John",
+            LastName = "Doe",
+            DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1)
+        };
+
+        Assert.Throws<InvalidOperationException>(() => person.Validate());
+    }
+
+    [Fact]
+    public void Validate_WithInvalidAddress_ThrowsInvalidOperationException()
+    {
+        var person = new PersonEntity
+        {
+            FirstName = "John",
+            LastName = "Doe",
+            Addresses =
+            [
+                new Address
+                {
+                    Label = "",
+                    StreetLine1 = "1 Main Street",
+                    PostalCode = "75001",
+                    City = "Paris",
+                    Country = "France"
+                }
+            ]
+        };
+
+        Assert.Throws<InvalidOperationException>(() => person.Validate());
+    }
+
 }

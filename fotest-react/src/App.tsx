@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Alert, Button, CircularProgress, Container, CssBaseline, Stack, Typography, ThemeProvider, createTheme } from '@mui/material';
 import './App.css';
-import { Person } from './types';
+import { Person, RegisterRequest } from './types';
 import { authApi, authStorage, personApi } from './api';
 import PersonList from './PersonList';
 import PersonForm from './PersonForm';
 import SearchBar from './SearchBar';
 import LoginPage from './LoginPage';
-import ChangePasswordForm from './ChangePasswordForm';
 import RegisterPage from './RegisterPage';
+import ProfilePage from './ProfilePage';
 
 type AuthView = 'login' | 'register';
+type AppView = 'directory' | 'profile';
 
 const darkTheme = createTheme({
   palette: {
@@ -30,39 +31,48 @@ const darkTheme = createTheme({
 
 function App() {
   const [persons, setPersons] = useState<Person[]>([]);
+  const [currentPerson, setCurrentPerson] = useState<Person | null>(null);
   const [editingPerson, setEditingPerson] = useState<Person | undefined>();
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(false);
+  const [profileSaveLoading, setProfileSaveLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [profileError, setProfileError] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(authStorage.isAuthenticated());
   const [username, setUsername] = useState(authStorage.getUsername() ?? '');
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [authView, setAuthView] = useState<AuthView>('login');
+  const [appView, setAppView] = useState<AppView>('directory');
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      loadPersons();
-      return;
-    }
+  const normalizePerson = (person: Person): Person => ({
+    ...person,
+    dateOfBirth: person.dateOfBirth?.slice(0, 10),
+    addresses: person.addresses ?? [],
+  });
 
-    setLoading(false);
-  }, [isAuthenticated]);
+  const formatUsername = (person: Pick<Person, 'firstName' | 'lastName'>) => `${person.firstName}.${person.lastName}`;
 
-  const loadPersons = async () => {
+  const handleUnauthorized = useCallback(() => {
+    authStorage.clearSession();
+    setIsAuthenticated(false);
+    setUsername('');
+    setCurrentPerson(null);
+    setAuthError('Your session expired. Please log in again.');
+    setPersons([]);
+    setAppView('directory');
+  }, []);
+
+  const loadPersons = useCallback(async () => {
     try {
       setLoading(true);
       const response = await personApi.getAll();
-      setPersons(response.data);
+      setPersons(response.data.map(normalizePerson));
       setError(null);
     } catch (err) {
       if (typeof err === 'object' && err && 'response' in err && (err as { response?: { status?: number } }).response?.status === 401) {
-        authStorage.clearSession();
-        setIsAuthenticated(false);
-        setUsername('');
-        setAuthError('Your session expired. Please log in again.');
-        setPersons([]);
+        handleUnauthorized();
         return;
       }
       setError('Failed to load persons');
@@ -70,7 +80,41 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [handleUnauthorized]);
+
+  const loadCurrentPerson = useCallback(async () => {
+    try {
+      setProfileLoading(true);
+      const response = await personApi.getCurrent();
+      const person = normalizePerson(response.data);
+      setCurrentPerson(person);
+      const nextUsername = formatUsername(person);
+      setUsername(nextUsername);
+      authStorage.setUsername(nextUsername);
+      setProfileError(null);
+    } catch (err) {
+      if (typeof err === 'object' && err && 'response' in err && (err as { response?: { status?: number } }).response?.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
+      setProfileError('Failed to load your profile.');
+      console.error(err);
+    } finally {
+      setProfileLoading(false);
+    }
+  }, [handleUnauthorized]);
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      void loadPersons();
+      void loadCurrentPerson();
+      return;
+    }
+
+    setLoading(false);
+    setProfileLoading(false);
+  }, [isAuthenticated, loadCurrentPerson, loadPersons]);
 
   const handleLogin = async (loginUsername: string, loginPassword: string) => {
     try {
@@ -89,10 +133,10 @@ function App() {
     }
   };
 
-  const handleRegister = async (firstName: string, lastName: string, password: string) => {
+  const handleRegister = async (request: RegisterRequest) => {
     try {
       setLoading(true);
-      const response = await authApi.register({ firstName, lastName, password });
+      const response = await authApi.register(request);
       authStorage.saveSession(response.data);
       setUsername(response.data.username);
       setIsAuthenticated(true);
@@ -111,11 +155,13 @@ function App() {
     authStorage.clearSession();
     setIsAuthenticated(false);
     setUsername('');
-    setIsChangingPassword(false);
     setPersons([]);
+    setCurrentPerson(null);
     setEditingPerson(undefined);
     setShowForm(false);
     setError(null);
+    setProfileError(null);
+    setAppView('directory');
   };
 
   const handlePasswordChange = async (currentPassword: string, newPassword: string) => {
@@ -148,7 +194,11 @@ function App() {
   const handleSave = async (personData: Omit<Person, 'id'>) => {
     try {
       if (editingPerson?.id) {
-        await personApi.update(editingPerson.id, personData);
+        await personApi.update(editingPerson.id, {
+          ...editingPerson,
+          ...personData,
+          addresses: editingPerson.addresses ?? [],
+        });
       } else {
         await personApi.create(personData);
       }
@@ -158,6 +208,16 @@ function App() {
     } catch (err) {
       setError('Failed to save person');
       console.error(err);
+    }
+  };
+
+  const handleProfileSave = async (personData: Omit<Person, 'id'>) => {
+    setProfileSaveLoading(true);
+    try {
+      await personApi.updateCurrent(personData);
+      await Promise.all([loadCurrentPerson(), loadPersons()]);
+    } finally {
+      setProfileSaveLoading(false);
     }
   };
 
@@ -226,15 +286,15 @@ function App() {
                 FoTest Person Manager
               </Typography>
               <Typography variant="subtitle1" color="text.secondary">
-                Signed in as {username}
+                Signed in as {currentPerson ? `${currentPerson.firstName} ${currentPerson.lastName}` : username}
               </Typography>
             </div>
             <Stack direction="row" spacing={1.5}>
               <Button
                 variant="outlined"
-                onClick={() => setIsChangingPassword((value) => !value)}
+                onClick={() => setAppView((view) => (view === 'profile' ? 'directory' : 'profile'))}
               >
-                {isChangingPassword ? 'Hide Password Form' : 'Change Password'}
+                {appView === 'profile' ? 'Back to Persons' : 'Profile'}
               </Button>
               <Button variant="outlined" color="secondary" onClick={handleLogout}>
                 Log Out
@@ -242,31 +302,41 @@ function App() {
             </Stack>
           </Stack>
 
-          {isChangingPassword && (
-            <ChangePasswordForm onSubmit={handlePasswordChange} loading={passwordLoading} />
-          )}
-
-          <SearchBar onSearch={handleSearch} />
-
-          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-            <Typography variant="subtitle1">Manage persons in the database</Typography>
-            <Button variant="contained" onClick={() => setShowForm(true)} disabled={showForm}>
-              Add New Person
-            </Button>
-          </Stack>
-
-          {showForm && (
-            <PersonForm person={editingPerson} onSave={handleSave} onCancel={handleCancel} />
-          )}
-
-          {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-          {loading ? (
-            <Stack alignItems="center" sx={{ mt: 4 }}>
-              <CircularProgress />
-            </Stack>
+          {appView === 'profile' ? (
+            <ProfilePage
+              person={currentPerson}
+              loading={profileLoading}
+              error={profileError}
+              saveLoading={profileSaveLoading}
+              passwordLoading={passwordLoading}
+              onSave={handleProfileSave}
+              onChangePassword={handlePasswordChange}
+            />
           ) : (
-            <PersonList persons={persons} onEdit={handleEdit} onDelete={handleDelete} />
+            <>
+              <SearchBar onSearch={handleSearch} />
+
+              <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+                <Typography variant="subtitle1">Manage persons in the database</Typography>
+                <Button variant="contained" onClick={() => setShowForm(true)} disabled={showForm}>
+                  Add New Person
+                </Button>
+              </Stack>
+
+              {showForm && (
+                <PersonForm person={editingPerson} onSave={handleSave} onCancel={handleCancel} />
+              )}
+
+              {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+
+              {loading ? (
+                <Stack alignItems="center" sx={{ mt: 4 }}>
+                  <CircularProgress />
+                </Stack>
+              ) : (
+                <PersonList persons={persons} onEdit={handleEdit} onDelete={handleDelete} />
+              )}
+            </>
           )}
         </Container>
       </div>

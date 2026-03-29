@@ -70,7 +70,8 @@ namespace FoTestApi.Application.Services
             {
                 new Claim(JwtRegisteredClaimNames.Sub, resolvedUsername),
                 new Claim(JwtRegisteredClaimNames.UniqueName, resolvedUsername),
-                new Claim(ClaimTypes.Name, resolvedUsername)
+                new Claim(ClaimTypes.Name, resolvedUsername),
+                new Claim(CustomClaimTypes.PersonId, person.Id!)
             };
 
             var credentials = new SigningCredentials(
@@ -98,7 +99,11 @@ namespace FoTestApi.Application.Services
             {
                 FirstName = command.FirstName,
                 LastName = command.LastName,
-                Password = command.Password
+                Password = command.Password,
+                PhoneNumber = command.PhoneNumber,
+                Email = command.Email,
+                DateOfBirth = command.DateOfBirth,
+                Addresses = command.Addresses
             });
 
             var loginResponse = await LoginAsync(new LoginCommand
@@ -110,15 +115,9 @@ namespace FoTestApi.Application.Services
             return loginResponse ?? throw new InvalidOperationException("Registration succeeded but auto-login failed.");
         }
 
-        public async Task<bool> ChangePasswordAsync(string username, ChangePasswordCommand command)
+        public async Task<bool> ChangePasswordAsync(string personId, ChangePasswordCommand command)
         {
-            var (firstName, lastName) = ParseUsername(username);
-            if (firstName is null || lastName is null)
-            {
-                return false;
-            }
-
-            var person = await _personRepository.FindByFullNameAsync(firstName, lastName);
+            var person = await _personRepository.GetByIdAsync(personId);
             if (person is null || string.IsNullOrEmpty(person.Password) || string.IsNullOrEmpty(person.Id))
             {
                 return false;

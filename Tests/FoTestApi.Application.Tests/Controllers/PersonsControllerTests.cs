@@ -1,9 +1,13 @@
+using FoTestApi.Application.Authentication;
 using FoTestApi.Application.Commands;
 using FoTestApi.Application.DTOs;
+using FoTestApi.Application.Mapping;
 using FoTestApi.Application.Services;
 using FoTestApi.Controllers;
 using FoTestApi.Domain.Entities;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Moq;
 
 namespace FoTestApi.Application.Tests.Controllers;
@@ -15,7 +19,7 @@ public class PersonsControllerTests
 
     public PersonsControllerTests()
     {
-        _controller = new PersonsController(_serviceMock.Object);
+        _controller = new PersonsController(_serviceMock.Object, new PersonMapper());
     }
 
     // -----------------------------------------------------------------------
@@ -68,6 +72,28 @@ public class PersonsControllerTests
         Assert.IsType<NotFoundResult>(result.Result);
     }
 
+    [Fact]
+    public async Task GetCurrent_AuthenticatedUser_ReturnsCurrentPerson()
+    {
+        var person = new PersonEntity { Id = "507f1f77bcf86cd799439011", FirstName = "John", LastName = "Doe" };
+        _serviceMock.Setup(s => s.GetPersonByIdAsync(person.Id!)).ReturnsAsync(person);
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(
+                    new[] { new Claim(CustomClaimTypes.PersonId, person.Id!) },
+                    "TestAuth"))
+            }
+        };
+
+        var result = await _controller.GetCurrent();
+
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        var dto = Assert.IsType<PersonDto>(ok.Value);
+        Assert.Equal(person.Id, dto.Id);
+    }
+
     // -----------------------------------------------------------------------
     // POST
     // -----------------------------------------------------------------------
@@ -94,11 +120,33 @@ public class PersonsControllerTests
     public async Task Update_ValidCommand_ReturnsNoContent()
     {
         var id      = "507f1f77bcf86cd799439011";
-        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe", Password = "Strong@Pass2" };
+        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
         _serviceMock.Setup(s => s.UpdatePersonAsync(It.IsAny<UpdatePersonCommand>()))
                     .Returns(Task.CompletedTask);
 
         var result = await _controller.Update(id, command);
+
+        Assert.IsType<NoContentResult>(result);
+    }
+
+    [Fact]
+    public async Task UpdateCurrent_AuthenticatedUser_ReturnsNoContent()
+    {
+        var id = "507f1f77bcf86cd799439011";
+        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
+        _serviceMock.Setup(s => s.UpdatePersonAsync(It.Is<UpdatePersonCommand>(update => update.Id == id)))
+            .Returns(Task.CompletedTask);
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(
+                    new[] { new Claim(CustomClaimTypes.PersonId, id) },
+                    "TestAuth"))
+            }
+        };
+
+        var result = await _controller.UpdateCurrent(command);
 
         Assert.IsType<NoContentResult>(result);
     }

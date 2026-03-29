@@ -1,9 +1,11 @@
+using FoTestApi.Application.Authentication;
+using FoTestApi.Application.Mapping;
 using FoTestApi.Application.Services;
 using FoTestApi.Application.Commands;
 using FoTestApi.Application.DTOs;
-using FoTestApi.Domain.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace FoTestApi.Controllers
 {
@@ -17,13 +19,18 @@ namespace FoTestApi.Controllers
     public class PersonsController : ControllerBase
     {
         private readonly IPersonApplicationService _applicationService;
+        private readonly IPersonMapper _personMapper;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PersonsController"/> class.
         /// </summary>
         /// <param name="applicationService">The person application service.</param>
-        public PersonsController(IPersonApplicationService applicationService) =>
+        /// <param name="personMapper">The mapper from domain entities to DTOs.</param>
+        public PersonsController(IPersonApplicationService applicationService, IPersonMapper personMapper)
+        {
             _applicationService = applicationService;
+            _personMapper = personMapper;
+        }
 
         /// <summary>
         /// Gets all persons.
@@ -37,7 +44,7 @@ namespace FoTestApi.Controllers
         public async Task<ActionResult<List<PersonDto>>> Get()
         {
             var persons = await _applicationService.GetAllPersonsAsync();
-            return Ok(persons.Select(MapToDto).ToList());
+            return Ok(persons.Select(_personMapper.ToDto).ToList());
         }
 
         /// <summary>
@@ -53,7 +60,7 @@ namespace FoTestApi.Controllers
         public async Task<ActionResult<List<PersonDto>>> SearchByQuery(string query)
         {
             var persons = await _applicationService.SearchPersonsAsync(query);
-            return Ok(persons.Select(MapToDto).ToList());
+            return Ok(persons.Select(_personMapper.ToDto).ToList());
         }
 
         /// <summary>
@@ -77,7 +84,31 @@ namespace FoTestApi.Controllers
                 return NotFound();
             }
 
-            return Ok(MapToDto(person));
+            return Ok(_personMapper.ToDto(person));
+        }
+
+        /// <summary>
+        /// Gets the currently authenticated person.
+        /// </summary>
+        [HttpGet("me")]
+        [ProducesResponseType(typeof(PersonDto), 200)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(404)]
+        public async Task<ActionResult<PersonDto>> GetCurrent()
+        {
+            var personId = User.FindFirstValue(CustomClaimTypes.PersonId);
+            if (string.IsNullOrWhiteSpace(personId))
+            {
+                return Unauthorized();
+            }
+
+            var person = await _applicationService.GetPersonByIdAsync(personId);
+            if (person is null)
+            {
+                return NotFound();
+            }
+
+            return Ok(_personMapper.ToDto(person));
         }
 
         /// <summary>
@@ -97,7 +128,7 @@ namespace FoTestApi.Controllers
         public async Task<IActionResult> Post([FromBody] CreatePersonCommand command)
         {
             var person = await _applicationService.CreatePersonAsync(command);
-            return CreatedAtAction(nameof(Get), new { id = person.Id }, MapToDto(person));
+            return CreatedAtAction(nameof(Get), new { id = person.Id }, _personMapper.ToDto(person));
         }
 
         /// <summary>
@@ -124,6 +155,28 @@ namespace FoTestApi.Controllers
         }
 
         /// <summary>
+        /// Updates the currently authenticated person.
+        /// </summary>
+        [HttpPut("me")]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(409)]
+        public async Task<IActionResult> UpdateCurrent([FromBody] UpdatePersonCommand command)
+        {
+            var personId = User.FindFirstValue(CustomClaimTypes.PersonId);
+            if (string.IsNullOrWhiteSpace(personId))
+            {
+                return Unauthorized();
+            }
+
+            command.Id = personId;
+            await _applicationService.UpdatePersonAsync(command);
+            return NoContent();
+        }
+
+        /// <summary>
         /// Deletes a person by ID.
         /// </summary>
         /// <param name="id">The ID of the person to delete.</param>
@@ -139,11 +192,5 @@ namespace FoTestApi.Controllers
             await _applicationService.DeletePersonAsync(new DeletePersonCommand { Id = id });
             return NoContent();
         }
-
-        /// <summary>
-        /// Maps a PersonEntity to a PersonDto.
-        /// </summary>
-        private static PersonDto MapToDto(PersonEntity entity) =>
-            new PersonDto { Id = entity.Id, FirstName = entity.FirstName, LastName = entity.LastName };
     }
 }

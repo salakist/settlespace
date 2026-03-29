@@ -1,6 +1,7 @@
 using FoTestApi.Domain.Entities;
 using FoTestApi.Domain.Repositories;
 using FoTestApi.Infrastructure;
+using FoTestApi.Infrastructure.Serialization;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
@@ -22,6 +23,21 @@ namespace FoTestApi.Infrastructure.Repositories
 
         static PersonRepository()
         {
+            if (!BsonClassMap.IsClassMapRegistered(typeof(Address)))
+            {
+                BsonClassMap.RegisterClassMap<Address>(cm =>
+                {
+                    cm.AutoMap();
+                    cm.MapMember(p => p.Label).SetElementName("label");
+                    cm.MapMember(p => p.StreetLine1).SetElementName("streetLine1");
+                    cm.MapMember(p => p.StreetLine2).SetElementName("streetLine2");
+                    cm.MapMember(p => p.PostalCode).SetElementName("postalCode");
+                    cm.MapMember(p => p.City).SetElementName("city");
+                    cm.MapMember(p => p.StateOrRegion).SetElementName("stateOrRegion");
+                    cm.MapMember(p => p.Country).SetElementName("country");
+                });
+            }
+
             if (!BsonClassMap.IsClassMapRegistered(typeof(PersonEntity)))
             {
                 BsonClassMap.RegisterClassMap<PersonEntity>(cm =>
@@ -33,6 +49,12 @@ namespace FoTestApi.Infrastructure.Repositories
                     cm.MapMember(p => p.FirstName).SetElementName("firstName");
                     cm.MapMember(p => p.LastName).SetElementName("lastName");
                     cm.MapMember(p => p.Password).SetElementName("password");
+                    cm.MapMember(p => p.PhoneNumber).SetElementName("phoneNumber");
+                    cm.MapMember(p => p.Email).SetElementName("email");
+                                        cm.MapMember(p => p.DateOfBirth)
+                                            .SetElementName("dateOfBirth")
+                                            .SetSerializer(new NullableSerializer<DateOnly>(new DateOnlyAsStringSerializer()));
+                    cm.MapMember(p => p.Addresses).SetElementName("addresses");
                 });
             }
         }

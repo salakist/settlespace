@@ -1,4 +1,5 @@
 using FoTestApi.Application.Commands;
+using FoTestApi.Application.Mapping;
 using FoTestApi.Domain.Entities;
 using FoTestApi.Domain.Repositories;
 using FoTestApi.Domain.Services;
@@ -16,17 +17,20 @@ namespace FoTestApi.Application.Services
         private readonly IPersonDomainService _domainService;
         private readonly IPasswordHashingService _passwordHashingService;
         private readonly IPasswordValidator _passwordValidator;
+        private readonly IPersonMapper _personMapper;
 
         public PersonApplicationService(
             IPersonRepository repository,
             IPersonDomainService domainService,
             IPasswordHashingService passwordHashingService,
-            IPasswordValidator passwordValidator)
+            IPasswordValidator passwordValidator,
+            IPersonMapper personMapper)
         {
             _repository = repository;
             _domainService = domainService;
             _passwordHashingService = passwordHashingService;
             _passwordValidator = passwordValidator;
+            _personMapper = personMapper;
         }
 
         // Queries
@@ -54,12 +58,7 @@ namespace FoTestApi.Application.Services
                 ? PasswordGenerator.GeneratePassword()
                 : command.Password;
 
-            var newPerson = new PersonEntity
-            {
-                FirstName = command.FirstName,
-                LastName = command.LastName,
-                Password = password
-            };
+            var newPerson = _personMapper.ToEntity(command, password);
 
             newPerson.Validate();
             _passwordValidator.Validate(password);
@@ -79,26 +78,11 @@ namespace FoTestApi.Application.Services
                 throw new InvalidOperationException($"Person with ID '{command.Id}' not found.");
             }
 
-            var hasNewPassword = !string.IsNullOrWhiteSpace(command.Password);
-            var updatedPerson = new PersonEntity
-            {
-                Id = command.Id,
-                FirstName = command.FirstName,
-                LastName = command.LastName,
-                Password = hasNewPassword ? command.Password : string.Empty
-            };
+            var updatedPerson = _personMapper.ToEntity(command, existingPerson.Password);
 
             updatedPerson.Validate();
-            if (hasNewPassword)
-            {
-                _passwordValidator.Validate(command.Password);
-            }
 
             await _domainService.EnsureUniqueAsync(updatedPerson.FirstName, updatedPerson.LastName, command.Id);
-
-            updatedPerson.Password = hasNewPassword
-                ? _passwordHashingService.HashPassword(command.Password!)
-                : existingPerson.Password;
 
             await _repository.UpdateAsync(command.Id, updatedPerson);
         }

@@ -1,3 +1,4 @@
+using FoTestApi.Application.Authentication;
 using FoTestApi.Application.Commands;
 using FoTestApi.Application.DTOs;
 using FoTestApi.Application.Services;
@@ -91,13 +92,13 @@ public class AuthControllerTests
             HttpContext = new DefaultHttpContext
             {
                 User = new ClaimsPrincipal(new ClaimsIdentity(
-                    new[] { new Claim(ClaimTypes.Name, "john.doe") },
+                    new[] { new Claim(CustomClaimTypes.PersonId, "1") },
                     "TestAuth"))
             }
         };
 
         _authServiceMock
-            .Setup(service => service.ChangePasswordAsync("john.doe", request))
+            .Setup(service => service.ChangePasswordAsync("1", request))
             .ReturnsAsync(true);
 
         var result = await _controller.ChangePassword(request);
@@ -119,13 +120,13 @@ public class AuthControllerTests
             HttpContext = new DefaultHttpContext
             {
                 User = new ClaimsPrincipal(new ClaimsIdentity(
-                    new[] { new Claim(ClaimTypes.Name, "john.doe") },
+                    new[] { new Claim(CustomClaimTypes.PersonId, "1") },
                     "TestAuth"))
             }
         };
 
         _authServiceMock
-            .Setup(service => service.ChangePasswordAsync("john.doe", request))
+            .Setup(service => service.ChangePasswordAsync("1", request))
             .ReturnsAsync(false);
 
         var result = await _controller.ChangePassword(request);

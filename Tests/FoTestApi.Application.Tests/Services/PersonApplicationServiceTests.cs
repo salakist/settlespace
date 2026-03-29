@@ -1,4 +1,5 @@
 using FoTestApi.Application.Commands;
+using FoTestApi.Application.Mapping;
 using FoTestApi.Application.Services;
 using FoTestApi.Domain.Entities;
 using FoTestApi.Domain.Exceptions;
@@ -14,6 +15,7 @@ public class PersonApplicationServiceTests
     private readonly Mock<IPersonDomainService> _domainServiceMock = new();
     private readonly Mock<IPasswordHashingService> _passwordHashingServiceMock = new();
     private readonly Mock<IPasswordValidator> _passwordValidatorMock = new();
+    private readonly IPersonMapper _personMapper = new PersonMapper();
     private readonly PersonApplicationService _sut;
 
     public PersonApplicationServiceTests()
@@ -30,7 +32,8 @@ public class PersonApplicationServiceTests
             _repositoryMock.Object,
             _domainServiceMock.Object,
             _passwordHashingServiceMock.Object,
-            _passwordValidatorMock.Object);
+            _passwordValidatorMock.Object,
+            _personMapper);
     }
 
     // -----------------------------------------------------------------------
@@ -212,7 +215,7 @@ public class PersonApplicationServiceTests
     [Fact]
     public async Task UpdatePersonAsync_ValidCommand_UpdatesPerson()
     {
-        var command  = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Doe", Password = "Strong@Pass2" };
+        var command  = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Doe" };
         var existing = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe", Password = "hashed::Old@Pass1" };
         PersonEntity? capturedPerson = null;
 
@@ -229,36 +232,14 @@ public class PersonApplicationServiceTests
         _domainServiceMock.Verify(d => d.EnsureUniqueAsync("Jane", "Doe", "1"), Times.Once);
         _repositoryMock.Verify(r => r.UpdateAsync("1", It.IsAny<PersonEntity>()), Times.Once);
         Assert.NotNull(capturedPerson);
-        Assert.Equal("hashed::Strong@Pass2", capturedPerson!.Password);
-        _passwordHashingServiceMock.Verify(service => service.HashPassword("Strong@Pass2"), Times.Once);
-    }
-
-    [Fact]
-    public async Task UpdatePersonAsync_NoPassword_PreservesExistingPassword()
-    {
-        var command  = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Doe", Password = null };
-        var existing = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe", Password = "hashed::Existing@Pass1" };
-        var capturedPerson = (PersonEntity?)null;
-
-        _repositoryMock.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(existing);
-        _domainServiceMock
-            .Setup(d => d.EnsureUniqueAsync("Jane", "Doe", "1"))
-            .Returns(Task.CompletedTask);
-        _repositoryMock.Setup(r => r.UpdateAsync("1", It.IsAny<PersonEntity>()))
-                       .Callback<string, PersonEntity>((id, p) => capturedPerson = p)
-                       .Returns(Task.CompletedTask);
-
-        await _sut.UpdatePersonAsync(command);
-
-        Assert.NotNull(capturedPerson);
-        Assert.Equal("hashed::Existing@Pass1", capturedPerson!.Password);
+        Assert.Equal("hashed::Old@Pass1", capturedPerson!.Password);
         _passwordHashingServiceMock.Verify(service => service.HashPassword(It.IsAny<string>()), Times.Never);
     }
 
     [Fact]
-    public async Task UpdatePersonAsync_EmptyPassword_PreservesExistingPassword()
+    public async Task UpdatePersonAsync_PreservesExistingPassword()
     {
-        var command  = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Doe", Password = "" };
+        var command  = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Doe" };
         var existing = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe", Password = "hashed::Existing@Pass1" };
         var capturedPerson = (PersonEntity?)null;
 
@@ -301,18 +282,6 @@ public class PersonApplicationServiceTests
             .ThrowsAsync(new DuplicatePersonException("Jane", "Smith"));
 
         await Assert.ThrowsAsync<DuplicatePersonException>(
-            () => _sut.UpdatePersonAsync(command));
-    }
-
-    [Fact]
-    public async Task UpdatePersonAsync_WeakPassword_ThrowsWeakPasswordException()
-    {
-        var command  = new UpdatePersonCommand { Id = "1", FirstName = "Jane", LastName = "Doe", Password = "weak" };
-        var existing = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe" };
-
-        _repositoryMock.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(existing);
-
-        await Assert.ThrowsAsync<WeakPasswordException>(
             () => _sut.UpdatePersonAsync(command));
     }
 

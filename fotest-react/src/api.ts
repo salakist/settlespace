@@ -22,6 +22,7 @@ export const authStorage = {
   getToken: () => localStorage.getItem(TOKEN_STORAGE_KEY),
   getUsername: () => localStorage.getItem(USERNAME_STORAGE_KEY),
   isAuthenticated: () => Boolean(localStorage.getItem(TOKEN_STORAGE_KEY)),
+  setUsername: (username: string) => localStorage.setItem(USERNAME_STORAGE_KEY, username),
   saveSession: (response: LoginResponse) => {
     localStorage.setItem(TOKEN_STORAGE_KEY, response.token);
     localStorage.setItem(USERNAME_STORAGE_KEY, response.username);
@@ -40,9 +41,11 @@ export const authApi = {
 
 export const personApi = {
   getAll: () => api.get<Person[]>('/persons'),
+  getCurrent: () => api.get<Person>('/persons/me'),
   getById: (id: string) => api.get<Person>(`/persons/${id}`),
   create: (person: Omit<Person, 'id'>) => api.post<Person>('/persons', person),
   update: (id: string, person: Omit<Person, 'id'>) => api.put(`/persons/${id}`, person),
+  updateCurrent: (person: Omit<Person, 'id'>) => api.put('/persons/me', person),
   delete: (id: string) => api.delete(`/persons/${id}`),
   search: (query: string) => api.get<Person[]>(`/persons/search/${query}`),
 };

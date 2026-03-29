@@ -184,7 +184,7 @@ public class AuthServiceTests
         PersonEntity? updatedPerson = null;
 
         _personRepositoryMock
-            .Setup(repository => repository.FindByFullNameAsync("john", "doe"))
+            .Setup(repository => repository.GetByIdAsync("1"))
             .ReturnsAsync(new PersonEntity
             {
                 Id = "1",
@@ -197,7 +197,7 @@ public class AuthServiceTests
             .Callback<string, PersonEntity>((_, person) => updatedPerson = person)
             .Returns(Task.CompletedTask);
 
-        var result = await sut.ChangePasswordAsync("john.doe", new ChangePasswordCommand
+        var result = await sut.ChangePasswordAsync("1", new ChangePasswordCommand
         {
             CurrentPassword = "Admin@123",
             NewPassword = "NewStrong@123"
@@ -216,7 +216,7 @@ public class AuthServiceTests
         var existingHash = Hash("Admin@123");
 
         _personRepositoryMock
-            .Setup(repository => repository.FindByFullNameAsync("john", "doe"))
+            .Setup(repository => repository.GetByIdAsync("1"))
             .ReturnsAsync(new PersonEntity
             {
                 Id = "1",
@@ -225,7 +225,7 @@ public class AuthServiceTests
                 Password = existingHash
             });
 
-        var result = await sut.ChangePasswordAsync("john.doe", new ChangePasswordCommand
+        var result = await sut.ChangePasswordAsync("1", new ChangePasswordCommand
         {
             CurrentPassword = "Wrong@123",
             NewPassword = "NewStrong@123"
@@ -242,7 +242,7 @@ public class AuthServiceTests
         var existingHash = Hash("Admin@123");
 
         _personRepositoryMock
-            .Setup(repository => repository.FindByFullNameAsync("john", "doe"))
+            .Setup(repository => repository.GetByIdAsync("1"))
             .ReturnsAsync(new PersonEntity
             {
                 Id = "1",
@@ -252,7 +252,7 @@ public class AuthServiceTests
             });
 
         await Assert.ThrowsAsync<WeakPasswordException>(() =>
-            sut.ChangePasswordAsync("john.doe", new ChangePasswordCommand
+            sut.ChangePasswordAsync("1", new ChangePasswordCommand
             {
                 CurrentPassword = "Admin@123",
                 NewPassword = "weak"

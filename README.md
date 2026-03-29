@@ -19,7 +19,7 @@ A full-stack demonstration project showcasing Domain-Driven Design (DDD) with a 
 - **HTTP Client:** Axios
 - **UI Library:** Material UI (MUI) with dark mode
 - **Build Tool:** Create React App
-- **Access Control:** Login page with token persistence in local storage and in-session password change option
+- **Access Control:** Login page with token persistence in local storage, public registration, and an authenticated profile page for personal data + password updates
 
 ---
 
@@ -73,7 +73,9 @@ FoTestApi.Domain/
 | `FirstName` is required | Cannot be null or whitespace |
 | `LastName` is required | Cannot be null or whitespace |
 | `Password` is optional on creation | If not provided, a random strong password is auto-generated |
-| `Password` preservation on update | When updating, if no password is provided, the existing password is preserved |
+| Password updates are route-scoped | Password changes are only supported via `/auth/change-password` |
+| Contact details are optional | `PhoneNumber`, `Email`, `DateOfBirth`, and a list of addresses may be stored per person |
+| Optional field validation | Email format, phone format, non-future date of birth, and structured addresses are validated at the domain boundary |
 | Password strength | Must be at least 8 characters with uppercase, lowercase, digit, and special character |
 | No duplicate persons | Two persons are duplicates if `FirstName` and `LastName` match case-insensitively |
 | Duplicate check scope | Enforced on both **create** and **update** |
@@ -90,6 +92,12 @@ FoTestApi.Domain/
 
 **Auto-generated passwords** are 12+ characters and always meet all requirements.
 
+**Optional Field Validation Rules**:
+- `PhoneNumber`: optional; when provided must match `^(?=.*\d)[0-9+()\-.\s]{7,20}$`
+- `Email`: optional; when provided must be a valid email address
+- `DateOfBirth`: optional; when provided must not be in the future
+- `Addresses`: optional list; each address requires non-empty `Label`, `StreetLine1`, `City`, `Country`, and a `PostalCode` matching `^[A-Za-z0-9\-\s]{3,12}$`
+
 ---
 
 ### FoTestApi.Infrastructure
@@ -103,6 +111,7 @@ FoTestApi.Infrastructure/
 ```
 
 - MongoDB `BsonClassMap` is registered here, keeping `PersonEntity` free of Bson attributes
+- `DateOnly` values are stored as ISO strings (`YYYY-MM-DD`) in MongoDB
 - Search uses case-insensitive regex matching (`i` flag) for both `firstName` and `lastName`
 - Duplicate detection queries MongoDB with anchored regex (`^name$` with `i` flag)
 
@@ -114,17 +123,20 @@ Application layer and API host.
 
 ```
 FoTestApi.Application/
-├── Commands/        LoginCommand, CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
+├── Commands/        LoginCommand, RegisterCommand, CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
 ├── Controllers/     AuthController, PersonsController
-├── DTOs/            LoginResponseDto, PersonDto
+├── Mapping/         IPersonMapper, PersonMapper
+├── DTOs/            LoginResponseDto, PersonDto, AddressDto
 ├── Services/        AuthService, IPersonApplicationService, PersonApplicationService
 ├── Program.cs
 └── appsettings.json
 ```
 
-`PersonApplicationService` orchestrates: validate entity → delegate duplicate check to `IPersonDomainService` → persist via repository.
+`PersonMapper` isolates mapping responsibilities (command → domain and domain → DTO).
 
-`AuthService` authenticates against the MongoDB `persons` collection via `IPersonRepository`, and `AuthController` issues JWT tokens used by the React frontend.
+`PersonApplicationService` orchestrates: map command → validate entity → delegate duplicate check to `IPersonDomainService` → persist via repository.
+
+`AuthService` authenticates against the MongoDB `persons` collection via `IPersonRepository`, issues JWT tokens used by the React frontend, and stores a stable person id claim so profile and password operations keep working even after first/last name changes.
 
 ---
 
@@ -132,11 +144,11 @@ FoTestApi.Application/
 
 Each DDD layer has a dedicated xUnit + Moq test project.
 
-| Project | Tests | Scope |
-|---|---|---|
-| `FoTestApi.Domain.Tests` | 32 | `PersonEntity` rules, `PersonDomainService` uniqueness, password generation |
-| `FoTestApi.Infrastructure.Tests` | 10 | `PersonRepository` CRUD via mocked `IMongoCollection<T>` |
-| `FoTestApi.Application.Tests` | 36 | `PersonApplicationService` commands/queries, person-backed auth service/controller, `PersonsController` HTTP status codes |
+| Project | Scope |
+|---|---|
+| `FoTestApi.Domain.Tests` | `PersonEntity` rules, optional profile field validation, `PersonDomainService` uniqueness, password generation |
+| `FoTestApi.Infrastructure.Tests` | `PersonRepository` CRUD via mocked `IMongoCollection<T>` |
+| `FoTestApi.Application.Tests` | `PersonApplicationService` commands/queries, person-backed auth service/controller, `PersonsController` HTTP status codes and authenticated `me` endpoints |
 
 ### Run all tests
 
@@ -167,8 +179,10 @@ React SPA with login-gated access, full CRUD, search, and Material UI dark theme
 fotest-react/src/
 +-- App.tsx           # App shell, auth gating, state management, dark ThemeProvider
 +-- LoginPage.tsx     # Login screen for JWT-based access
-+-- RegisterPage.tsx  # Public registration screen with auto-login
-+-- ChangePasswordForm.tsx # Authenticated user password change form
++-- RegisterPage.tsx  # Public registration screen with auto-login and optional profile fields
++-- ProfilePage.tsx   # Authenticated profile screen for personal info + password updates
++-- ChangePasswordForm.tsx # Password change form embedded in the profile page
++-- PersonAddressEditor.tsx # Shared address list editor used by registration and profile
 +-- PersonForm.tsx    # Create / edit form
 +-- PersonList.tsx    # Person cards with edit/delete actions
 +-- SearchBar.tsx     # Case-insensitive search input
@@ -236,15 +250,19 @@ Base URL: `http://localhost:5279/api`
 | POST | `/auth/register` | Register a new person and automatically sign in | `RegisterCommand` | `200` LoginResponseDto, `400`, `409` |
 | POST | `/auth/change-password` | Change password for the current authenticated user | `ChangePasswordCommand` | `204`, `400`, `401` |
 | GET | `/persons` | Get all persons | none | `200` Array of PersonDto, `401` |
+| GET | `/persons/me` | Get the authenticated person's profile | none | `200` PersonDto, `401`, `404` |
 | GET | `/persons/{id}` | Get by ID | none | `200` PersonDto, `404`, `401` |
 | GET | `/persons/search/{query}` | Search by name (case-insensitive) | none | `200` Array, `401` |
 | POST | `/persons` | Create person | `CreatePersonCommand` | `201` PersonDto, `409` Conflict, `400`, `401` |
+| PUT | `/persons/me` | Update the authenticated person's profile | `UpdatePersonCommand` | `204`, `400`, `401`, `404`, `409` |
 | PUT | `/persons/{id}` | Update person | `UpdatePersonCommand` | `204`, `404`, `409` Conflict, `400`, `401` |
 | DELETE | `/persons/{id}` | Delete person | none | `204`, `404`, `401` |
 
 All `/persons` endpoints require a bearer token returned by `/auth/login`.
 The login endpoint validates credentials against MongoDB persons (`firstName.lastName` + person password), not appsettings.
 Passwords are stored as PBKDF2 hashes. If an older plaintext password is encountered, it is upgraded to a hash on the next successful login.
+
+`DateOfBirth` is represented as `DateOnly` in backend contracts and exchanged as `YYYY-MM-DD` JSON values.
 
 ### LoginCommand
 
@@ -271,7 +289,21 @@ Passwords are stored as PBKDF2 hashes. If an older plaintext password is encount
 {
   "firstName": "John",
   "lastName": "Doe",
-  "password": "Strong@Pass1"
+  "password": "Strong@Pass1",
+  "phoneNumber": "+33 6 12 34 56 78",
+  "email": "john.doe@example.com",
+  "dateOfBirth": "1990-05-02",
+  "addresses": [
+    {
+      "label": "Home",
+      "streetLine1": "1 Main Street",
+      "streetLine2": "Apartment 4B",
+      "postalCode": "75001",
+      "city": "Paris",
+      "stateOrRegion": "Ile-de-France",
+      "country": "France"
+    }
+  ]
 }
 ```
 
@@ -287,7 +319,7 @@ Passwords are stored as PBKDF2 hashes. If an older plaintext password is encount
 ```
 
 `/auth/change-password` requires a valid bearer token and changes the password of the currently authenticated user.
-Frontend users can access this action from the header, next to the log out button, once logged in.
+Frontend users can access this action from the authenticated profile page.
 
 ### PersonDto
 
@@ -295,23 +327,75 @@ Frontend users can access this action from the header, next to the log out butto
 {
   "id": "string",
   "firstName": "string",
-  "lastName": "string"
+  "lastName": "string",
+  "phoneNumber": "string | null",
+  "email": "string | null",
+  "dateOfBirth": "YYYY-MM-DD | null",
+  "addresses": [
+    {
+      "label": "Home",
+      "streetLine1": "string",
+      "streetLine2": "string | null",
+      "postalCode": "string",
+      "city": "string",
+      "stateOrRegion": "string | null",
+      "country": "string"
+    }
+  ]
 }
 ```
 
-### CreatePersonCommand / UpdatePersonCommand
+### CreatePersonCommand
 
 ```json
 {
   "firstName": "string",
   "lastName": "string",
-  "password": "string (optional, must meet strength requirements if provided)"
+  "password": "string (optional, must meet strength requirements if provided)",
+  "phoneNumber": "string (optional)",
+  "email": "string (optional)",
+  "dateOfBirth": "YYYY-MM-DD (optional)",
+  "addresses": [
+    {
+      "label": "string",
+      "streetLine1": "string",
+      "streetLine2": "string (optional)",
+      "postalCode": "string",
+      "city": "string",
+      "stateOrRegion": "string (optional)",
+      "country": "string"
+    }
+  ]
+}
+```
+
+### UpdatePersonCommand
+
+```json
+{
+  "firstName": "string",
+  "lastName": "string",
+  "phoneNumber": "string (optional)",
+  "email": "string (optional)",
+  "dateOfBirth": "YYYY-MM-DD (optional)",
+  "addresses": [
+    {
+      "label": "string",
+      "streetLine1": "string",
+      "streetLine2": "string (optional)",
+      "postalCode": "string",
+      "city": "string",
+      "stateOrRegion": "string (optional)",
+      "country": "string"
+    }
+  ]
 }
 ```
 
 If `password` is omitted on creation, the API generates a strong password automatically.
-If `password` is omitted on update, the API preserves the existing password.
-Provided passwords are validated before being hashed for storage.
+Provided create/register passwords are validated before being hashed for storage.
+`UpdatePersonCommand` does not accept a password field; use `/auth/change-password` instead.
+When a person edits their own profile, the frontend uses `/persons/me`; administrative CRUD continues to use `/persons/{id}`.
 
 ### Error response (409 Conflict)
 
