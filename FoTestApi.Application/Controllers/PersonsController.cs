@@ -15,13 +15,13 @@ namespace FoTestApi.Controllers
     [Route("api/[controller]")]
     public class PersonsController : ControllerBase
     {
-        private readonly PersonApplicationService _applicationService;
+        private readonly IPersonApplicationService _applicationService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PersonsController"/> class.
         /// </summary>
         /// <param name="applicationService">The person application service.</param>
-        public PersonsController(PersonApplicationService applicationService) =>
+        public PersonsController(IPersonApplicationService applicationService) =>
             _applicationService = applicationService;
 
         /// <summary>

@@ -15,7 +15,7 @@ builder.Services.Configure<FoTestDatabaseSettings>(
 // Register DDD pattern services
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 builder.Services.AddScoped<PersonDomainService>();
-builder.Services.AddScoped<PersonApplicationService>();
+builder.Services.AddScoped<IPersonApplicationService, PersonApplicationService>();
 
 builder.Services.AddControllers();
 builder.Services.AddCors(options =>

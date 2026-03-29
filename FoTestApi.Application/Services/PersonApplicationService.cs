@@ -10,7 +10,7 @@ namespace FoTestApi.Application.Services
     /// Orchestrates domain logic and repository operations.
     /// Uniqueness rules are enforced by <see cref="PersonDomainService"/>.
     /// </summary>
-    public class PersonApplicationService
+    public class PersonApplicationService : IPersonApplicationService
     {
         private readonly IPersonRepository _repository;
         private readonly PersonDomainService _domainService;

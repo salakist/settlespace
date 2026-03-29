@@ -43,6 +43,14 @@ namespace FoTestApi.Infrastructure.Repositories
             _personsCollection = mongoDatabase.GetCollection<PersonEntity>(foTestDatabaseSettings.Value.PersonsCollectionName);
         }
 
+        /// <summary>
+        /// Test-only constructor that accepts a mock collection directly.
+        /// </summary>
+        internal PersonRepository(IMongoCollection<PersonEntity> collection)
+        {
+            _personsCollection = collection;
+        }
+
         public async Task<List<PersonEntity>> GetAllAsync()
         {
             return await _personsCollection.Find(_ => true).ToListAsync();
