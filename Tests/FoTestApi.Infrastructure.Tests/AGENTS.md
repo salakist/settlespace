@@ -5,6 +5,8 @@ Unit test project for the Infrastructure layer. Tests `PersonRepository` without
 
 ## Test coverage
 - `PersonRepositoryTests` — all repository methods: `GetAllAsync`, `GetByIdAsync`, `SearchAsync` (empty and non-empty query), `FindByFullNameAsync`, `AddAsync`, `UpdateAsync`, `DeleteAsync`
+- `DateOnlyAsStringSerializerTests` — BSON string serialization/deserialization for `DateOnly` values and invalid BSON type rejection
+- `FoTestDatabaseSettingsTests` — configuration model property coverage
 
 ## Test strategy
 - Uses the `internal PersonRepository(IMongoCollection<PersonEntity>)` constructor to inject a mock collection
@@ -13,6 +15,8 @@ Unit test project for the Infrastructure layer. Tests `PersonRepository` without
 
 ## Key files
 - `Repositories/PersonRepositoryTests.cs`
+- `Serialization/DateOnlyAsStringSerializerTests.cs`
+- `FoTestDatabaseSettingsTests.cs`
 
 ## Commands
 - `dotnet test Tests/FoTestApi.Infrastructure.Tests/FoTestApi.Infrastructure.Tests.csproj`

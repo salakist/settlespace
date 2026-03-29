@@ -1,0 +1,30 @@
+<Project>
+
+  <!--
+    Applied to all C# production projects in this solution.
+    Test projects (IsTestProject=true) are excluded so test-pattern code
+    (e.g. many assertions in a row, magic strings) does not trip the rules.
+  -->
+
+  <PropertyGroup Condition="'$(IsTestProject)' != 'true'">
+    <!-- Enable the recommended set of .NET built-in Roslyn analyzers -->
+    <AnalysisMode>Recommended</AnalysisMode>
+    <!-- Make IDE-level style rules run during dotnet build, not just in the IDE -->
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+  </PropertyGroup>
+
+  <!--
+    Roslynator.Analyzers — lightweight, zero-config Roslyn analyzer package
+    (no server, no cloud — runs entirely during dotnet build).
+    Adds ~500 code-smell rules (complexity, naming, redundant code, …).
+    PrivateAssets=all means it is a dev-time dependency only; it is never
+    included in published output.
+  -->
+  <ItemGroup Condition="'$(IsTestProject)' != 'true'">
+    <PackageReference Include="Roslynator.Analyzers" Version="4.12.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

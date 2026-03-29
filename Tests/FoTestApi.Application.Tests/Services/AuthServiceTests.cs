@@ -56,7 +56,7 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task LoginAsync_WithValidCredentials_ReturnsTokenResponse()
+    public async Task LoginAsyncWithValidCredentialsReturnsTokenResponse()
     {
         var sut = CreateService();
         var passwordHash = Hash("Admin@123");
@@ -77,7 +77,7 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task LoginAsync_WithInvalidCredentials_ReturnsNull()
+    public async Task LoginAsyncWithInvalidCredentialsReturnsNull()
     {
         var sut = CreateService();
         var passwordHash = Hash("Admin@123");
@@ -95,7 +95,7 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task LoginAsync_WithLegacyPlaintextPassword_UpgradesStoredPassword()
+    public async Task LoginAsyncWithLegacyPlaintextPasswordUpgradesStoredPassword()
     {
         var sut = CreateService();
         PersonEntity? updatedPerson = null;
@@ -122,7 +122,7 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task LoginAsync_WithInvalidUsernameFormat_ReturnsNull()
+    public async Task LoginAsyncWithInvalidUsernameFormatReturnsNull()
     {
         var sut = CreateService();
 
@@ -137,7 +137,7 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task RegisterAsync_WithValidCommand_ReturnsLoginResponse()
+    public async Task RegisterAsyncWithValidCommandReturnsLoginResponse()
     {
         var sut = CreateService();
         var passwordHash = Hash("Strong@Pass1");
@@ -177,7 +177,7 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task ChangePasswordAsync_WithValidCurrentPassword_UpdatesStoredHash()
+    public async Task ChangePasswordAsyncWithValidCurrentPasswordUpdatesStoredHash()
     {
         var sut = CreateService();
         var existingHash = Hash("Admin@123");
@@ -210,7 +210,7 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task ChangePasswordAsync_WithInvalidCurrentPassword_ReturnsFalse()
+    public async Task ChangePasswordAsyncWithInvalidCurrentPasswordReturnsFalse()
     {
         var sut = CreateService();
         var existingHash = Hash("Admin@123");
@@ -236,7 +236,7 @@ public class AuthServiceTests
     }
 
     [Fact]
-    public async Task ChangePasswordAsync_WithWeakNewPassword_ThrowsWeakPasswordException()
+    public async Task ChangePasswordAsyncWithWeakNewPasswordThrowsWeakPasswordException()
     {
         var sut = CreateService();
         var existingHash = Hash("Admin@123");

@@ -13,7 +13,7 @@ public class ExceptionHandlingMiddlewareTests
     private readonly IHostEnvironment _environment = new MockHostEnvironment();
 
     [Fact]
-    public async Task DuplicatePersonException_Returns409Conflict()
+    public async Task DuplicatePersonExceptionReturns409Conflict()
     {
         var middleware = new ExceptionHandlingMiddleware(
             _ => throw new DuplicatePersonException("John", "Doe"),
@@ -27,7 +27,7 @@ public class ExceptionHandlingMiddlewareTests
     }
 
     [Fact]
-    public async Task WeakPasswordException_Returns400BadRequest()
+    public async Task WeakPasswordExceptionReturns400BadRequest()
     {
         var middleware = new ExceptionHandlingMiddleware(
             _ => throw new WeakPasswordException("Password must be at least 8 characters long."),
@@ -41,7 +41,7 @@ public class ExceptionHandlingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvalidOperationException_NotFound_Returns404NotFound()
+    public async Task InvalidOperationExceptionNotFoundReturns404NotFound()
     {
         var middleware = new ExceptionHandlingMiddleware(
             _ => throw new InvalidOperationException("Person with ID 'x' not found."),
@@ -55,7 +55,7 @@ public class ExceptionHandlingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvalidOperationException_Other_Returns400BadRequest()
+    public async Task InvalidOperationExceptionOtherReturns400BadRequest()
     {
         var middleware = new ExceptionHandlingMiddleware(
             _ => throw new InvalidOperationException("Some other operation failed."),
@@ -69,10 +69,10 @@ public class ExceptionHandlingMiddlewareTests
     }
 
     [Fact]
-    public async Task UnhandledException_Returns500InternalServerError()
+    public async Task UnhandledExceptionReturns500InternalServerError()
     {
         var middleware = new ExceptionHandlingMiddleware(
-            _ => throw new Exception("Unexpected error"),
+            _ => throw new NotSupportedException("Unexpected error"),
             new MockLogger(),
             _environment
         );
@@ -82,14 +82,14 @@ public class ExceptionHandlingMiddlewareTests
         Assert.Equal(StatusCodes.Status500InternalServerError, _context.Response.StatusCode);
     }
 
-    private class MockLogger : ILogger<ExceptionHandlingMiddleware>
+    private sealed class MockLogger : ILogger<ExceptionHandlingMiddleware>
     {
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull => null;
         public bool IsEnabled(LogLevel logLevel) => false;
         public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter) { }
     }
 
-    private class MockHostEnvironment : IHostEnvironment
+    private sealed class MockHostEnvironment : IHostEnvironment
     {
         public string EnvironmentName { get; set; } = Environments.Development;
         public string ApplicationName { get; set; } = "FoTestApi.Application.Tests";

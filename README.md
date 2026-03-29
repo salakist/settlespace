@@ -164,6 +164,58 @@ dotnet test Tests/FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj
 
 ---
 
+## Quality Gates
+
+Two repository-level analysis modes are available:
+
+1. `scripts/run-checks.ps1` / `scripts/run-checks.sh`
+  - changed-code gate
+  - intended for routine local validation, commits, and pushes
+2. `scripts/run-full-checks.ps1` / `scripts/run-full-checks.sh`
+  - full-base gate
+  - intended for whole-repository assessment when explicitly requested
+
+### Changed-code gate
+
+- Builds the solution and blocks analyzer/compiler diagnostics that touch changed C# files
+- Measures coverage only for changed production C# files
+- Runs ESLint only on changed frontend files
+- Measures coverage only for changed production frontend files
+
+### Full-base gate
+
+- Builds the full solution and blocks all analyzer/compiler diagnostics
+- Measures coverage across the full production C# codebase
+- Runs ESLint on the full frontend source tree
+- Measures coverage across the full production frontend codebase
+
+### Coverage policy
+
+- Coverage gates evaluate production implementation files, not test files
+- Application startup wiring in `Program.cs` is treated as composition-root/bootstrap code and is excluded from the C# coverage calculation
+- The build/analyzer gates still analyze `Program.cs`; only coverage excludes it
+
+### Run the gates
+
+```powershell
+.\scripts\run-checks.ps1
+.\scripts\run-full-checks.ps1
+.\scripts\setup-hooks.ps1
+```
+
+```bash
+sh scripts/run-checks.sh
+sh scripts/run-full-checks.sh
+sh scripts/setup-hooks.sh
+```
+
+### Git hooks
+
+- `pre-commit` and `pre-push` call the changed-code gate
+- Do not bypass the hooks with `--no-verify`
+
+---
+
 ## fotest-react
 
 React SPA with login-gated access, full CRUD, search, and Material UI dark theme.
@@ -182,6 +234,22 @@ fotest-react/src/
 +-- api.ts            # Axios API calls, login, token storage helpers
 +-- types.ts          # TypeScript interfaces
 ```
+
+### Frontend commands
+
+```bash
+cd fotest-react
+npm install
+npm start
+npm test
+npx eslint src --ext .ts,.tsx --max-warnings=0
+```
+
+### Frontend coverage scope
+
+- Coverage targets production files under `fotest-react/src/`
+- Excluded from frontend coverage scope: `*.test.tsx`, `setupTests.ts`, `reportWebVitals.ts`, `index.tsx`, `react-app-env.d.ts`
+- Repository gate scripts (`scripts/run-checks.*`, `scripts/run-full-checks.*`) are the source of truth for frontend quality validation
 
 ---
 

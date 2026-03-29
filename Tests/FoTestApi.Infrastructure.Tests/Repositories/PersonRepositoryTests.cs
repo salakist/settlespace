@@ -58,8 +58,9 @@ public class PersonRepositoryTests
     // Tests
     // -----------------------------------------------------------------------
 
+    /// <summary>Gets all persons returns all persons from repository.</summary>
     [Fact]
-    public async Task GetAllAsync_ReturnsAllPersons()
+    public async Task GetAllAsyncReturnsAllPersons()
     {
         var persons = new List<PersonEntity>
         {
@@ -74,8 +75,9 @@ public class PersonRepositoryTests
         Assert.Equal("John", result[0].FirstName);
     }
 
+    /// <summary>Gets person by id with existing person returns the person.</summary>
     [Fact]
-    public async Task GetByIdAsync_ExistingPerson_ReturnsPerson()
+    public async Task GetByIdAsyncExistingPersonReturnsPerson()
     {
         var person = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe" };
         var repo = CreateRepo(BuildCollectionMock(new[] { person }).Object);
@@ -86,8 +88,9 @@ public class PersonRepositoryTests
         Assert.Equal("John", result.FirstName);
     }
 
+    /// <summary>Gets person by id with unknown id returns null.</summary>
     [Fact]
-    public async Task GetByIdAsync_UnknownId_ReturnsNull()
+    public async Task GetByIdAsyncUnknownIdReturnsNull()
     {
         var repo = CreateRepo(BuildCollectionMock(Enumerable.Empty<PersonEntity>()).Object);
 
@@ -96,8 +99,9 @@ public class PersonRepositoryTests
         Assert.Null(result);
     }
 
+    /// <summary>Searches with empty query returns all persons.</summary>
     [Fact]
-    public async Task SearchAsync_EmptyQuery_ReturnsAllPersons()
+    public async Task SearchAsyncEmptyQueryReturnsAllPersons()
     {
         var persons = new List<PersonEntity>
         {
@@ -111,8 +115,9 @@ public class PersonRepositoryTests
         Assert.Equal(2, result.Count);
     }
 
+    /// <summary>Searches with valid query returns filtered results.</summary>
     [Fact]
-    public async Task SearchAsync_ValidQuery_ReturnsFilteredResults()
+    public async Task SearchAsyncValidQueryReturnsFilteredResults()
     {
         var matching = new List<PersonEntity>
         {
@@ -126,8 +131,9 @@ public class PersonRepositoryTests
         Assert.Equal("John", result[0].FirstName);
     }
 
+    /// <summary>Finds person by full name with existing person returns the person.</summary>
     [Fact]
-    public async Task FindByFullNameAsync_ExistingPerson_ReturnsPerson()
+    public async Task FindByFullNameAsyncExistingPersonReturnsPerson()
     {
         var person = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe" };
         var repo = CreateRepo(BuildCollectionMock(new[] { person }).Object);
@@ -138,8 +144,9 @@ public class PersonRepositoryTests
         Assert.Equal("Doe", result.LastName);
     }
 
+    /// <summary>Finds person by full name with no person found returns null.</summary>
     [Fact]
-    public async Task FindByFullNameAsync_NoPerson_ReturnsNull()
+    public async Task FindByFullNameAsyncNoPersonReturnsNull()
     {
         var repo = CreateRepo(BuildCollectionMock(Enumerable.Empty<PersonEntity>()).Object);
 
@@ -148,8 +155,9 @@ public class PersonRepositoryTests
         Assert.Null(result);
     }
 
+    /// <summary>Adds async inserts person and returns it.</summary>
     [Fact]
-    public async Task AddAsync_InsertsPersonAndReturnsIt()
+    public async Task AddAsyncInsertsPersonAndReturnsIt()
     {
         var person = new PersonEntity { FirstName = "New", LastName = "Person" };
         var mock = new Mock<IMongoCollection<PersonEntity>>();
@@ -169,8 +177,9 @@ public class PersonRepositoryTests
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    /// <summary>Updates async calls replace one.</summary>
     [Fact]
-    public async Task UpdateAsync_CallsReplaceOne()
+    public async Task UpdateAsyncCallsReplaceOne()
     {
         var person = new PersonEntity { Id = "1", FirstName = "Updated", LastName = "Name" };
         var mock = new Mock<IMongoCollection<PersonEntity>>();
@@ -191,8 +200,9 @@ public class PersonRepositoryTests
             It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    /// <summary>Deletes async calls delete one.</summary>
     [Fact]
-    public async Task DeleteAsync_CallsDeleteOne()
+    public async Task DeleteAsyncCallsDeleteOne()
     {
         var mock = new Mock<IMongoCollection<PersonEntity>>();
         mock.Setup(c => c.DeleteOneAsync(

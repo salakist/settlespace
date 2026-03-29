@@ -33,6 +33,7 @@ FoTestApi.Application/
 - Register DI in `Program.cs` (repository, domain service, auth service, application service, CORS, Swagger, JWT auth)
 - Register `ExceptionHandlingMiddleware` to translate domain exceptions to HTTP responses (409 Conflict, 404 Not Found, 400 Bad Request)
 - Require JWT authentication for person management endpoints
+- Treat `Program.cs` as composition-root/bootstrap code for coverage purposes; it remains part of build/analyzer validation but is excluded from the C# coverage gate
 
 ## Interfaces
 - `IPersonApplicationService` — abstraction consumed by `PersonsController` (enables controller unit testing)

@@ -1,0 +1,21 @@
+#!/bin/sh
+# scripts/hooks/pre-push
+#
+# Git pre-push hook.
+# Calls the changed-code checks used to block pushes.
+#
+# Install this hook by running (once per clone):
+#   sh scripts/setup-hooks.sh      (Linux / macOS / Git Bash)
+#   .\scripts\setup-hooks.ps1      (Windows PowerShell)
+#
+# DO NOT bypass this hook with --no-verify.
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT"
+
+if [ ! -f "scripts/run-checks.sh" ]; then
+  echo "ERROR: scripts/run-checks.sh not found. Is this the fo-test repo root?"
+  exit 1
+fi
+
+sh scripts/run-checks.sh

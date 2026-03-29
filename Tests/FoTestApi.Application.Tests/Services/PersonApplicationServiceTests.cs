@@ -41,7 +41,7 @@ public class PersonApplicationServiceTests
     // -----------------------------------------------------------------------
 
     [Fact]
-    public async Task GetAllPersonsAsync_ReturnsAllPersons()
+    public async Task GetAllPersonsAsyncReturnsAllPersons()
     {
         var persons = new List<PersonEntity>
         {
@@ -55,7 +55,7 @@ public class PersonApplicationServiceTests
     }
 
     [Fact]
-    public async Task GetPersonByIdAsync_ExistingId_ReturnsPerson()
+    public async Task GetPersonByIdAsyncExistingIdReturnsPerson()
     {
         var person = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe" };
         _repositoryMock.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(person);
@@ -66,7 +66,7 @@ public class PersonApplicationServiceTests
     }
 
     [Fact]
-    public async Task GetPersonByIdAsync_UnknownId_ReturnsNull()
+    public async Task GetPersonByIdAsyncUnknownIdReturnsNull()
     {
         _repositoryMock.Setup(r => r.GetByIdAsync("unknown")).ReturnsAsync((PersonEntity?)null);
 
@@ -76,7 +76,7 @@ public class PersonApplicationServiceTests
     }
 
     [Fact]
-    public async Task SearchPersonsAsync_ReturnsMatchingPersons()
+    public async Task SearchPersonsAsyncReturnsMatchingPersons()
     {
         var persons = new List<PersonEntity>
         {
@@ -94,7 +94,7 @@ public class PersonApplicationServiceTests
     // -----------------------------------------------------------------------
 
     [Fact]
-    public async Task CreatePersonAsync_ValidCommand_CreatesAndReturnsPerson()
+    public async Task CreatePersonAsyncValidCommandCreatesAndReturnsPerson()
     {
         var command  = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
         PersonEntity? capturedPerson = null;
@@ -120,7 +120,7 @@ public class PersonApplicationServiceTests
     }
 
     [Fact]
-    public async Task CreatePersonAsync_NoPassword_GeneratesValidPassword()
+    public async Task CreatePersonAsyncNoPasswordGeneratesValidPassword()
     {
         var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = null };
         var capturedPerson = (PersonEntity?)null;
@@ -147,7 +147,7 @@ public class PersonApplicationServiceTests
     }
 
     [Fact]
-    public async Task CreatePersonAsync_EmptyPassword_GeneratesValidPassword()
+    public async Task CreatePersonAsyncEmptyPasswordGeneratesValidPassword()
     {
         var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "" };
         var capturedPerson = (PersonEntity?)null;
@@ -177,7 +177,7 @@ public class PersonApplicationServiceTests
     [InlineData("", "Doe")]
     [InlineData("John", "")]
     [InlineData("   ", "Doe")]
-    public async Task CreatePersonAsync_InvalidNames_ThrowsInvalidOperationException(
+    public async Task CreatePersonAsyncInvalidNamesThrowsInvalidOperationException(
         string firstName, string lastName)
     {
         var command = new CreatePersonCommand { FirstName = firstName, LastName = lastName };
@@ -187,7 +187,7 @@ public class PersonApplicationServiceTests
     }
 
     [Fact]
-    public async Task CreatePersonAsync_DuplicatePerson_ThrowsDuplicatePersonException()
+    public async Task CreatePersonAsyncDuplicatePersonThrowsDuplicatePersonException()
     {
         var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe" };
 
@@ -200,7 +200,7 @@ public class PersonApplicationServiceTests
     }
 
     [Fact]
-    public async Task CreatePersonAsync_WeakPassword_ThrowsWeakPasswordException()
+    public async Task CreatePersonAsyncWeakPasswordThrowsWeakPasswordException()
     {
         var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "weak" };
 
@@ -213,7 +213,7 @@ public class PersonApplicationServiceTests
     // -----------------------------------------------------------------------
 
     [Fact]
-    public async Task UpdatePersonAsync_ValidCommand_UpdatesPerson()
+    public async Task UpdatePersonAsyncValidCommandUpdatesPerson()
     {
         var command  = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
         var existing = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe", Password = "hashed::Old@Pass1" };
@@ -237,7 +237,7 @@ public class PersonApplicationServiceTests
     }
 
     [Fact]
-    public async Task UpdatePersonAsync_PreservesExistingPassword()
+    public async Task UpdatePersonAsyncPreservesExistingPassword()
     {
         var command  = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
         var existing = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe", Password = "hashed::Existing@Pass1" };
@@ -259,7 +259,7 @@ public class PersonApplicationServiceTests
     }
 
     [Fact]
-    public async Task UpdatePersonAsync_PersonNotFound_ThrowsInvalidOperationException()
+    public async Task UpdatePersonAsyncPersonNotFoundThrowsInvalidOperationException()
     {
         var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
 
@@ -273,7 +273,7 @@ public class PersonApplicationServiceTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task UpdatePersonAsync_EmptyOrWhitespaceId_ThrowsInvalidOperationException(string id)
+    public async Task UpdatePersonAsyncEmptyOrWhitespaceIdThrowsInvalidOperationException(string id)
     {
         var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
 
@@ -285,7 +285,7 @@ public class PersonApplicationServiceTests
     }
 
     [Fact]
-    public async Task UpdatePersonAsync_NameTakenByAnotherPerson_ThrowsDuplicatePersonException()
+    public async Task UpdatePersonAsyncNameTakenByAnotherPersonThrowsDuplicatePersonException()
     {
         var command  = new UpdatePersonCommand { FirstName = "Jane", LastName = "Smith" };
         var existing = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe" };
@@ -304,7 +304,7 @@ public class PersonApplicationServiceTests
     // -----------------------------------------------------------------------
 
     [Fact]
-    public async Task DeletePersonAsync_ExistingPerson_DeletesPerson()
+    public async Task DeletePersonAsyncExistingPersonDeletesPerson()
     {
         var person  = new PersonEntity { Id = "1", FirstName = "John", LastName = "Doe" };
         var command = new DeletePersonCommand { Id = "1" };
@@ -318,7 +318,7 @@ public class PersonApplicationServiceTests
     }
 
     [Fact]
-    public async Task DeletePersonAsync_PersonNotFound_ThrowsInvalidOperationException()
+    public async Task DeletePersonAsyncPersonNotFoundThrowsInvalidOperationException()
     {
         var command = new DeletePersonCommand { Id = "missing" };
 

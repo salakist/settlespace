@@ -13,6 +13,12 @@ namespace FoTestApi.Application.Middleware
         private readonly ILogger<ExceptionHandlingMiddleware> _logger;
         private readonly IHostEnvironment _environment;
 
+        private static readonly Action<ILogger, string, Exception?> UnhandledExceptionLog =
+            LoggerMessage.Define<string>(
+                logLevel: LogLevel.Error,
+                eventId: new EventId(1, nameof(ExceptionHandlingMiddleware)),
+                formatString: "Unhandled exception while processing {Path}");
+
         public ExceptionHandlingMiddleware(
             RequestDelegate next,
             ILogger<ExceptionHandlingMiddleware> logger,
@@ -37,7 +43,7 @@ namespace FoTestApi.Application.Middleware
 
         private Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            _logger.LogError(exception, "Unhandled exception while processing {Path}", context.Request.Path);
+            UnhandledExceptionLog(_logger, context.Request.Path, exception);
             context.Response.ContentType = "application/json";
 
             var response = new { error = exception.Message };

@@ -27,7 +27,7 @@ public class PersonsControllerTests
     // -----------------------------------------------------------------------
 
     [Fact]
-    public async Task Get_ReturnsOkWithMappedDtos()
+    public async Task GetReturnsOkWithMappedDtos()
     {
         var persons = new List<PersonEntity>
         {
@@ -49,7 +49,7 @@ public class PersonsControllerTests
     // -----------------------------------------------------------------------
 
     [Fact]
-    public async Task GetById_ExistingPerson_ReturnsOkWithDto()
+    public async Task GetByIdExistingPersonReturnsOkWithDto()
     {
         var person = new PersonEntity { Id = "507f1f77bcf86cd799439011", FirstName = "John", LastName = "Doe" };
         _serviceMock.Setup(s => s.GetPersonByIdAsync(person.Id!)).ReturnsAsync(person);
@@ -62,7 +62,7 @@ public class PersonsControllerTests
     }
 
     [Fact]
-    public async Task GetById_PersonNotFound_ReturnsNotFound()
+    public async Task GetByIdPersonNotFoundReturnsNotFound()
     {
         _serviceMock.Setup(s => s.GetPersonByIdAsync(It.IsAny<string>()))
                     .ReturnsAsync((PersonEntity?)null);
@@ -73,7 +73,7 @@ public class PersonsControllerTests
     }
 
     [Fact]
-    public async Task GetCurrent_AuthenticatedUser_ReturnsCurrentPerson()
+    public async Task GetCurrentAuthenticatedUserReturnsCurrentPerson()
     {
         var person = new PersonEntity { Id = "507f1f77bcf86cd799439011", FirstName = "John", LastName = "Doe" };
         _serviceMock.Setup(s => s.GetPersonByIdAsync(person.Id!)).ReturnsAsync(person);
@@ -99,7 +99,7 @@ public class PersonsControllerTests
     // -----------------------------------------------------------------------
 
     [Fact]
-    public async Task Post_ValidCommand_ReturnsCreated()
+    public async Task PostValidCommandReturnsCreated()
     {
         var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
         var person  = new PersonEntity { Id = "507f1f77bcf86cd799439011", FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
@@ -117,7 +117,7 @@ public class PersonsControllerTests
     // -----------------------------------------------------------------------
 
     [Fact]
-    public async Task Update_ValidCommand_ReturnsNoContent()
+    public async Task UpdateValidCommandReturnsNoContent()
     {
         var id      = "507f1f77bcf86cd799439011";
         var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
@@ -130,7 +130,7 @@ public class PersonsControllerTests
     }
 
     [Fact]
-    public async Task UpdateCurrent_AuthenticatedUser_ReturnsNoContent()
+    public async Task UpdateCurrentAuthenticatedUserReturnsNoContent()
     {
         var id = "507f1f77bcf86cd799439011";
         var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
@@ -156,7 +156,7 @@ public class PersonsControllerTests
     // -----------------------------------------------------------------------
 
     [Fact]
-    public async Task Delete_ExistingPerson_ReturnsNoContent()
+    public async Task DeleteExistingPersonReturnsNoContent()
     {
         _serviceMock.Setup(s => s.DeletePersonAsync(It.IsAny<DeletePersonCommand>()))
                     .Returns(Task.CompletedTask);

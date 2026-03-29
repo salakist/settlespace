@@ -39,6 +39,11 @@ Unit test project for the Application layer. Tests `PersonApplicationService`, `
 ### `ExceptionHandlingMiddlewareTests`
 - Maps domain and framework exceptions to the expected HTTP responses
 
+### `PersonMapperTests`
+- `ToDto()` maps all scalar fields and nested addresses
+- `ToEntity()` for create preserves the supplied password and maps nested address commands
+- `ToEntity()` for update preserves route id and existing password while mapping nested addresses
+
 ## Test strategy
 - `PersonApplicationService` is tested with mocked `IPersonRepository`, `IPersonDomainService`, `IPasswordHashingService`, and `IPasswordValidator`
 - `AuthService` is tested with mocked `IPersonRepository`, `IPersonApplicationService`, `IPasswordHashingService`, and `IPasswordValidator`
@@ -52,6 +57,7 @@ Unit test project for the Application layer. Tests `PersonApplicationService`, `
 - `Controllers/PersonsControllerTests.cs`
 - `Controllers/AuthControllerTests.cs`
 - `Middleware/ExceptionHandlingMiddlewareTests.cs`
+- `Mapping/PersonMapperTests.cs`
 
 ## Commands
 - `dotnet test Tests/FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj`

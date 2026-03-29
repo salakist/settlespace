@@ -21,7 +21,7 @@ public class AuthControllerTests
     }
 
     [Fact]
-    public async Task Login_WithValidCredentials_ReturnsOk()
+    public async Task LoginWithValidCredentialsReturnsOk()
     {
         var request = new LoginCommand { Username = "john.doe", Password = "Admin@123" };
         var response = new LoginResponseDto
@@ -41,7 +41,7 @@ public class AuthControllerTests
     }
 
     [Fact]
-    public async Task Login_WithInvalidCredentials_ReturnsUnauthorized()
+    public async Task LoginWithInvalidCredentialsReturnsUnauthorized()
     {
         var request = new LoginCommand { Username = "john.doe", Password = "bad" };
 
@@ -53,7 +53,7 @@ public class AuthControllerTests
     }
 
     [Fact]
-    public async Task Register_WithValidRequest_CreatesPersonAndReturnsLoginResponse()
+    public async Task RegisterWithValidRequestCreatesPersonAndReturnsLoginResponse()
     {
         var request = new RegisterCommand
         {
@@ -79,7 +79,7 @@ public class AuthControllerTests
     }
 
     [Fact]
-    public async Task ChangePassword_WithValidRequest_ReturnsNoContent()
+    public async Task ChangePasswordWithValidRequestReturnsNoContent()
     {
         var request = new ChangePasswordCommand
         {
@@ -107,7 +107,7 @@ public class AuthControllerTests
     }
 
     [Fact]
-    public async Task ChangePassword_WithInvalidCurrentPassword_ReturnsBadRequest()
+    public async Task ChangePasswordWithInvalidCurrentPasswordReturnsBadRequest()
     {
         var request = new ChangePasswordCommand
         {

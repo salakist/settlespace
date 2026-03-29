@@ -17,10 +17,16 @@ React frontend for person entity management using `FoTestApi`.
 ## Commands
 - `npm install`
 - `npm start`
+- `npm test`
+- `npx eslint src --ext .ts,.tsx --max-warnings=0`
 - `npm run build`
+- `..\scripts\run-checks.ps1` (from repository root)
+- `..\scripts\run-full-checks.ps1` (from repository root, when explicitly requested)
 
 ## Notes
 Current UI uses Material UI and dark mode theme.
 The person manager must only render for authenticated users with a stored JWT.
 Authenticated users can open the profile page from the header and change their password there.
 Unauthenticated users can open a register page and are automatically signed in after creating an account.
+Frontend quality gates are executed from repository root scripts, not from a frontend-only wrapper.
+Frontend coverage scope targets production files under `src/` and excludes test/bootstrap files such as `*.test.tsx`, `setupTests.ts`, `reportWebVitals.ts`, `index.tsx`, and `react-app-env.d.ts`.

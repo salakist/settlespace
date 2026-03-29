@@ -2,6 +2,9 @@
   "name": "fotest-react",
   "version": "0.1.0",
   "private": true,
+  "devDependencies": {
+    "eslint-plugin-sonarjs": "^0.25.1"
+  },
   "dependencies": {
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
@@ -28,10 +31,14 @@
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
+  "jest": {
+    "collectCoverageFrom": [
+      "src/**/*.{ts,tsx}",
+      "!src/**/*.test.{ts,tsx}",
+      "!src/reportWebVitals.ts",
+      "!src/react-app-env.d.ts",
+      "!src/setupTests.ts",
+      "!src/index.tsx"
     ]
   },
   "browserslist": {

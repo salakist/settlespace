@@ -5,6 +5,7 @@ Unit test project for the Domain layer. Tests pure business logic with no mockin
 
 ## Test coverage
 - `PersonEntityTests` — `Validate()` (valid, empty/whitespace first/last name, optional field validations, future date rejection, invalid address rejection) and `MatchesByFullName()` (same, different case, different names)
+- `AddressTests` — address validation rules for required fields and postal-code formats
 - `PersonDomainServiceTests` — `EnsureUniqueAsync()` (no duplicate, duplicate throws, excludeId same person, excludeId different person)
 - `PasswordGeneratorTests` — generated passwords satisfy strength and randomness expectations
 - `PasswordValidatorTests` — password strength policy behavior and weak-password failures
@@ -17,6 +18,7 @@ Unit test project for the Domain layer. Tests pure business logic with no mockin
 
 ## Key files
 - `Entities/PersonEntityTests.cs`
+- `Entities/AddressTests.cs`
 - `Services/PersonDomainServiceTests.cs`
 - `Services/PasswordGeneratorTests.cs`
 - `Services/PasswordValidatorTests.cs`
