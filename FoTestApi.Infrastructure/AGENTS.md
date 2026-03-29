@@ -13,7 +13,7 @@ Implements the `IPersonRepository` interface defined in the Domain project.
 
 ## Key files
 - `Repositories/PersonRepository.cs` — MongoDB implementation of `IPersonRepository`
-- `FoTestDatabaseSettings.cs` — connection string, database name, collection name config
+- `FoTestDatabaseSettings.cs` — connection string, database name, and collection name config
 
 ## Testability
 - `PersonRepository` has an `internal PersonRepository(IMongoCollection<PersonEntity>)` constructor

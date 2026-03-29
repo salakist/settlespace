@@ -10,6 +10,7 @@ A full-stack demonstration project showcasing Domain-Driven Design (DDD) with a 
 - **Framework:** ASP.NET Core 8.0 (Web API)
 - **Language:** C# 12
 - **Database:** MongoDB (local instance)
+- **Authentication:** JWT bearer authentication backed by MongoDB persons
 - **Documentation:** Swagger / OpenAPI (Swashbuckle)
 - **Architecture:** Domain-Driven Design (DDD), separated into 3 .NET projects
 
@@ -18,6 +19,7 @@ A full-stack demonstration project showcasing Domain-Driven Design (DDD) with a 
 - **HTTP Client:** Axios
 - **UI Library:** Material UI (MUI) with dark mode
 - **Build Tool:** Create React App
+- **Access Control:** Login page with token persistence in local storage
 
 ---
 
@@ -112,15 +114,17 @@ Application layer and API host.
 
 ```
 FoTestApi.Application/
-├── Commands/        CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
-├── Controllers/     PersonsController
-├── DTOs/            PersonDto
-├── Services/        IPersonApplicationService, PersonApplicationService
+├── Commands/        LoginCommand, CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
+├── Controllers/     AuthController, PersonsController
+├── DTOs/            LoginResponseDto, PersonDto
+├── Services/        AuthService, IPersonApplicationService, PersonApplicationService
 ├── Program.cs
 └── appsettings.json
 ```
 
 `PersonApplicationService` orchestrates: validate entity → delegate duplicate check to `IPersonDomainService` → persist via repository.
+
+`AuthService` authenticates against the MongoDB `persons` collection via `IPersonRepository`, and `AuthController` issues JWT tokens used by the React frontend.
 
 ---
 
@@ -130,9 +134,9 @@ Each DDD layer has a dedicated xUnit + Moq test project.
 
 | Project | Tests | Scope |
 |---|---|---|
-| `FoTestApi.Domain.Tests` | 13 | `PersonEntity` rules, `PersonDomainService` uniqueness |
+| `FoTestApi.Domain.Tests` | 32 | `PersonEntity` rules, `PersonDomainService` uniqueness, password generation |
 | `FoTestApi.Infrastructure.Tests` | 10 | `PersonRepository` CRUD via mocked `IMongoCollection<T>` |
-| `FoTestApi.Application.Tests` | 25 | `PersonApplicationService` commands/queries, `PersonsController` HTTP status codes |
+| `FoTestApi.Application.Tests` | 36 | `PersonApplicationService` commands/queries, person-backed auth service/controller, `PersonsController` HTTP status codes |
 
 ### Run all tests
 
@@ -157,15 +161,16 @@ dotnet test Tests/FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj
 
 ## fotest-react
 
-React SPA with full CRUD, search, and Material UI dark theme.
+React SPA with login-gated access, full CRUD, search, and Material UI dark theme.
 
 ```
 fotest-react/src/
-+-- App.tsx           # App shell, state management, dark ThemeProvider
++-- App.tsx           # App shell, auth gating, state management, dark ThemeProvider
++-- LoginPage.tsx     # Login screen for JWT-based access
 +-- PersonForm.tsx    # Create / edit form
 +-- PersonList.tsx    # Person cards with edit/delete actions
 +-- SearchBar.tsx     # Case-insensitive search input
-+-- api.ts            # Axios API calls
++-- api.ts            # Axios API calls, login, token storage helpers
 +-- types.ts          # TypeScript interfaces
 ```
 
@@ -202,6 +207,11 @@ dotnet run --project FoTestApi.Application\FoTestApi.Application.csproj
 
 API starts on `http://localhost:5279`.
 
+### 3.1 Demo login credentials
+
+- Username format: `firstName.lastName` (example: `john.doe`)
+- Password: the password stored for that person
+
 ### 4. Run the Frontend
 
 ```bash
@@ -220,12 +230,35 @@ Base URL: `http://localhost:5279/api`
 
 | Method | Endpoint | Description | Body | Response |
 |--------|----------|-------------|------|----------|
-| GET | `/persons` | Get all persons | � | `200` Array of PersonDto |
-| GET | `/persons/{id}` | Get by ID | � | `200` PersonDto, `404` |
-| GET | `/persons/search/{query}` | Search by name (case-insensitive) | � | `200` Array |
-| POST | `/persons` | Create person | `CreatePersonCommand` | `201` PersonDto, `409` Conflict |
-| PUT | `/persons/{id}` | Update person | `UpdatePersonCommand` | `204`, `404`, `409` Conflict |
-| DELETE | `/persons/{id}` | Delete person | � | `204`, `404` |
+| POST | `/auth/login` | Authenticate and receive a JWT | `LoginCommand` | `200` LoginResponseDto, `401` |
+| GET | `/persons` | Get all persons | none | `200` Array of PersonDto, `401` |
+| GET | `/persons/{id}` | Get by ID | none | `200` PersonDto, `404`, `401` |
+| GET | `/persons/search/{query}` | Search by name (case-insensitive) | none | `200` Array, `401` |
+| POST | `/persons` | Create person | `CreatePersonCommand` | `201` PersonDto, `409` Conflict, `400`, `401` |
+| PUT | `/persons/{id}` | Update person | `UpdatePersonCommand` | `204`, `404`, `409` Conflict, `400`, `401` |
+| DELETE | `/persons/{id}` | Delete person | none | `204`, `404`, `401` |
+
+All `/persons` endpoints require a bearer token returned by `/auth/login`.
+The login endpoint validates credentials against MongoDB persons (`firstName.lastName` + person password), not appsettings.
+
+### LoginCommand
+
+```json
+{
+  "username": "john.doe",
+  "password": "Strong@Pass1"
+}
+```
+
+### LoginResponseDto
+
+```json
+{
+  "token": "jwt-token",
+  "username": "John.Doe",
+  "expiresAtUtc": "2026-03-29T16:00:00Z"
+}
+```
 
 ### PersonDto
 
@@ -233,7 +266,8 @@ Base URL: `http://localhost:5279/api`
 {
   "id": "string",
   "firstName": "string",
-  "lastName": "string"
+  "lastName": "string",
+  "password": "string"
 }
 ```
 
@@ -246,6 +280,9 @@ Base URL: `http://localhost:5279/api`
   "password": "string (optional, must meet strength requirements if provided)"
 }
 ```
+
+If `password` is omitted on creation, the API generates a strong password automatically.
+If `password` is omitted on update, the API preserves the existing password.
 
 ### Error response (409 Conflict)
 
@@ -273,6 +310,12 @@ Navigate to `http://localhost:5279/swagger` for interactive documentation.
     "ConnectionString": "mongodb://localhost:27017",
     "DatabaseName": "fo-test",
     "PersonsCollectionName": "persons"
+  },
+  "Auth": {
+    "JwtKey": "fo-test-super-secret-jwt-key-2026-change-me",
+    "Issuer": "FoTestApi",
+    "Audience": "FoTestReact",
+    "TokenExpirationMinutes": 60
   }
 }
 ```

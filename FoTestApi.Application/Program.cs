@@ -1,9 +1,13 @@
+using System.Text;
+using FoTestApi.Application.Authentication;
 using FoTestApi.Application.Services;
 using FoTestApi.Application.Middleware;
 using FoTestApi.Domain.Repositories;
 using FoTestApi.Domain.Services;
 using FoTestApi.Infrastructure;
 using FoTestApi.Infrastructure.Repositories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 using System.IO;
 using System.Reflection;
 
@@ -12,11 +16,34 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.Configure<FoTestDatabaseSettings>(
     builder.Configuration.GetSection("FoTestDatabase"));
+builder.Services.Configure<AuthSettings>(
+    builder.Configuration.GetSection(AuthSettings.SectionName));
+
+var authSettings = builder.Configuration
+    .GetSection(AuthSettings.SectionName)
+    .Get<AuthSettings>() ?? throw new InvalidOperationException("Auth settings are missing.");
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidateLifetime = true,
+            ValidIssuer = authSettings.Issuer,
+            ValidAudience = authSettings.Audience,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authSettings.JwtKey)),
+            ClockSkew = TimeSpan.Zero
+        };
+    });
 
 // Register DDD pattern services
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 builder.Services.AddScoped<IPersonDomainService, PersonDomainService>();
 builder.Services.AddScoped<IPersonApplicationService, PersonApplicationService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddControllers();
 builder.Services.AddCors(options =>
@@ -52,6 +79,7 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();

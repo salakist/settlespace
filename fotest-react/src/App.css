@@ -1,7 +1,8 @@
 .App {
-  font-family: Arial, sans-serif;
   min-height: 100vh;
-  background-color: #121212;
+  background:
+    radial-gradient(circle at top, rgba(144, 202, 249, 0.14), transparent 32%),
+    linear-gradient(180deg, #0b1020 0%, #121826 46%, #0d1321 100%);
   color: #ffffff;
 }
 
@@ -9,8 +10,38 @@ body,
 html,
 #root {
   height: 100%;
-  background-color: #121212;
+  background-color: #0d1321;
   color: #ffffff;
+}
+
+body {
+  margin: 0;
+}
+
+.eyebrow {
+  letter-spacing: 0.2em;
+  color: #90caf9;
+}
+
+.auth-shell {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(244, 143, 177, 0.14), transparent 24%),
+    radial-gradient(circle at 80% 0%, rgba(144, 202, 249, 0.16), transparent 28%),
+    linear-gradient(180deg, #0b1020 0%, #121826 46%, #0d1321 100%);
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 460px;
+  padding: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: linear-gradient(180deg, rgba(30, 30, 30, 0.94) 0%, rgba(18, 18, 18, 0.98) 100%);
+  backdrop-filter: blur(12px);
 }
 
 .App-header {

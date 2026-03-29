@@ -6,15 +6,18 @@ Application layer and API host — orchestrates domain logic, handles HTTP, and 
 ## Project structure
 ```
 FoTestApi.Application/
-├── Commands/        CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
-├── Controllers/     PersonsController
-├── DTOs/            PersonDto
-├── Services/        IPersonApplicationService, PersonApplicationService
+├── Authentication/ AuthSettings
+├── Commands/        LoginCommand, CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
+├── Controllers/     AuthController, PersonsController
+├── DTOs/            LoginResponseDto, PersonDto
+├── Services/        AuthService, IPersonApplicationService, PersonApplicationService
 ├── Program.cs
 └── appsettings.json
 ```
 
 ## Responsibilities
+- Expose a demo login endpoint via `AuthController` and issue JWT bearer tokens through `AuthService`
+- Authenticate against MongoDB persons via `IPersonRepository` using `firstName.lastName` usernames
 - Expose REST endpoints via `PersonsController` (focused on orchestration, not error handling)
 - Orchestrate commands and queries in `PersonApplicationService`
 - Auto-generate strong passwords when none provided on person creation
@@ -22,9 +25,10 @@ FoTestApi.Application/
 - Validate password strength using `PasswordValidator` before persisting (unless auto-generated)
 - Accept `IPersonDomainService` (not the concrete class) for strict layer isolation
 - Define commands in `Commands/` (input contracts for create/update/delete)
-- Define `PersonDto` in `DTOs/` as the public API response shape
-- Register DI in `Program.cs` (repository, domain service, application service, CORS, Swagger)
+- Define auth and response DTOs in `DTOs/`
+- Register DI in `Program.cs` (repository, domain service, auth service, application service, CORS, Swagger, JWT auth)
 - Register `ExceptionHandlingMiddleware` to translate domain exceptions to HTTP responses (409 Conflict, 404 Not Found, 400 Bad Request)
+- Require JWT authentication for person management endpoints
 
 ## Interfaces
 - `IPersonApplicationService` — abstraction consumed by `PersonsController` (enables controller unit testing)
@@ -35,12 +39,17 @@ FoTestApi.Application/
 
 ## Key files
 - `Program.cs` — DI registration, middleware pipeline
+- `Authentication/AuthSettings.cs` — configurable JWT settings
+- `Services/IAuthService.cs` — auth abstraction
+- `Services/AuthService.cs` — validates person credentials and mints JWTs
 - `Services/IPersonApplicationService.cs` — application service interface
 - `Services/PersonApplicationService.cs` — command/query orchestration
-- `Commands/` — CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
+- `Commands/` — LoginCommand, CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
+- `DTOs/LoginResponseDto.cs` — outbound JWT response payload
 - `DTOs/PersonDto.cs` — outbound API data shape
+- `Controllers/AuthController.cs` — login endpoint
 - `Controllers/PersonsController.cs` — REST endpoints
-- `appsettings.json` — MongoDB connection settings
+- `appsettings.json` — MongoDB and JWT configuration
 
 ## Commands
 - `dotnet build`

@@ -2,6 +2,7 @@ using FoTestApi.Application.Services;
 using FoTestApi.Application.Commands;
 using FoTestApi.Application.DTOs;
 using FoTestApi.Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoTestApi.Controllers
@@ -10,6 +11,7 @@ namespace FoTestApi.Controllers
     /// Controller for managing persons in the database.
     /// Implements REST endpoints following DDD principles.
     /// </summary>
+    [Authorize]
     [ApiController]
     [Route("api/[controller]")]
     public class PersonsController : ControllerBase
@@ -28,8 +30,10 @@ namespace FoTestApi.Controllers
         /// </summary>
         /// <returns>A list of all persons.</returns>
         /// <response code="200">Returns all persons.</response>
+        /// <response code="401">If the caller is not authenticated.</response>
         [HttpGet]
         [ProducesResponseType(typeof(List<PersonDto>), 200)]
+        [ProducesResponseType(401)]
         public async Task<ActionResult<List<PersonDto>>> Get()
         {
             var persons = await _applicationService.GetAllPersonsAsync();
@@ -42,8 +46,10 @@ namespace FoTestApi.Controllers
         /// <param name="query">The query string to search for in first or last names.</param>
         /// <returns>A list of persons where first name or last name matches the query.</returns>
         /// <response code="200">Returns the matching persons.</response>
+        /// <response code="401">If the caller is not authenticated.</response>
         [HttpGet("search/{query}")]
         [ProducesResponseType(typeof(List<PersonDto>), 200)]
+        [ProducesResponseType(401)]
         public async Task<ActionResult<List<PersonDto>>> SearchByQuery(string query)
         {
             var persons = await _applicationService.SearchPersonsAsync(query);
@@ -57,9 +63,11 @@ namespace FoTestApi.Controllers
         /// <returns>The person with the specified ID.</returns>
         /// <response code="200">Returns the person.</response>
         /// <response code="404">If the person is not found.</response>
+        /// <response code="401">If the caller is not authenticated.</response>
         [HttpGet("{id:length(24)}")]
         [ProducesResponseType(typeof(PersonDto), 200)]
         [ProducesResponseType(404)]
+        [ProducesResponseType(401)]
         public async Task<ActionResult<PersonDto>> Get(string id)
         {
             var person = await _applicationService.GetPersonByIdAsync(id);
@@ -80,10 +88,12 @@ namespace FoTestApi.Controllers
         /// <response code="201">Returns the newly created person.</response>
         /// <response code="409">If a person with the same first and last name already exists.</response>
         /// <response code="400">If the password is weak or another validation fails.</response>
+        /// <response code="401">If the caller is not authenticated.</response>
         [HttpPost]
         [ProducesResponseType(typeof(PersonDto), 201)]
         [ProducesResponseType(409)]
         [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
         public async Task<IActionResult> Post([FromBody] CreatePersonCommand command)
         {
             var person = await _applicationService.CreatePersonAsync(command);
@@ -99,11 +109,13 @@ namespace FoTestApi.Controllers
         /// <response code="404">If the person is not found.</response>
         /// <response code="409">If the update would create a duplicate.</response>
         /// <response code="400">If the password is weak or another validation fails.</response>
+        /// <response code="401">If the caller is not authenticated.</response>
         [HttpPut("{id:length(24)}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
         [ProducesResponseType(409)]
         [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
         public async Task<IActionResult> Update(string id, [FromBody] UpdatePersonCommand command)
         {
             command.Id = id;
@@ -117,9 +129,11 @@ namespace FoTestApi.Controllers
         /// <param name="id">The ID of the person to delete.</param>
         /// <response code="204">If the deletion is successful.</response>
         /// <response code="404">If the person is not found.</response>
+        /// <response code="401">If the caller is not authenticated.</response>
         [HttpDelete("{id:length(24)}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
+        [ProducesResponseType(401)]
         public async Task<IActionResult> Delete(string id)
         {
             await _applicationService.DeletePersonAsync(new DeletePersonCommand { Id = id });
