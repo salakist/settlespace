@@ -22,8 +22,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FoTestApi.Domain\FoTestApi.Domain.csproj" />
-    <ProjectReference Include="..\FoTestApi.Application\FoTestApi.Application.csproj" />
+    <ProjectReference Include="..\..\FoTestApi.Domain\FoTestApi.Domain.csproj" />
   </ItemGroup>
 
 </Project>

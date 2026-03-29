@@ -29,9 +29,10 @@ fo-test/
 ├── FoTestApi.Domain/               # Domain layer — business rules and contracts
 ├── FoTestApi.Infrastructure/       # Infrastructure layer — MongoDB persistence
 ├── FoTestApi.Application/          # Application layer — API, controllers, commands
-├── FoTestApi.Domain.Tests/         # Unit tests — Domain layer
-├── FoTestApi.Infrastructure.Tests/ # Unit tests — Infrastructure layer
-├── FoTestApi.Application.Tests/    # Unit tests — Application layer
+├── Tests/
+│   ├── FoTestApi.Domain.Tests/         # Unit tests — Domain layer
+│   ├── FoTestApi.Infrastructure.Tests/ # Unit tests — Infrastructure layer
+│   └── FoTestApi.Application.Tests/    # Unit tests — Application layer
 ├── fotest-react/                   # React SPA frontend
 ├── AGENTS.md                       # Root agent index
 └── README.md
@@ -129,9 +130,9 @@ dotnet test FoTestApi.sln
 ### Run a single layer
 
 ```bash
-dotnet test FoTestApi.Domain.Tests/FoTestApi.Domain.Tests.csproj
-dotnet test FoTestApi.Infrastructure.Tests/FoTestApi.Infrastructure.Tests.csproj
-dotnet test FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj
+dotnet test Tests/FoTestApi.Domain.Tests/FoTestApi.Domain.Tests.csproj
+dotnet test Tests/FoTestApi.Infrastructure.Tests/FoTestApi.Infrastructure.Tests.csproj
+dotnet test Tests/FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj
 ```
 
 ### Test isolation strategy

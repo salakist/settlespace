@@ -28,7 +28,7 @@ Unit test project for the Application layer. Tests `PersonApplicationService` an
 - `Controllers/PersonsControllerTests.cs`
 
 ## Commands
-- `dotnet test FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj`
+- `dotnet test Tests/FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj`
 
 ## Dependencies
 - `xunit`, `Moq`

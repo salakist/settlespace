@@ -15,7 +15,7 @@ Unit test project for the Infrastructure layer. Tests `PersonRepository` without
 - `Repositories/PersonRepositoryTests.cs`
 
 ## Commands
-- `dotnet test FoTestApi.Infrastructure.Tests/FoTestApi.Infrastructure.Tests.csproj`
+- `dotnet test Tests/FoTestApi.Infrastructure.Tests/FoTestApi.Infrastructure.Tests.csproj`
 
 ## Dependencies
 - `xunit`, `Moq`, `MongoDB.Driver`

@@ -16,7 +16,7 @@ Unit test project for the Domain layer. Tests pure business logic with no mockin
 - `Services/PersonDomainServiceTests.cs`
 
 ## Commands
-- `dotnet test FoTestApi.Domain.Tests/FoTestApi.Domain.Tests.csproj`
+- `dotnet test Tests/FoTestApi.Domain.Tests/FoTestApi.Domain.Tests.csproj`
 
 ## Dependencies
 - `xunit`, `Moq`
