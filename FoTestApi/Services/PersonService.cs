@@ -1,6 +1,8 @@
 using FoTestApi.Models;
 using Microsoft.Extensions.Options;
+using MongoDB.Bson;
 using MongoDB.Driver;
+using System.Text.RegularExpressions;
 
 namespace FoTestApi.Services
 {
@@ -23,8 +25,17 @@ namespace FoTestApi.Services
 
         public async Task<List<Person>> SearchAsync(string query)
         {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return await GetAsync();
+            }
+
+            var escapedQuery = Regex.Escape(query.Trim());
+            var regex = new BsonRegularExpression($".*{escapedQuery}.*", "i");
+
             var builder = Builders<Person>.Filter;
-            var filter = builder.Eq(p => p.FirstName, query) | builder.Eq(p => p.LastName, query);
+            var filter = builder.Regex(p => p.FirstName, regex) | builder.Regex(p => p.LastName, regex);
+
             return await _personsCollection.Find(filter).ToListAsync();
         }
 
