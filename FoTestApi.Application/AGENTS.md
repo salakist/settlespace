@@ -7,7 +7,7 @@ Application layer and API host — orchestrates domain logic, handles HTTP, and 
 ```
 FoTestApi.Application/
 ├── Authentication/ AuthSettings, CustomClaimTypes
-├── Commands/        LoginCommand, RegisterCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
+├── Commands/        LoginCommand, RegisterCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand, AddressCommand
 ├── Controllers/     AuthController, PersonsController
 ├── Mapping/         IPersonMapper, PersonMapper
 ├── DTOs/            LoginResponseDto, PersonDto, AddressDto
@@ -51,6 +51,7 @@ FoTestApi.Application/
 - `Services/IPersonApplicationService.cs` — application service interface
 - `Services/PersonApplicationService.cs` — command/query orchestration
 - `Commands/` — LoginCommand, RegisterCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
+- `Commands/AddressCommand.cs` — inbound address shape for create/register/update commands
 - `DTOs/LoginResponseDto.cs` — outbound JWT response payload
 - `DTOs/PersonDto.cs` and `DTOs/AddressDto.cs` — outbound API data shape
 - `Controllers/AuthController.cs` — login, register, and password change endpoints

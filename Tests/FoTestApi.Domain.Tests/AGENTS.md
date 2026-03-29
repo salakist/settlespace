@@ -4,7 +4,7 @@
 Unit test project for the Domain layer. Tests pure business logic with no mocking required.
 
 ## Test coverage
-- `PersonEntityTests` — `Validate()` (valid, empty/whitespace first/last name) and `MatchesByFullName()` (same, different case, different names)
+- `PersonEntityTests` — `Validate()` (valid, empty/whitespace first/last name, optional field validations, future date rejection, invalid address rejection) and `MatchesByFullName()` (same, different case, different names)
 - `PersonDomainServiceTests` — `EnsureUniqueAsync()` (no duplicate, duplicate throws, excludeId same person, excludeId different person)
 - `PasswordGeneratorTests` — generated passwords satisfy strength and randomness expectations
 - `PasswordValidatorTests` — password strength policy behavior and weak-password failures

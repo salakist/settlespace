@@ -21,6 +21,9 @@ FoTestApi.sln
 - `FoTestApi.Infrastructure/AGENTS.md` — MongoDB persistence, BsonClassMap configuration
 - `FoTestApi.Application/AGENTS.md` — application service, commands, REST controllers
 - `fotest-react/AGENTS.md` — frontend SPA implementation and UI behavior
+- `Tests/FoTestApi.Domain.Tests/AGENTS.md` — domain test scope and strategy
+- `Tests/FoTestApi.Infrastructure.Tests/AGENTS.md` — infrastructure repository test scope and strategy
+- `Tests/FoTestApi.Application.Tests/AGENTS.md` — application/controller/auth/middleware test scope and strategy
 
 ## Testing
 Each production layer has a corresponding xUnit + Moq test project:

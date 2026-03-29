@@ -59,6 +59,7 @@ Pure domain layer. No NuGet packages. No infrastructure coupling.
 
 ```
 FoTestApi.Domain/
+├── Entities/Address.cs
 ├── Entities/PersonEntity.cs
 ├── Repositories/IPersonRepository.cs
 ├── Services/IPersonDomainService.cs
@@ -74,29 +75,19 @@ FoTestApi.Domain/
 | `LastName` is required | Cannot be null or whitespace |
 | `Password` is optional on creation | If not provided, a random strong password is auto-generated |
 | Password updates are route-scoped | Password changes are only supported via `/auth/change-password` |
-| Contact details are optional | `PhoneNumber`, `Email`, `DateOfBirth`, and a list of addresses may be stored per person |
-| Optional field validation | Email format, phone format, non-future date of birth, and structured addresses are validated at the domain boundary |
-| Password strength | Must be at least 8 characters with uppercase, lowercase, digit, and special character |
+| Password strength policy | Passwords provided to create/register/change-password must be 8+ chars with uppercase, lowercase, digit, and special character |
+| Contact details are optional | `PhoneNumber`, `Email`, `DateOfBirth`, and an address list may be stored per person |
+| `PhoneNumber` validation | Optional; if provided must match `^(?=.*\d)[0-9+()\-.\s]{7,20}$` |
+| `Email` validation | Optional; if provided must be a valid email address |
+| `DateOfBirth` validation | Optional; if provided cannot be in the future |
+| Address validation | Optional list; each address requires non-empty `Label`, `StreetLine1`, `City`, `Country`, and `PostalCode` matching `^[A-Za-z0-9\-\s]{3,12}$` |
 | No duplicate persons | Two persons are duplicates if `FirstName` and `LastName` match case-insensitively |
 | Duplicate check scope | Enforced on both **create** and **update** |
 | Duplicate violation | Raises `DuplicatePersonException` → translated to HTTP `409 Conflict` |
 | Weak password | Raises `WeakPasswordException` → translated to HTTP `400 Bad Request` |
 | Equality method | `PersonEntity.MatchesByFullName(other)` – OrdinalIgnoreCase full-name comparison |
 
-**Password Requirements** (if provided):
-- Minimum 8 characters
-- At least one uppercase letter (A-Z)
-- At least one lowercase letter (a-z)
-- At least one digit (0-9)
-- At least one special character: `!@#$%^&*()_+-=[]{}';:"\\|,.<>?`
-
-**Auto-generated passwords** are 12+ characters and always meet all requirements.
-
-**Optional Field Validation Rules**:
-- `PhoneNumber`: optional; when provided must match `^(?=.*\d)[0-9+()\-.\s]{7,20}$`
-- `Email`: optional; when provided must be a valid email address
-- `DateOfBirth`: optional; when provided must not be in the future
-- `Addresses`: optional list; each address requires non-empty `Label`, `StreetLine1`, `City`, `Country`, and a `PostalCode` matching `^[A-Za-z0-9\-\s]{3,12}$`
+`PasswordGenerator` produces 12+ character passwords that satisfy the same strength policy.
 
 ---
 
@@ -107,6 +98,7 @@ Persistence layer. Implements repository interfaces from the Domain and owns all
 ```
 FoTestApi.Infrastructure/
 +-- Repositories/PersonRepository.cs   # IPersonRepository implementation
++-- Serialization/DateOnlyAsStringSerializer.cs # DateOnly BSON serializer
 +-- FoTestDatabaseSettings.cs          # Connection/database config model
 ```
 
@@ -123,8 +115,9 @@ Application layer and API host.
 
 ```
 FoTestApi.Application/
-├── Commands/        LoginCommand, RegisterCommand, CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
+├── Commands/        LoginCommand, RegisterCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand, AddressCommand
 ├── Controllers/     AuthController, PersonsController
+├── Authentication/  AuthSettings, CustomClaimTypes
 ├── Mapping/         IPersonMapper, PersonMapper
 ├── DTOs/            LoginResponseDto, PersonDto, AddressDto
 ├── Services/        AuthService, IPersonApplicationService, PersonApplicationService
@@ -415,7 +408,7 @@ Navigate to `http://localhost:5279/swagger` for interactive documentation.
 
 ## Configuration
 
-`FoTestApi/appsettings.json`:
+`FoTestApi.Application/appsettings.json`:
 
 ```json
 {

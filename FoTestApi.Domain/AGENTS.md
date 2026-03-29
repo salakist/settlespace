@@ -6,6 +6,7 @@ This project has **zero infrastructure dependencies** by design.
 
 ## Responsibilities
 - Define `PersonEntity` (aggregate root) with validation logic
+- Define `Address` value object with validation logic
 - Declare `IPersonRepository` repository interface
 - Declare `IPersonDomainService` domain service interface
 - Implement `PersonDomainService` (uniqueness invariant enforcement)
@@ -16,8 +17,12 @@ This project has **zero infrastructure dependencies** by design.
 - `FirstName` must not be null or whitespace
 - `LastName` must not be null or whitespace
 - `Password` is optional on creation; a random strong password is auto-generated if not provided
-- On updates, if no password is provided, the existing password is preserved
-- `Password` if provided must be at least 8 characters with uppercase, lowercase, digit, and special character
+- Password changes are scoped to the auth flow (`/auth/change-password`), not person update routes
+- `Password` provided to create/register/change-password must be at least 8 characters with uppercase, lowercase, digit, and special character
+- `PhoneNumber` is optional; when provided it must match `^(?=.*\d)[0-9+()\-.\s]{7,20}$`
+- `Email` is optional; when provided it must be a valid email address
+- `DateOfBirth` is optional; when provided it cannot be in the future
+- `Addresses` is optional; each address requires non-empty label/street/city/country and a valid postal code
 - Two persons are considered duplicates if `FirstName` and `LastName` match case-insensitively
 - Duplicate checking is delegated to `IPersonDomainService.EnsureUniqueAsync`
 - `PersonEntity.MatchesByFullName()` provides in-memory full-name equality for guard comparisons
@@ -42,6 +47,7 @@ This project has **zero infrastructure dependencies** by design.
 
 ## Key files
 - `Entities/PersonEntity.cs` — aggregate root with `Validate()` and `MatchesByFullName()`
+- `Entities/Address.cs` — address value object with `Validate()`
 - `Repositories/IPersonRepository.cs` — repository contract
 - `Services/IPersonDomainService.cs` — domain service interface
 - `Services/IPasswordValidator.cs` — password strength validation interface
