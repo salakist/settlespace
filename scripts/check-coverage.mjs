@@ -92,6 +92,7 @@ function isProductionReactFile(relativePath) {
   const normalized = normalizePath(relativePath);
   return /^fotest-react\/src\/.*\.(ts|tsx)$/i.test(normalized)
     && !/\.test\.(ts|tsx)$/i.test(normalized)
+    && !/\/__mocks__\//i.test(normalized)
     && !/\/setupTests\.ts$/i.test(normalized)
     && !/\/index\.tsx$/i.test(normalized)
     && !/\/reportWebVitals\.ts$/i.test(normalized)

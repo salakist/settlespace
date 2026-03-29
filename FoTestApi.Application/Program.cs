@@ -50,6 +50,7 @@ builder.Services.AddScoped<IPersonApplicationService, PersonApplicationService>(
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddControllers();
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", builder =>
