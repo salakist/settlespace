@@ -27,7 +27,7 @@ public class PersonsControllerTests
     {
         var persons = new List<PersonEntity>
         {
-            new() { Id = "1", FirstName = "John", LastName = "Doe" }
+            new() { Id = "1", FirstName = "John", LastName = "Doe", Password = "hashed::secret" }
         };
         _serviceMock.Setup(s => s.GetAllPersonsAsync()).ReturnsAsync(persons);
 
@@ -37,6 +37,7 @@ public class PersonsControllerTests
         var dtos = Assert.IsAssignableFrom<List<PersonDto>>(ok.Value);
         Assert.Single(dtos);
         Assert.Equal("John", dtos[0].FirstName);
+        Assert.Null(typeof(PersonDto).GetProperty("Password"));
     }
 
     // -----------------------------------------------------------------------

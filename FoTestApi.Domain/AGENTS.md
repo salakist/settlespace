@@ -9,6 +9,7 @@ This project has **zero infrastructure dependencies** by design.
 - Declare `IPersonRepository` repository interface
 - Declare `IPersonDomainService` domain service interface
 - Implement `PersonDomainService` (uniqueness invariant enforcement)
+- Define password-related domain services for strength validation, generation, and hashing
 - Raise domain exceptions (`DuplicatePersonException`, `DomainException`)
 
 ## Domain Rules
@@ -34,13 +35,20 @@ This project has **zero infrastructure dependencies** by design.
 - Always contain uppercase, lowercase, digit, and special character
 - Randomly shuffled to ensure security diversity
 
+### Password Storage
+- Passwords are validated as plaintext before persistence
+- Persisted passwords are stored as PBKDF2 hashes rather than plaintext
+- Hash verification and hash-format detection are handled by `IPasswordHashingService`
+
 ## Key files
 - `Entities/PersonEntity.cs` — aggregate root with `Validate()` and `MatchesByFullName()`
 - `Repositories/IPersonRepository.cs` — repository contract
 - `Services/IPersonDomainService.cs` — domain service interface
+- `Services/IPasswordHashingService.cs` — password hashing service interface
 - `Services/PersonDomainService.cs` — enforces uniqueness, throws `DuplicatePersonException`
 - `Services/PasswordValidator.cs` — validates password strength, throws `WeakPasswordException`
 - `Services/PasswordGenerator.cs` — generates random strong passwords
+- `Services/PasswordHashingService.cs` — hashes and verifies passwords using PBKDF2
 - `Exceptions/DuplicatePersonException.cs` — thrown on duplicate create/update
 - `Exceptions/WeakPasswordException.cs` — thrown when password does not meet strength requirements
 

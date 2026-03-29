@@ -240,6 +240,7 @@ Base URL: `http://localhost:5279/api`
 
 All `/persons` endpoints require a bearer token returned by `/auth/login`.
 The login endpoint validates credentials against MongoDB persons (`firstName.lastName` + person password), not appsettings.
+Passwords are stored as PBKDF2 hashes. If an older plaintext password is encountered, it is upgraded to a hash on the next successful login.
 
 ### LoginCommand
 
@@ -266,8 +267,7 @@ The login endpoint validates credentials against MongoDB persons (`firstName.las
 {
   "id": "string",
   "firstName": "string",
-  "lastName": "string",
-  "password": "string"
+  "lastName": "string"
 }
 ```
 
@@ -283,6 +283,7 @@ The login endpoint validates credentials against MongoDB persons (`firstName.las
 
 If `password` is omitted on creation, the API generates a strong password automatically.
 If `password` is omitted on update, the API preserves the existing password.
+Provided passwords are validated before being hashed for storage.
 
 ### Error response (409 Conflict)
 

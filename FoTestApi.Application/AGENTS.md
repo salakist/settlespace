@@ -22,7 +22,8 @@ FoTestApi.Application/
 - Orchestrate commands and queries in `PersonApplicationService`
 - Auto-generate strong passwords when none provided on person creation
 - Preserve existing password when none provided on person update
-- Validate password strength using `PasswordValidator` before persisting (unless auto-generated)
+- Validate password strength using `PasswordValidator` before hashing and persisting
+- Hash passwords before persistence and upgrade legacy plaintext passwords on successful login
 - Accept `IPersonDomainService` (not the concrete class) for strict layer isolation
 - Define commands in `Commands/` (input contracts for create/update/delete)
 - Define auth and response DTOs in `DTOs/`

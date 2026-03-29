@@ -14,11 +14,16 @@ namespace FoTestApi.Application.Services
     {
         private readonly IPersonRepository _repository;
         private readonly IPersonDomainService _domainService;
+        private readonly IPasswordHashingService _passwordHashingService;
 
-        public PersonApplicationService(IPersonRepository repository, IPersonDomainService domainService)
+        public PersonApplicationService(
+            IPersonRepository repository,
+            IPersonDomainService domainService,
+            IPasswordHashingService passwordHashingService)
         {
             _repository = repository;
             _domainService = domainService;
+            _passwordHashingService = passwordHashingService;
         }
 
         // Queries
@@ -42,64 +47,62 @@ namespace FoTestApi.Application.Services
 
         public async Task<PersonEntity> CreatePersonAsync(CreatePersonCommand command)
         {
-            // Validate domain entity
+            var password = string.IsNullOrWhiteSpace(command.Password)
+                ? PasswordGenerator.GeneratePassword()
+                : command.Password;
+
             var newPerson = new PersonEntity
             {
                 FirstName = command.FirstName,
                 LastName = command.LastName,
-                Password = string.IsNullOrEmpty(command.Password) 
-                    ? PasswordGenerator.GeneratePassword()
-                    : command.Password
+                Password = password
             };
 
             newPerson.Validate();
 
-            // Delegate uniqueness rule to Domain Service
             await _domainService.EnsureUniqueAsync(newPerson.FirstName, newPerson.LastName);
 
-            // Persist to repository
+            newPerson.Password = _passwordHashingService.HashPassword(password);
+
             return await _repository.AddAsync(newPerson);
         }
 
         public async Task UpdatePersonAsync(UpdatePersonCommand command)
         {
-            // Retrieve existing person
             var existingPerson = await _repository.GetByIdAsync(command.Id);
             if (existingPerson == null)
             {
                 throw new InvalidOperationException($"Person with ID '{command.Id}' not found.");
             }
 
-            // Create updated entity
+            var hasNewPassword = !string.IsNullOrWhiteSpace(command.Password);
             var updatedPerson = new PersonEntity
             {
                 Id = command.Id,
                 FirstName = command.FirstName,
                 LastName = command.LastName,
-                Password = string.IsNullOrEmpty(command.Password) 
-                    ? existingPerson.Password  // Preserve existing password if not provided
-                    : command.Password
+                Password = hasNewPassword ? command.Password : string.Empty
             };
 
             updatedPerson.Validate();
 
-            // Delegate uniqueness rule to Domain Service (excluding current person)
             await _domainService.EnsureUniqueAsync(updatedPerson.FirstName, updatedPerson.LastName, command.Id);
 
-            // Persist update
+            updatedPerson.Password = hasNewPassword
+                ? _passwordHashingService.HashPassword(command.Password!)
+                : existingPerson.Password;
+
             await _repository.UpdateAsync(command.Id, updatedPerson);
         }
 
         public async Task DeletePersonAsync(DeletePersonCommand command)
         {
-            // Retrieve and verify person exists
             var person = await _repository.GetByIdAsync(command.Id);
             if (person == null)
             {
                 throw new InvalidOperationException($"Person with ID '{command.Id}' not found.");
             }
 
-            // Delete from repository
             await _repository.DeleteAsync(command.Id);
         }
     }

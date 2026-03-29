@@ -42,6 +42,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 // Register DDD pattern services
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 builder.Services.AddScoped<IPersonDomainService, PersonDomainService>();
+builder.Services.AddScoped<IPasswordHashingService, PasswordHashingService>();
 builder.Services.AddScoped<IPersonApplicationService, PersonApplicationService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
