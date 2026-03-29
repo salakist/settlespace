@@ -193,10 +193,57 @@ This is a development/demo project. For production deployment:
 4. Test thoroughly
 5. Submit a pull request
 
-## License
+## Frontend
 
-This project is for educational purposes. Feel free to use and modify as needed.
+The project includes a React TypeScript frontend for managing persons through a user-friendly web interface.
 
-## Contact
+### Frontend Tech Stack
 
-For questions or issues, please open a GitHub issue in this repository.
+- **Framework:** React 18 with TypeScript
+- **HTTP Client:** Axios
+- **Build Tool:** Create React App
+- **Styling:** CSS
+
+### Frontend Structure
+
+```
+fotest-react/
+├── src/
+│   ├── api.ts              # API service functions
+│   ├── types.ts            # TypeScript interfaces
+│   ├── App.tsx             # Main application component
+│   ├── PersonList.tsx      # Component for displaying persons
+│   ├── PersonForm.tsx      # Component for adding/editing persons
+│   ├── SearchBar.tsx       # Component for searching persons
+│   └── App.css             # Application styles
+├── public/                 # Static assets
+└── package.json            # Dependencies and scripts
+```
+
+### Running the Frontend
+
+1. Ensure the API is running on `http://localhost:5279`
+2. Navigate to the frontend directory:
+   ```bash
+   cd fotest-react
+   ```
+3. Install dependencies (if not already done):
+   ```bash
+   npm install
+   ```
+4. Start the development server:
+   ```bash
+   npm start
+   ```
+5. Open `http://localhost:3000` in your browser
+
+### Frontend Features
+
+- **View All Persons:** Display a list of all persons from the database
+- **Add New Person:** Form to create new persons
+- **Edit Person:** Update existing person details
+- **Delete Person:** Remove persons with confirmation
+- **Search Persons:** Find persons by first or last name
+- **Responsive UI:** Clean, modern interface with proper styling
+
+The frontend communicates with the API endpoints and provides real-time updates after operations.
