@@ -1,0 +1,21 @@
+@fo_test_HostAddress = http://localhost:5279
+
+GET {{fo_test_HostAddress}}/api/persons
+Accept: application/json
+
+###
+
+POST {{fo_test_HostAddress}}/api/persons
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe"
+}
+
+###
+
+GET {{fo_test_HostAddress}}/api/persons/{id}
+Accept: application/json
+
+###

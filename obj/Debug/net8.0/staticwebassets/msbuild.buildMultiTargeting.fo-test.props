@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\fo-test.props" />
+</Project>
