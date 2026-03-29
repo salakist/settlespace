@@ -1,4 +1,4 @@
-using FoTestApi.Application;
+using FoTestApi.Application.Services;
 using FoTestApi.Application.Commands;
 using FoTestApi.Application.DTOs;
 using FoTestApi.Domain.Entities;

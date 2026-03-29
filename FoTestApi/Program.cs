@@ -1,4 +1,4 @@
-using FoTestApi.Application;
+using FoTestApi.Application.Services;
 using FoTestApi.Domain.Repositories;
 using FoTestApi.Domain.Services;
 using FoTestApi.Infrastructure;

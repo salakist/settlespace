@@ -3,7 +3,7 @@ using FoTestApi.Domain.Entities;
 using FoTestApi.Domain.Repositories;
 using FoTestApi.Domain.Services;
 
-namespace FoTestApi.Application
+namespace FoTestApi.Application.Services
 {
     /// <summary>
     /// Application service for handling person-related commands and queries.
