@@ -51,7 +51,7 @@ const PersonAddressEditor: React.FC<PersonAddressEditorProps> = ({ addresses, on
         <Typography color="text.secondary">No addresses added yet.</Typography>
       ) : (
         addresses.map((address, index) => (
-          <Paper key={`${address.label}-${index}`} variant="outlined" sx={{ p: 2.5 }}>
+          <Paper key={index} variant="outlined" sx={{ p: 2.5 }}>
             <Stack spacing={2}>
               <Stack direction="row" justifyContent="space-between" alignItems="center">
                 <Typography variant="subtitle1">Address {index + 1}</Typography>

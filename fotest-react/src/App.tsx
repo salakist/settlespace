@@ -88,6 +88,10 @@ function App() {
       const response = await personApi.getCurrent();
       const person = normalizePerson(response.data);
       setCurrentPerson(person);
+      setPersons((currentPersons) =>
+        person.id
+          ? currentPersons.map((current) => (current.id === person.id ? person : current))
+          : currentPersons);
       const nextUsername = formatUsername(person);
       setUsername(nextUsername);
       authStorage.setUsername(nextUsername);
@@ -215,7 +219,7 @@ function App() {
     setProfileSaveLoading(true);
     try {
       await personApi.updateCurrent(personData);
-      await Promise.all([loadCurrentPerson(), loadPersons()]);
+      await loadCurrentPerson();
     } finally {
       setProfileSaveLoading(false);
     }
