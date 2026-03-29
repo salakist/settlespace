@@ -4,7 +4,7 @@ import { authApi, authStorage } from '../../../shared/api/api';
 import { RegisterRequest } from '../../../shared/types';
 
 const ROUTE_LOGIN = '/login';
-const ROUTE_DIRECTORY = '/directory';
+const ROUTE_HOME = '/home';
 
 export function useAuth() {
   const navigate = useNavigate();
@@ -38,7 +38,7 @@ export function useAuth() {
       setUsernameState(response.data.username);
       setIsAuthenticated(true);
       setAuthError(null);
-      navigate(ROUTE_DIRECTORY);
+      navigate(ROUTE_HOME);
       return true;
     } catch (err) {
       setAuthError('Invalid username or password.');
@@ -57,7 +57,7 @@ export function useAuth() {
       setUsernameState(response.data.username);
       setIsAuthenticated(true);
       setAuthError(null);
-      navigate(ROUTE_DIRECTORY);
+      navigate(ROUTE_HOME);
       return true;
     } catch (err) {
       const axiosError = err as { response?: { data?: { error?: string } } };

@@ -9,13 +9,15 @@ import SearchBar from '../features/persons/components/SearchBar';
 import LoginPage from '../features/auth/components/LoginPage';
 import RegisterPage from '../features/auth/components/RegisterPage';
 import ProfilePage from '../features/profile/components/ProfilePage';
+import HomePage from '../features/home/components/HomePage';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { usePersons } from '../features/persons/hooks/usePersons';
 import { useProfile } from '../features/profile/hooks/useProfile';
 
 const ROUTE_LOGIN = '/login';
 const ROUTE_REGISTER = '/register';
-const ROUTE_DIRECTORY = '/directory';
+const ROUTE_HOME = '/home';
+const ROUTE_PERSONS = '/persons';
 const ROUTE_PROFILE = '/profile';
 
 const darkTheme = createTheme({
@@ -159,6 +161,8 @@ function App() {
     );
   }
 
+  const isHomeRoute = location.pathname === ROUTE_HOME;
+  const isPersonsRoute = location.pathname === ROUTE_PERSONS;
   const isProfileRoute = location.pathname === ROUTE_PROFILE;
 
   return (
@@ -179,11 +183,27 @@ function App() {
               </Typography>
             </div>
             <Stack direction="row" spacing={1.5}>
+              {!isHomeRoute && (
+                <Button
+                  variant="outlined"
+                  onClick={() => navigate(ROUTE_HOME)}
+                >
+                  Back to Home
+                </Button>
+              )}
               <Button
-                variant="outlined"
-                onClick={() => navigate(isProfileRoute ? ROUTE_DIRECTORY : ROUTE_PROFILE)}
+                variant={isPersonsRoute ? 'contained' : 'outlined'}
+                onClick={() => navigate(ROUTE_PERSONS)}
+                disabled={isPersonsRoute}
               >
-                {isProfileRoute ? 'Back to Persons' : 'Profile'}
+                Persons
+              </Button>
+              <Button
+                variant={isProfileRoute ? 'contained' : 'outlined'}
+                onClick={() => navigate(ROUTE_PROFILE)}
+                disabled={isProfileRoute}
+              >
+                Profile
               </Button>
               <Button variant="outlined" color="secondary" onClick={handleLogout}>
                 Log Out
@@ -192,6 +212,14 @@ function App() {
           </Stack>
 
           <Routes>
+            <Route
+              path={ROUTE_HOME}
+              element={
+                <HomePage
+                  displayName={currentPerson ? `${currentPerson.firstName} ${currentPerson.lastName}` : username}
+                />
+              }
+            />
             <Route
               path={ROUTE_PROFILE}
               element={
@@ -207,7 +235,7 @@ function App() {
               }
             />
             <Route
-              path={ROUTE_DIRECTORY}
+              path={ROUTE_PERSONS}
               element={
                 <>
                   <SearchBar onSearch={handleSearch} />
@@ -235,7 +263,7 @@ function App() {
                 </>
               }
             />
-            <Route path="*" element={<Navigate to={ROUTE_DIRECTORY} replace />} />
+            <Route path="*" element={<Navigate to={ROUTE_HOME} replace />} />
           </Routes>
         </Container>
       </div>

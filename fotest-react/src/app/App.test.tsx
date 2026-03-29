@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { __mockNavigate, __resetRouterMocks, __setMockPathname } from 'react-router-dom';
 
 jest.mock('react-router-dom');
 
@@ -72,6 +73,7 @@ const App = require('./App').default;
 
 beforeEach(() => {
   jest.clearAllMocks();
+  __resetRouterMocks();
 
   mockUseAuth.mockReturnValue({
     authError: null,
@@ -184,4 +186,72 @@ test('renders authenticated shell and calls composed logout actions', () => {
   expect(clearPersonsState).toHaveBeenCalled();
   expect(clearProfileState).toHaveBeenCalled();
   expect(logout).toHaveBeenCalled();
+});
+
+test('renders home top bar without back to home and shows welcome content', () => {
+  mockUseAuth.mockReturnValue({
+    authError: null,
+    authLoading: false,
+    clearAuthError: jest.fn(),
+    expireSession: jest.fn(),
+    isAuthenticated: true,
+    login: jest.fn(),
+    logout: jest.fn(),
+    register: jest.fn(),
+    setAuthUsername: jest.fn(),
+    username: 'john.doe',
+  });
+
+  mockUseProfile.mockReturnValue({
+    clearProfileState: jest.fn(),
+    currentPerson: { firstName: 'John', lastName: 'Doe', addresses: [] },
+    handlePasswordChange: jest.fn(),
+    handleProfileSave: jest.fn(),
+    loadCurrentPerson: jest.fn(),
+    passwordLoading: false,
+    profileError: null,
+    profileLoading: false,
+    profileSaveLoading: false,
+    setProfileIdle: jest.fn(),
+  });
+
+  render(<App />);
+
+  expect(screen.queryByRole('button', { name: /back to home/i })).not.toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /persons/i })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /profile/i })).toBeInTheDocument();
+  expect(screen.getByText(/welcome back, john doe!/i)).toBeInTheDocument();
+});
+
+test('renders non-home top bar with back to home first and navigates correctly', () => {
+  __setMockPathname('/profile');
+
+  mockUseAuth.mockReturnValue({
+    authError: null,
+    authLoading: false,
+    clearAuthError: jest.fn(),
+    expireSession: jest.fn(),
+    isAuthenticated: true,
+    login: jest.fn(),
+    logout: jest.fn(),
+    register: jest.fn(),
+    setAuthUsername: jest.fn(),
+    username: 'john.doe',
+  });
+
+  render(<App />);
+
+  const backToHomeButton = screen.getByRole('button', { name: /back to home/i });
+  const personsButton = screen.getByRole('button', { name: /persons/i });
+  const profileButton = screen.getByRole('button', { name: /profile/i });
+
+  expect(backToHomeButton).toBeInTheDocument();
+  expect(profileButton).toBeDisabled();
+  expect(personsButton).not.toBeDisabled();
+
+  fireEvent.click(backToHomeButton);
+  fireEvent.click(personsButton);
+
+  expect(__mockNavigate).toHaveBeenNthCalledWith(1, '/home');
+  expect(__mockNavigate).toHaveBeenNthCalledWith(2, '/persons');
 });

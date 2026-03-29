@@ -61,7 +61,7 @@ beforeEach(() => {
   authApi.register.mockResolvedValue({ data: { token: 't2', username: 'jane.doe' } });
 });
 
-test('login saves session, updates auth state, and navigates to directory', async () => {
+test('login saves session, updates auth state, and navigates to home', async () => {
   const harness = createAuthHarness();
 
   await act(async () => {
@@ -76,7 +76,7 @@ test('login saves session, updates auth state, and navigates to directory', asyn
   expect(harness.getHook().isAuthenticated).toBe(true);
   expect(harness.getHook().username).toBe('john.doe');
   expect(harness.getHook().authError).toBeNull();
-  expect(mockNavigate).toHaveBeenCalledWith('/directory');
+  expect(mockNavigate).toHaveBeenCalledWith('/home');
 });
 
 test('register surfaces backend error message and returns false', async () => {
@@ -97,7 +97,7 @@ test('register surfaces backend error message and returns false', async () => {
   });
 
   expect(harness.getHook().authError).toBe('Email already exists');
-  expect(mockNavigate).not.toHaveBeenCalledWith('/directory');
+  expect(mockNavigate).not.toHaveBeenCalledWith('/home');
 });
 
 test('expireSession clears storage and redirects to login', () => {
