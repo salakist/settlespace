@@ -1,11 +1,22 @@
 .App {
   font-family: Arial, sans-serif;
+  min-height: 100vh;
+  background-color: #121212;
+  color: #ffffff;
+}
+
+body,
+html,
+#root {
+  height: 100%;
+  background-color: #121212;
+  color: #ffffff;
 }
 
 .App-header {
-  background-color: #282c34;
+  background-color: #1f1f1f;
   padding: 20px;
-  color: white;
+  color: #ffffff;
   text-align: center;
 }
 
@@ -29,27 +40,27 @@ button {
   padding: 8px 16px;
   margin: 5px;
   cursor: pointer;
-  background-color: #61dafb;
+  background-color: #90caf9;
   border: none;
   border-radius: 4px;
-  color: white;
+  color: #000000;
 }
 
 button:hover {
-  background-color: #21b4d6;
+  background-color: #64b5f6;
 }
 
 button:disabled {
-  background-color: #ccc;
+  background-color: #555;
   cursor: not-allowed;
 }
 
 .person-form {
-  border: 1px solid #ddd;
+  border: 1px solid #333;
   padding: 20px;
   margin-bottom: 20px;
   border-radius: 8px;
-  background-color: #f9f9f9;
+  background-color: #1e1e1e;
 }
 
 .person-form div {
@@ -59,13 +70,16 @@ button:disabled {
 .person-form label {
   display: block;
   margin-bottom: 5px;
+  color: #eee;
 }
 
 .person-form input {
   width: 100%;
   padding: 8px;
-  border: 1px solid #ccc;
+  border: 1px solid #444;
   border-radius: 4px;
+  background-color: #2f2f2f;
+  color: #fff;
 }
 
 .person-list {
@@ -78,16 +92,18 @@ button:disabled {
 }
 
 .person-list li {
-  border: 1px solid #ddd;
+  border: 1px solid #444;
   padding: 10px;
   margin-bottom: 10px;
   border-radius: 4px;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background-color: #1e1e1e;
 }
 
 .error {
-  color: red;
+  color: #ff6b6b;
   font-weight: bold;
 }
+

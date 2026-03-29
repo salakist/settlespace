@@ -1,11 +1,27 @@
 import React, { useState, useEffect } from 'react';
-import { Button, CircularProgress, Container, CssBaseline, Stack, Typography } from '@mui/material';
+import { Button, CircularProgress, Container, CssBaseline, Stack, Typography, ThemeProvider, createTheme } from '@mui/material';
 import './App.css';
 import { Person } from './types';
 import { personApi } from './api';
 import PersonList from './PersonList';
 import PersonForm from './PersonForm';
 import SearchBar from './SearchBar';
+
+const darkTheme = createTheme({
+  palette: {
+    mode: 'dark',
+    primary: { main: '#90caf9' },
+    secondary: { main: '#f48fb1' },
+    background: {
+      default: '#121212',
+      paper: '#1e1e1e',
+    },
+    text: {
+      primary: '#ffffff',
+      secondary: '#bbbbbb',
+    },
+  },
+});
 
 function App() {
   const [persons, setPersons] = useState<Person[]>([]);
@@ -89,12 +105,13 @@ function App() {
   };
 
   return (
-    <div className="App">
+    <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <Container maxWidth="md">
-        <Typography variant="h3" align="center" gutterBottom sx={{ mt: 4 }}>
-          FoTest Person Manager
-        </Typography>
+      <div className="App">
+        <Container maxWidth="md">
+          <Typography variant="h3" align="center" gutterBottom sx={{ mt: 4 }}>
+            FoTest Person Manager
+          </Typography>
 
         <SearchBar onSearch={handleSearch} />
 
@@ -124,6 +141,7 @@ function App() {
         )}
       </Container>
     </div>
+    </ThemeProvider>
   );
 }
 
