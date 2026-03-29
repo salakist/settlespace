@@ -3,7 +3,6 @@ using FoTestApi.Application.DTOs;
 using FoTestApi.Application.Services;
 using FoTestApi.Controllers;
 using FoTestApi.Domain.Entities;
-using FoTestApi.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 
@@ -86,42 +85,6 @@ public class PersonsControllerTests
         Assert.Equal(person.Id, dto.Id);
     }
 
-    [Fact]
-    public async Task Post_DuplicatePerson_ReturnsConflict()
-    {
-        var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe" };
-        _serviceMock.Setup(s => s.CreatePersonAsync(command))
-                    .ThrowsAsync(new DuplicatePersonException("John", "Doe"));
-
-        var result = await _controller.Post(command);
-
-        Assert.IsType<ConflictObjectResult>(result);
-    }
-
-    [Fact]
-    public async Task Post_InvalidName_ReturnsBadRequest()
-    {
-        var command = new CreatePersonCommand { FirstName = "", LastName = "Doe" };
-        _serviceMock.Setup(s => s.CreatePersonAsync(command))
-                    .ThrowsAsync(new InvalidOperationException("FirstName cannot be empty."));
-
-        var result = await _controller.Post(command);
-
-        Assert.IsType<BadRequestObjectResult>(result);
-    }
-
-    [Fact]
-    public async Task Post_WeakPassword_ReturnsBadRequest()
-    {
-        var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "weak" };
-        _serviceMock.Setup(s => s.CreatePersonAsync(command))
-                    .ThrowsAsync(new WeakPasswordException("Password must be at least 8 characters long."));
-
-        var result = await _controller.Post(command);
-
-        Assert.IsType<BadRequestObjectResult>(result);
-    }
-
     // -----------------------------------------------------------------------
     // PUT
     // -----------------------------------------------------------------------
@@ -139,45 +102,6 @@ public class PersonsControllerTests
         Assert.IsType<NoContentResult>(result);
     }
 
-    [Fact]
-    public async Task Update_PersonNotFound_ReturnsNotFound()
-    {
-        var id      = "507f1f77bcf86cd799439011";
-        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe", Password = "Strong@Pass2" };
-        _serviceMock.Setup(s => s.UpdatePersonAsync(It.IsAny<UpdatePersonCommand>()))
-                    .ThrowsAsync(new InvalidOperationException("Person with ID 'x' not found."));
-
-        var result = await _controller.Update(id, command);
-
-        Assert.IsType<NotFoundResult>(result);
-    }
-
-    [Fact]
-    public async Task Update_DuplicateName_ReturnsConflict()
-    {
-        var id      = "507f1f77bcf86cd799439011";
-        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe", Password = "Strong@Pass2" };
-        _serviceMock.Setup(s => s.UpdatePersonAsync(It.IsAny<UpdatePersonCommand>()))
-                    .ThrowsAsync(new DuplicatePersonException("Jane", "Doe"));
-
-        var result = await _controller.Update(id, command);
-
-        Assert.IsType<ConflictObjectResult>(result);
-    }
-
-    [Fact]
-    public async Task Update_WeakPassword_ReturnsBadRequest()
-    {
-        var id      = "507f1f77bcf86cd799439011";
-        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe", Password = "weak" };
-        _serviceMock.Setup(s => s.UpdatePersonAsync(It.IsAny<UpdatePersonCommand>()))
-                    .ThrowsAsync(new WeakPasswordException("Password must be at least 8 characters long."));
-
-        var result = await _controller.Update(id, command);
-
-        Assert.IsType<BadRequestObjectResult>(result);
-    }
-
     // -----------------------------------------------------------------------
     // DELETE
     // -----------------------------------------------------------------------
@@ -191,16 +115,5 @@ public class PersonsControllerTests
         var result = await _controller.Delete("507f1f77bcf86cd799439011");
 
         Assert.IsType<NoContentResult>(result);
-    }
-
-    [Fact]
-    public async Task Delete_PersonNotFound_ReturnsNotFound()
-    {
-        _serviceMock.Setup(s => s.DeletePersonAsync(It.IsAny<DeletePersonCommand>()))
-                    .ThrowsAsync(new InvalidOperationException("Person with ID 'x' not found."));
-
-        var result = await _controller.Delete("507f1f77bcf86cd799439011");
-
-        Assert.IsType<NotFoundResult>(result);
     }
 }

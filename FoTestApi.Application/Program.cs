@@ -1,4 +1,5 @@
 using FoTestApi.Application.Services;
+using FoTestApi.Application.Middleware;
 using FoTestApi.Domain.Repositories;
 using FoTestApi.Domain.Services;
 using FoTestApi.Infrastructure;
@@ -36,6 +37,9 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 var app = builder.Build();
+
+// Register exception handling middleware (must be early in the pipeline)
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

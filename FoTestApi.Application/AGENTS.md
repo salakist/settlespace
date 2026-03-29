@@ -15,14 +15,14 @@ FoTestApi.Application/
 ```
 
 ## Responsibilities
-- Expose REST endpoints via `PersonsController`
+- Expose REST endpoints via `PersonsController` (focused on orchestration, not error handling)
 - Orchestrate commands and queries in `PersonApplicationService`
 - Validate password strength using `PasswordValidator` before persisting
 - Accept `IPersonDomainService` (not the concrete class) for strict layer isolation
 - Define commands in `Commands/` (input contracts for create/update/delete)
 - Define `PersonDto` in `DTOs/` as the public API response shape
 - Register DI in `Program.cs` (repository, domain service, application service, CORS, Swagger)
-- Translate domain exceptions to HTTP responses (409 Conflict, 404 Not Found, 400 Bad Request for weak password)
+- Register `ExceptionHandlingMiddleware` to translate domain exceptions to HTTP responses (409 Conflict, 404 Not Found, 400 Bad Request)
 
 ## Interfaces
 - `IPersonApplicationService` — abstraction consumed by `PersonsController` (enables controller unit testing)

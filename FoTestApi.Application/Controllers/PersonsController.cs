@@ -2,7 +2,6 @@ using FoTestApi.Application.Services;
 using FoTestApi.Application.Commands;
 using FoTestApi.Application.DTOs;
 using FoTestApi.Domain.Entities;
-using FoTestApi.Domain.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FoTestApi.Controllers
@@ -80,28 +79,15 @@ namespace FoTestApi.Controllers
         /// <returns>The created person.</returns>
         /// <response code="201">Returns the newly created person.</response>
         /// <response code="409">If a person with the same first and last name already exists.</response>
+        /// <response code="400">If the password is weak or another validation fails.</response>
         [HttpPost]
         [ProducesResponseType(typeof(PersonDto), 201)]
         [ProducesResponseType(409)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> Post([FromBody] CreatePersonCommand command)
         {
-            try
-            {
-                var person = await _applicationService.CreatePersonAsync(command);
-                return CreatedAtAction(nameof(Get), new { id = person.Id }, MapToDto(person));
-            }
-            catch (DuplicatePersonException ex)
-            {
-                return Conflict(new { error = ex.Message });
-            }
-            catch (WeakPasswordException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            var person = await _applicationService.CreatePersonAsync(command);
+            return CreatedAtAction(nameof(Get), new { id = person.Id }, MapToDto(person));
         }
 
         /// <summary>
@@ -112,35 +98,17 @@ namespace FoTestApi.Controllers
         /// <response code="204">If the update is successful.</response>
         /// <response code="404">If the person is not found.</response>
         /// <response code="409">If the update would create a duplicate.</response>
+        /// <response code="400">If the password is weak or another validation fails.</response>
         [HttpPut("{id:length(24)}")]
         [ProducesResponseType(204)]
         [ProducesResponseType(404)]
         [ProducesResponseType(409)]
+        [ProducesResponseType(400)]
         public async Task<IActionResult> Update(string id, [FromBody] UpdatePersonCommand command)
         {
             command.Id = id;
-
-            try
-            {
-                await _applicationService.UpdatePersonAsync(command);
-                return NoContent();
-            }
-            catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
-            {
-                return NotFound();
-            }
-            catch (DuplicatePersonException ex)
-            {
-                return Conflict(new { error = ex.Message });
-            }
-            catch (WeakPasswordException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            await _applicationService.UpdatePersonAsync(command);
+            return NoContent();
         }
 
         /// <summary>
@@ -154,15 +122,8 @@ namespace FoTestApi.Controllers
         [ProducesResponseType(404)]
         public async Task<IActionResult> Delete(string id)
         {
-            try
-            {
-                await _applicationService.DeletePersonAsync(new DeletePersonCommand { Id = id });
-                return NoContent();
-            }
-            catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
-            {
-                return NotFound();
-            }
+            await _applicationService.DeletePersonAsync(new DeletePersonCommand { Id = id });
+            return NoContent();
         }
 
         /// <summary>
