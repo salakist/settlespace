@@ -29,6 +29,17 @@ namespace FoTestApi.Controllers
             await _personService.GetAsync();
 
         /// <summary>
+        /// Searches persons by a query string matching first or last name.
+        /// </summary>
+        /// <param name="query">The query string to search for in first or last names.</param>
+        /// <returns>A list of persons where first name or last name matches the query.</returns>
+        /// <response code="200">Returns the matching persons.</response>
+        [HttpGet("search/{query}")]
+        [ProducesResponseType(typeof(List<Person>), 200)]
+        public async Task<List<Person>> SearchByQuery(string query) =>
+            await _personService.SearchAsync(query);
+
+        /// <summary>
         /// Gets a person by ID.
         /// </summary>
         /// <param name="id">The ID of the person.</param>

@@ -21,6 +21,13 @@ namespace FoTestApi.Services
         public async Task<Person?> GetAsync(string id) =>
             await _personsCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
 
+        public async Task<List<Person>> SearchAsync(string query)
+        {
+            var builder = Builders<Person>.Filter;
+            var filter = builder.Eq(p => p.FirstName, query) | builder.Eq(p => p.LastName, query);
+            return await _personsCollection.Find(filter).ToListAsync();
+        }
+
         public async Task CreateAsync(Person newPerson) =>
             await _personsCollection.InsertOneAsync(newPerson);
 
