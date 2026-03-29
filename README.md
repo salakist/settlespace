@@ -25,20 +25,20 @@ A full-stack demonstration project showcasing Domain-Driven Design (DDD) with a 
 
 ```
 fo-test/
-+-- fo-test.sln
-+-- FoTestApi.Domain/           # Domain layer � business rules and contracts
-+-- FoTestApi.Infrastructure/   # Infrastructure layer � MongoDB persistence
-+-- FoTestApi/                  # Application layer � API, controllers, commands
-+-- fotest-react/               # React SPA frontend
-+-- AGENTS.md                   # Root agent index
-+-- README.md
+├── FoTestApi.sln
+├── FoTestApi.Domain/           # Domain layer — business rules and contracts
+├── FoTestApi.Infrastructure/   # Infrastructure layer — MongoDB persistence
+├── FoTestApi.Application/      # Application layer — API, controllers, commands
+├── fotest-react/               # React SPA frontend
+├── AGENTS.md                   # Root agent index
+└── README.md
 ```
 
 ### Dependency direction
 
 ```
-FoTestApi  --?  FoTestApi.Infrastructure  --?  FoTestApi.Domain
-FoTestApi  --?  FoTestApi.Domain
+FoTestApi.Application  ──►  FoTestApi.Infrastructure  ──►  FoTestApi.Domain
+FoTestApi.Application  ──►  FoTestApi.Domain
 ```
 
 The Domain layer has **no external dependencies** by design.
@@ -53,9 +53,10 @@ Pure domain layer. No NuGet packages. No infrastructure coupling.
 
 ```
 FoTestApi.Domain/
-+-- Entities/PersonEntity.cs
-+-- Repositories/IPersonRepository.cs
-+-- Exceptions/DuplicatePersonException.cs
+├── Entities/PersonEntity.cs
+├── Repositories/IPersonRepository.cs
+├── Services/PersonDomainService.cs
+└── Exceptions/DuplicatePersonException.cs
 ```
 
 #### Domain Rules
@@ -67,7 +68,7 @@ FoTestApi.Domain/
 | No duplicate persons | Two persons are duplicates if `FirstName` and `LastName` match case-insensitively |
 | Duplicate check scope | Enforced on both **create** and **update** |
 | Duplicate violation | Raises `DuplicatePersonException` ? translated to HTTP `409 Conflict` |
-| Equality method | `PersonEntity.MatchesByFullName(other)` � OrdinalIgnoreCase full-name comparison |
+| Equality method | `PersonEntity.MatchesByFullName(other)` � OrdinalIgnoreCase full-name comparison |
 
 ---
 
@@ -87,22 +88,21 @@ FoTestApi.Infrastructure/
 
 ---
 
-### FoTestApi
+### FoTestApi.Application
 
 Application layer and API host.
 
 ```
-FoTestApi/
-+-- Application/
-�   +-- Commands/               # CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
-�   +-- DTOs/PersonDto.cs       # Public API response shape
-�   +-- PersonApplicationService.cs
-+-- Controllers/PersonsController.cs
-+-- Program.cs
-+-- appsettings.json
+FoTestApi.Application/
+├── Commands/        CreatePersonCommand, UpdatePersonCommand, DeletePersonCommand
+├── Controllers/     PersonsController
+├── DTOs/            PersonDto
+├── Services/        PersonApplicationService
+├── Program.cs
+└── appsettings.json
 ```
 
-`PersonApplicationService` orchestrates: validate entity ? check duplicate ? persist via repository.
+`PersonApplicationService` orchestrates: validate entity → delegate duplicate check to `PersonDomainService` → persist via repository.
 
 ---
 
@@ -148,7 +148,7 @@ mongod --dbpath "C:\data\db"
 ### 3. Run the API
 
 ```bash
-dotnet run --project FoTestApi\FoTestApi.csproj
+dotnet run --project FoTestApi.Application\FoTestApi.Application.csproj
 ```
 
 API starts on `http://localhost:5279`.
@@ -171,12 +171,12 @@ Base URL: `http://localhost:5279/api`
 
 | Method | Endpoint | Description | Body | Response |
 |--------|----------|-------------|------|----------|
-| GET | `/persons` | Get all persons | � | `200` Array of PersonDto |
-| GET | `/persons/{id}` | Get by ID | � | `200` PersonDto, `404` |
-| GET | `/persons/search/{query}` | Search by name (case-insensitive) | � | `200` Array |
+| GET | `/persons` | Get all persons | � | `200` Array of PersonDto |
+| GET | `/persons/{id}` | Get by ID | � | `200` PersonDto, `404` |
+| GET | `/persons/search/{query}` | Search by name (case-insensitive) | � | `200` Array |
 | POST | `/persons` | Create person | `CreatePersonCommand` | `201` PersonDto, `409` Conflict |
 | PUT | `/persons/{id}` | Update person | `UpdatePersonCommand` | `204`, `404`, `409` Conflict |
-| DELETE | `/persons/{id}` | Delete person | � | `204`, `404` |
+| DELETE | `/persons/{id}` | Delete person | � | `204`, `404` |
 
 ### PersonDto
 
