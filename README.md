@@ -212,18 +212,17 @@ sh scripts/setup-hooks.sh
 
 ### Git hooks
 
-- `pre-commit` and `pre-push` call the changed-code gate
-- `pre-push` evaluates the exact refs being pushed (remote SHA..local SHA) so commits about to be pushed are analyzed as new code
+- `pre-commit` calls the changed-code gate
 - Do not bypass the hooks with `--no-verify`
 
 ### Verify hook installation
 
 ```powershell
-Get-ChildItem .git\hooks\pre-commit, .git\hooks\pre-push
+Get-ChildItem .git\hooks\pre-commit
 ```
 
 ```bash
-ls -l .git/hooks/pre-commit .git/hooks/pre-push
+ls -l .git/hooks/pre-commit
 ```
 
 If a hook is missing or does not match `scripts/hooks/`, re-run `setup-hooks`.

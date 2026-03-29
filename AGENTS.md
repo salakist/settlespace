@@ -40,7 +40,7 @@ Run all tests: `dotnet test FoTestApi.sln`
 - If the current terminal is one level above the repo (for example the workspace root is `Repos/`), run `dotnet run --project .\fo-test\FoTestApi.Application\FoTestApi.Application.csproj` instead.
 - Do not assume the terminal cwd is the repository root; verify the current directory before using a relative project path.
 
-## Quality gates — mandatory before every commit and push
+## Quality gates — mandatory before every commit
 
 There are now two analysis modes:
 
@@ -94,9 +94,8 @@ sh scripts/run-full-checks.sh
    - Fix the violation (add missing tests, resolve the code smell).
    - Re-run the script until all four gates pass.
 4. Only then: `git add` → `git commit` → `git push`.
-5. The `pre-commit` and `pre-push` git hooks also run the same changed-code script automatically — if it was skipped in step 2, the commit or push will still be blocked.
-6. During `git push`, the `pre-push` hook evaluates the exact refs being pushed (the commit range from remote SHA to local SHA), not just generic local state.
-7. Run the full-base script only when explicitly requested.
+5. The `pre-commit` git hook also runs the same changed-code script automatically — if it was skipped in step 2, the commit will still be blocked.
+6. Run the full-base script only when explicitly requested.
 
 ### Frontend testing convention
 
@@ -118,14 +117,14 @@ sh scripts/setup-hooks.sh      # Linux / macOS / Git Bash
 ### Verify hooks are healthy
 
 ```powershell
-Get-ChildItem .git\hooks\pre-commit, .git\hooks\pre-push
+Get-ChildItem .git\hooks\pre-commit
 ```
 
 ```bash
-ls -l .git/hooks/pre-commit .git/hooks/pre-push
+ls -l .git/hooks/pre-commit
 ```
 
-If either hook is missing or stale, re-run `setup-hooks` before commit/push.
+If the hook is missing or stale, re-run `setup-hooks` before commit.
 
 ### Fixing a coverage failure
 

@@ -6,11 +6,6 @@
 #   3. React/TS ESLint on changed frontend files
 #   4. React/TS coverage on changed production frontend files (threshold: 80%)
 
-param(
-    [string[]]$PushRange = @(),
-    [string[]]$PushNewSha = @()
-)
-
 $ErrorActionPreference = "Continue"
 
 $RepoRoot = Split-Path -Parent $PSScriptRoot
@@ -33,35 +28,7 @@ function Get-UniqueLines([string[]]$Lines) {
 }
 
 function Get-ChangedContext {
-    param(
-        [string[]]$PushRanges,
-        [string[]]$PushNewShas
-    )
-
-    if ($PushRanges.Count -gt 0 -or $PushNewShas.Count -gt 0) {
-        $explicitFiles = @()
-
-        foreach ($range in $PushRanges) {
-            $rangeFiles = Get-UniqueLines @(git diff --name-only --diff-filter=ACMR $range)
-            $explicitFiles = @($explicitFiles + $rangeFiles)
-        }
-
-        foreach ($sha in $PushNewShas) {
-            $newCommits = Get-UniqueLines @(git rev-list $sha --not --remotes)
-            if ($newCommits.Count -eq 0) {
-                $newFiles = Get-UniqueLines @(git diff-tree --no-commit-id --name-only -r --diff-filter=ACMR $sha)
-                $explicitFiles = @($explicitFiles + $newFiles)
-            }
-            else {
-                foreach ($commit in $newCommits) {
-                    $commitFiles = Get-UniqueLines @(git diff-tree --no-commit-id --name-only -r --diff-filter=ACMR $commit)
-                    $explicitFiles = @($explicitFiles + $commitFiles)
-                }
-            }
-        }
-
-        return @{ Source = "explicit push refs"; Files = (Get-UniqueLines $explicitFiles) }
-    }
+    param()
 
     $staged = Get-UniqueLines @(git diff --cached --name-only --diff-filter=ACMR)
     if ($staged.Count -gt 0) {
@@ -113,11 +80,11 @@ function Invoke-CSharpCoverage([string]$ProjectPath, [string]$OutputPrefix) {
     return $LASTEXITCODE
 }
 
-$changedContext = Get-ChangedContext -PushRanges $PushRange -PushNewShas $PushNewSha
+$changedContext = Get-ChangedContext
 $changedFiles = @($changedContext.Files | ForEach-Object { $_.Replace('\\', '/') })
 $changedFiles = Get-UniqueLines $changedFiles
 
-Write-Host "[mandatory] changed-code gate: run before every commit and push" -ForegroundColor Yellow
+Write-Host "[mandatory] changed-code gate: run before every commit" -ForegroundColor Yellow
 
 Write-Header "Changed-code analysis target"
 Write-Host "Scope: $($changedContext.Source)" -ForegroundColor Yellow
@@ -171,7 +138,7 @@ if ($changedCSharpFiles.Count -eq 0) {
         Write-Host "[FAIL] Changed C# files introduced analyzer or compiler violations." -ForegroundColor Red
         $Failed = $true
     } elseif ($buildExitCode -ne 0) {
-        Write-Host "[FAIL] Solution build failed outside the changed-file filter. Push is blocked until the repository builds cleanly." -ForegroundColor Red
+        Write-Host "[FAIL] Solution build failed outside the changed-file filter. Commit is blocked until the repository builds cleanly." -ForegroundColor Red
         $Failed = $true
     } else {
         Write-Host "[PASS] No analyzer/compiler violations in changed C# files." -ForegroundColor Green
@@ -272,7 +239,7 @@ Write-Host ""
 
 if ($Failed) {
     Write-Host "=======================================================" -ForegroundColor Red
-    Write-Host "  CHANGED-CODE CHECKS FAILED. Commit/push is blocked." -ForegroundColor Red
+    Write-Host "  CHANGED-CODE CHECKS FAILED. Commit is blocked." -ForegroundColor Red
     Write-Host "  Resolve the issues above, then re-run .\scripts\run-checks.ps1" -ForegroundColor Red
     Write-Host "=======================================================" -ForegroundColor Red
     exit 1

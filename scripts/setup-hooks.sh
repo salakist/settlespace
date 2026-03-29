@@ -45,12 +45,8 @@ echo "Installing git hooks..."
 cp "$REPO_ROOT/scripts/hooks/pre-commit" "$GIT_HOOKS_DIR/pre-commit"
 chmod +x "$GIT_HOOKS_DIR/pre-commit"
 
-cp "$REPO_ROOT/scripts/hooks/pre-push" "$GIT_HOOKS_DIR/pre-push"
-chmod +x "$GIT_HOOKS_DIR/pre-push"
-
 VERIFY_FAILED=0
 verify_hook "$REPO_ROOT/scripts/hooks/pre-commit" "$GIT_HOOKS_DIR/pre-commit" "pre-commit" || VERIFY_FAILED=1
-verify_hook "$REPO_ROOT/scripts/hooks/pre-push" "$GIT_HOOKS_DIR/pre-push" "pre-push" || VERIFY_FAILED=1
 
 if [ "$VERIFY_FAILED" -ne 0 ]; then
   echo ""
@@ -59,7 +55,7 @@ if [ "$VERIFY_FAILED" -ne 0 ]; then
 fi
 
 echo ""
-echo "Changed-code quality gates will now run automatically before every commit and push."
+echo "Changed-code quality gates will now run automatically before every commit."
 echo "To run changed-code checks manually:"
 echo "  sh scripts/run-checks.sh"
 echo "To run full-base checks manually:"

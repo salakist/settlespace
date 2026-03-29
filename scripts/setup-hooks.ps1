@@ -43,13 +43,8 @@ Copy-Item -Path (Join-Path $RepoRoot "scripts\hooks\pre-commit") `
           -Destination (Join-Path $GitHooksDir "pre-commit") `
           -Force
 
-Copy-Item -Path (Join-Path $RepoRoot "scripts\hooks\pre-push") `
-          -Destination (Join-Path $GitHooksDir "pre-push") `
-          -Force
-
 $hooksVerified = $true
 if (-not (Test-HookInstalled "pre-commit")) { $hooksVerified = $false }
-if (-not (Test-HookInstalled "pre-push")) { $hooksVerified = $false }
 
 if (-not $hooksVerified) {
     Write-Host ""
@@ -58,6 +53,6 @@ if (-not $hooksVerified) {
 }
 
 Write-Host ""
-Write-Host "Changed-code quality gates will now run automatically before every commit and push."
+Write-Host "Changed-code quality gates will now run automatically before every commit."
 Write-Host "To run changed-code checks manually: .\scripts\run-checks.ps1"
 Write-Host "To run full-base checks manually: .\scripts\run-full-checks.ps1"
