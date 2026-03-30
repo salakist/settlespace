@@ -1,12 +1,19 @@
 using System.Text;
 using FoTestApi.Application.Authentication;
-using FoTestApi.Application.Mapping;
-using FoTestApi.Application.Services;
+using FoTestApi.Application.Persons.Mapping;
+using FoTestApi.Application.Transactions.Mapping;
+using FoTestApi.Application.Authentication.Services;
+using FoTestApi.Application.Persons.Services;
+using FoTestApi.Application.Transactions.Services;
 using FoTestApi.Application.Middleware;
-using FoTestApi.Domain.Repositories;
-using FoTestApi.Domain.Services;
+using FoTestApi.Domain.Persons;
+using FoTestApi.Domain.Transactions;
+using FoTestApi.Domain.Auth;
+using FoTestApi.Domain.Persons.Services;
+using FoTestApi.Domain.Transactions.Services;
 using FoTestApi.Infrastructure;
-using FoTestApi.Infrastructure.Repositories;
+using FoTestApi.Infrastructure.Persons;
+using FoTestApi.Infrastructure.Transactions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text.Json.Serialization;
@@ -100,3 +107,4 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+

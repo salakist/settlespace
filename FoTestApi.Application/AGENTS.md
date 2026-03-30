@@ -6,15 +6,31 @@ Application layer and API host — orchestrates domain logic, handles HTTP, and 
 ## Project structure
 ```
 FoTestApi.Application/
-├── Authentication/ AuthSettings, CustomClaimTypes
-├── Commands/        LoginCommand, RegisterCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, PersonMutationCommand, DeletePersonCommand, AddressCommand
-├── Controllers/     AuthController, PersonsController, TransactionsController
-├── Mapping/         IPersonMapper, PersonMapper
-├── DTOs/            LoginResponseDto, PersonDto, AddressDto, TransactionDto
-├── Services/        AuthService, IPersonApplicationService, PersonApplicationService, ITransactionApplicationService, TransactionApplicationService
+├── Authentication/
+│   ├── AuthController.cs
+│   ├── AuthSettings.cs
+│   ├── CustomClaimTypes.cs
+│   ├── LoginResponseDto.cs
+│   ├── Commands/
+│   └── Services/
+├── Persons/
+│   ├── PersonsController.cs
+│   ├── Commands/
+│   ├── DTOs/
+│   ├── Mapping/
+│   └── Services/
+├── Transactions/
+│   ├── TransactionsController.cs
+│   ├── TransactionDto.cs
+│   ├── Commands/
+│   ├── Mapping/
+│   └── Services/
+├── Middleware/
 ├── Program.cs
 └── appsettings.json
 ```
+
+Function subfolders are used only when a context contains multiple function groups. If a context would otherwise have only one function subfolder, files are flattened directly under the context.
 
 ## Responsibilities
 - Expose login and registration endpoints via `AuthController` and issue JWT bearer tokens through `AuthService`
@@ -28,9 +44,8 @@ FoTestApi.Application/
 - Keep password updates scoped to `AuthController` (`/auth/change-password`) rather than person update routes
 - Hash passwords before persistence and upgrade legacy plaintext passwords on successful login
 - Accept `IPersonDomainService` (not the concrete class) for strict layer isolation
-- Define commands in `Commands/` (input contracts for create/update/delete)
-- Define auth and response DTOs in `DTOs/`
-- Keep mapping logic in `Mapping/` to avoid controller/service inline mapping
+- Define commands within each context `Commands/` folder
+- Keep mapping logic in context `Mapping/` folders to avoid controller/service inline mapping
 - Keep update IDs outside request body models and pass them via route/claims into service methods
 - Register DI in `Program.cs` (repository, domain service, auth service, application service, CORS, Swagger, JWT auth)
 - Register `ExceptionHandlingMiddleware` to translate domain exceptions to HTTP responses (409 Conflict, 404 Not Found, 400 Bad Request)
@@ -52,21 +67,21 @@ FoTestApi.Application/
 - `Program.cs` — DI registration, middleware pipeline
 - `Authentication/AuthSettings.cs` — configurable JWT settings
 - `Authentication/CustomClaimTypes.cs` — custom claim names used in JWT and authorized endpoints
-- `Mapping/IPersonMapper.cs` and `Mapping/PersonMapper.cs` — centralized mapping between commands, entities, and DTOs
-- `Services/IAuthService.cs` — auth abstraction
-- `Services/AuthService.cs` — validates person credentials and mints JWTs
-- `Services/IPersonApplicationService.cs` — application service interface
-- `Services/PersonApplicationService.cs` — command/query orchestration
-- `Services/ITransactionApplicationService.cs` — transaction application service interface
-- `Services/TransactionApplicationService.cs` — transaction command/query orchestration
-- `Commands/` — LoginCommand, RegisterCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, PersonMutationCommand, DeletePersonCommand
-- `Commands/` — includes transaction commands (`CreateTransactionCommand`, `UpdateTransactionCommand`, `DeleteTransactionCommand`, `TransactionMutationCommand`)
-- `Commands/AddressCommand.cs` — inbound address shape for create/register/update commands
-- `DTOs/LoginResponseDto.cs` — outbound JWT response payload
-- `DTOs/PersonDto.cs` and `DTOs/AddressDto.cs` — outbound API data shape
-- `Controllers/AuthController.cs` — login, register, and password change endpoints
-- `Controllers/PersonsController.cs` — REST endpoints
-- `Controllers/TransactionsController.cs` — user-scoped transaction REST endpoints
+- `Authentication/Services/IAuthService.cs` — auth abstraction
+- `Authentication/Services/AuthService.cs` — validates person credentials and mints JWTs
+- `Authentication/Commands/` — `LoginCommand`, `RegisterCommand`, `ChangePasswordCommand`
+- `Authentication/AuthController.cs` — login, register, and password-change endpoints
+- `Authentication/LoginResponseDto.cs` — outbound JWT response payload
+- `Persons/Services/IPersonApplicationService.cs` and `Persons/Services/PersonApplicationService.cs` — person command/query orchestration
+- `Persons/Mapping/IPersonMapper.cs` and `Persons/Mapping/PersonMapper.cs` — centralized person mapping
+- `Persons/Commands/` — person CRUD commands + `AddressCommand`
+- `Persons/DTOs/PersonDto.cs` and `Persons/DTOs/AddressDto.cs` — person response shape
+- `Persons/PersonsController.cs` — person REST endpoints
+- `Transactions/Services/ITransactionApplicationService.cs` and `Transactions/Services/TransactionApplicationService.cs` — transaction command/query orchestration
+- `Transactions/Mapping/ITransactionMapper.cs` and `Transactions/Mapping/TransactionMapper.cs` — centralized transaction mapping
+- `Transactions/Commands/` — transaction CRUD commands
+- `Transactions/TransactionDto.cs` — transaction response shape
+- `Transactions/TransactionsController.cs` — user-scoped transaction REST endpoints
 - `appsettings.json` — MongoDB and JWT configuration
 
 ## Commands

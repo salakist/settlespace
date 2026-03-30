@@ -9,12 +9,13 @@ Unit test project for the Infrastructure layer. Tests `PersonRepository` without
 - `FoTestDatabaseSettingsTests` — configuration model property coverage
 
 ## Test strategy
-- Uses the `internal PersonRepository(IMongoCollection<PersonEntity>)` constructor to inject a mock collection
+- Uses the `internal PersonRepository(IMongoCollection<Person>)` constructor to inject a mock collection
 - `IMongoCollection<T>` is mocked via Moq; `IAsyncCursor<T>` is mocked to simulate MongoDB query results
 - `InternalsVisibleTo` is declared in `FoTestApi.Infrastructure.csproj` to enable access to the internal constructor
 
 ## Key files
-- `Repositories/PersonRepositoryTests.cs`
+- `Persons/PersonRepositoryTests.cs`
+- `Transactions/TransactionRepositoryTests.cs`
 - `Serialization/DateOnlyAsStringSerializerTests.cs`
 - `FoTestDatabaseSettingsTests.cs`
 

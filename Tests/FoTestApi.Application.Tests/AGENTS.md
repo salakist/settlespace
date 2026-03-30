@@ -52,12 +52,16 @@ Unit test project for the Application layer. Tests `PersonApplicationService`, `
 - Both services depend on interfaces, enabling pure Moq isolation
 
 ## Key files
-- `Services/PersonApplicationServiceTests.cs`
-- `Services/AuthServiceTests.cs`
-- `Controllers/PersonsControllerTests.cs`
-- `Controllers/AuthControllerTests.cs`
+- `Persons/Services/PersonApplicationServiceTests.cs`
+- `Persons/PersonsControllerTests.cs`
+- `Persons/Mapping/PersonMapperTests.cs`
+- `Authentication/Services/AuthServiceTests.cs`
+- `Authentication/AuthControllerTests.cs`
+- `Transactions/Services/TransactionApplicationServiceTests.cs`
+- `Transactions/TransactionsControllerTests.cs`
+- `Transactions/Mapping/TransactionMapperTests.cs`
+- `Transactions/Commands/DeleteTransactionCommandTests.cs`
 - `Middleware/ExceptionHandlingMiddlewareTests.cs`
-- `Mapping/PersonMapperTests.cs`
 
 ## Commands
 - `dotnet test Tests/FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj`

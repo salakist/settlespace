@@ -29,3 +29,4 @@ namespace FoTestApi.Infrastructure.Serialization
         }
     }
 }
+

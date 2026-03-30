@@ -4,8 +4,18 @@
 Pure domain layer — contains business rules and invariants for the Person aggregate.
 This project has **zero infrastructure dependencies** by design.
 
+## Folder structure
+Domain uses context-first folders:
+- `Auth/` — password policy, generation, and hashing services
+- `Persons/` — person aggregate entities, repository contract, domain service, and person exceptions
+- `Transactions/` — transaction aggregate entities, repository contract, domain service, and transaction exceptions
+
+Function subfolders are used only when a context contains multiple function groups (for example `Entities/`, `Services/`, `Exceptions/`).
+
+Entity naming rule: domain entities must not use an `Entity` suffix (use `Person` and `Transaction`).
+
 ## Responsibilities
-- Define `PersonEntity` (aggregate root) with validation logic
+- Define `Person` (aggregate root) with validation logic
 - Define `Address` value object with validation logic
 - Declare `IPersonRepository` repository interface
 - Declare `IPersonDomainService` domain service interface
@@ -13,7 +23,7 @@ This project has **zero infrastructure dependencies** by design.
 - Implement `PersonDomainService` (uniqueness invariant enforcement)
 - Define password-related domain services for strength validation, generation, and hashing
 - Raise domain exceptions (`DuplicatePersonException`, `DomainException`)
-- Define `TransactionEntity` and `TransactionStatus` with transaction invariants
+- Define `Transaction` and `TransactionStatus` with transaction invariants
 - Declare `ITransactionRepository` repository interface
 - Declare and implement `ITransactionDomainService`/`TransactionDomainService` for involvement and creator authorization rules
 - Raise transaction-specific domain exceptions (`InvalidTransactionException`, `TransactionNotFoundException`, `UnauthorizedTransactionAccessException`)
@@ -30,7 +40,7 @@ This project has **zero infrastructure dependencies** by design.
 - `Addresses` is optional; each address requires non-empty label/street/city/country and a valid postal code
 - Two persons are considered duplicates if `FirstName` and `LastName` match case-insensitively
 - Duplicate checking is delegated to `IPersonDomainService.EnsureUniqueAsync`
-- `PersonEntity.MatchesByFullName()` provides in-memory full-name equality for guard comparisons
+- `Person.MatchesByFullName()` provides in-memory full-name equality for guard comparisons
 - Transaction amount must be greater than zero
 - Transaction currency code must be a 3-letter uppercase code (ISO style)
 - `PayerPersonId` and `PayeePersonId` must be different
@@ -59,19 +69,27 @@ This project has **zero infrastructure dependencies** by design.
 - Hash verification and hash-format detection are handled by `IPasswordHashingService`
 
 ## Key files
-- `Entities/PersonEntity.cs` — aggregate root with `Validate()` and `MatchesByFullName()`
-- `Entities/Address.cs` — address value object with `Validate()`
-- `Repositories/IPersonRepository.cs` — repository contract
-- `Services/IPersonDomainService.cs` — domain service interface
-- `Services/IPasswordGenerator.cs` — password generation interface
-- `Services/IPasswordValidator.cs` — password strength validation interface
-- `Services/IPasswordHashingService.cs` — password hashing service interface
-- `Services/PersonDomainService.cs` — enforces uniqueness, throws `DuplicatePersonException`
-- `Services/PasswordValidator.cs` — validates password strength, throws `WeakPasswordException`
-- `Services/PasswordGenerator.cs` — generates random strong passwords
-- `Services/PasswordHashingService.cs` — hashes and verifies passwords using PBKDF2
-- `Exceptions/DuplicatePersonException.cs` — thrown on duplicate create/update
-- `Exceptions/WeakPasswordException.cs` — thrown when password does not meet strength requirements
+- `Persons/Entities/Person.cs` — aggregate root with `Validate()` and `MatchesByFullName()`
+- `Persons/Entities/Address.cs` — address value object with `Validate()`
+- `Persons/IPersonRepository.cs` — person repository contract
+- `Persons/Services/IPersonDomainService.cs` — person domain service interface
+- `Persons/Services/PersonDomainService.cs` — enforces uniqueness, throws `DuplicatePersonException`
+- `Persons/Exceptions/DuplicatePersonException.cs` — thrown on duplicate create/update
+- `Persons/Exceptions/WeakPasswordException.cs` — thrown when password does not meet strength requirements
+- `Auth/IPasswordGenerator.cs` — password generation interface
+- `Auth/IPasswordValidator.cs` — password strength validation interface
+- `Auth/IPasswordHashingService.cs` — password hashing service interface
+- `Auth/PasswordGenerator.cs` — generates random strong passwords
+- `Auth/PasswordValidator.cs` — validates password strength
+- `Auth/PasswordHashingService.cs` — hashes and verifies passwords using PBKDF2
+- `Transactions/Entities/Transaction.cs` — transaction aggregate root
+- `Transactions/Entities/TransactionStatus.cs` — transaction status enum/catalog
+- `Transactions/ITransactionRepository.cs` — transaction repository contract
+- `Transactions/Services/ITransactionDomainService.cs` — transaction authorization domain service interface
+- `Transactions/Services/TransactionDomainService.cs` — enforces transaction access/deletion rules
+- `Transactions/Exceptions/InvalidTransactionException.cs` — thrown on invalid transaction invariants
+- `Transactions/Exceptions/TransactionNotFoundException.cs` — thrown when transaction lookup fails
+- `Transactions/Exceptions/UnauthorizedTransactionAccessException.cs` — thrown on unauthorized transaction access
 
 ## Commands
 - `dotnet build FoTestApi.Domain/FoTestApi.Domain.csproj`

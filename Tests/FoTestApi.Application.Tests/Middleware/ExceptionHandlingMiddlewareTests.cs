@@ -1,5 +1,7 @@
 using FoTestApi.Application.Middleware;
 using FoTestApi.Domain.Exceptions;
+using FoTestApi.Domain.Persons.Exceptions;
+using FoTestApi.Domain.Transactions.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -139,3 +141,4 @@ public class ExceptionHandlingMiddlewareTests
         public Microsoft.Extensions.FileProviders.IFileProvider ContentRootFileProvider { get; set; } = null!;
     }
 }
+

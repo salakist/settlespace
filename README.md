@@ -29,17 +29,26 @@ A full-stack demonstration project showcasing Domain-Driven Design (DDD) with a 
 ```
 fo-test/
 ├── FoTestApi.sln
-├── FoTestApi.Domain/               # Domain layer — business rules and contracts
-├── FoTestApi.Infrastructure/       # Infrastructure layer — MongoDB persistence
-├── FoTestApi.Application/          # Application layer — API, controllers, commands
+├── FoTestApi.Domain/               # Domain layer — context-first (Auth, Persons, Transactions)
+├── FoTestApi.Infrastructure/       # Infrastructure layer — context-first repositories + shared tech
+├── FoTestApi.Application/          # Application layer — context-first API slices
 ├── Tests/
-│   ├── FoTestApi.Domain.Tests/         # Unit tests — Domain layer
-│   ├── FoTestApi.Infrastructure.Tests/ # Unit tests — Infrastructure layer
-│   └── FoTestApi.Application.Tests/    # Unit tests — Application layer
+│   ├── FoTestApi.Domain.Tests/         # Mirrors Domain context/function structure
+│   ├── FoTestApi.Infrastructure.Tests/ # Mirrors Infrastructure context/function structure
+│   └── FoTestApi.Application.Tests/    # Mirrors Application context/function structure
 ├── fotest-react/                   # React SPA frontend
 ├── AGENTS.md                       # Root agent index
 └── README.md
 ```
+
+### Folder architecture policy
+
+- Backend folders use `Layer/Context/Function` ordering.
+- A function subfolder is used only when a context has multiple function groups.
+- If a context would have only one function subfolder, files are flattened directly under the context.
+- Exceptions are treated as a function group and use `Exceptions/` when that context has multiple function groups.
+- Domain entity class names must not use an `Entity` suffix (for example `Person`, not `PersonEntity`).
+- Test projects mirror the structure of their associated production layer.
 
 ### Dependency direction
 
@@ -60,12 +69,37 @@ Pure domain layer. No NuGet packages. No infrastructure coupling.
 
 ```
 FoTestApi.Domain/
-├── Entities/Address.cs
-├── Entities/PersonEntity.cs
-├── Repositories/IPersonRepository.cs
-├── Services/IPersonDomainService.cs
-├── Services/PersonDomainService.cs
-└── Exceptions/DuplicatePersonException.cs
+├── Auth/
+│   ├── IPasswordGenerator.cs
+│   ├── IPasswordHashingService.cs
+│   ├── IPasswordValidator.cs
+│   ├── PasswordGenerator.cs
+│   ├── PasswordHashingService.cs
+│   └── PasswordValidator.cs
+├── Persons/
+│   ├── IPersonRepository.cs
+│   ├── Entities/
+│   │   ├── Address.cs
+│   │   └── Person.cs
+│   ├── Services/
+│   │   ├── IPersonDomainService.cs
+│   │   └── PersonDomainService.cs
+│   └── Exceptions/
+│       ├── DuplicatePersonException.cs
+│       └── WeakPasswordException.cs
+├── Transactions/
+│   ├── ITransactionRepository.cs
+│   ├── Entities/
+│   │   ├── Transaction.cs
+│   │   └── TransactionStatus.cs
+│   ├── Services/
+│   │   ├── ITransactionDomainService.cs
+│   │   └── TransactionDomainService.cs
+│   └── Exceptions/
+│       ├── InvalidTransactionException.cs
+│       ├── TransactionNotFoundException.cs
+│       └── UnauthorizedTransactionAccessException.cs
+└── Exceptions/DomainException.cs
 ```
 
 #### Domain Rules
@@ -88,7 +122,7 @@ FoTestApi.Domain/
 | Weak password | Raises `WeakPasswordException` → translated to HTTP `400 Bad Request` |
 | Transaction access scope | Create, get, and update require logged-user involvement as payer or payee |
 | Transaction delete scope | Delete is restricted to the transaction creator |
-| Equality method | `PersonEntity.MatchesByFullName(other)` – OrdinalIgnoreCase full-name comparison |
+| Equality method | `Person.MatchesByFullName(other)` – OrdinalIgnoreCase full-name comparison |
 
 `IPasswordGenerator`/`PasswordGenerator` produces 12+ character passwords that satisfy the same strength policy.
 
@@ -100,13 +134,13 @@ Persistence layer. Implements repository interfaces from the Domain and owns all
 
 ```
 FoTestApi.Infrastructure/
-+-- Repositories/PersonRepository.cs   # IPersonRepository implementation
-+-- Repositories/TransactionRepository.cs # ITransactionRepository implementation
++-- Persons/PersonRepository.cs         # IPersonRepository implementation
++-- Transactions/TransactionRepository.cs # ITransactionRepository implementation
 +-- Serialization/DateOnlyAsStringSerializer.cs # DateOnly BSON serializer
 +-- FoTestDatabaseSettings.cs          # Connection/database config model
 ```
 
-- MongoDB `BsonClassMap` is registered here, keeping `PersonEntity` free of Bson attributes
+- MongoDB `BsonClassMap` is registered here, keeping `Person` free of Bson attributes
 - `DateOnly` values are stored as ISO strings (`YYYY-MM-DD`) in MongoDB
 - Search uses case-insensitive regex matching (`i` flag) for both `firstName` and `lastName`
 - Duplicate detection queries MongoDB with anchored regex (`^name$` with `i` flag)
@@ -119,12 +153,26 @@ Application layer and API host.
 
 ```
 FoTestApi.Application/
-├── Commands/        LoginCommand, RegisterCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, PersonMutationCommand, DeletePersonCommand, AddressCommand, CreateTransactionCommand, UpdateTransactionCommand, DeleteTransactionCommand, TransactionMutationCommand
-├── Controllers/     AuthController, PersonsController, TransactionsController
-├── Authentication/  AuthSettings, CustomClaimTypes
-├── Mapping/         IPersonMapper, PersonMapper, ITransactionMapper, TransactionMapper
-├── DTOs/            LoginResponseDto, PersonDto, AddressDto, TransactionDto
-├── Services/        AuthService, IPersonApplicationService, PersonApplicationService, ITransactionApplicationService, TransactionApplicationService
+├── Authentication/
+│   ├── AuthController.cs
+│   ├── AuthSettings.cs
+│   ├── CustomClaimTypes.cs
+│   ├── LoginResponseDto.cs
+│   ├── Commands/
+│   └── Services/
+├── Persons/
+│   ├── PersonsController.cs
+│   ├── Commands/
+│   ├── DTOs/
+│   ├── Mapping/
+│   └── Services/
+├── Transactions/
+│   ├── TransactionsController.cs
+│   ├── TransactionDto.cs
+│   ├── Commands/
+│   ├── Mapping/
+│   └── Services/
+├── Middleware/ExceptionHandlingMiddleware.cs
 ├── Program.cs
 └── appsettings.json
 ```
@@ -145,7 +193,7 @@ Each DDD layer has a dedicated xUnit + Moq test project.
 
 | Project | Scope |
 |---|---|
-| `FoTestApi.Domain.Tests` | `PersonEntity` rules, optional profile field validation, `PersonDomainService` uniqueness, password generation |
+| `FoTestApi.Domain.Tests` | `Person` rules, optional profile field validation, `PersonDomainService` uniqueness, password generation |
 | `FoTestApi.Infrastructure.Tests` | `PersonRepository` CRUD via mocked `IMongoCollection<T>` |
 | `FoTestApi.Application.Tests` | `PersonApplicationService` commands/queries, person-backed auth service/controller, `PersonsController` HTTP status codes and authenticated `me` endpoints |
 

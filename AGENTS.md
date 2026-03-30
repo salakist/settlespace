@@ -6,15 +6,23 @@ This repository defines nested agent metadata to describe project-level and sub-
 
 ```
 FoTestApi.sln
-├── FoTestApi.Domain/               — domain layer (entities, rules, repository interfaces, domain service)
-├── FoTestApi.Infrastructure/       — infrastructure layer (MongoDB, settings)
-├── FoTestApi.Application/          — application layer (commands, services, API controllers)
+├── FoTestApi.Domain/               — domain layer organized by context (Auth, Persons, Transactions)
+├── FoTestApi.Infrastructure/       — infrastructure layer organized by context (Persons, Transactions) + shared tech folders
+├── FoTestApi.Application/          — application layer organized by context (Authentication, Persons, Transactions)
 ├── Tests/
-│   ├── FoTestApi.Domain.Tests/         — unit tests for the Domain layer
-│   ├── FoTestApi.Infrastructure.Tests/ — unit tests for the Infrastructure layer
-│   └── FoTestApi.Application.Tests/    — unit tests for the Application layer
+│   ├── FoTestApi.Domain.Tests/         — mirrors Domain context/function structure
+│   ├── FoTestApi.Infrastructure.Tests/ — mirrors Infrastructure context/function structure
+│   └── FoTestApi.Application.Tests/    — mirrors Application context/function structure
 └── fotest-react/                   — frontend SPA (React + TypeScript + Material UI)
 ```
+
+## Folder architecture policy
+- Backend production layers use `Layer/Context/Function` organization.
+- A function subfolder is used only when the context contains multiple function groups.
+- If a context would contain only one function subfolder, flatten it and place files directly under the context.
+- Exceptions are treated as a function group and should use an `Exceptions/` subfolder when a context has multiple function groups.
+- Domain entity class names must not use an `Entity` suffix (for example use `Person`, not `PersonEntity`).
+- Test projects must mirror the folder structure of their associated production layer.
 
 ## Sub-agent files
 - `FoTestApi.Domain/AGENTS.md` — domain rules, entities, exceptions, domain service interface
