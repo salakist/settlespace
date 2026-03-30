@@ -16,7 +16,7 @@ A full-stack demonstration project showcasing Domain-Driven Design (DDD) with a 
 
 ### Frontend
 - **Framework:** React 18 with TypeScript
-- **Routing:** React Router with browser history support (`/login`, `/register`, `/directory`, `/profile`)
+- **Routing:** React Router with browser history support (`/login`, `/register`, `/home`, `/persons`, `/profile`)
 - **HTTP Client:** Axios
 - **UI Library:** Material UI (MUI) with dark mode
 - **Build Tool:** Create React App
@@ -171,10 +171,16 @@ Two repository-level analysis modes are available:
 
 1. `scripts/run-checks.ps1` / `scripts/run-checks.sh`
   - changed-code gate
-  - intended for routine local validation, commits, and pushes
+  - base changed-code gate implementation (also used by git hooks)
 2. `scripts/run-full-checks.ps1` / `scripts/run-full-checks.sh`
   - full-base gate
-  - intended for whole-repository assessment when explicitly requested
+  - base full-base gate implementation
+3. `scripts/run-checks-debug.ps1` / `scripts/run-checks-debug.sh`
+  - changed-code gate with forced log capture
+  - recommended entry point for automation and agent sessions
+4. `scripts/run-full-checks-debug.ps1` / `scripts/run-full-checks-debug.sh`
+  - full-base gate with forced log capture
+  - recommended entry point for automation and agent sessions when full-base analysis is requested
 
 ### Changed-code gate
 
@@ -199,15 +205,35 @@ Two repository-level analysis modes are available:
 ### Run the gates
 
 ```powershell
+.\scripts\run-checks-debug.ps1
+.\scripts\run-full-checks-debug.ps1
 .\scripts\run-checks.ps1
 .\scripts\run-full-checks.ps1
 .\scripts\setup-hooks.ps1
 ```
 
 ```bash
+sh scripts/run-checks-debug.sh
+sh scripts/run-full-checks-debug.sh
 sh scripts/run-checks.sh
 sh scripts/run-full-checks.sh
 sh scripts/setup-hooks.sh
+```
+
+### Troubleshooting opaque gate output
+
+Use debug wrappers by default in automation and agent sessions.
+If a terminal only shows an exit code and hides the gate failure details, these wrappers preserve full output.
+They tee output to timestamped log files under `artifacts/logs/`.
+
+```powershell
+.\scripts\run-checks-debug.ps1
+.\scripts\run-full-checks-debug.ps1
+```
+
+```bash
+sh scripts/run-checks-debug.sh
+sh scripts/run-full-checks-debug.sh
 ```
 
 ### Git hooks
@@ -273,7 +299,7 @@ fotest-react/src/
 cd fotest-react
 npm install
 npm start
-npm test
+npm run test:ci
 npx eslint src --ext .ts,.tsx --max-warnings=0
 ```
 

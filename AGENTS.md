@@ -21,6 +21,7 @@ FoTestApi.sln
 - `FoTestApi.Infrastructure/AGENTS.md` — MongoDB persistence, BsonClassMap configuration
 - `FoTestApi.Application/AGENTS.md` — application service, commands, REST controllers
 - `fotest-react/AGENTS.md` — frontend SPA implementation and UI behavior
+- `scripts/AGENTS.md` — gate scripts, debug wrappers, hooks, and coverage automation policy
 - `Tests/FoTestApi.Domain.Tests/AGENTS.md` — domain test scope and strategy
 - `Tests/FoTestApi.Infrastructure.Tests/AGENTS.md` — infrastructure repository test scope and strategy
 - `Tests/FoTestApi.Application.Tests/AGENTS.md` — application/controller/auth/middleware test scope and strategy
@@ -42,68 +43,13 @@ Run all tests: `dotnet test FoTestApi.sln`
 
 ## Quality gates — mandatory before every commit
 
-There are now two analysis modes:
+The authoritative script policy now lives in `scripts/AGENTS.md`.
 
-1. `scripts/run-checks.ps1` / `scripts/run-checks.sh`
-   This is the **changed-code gate**.
-   It is the default path for agents and the one enforced by the git hooks.
-2. `scripts/run-full-checks.ps1` / `scripts/run-full-checks.sh`
-   This is the **full-base gate**.
-   It is optional and should be run only when explicitly requested, or when you want to assess the whole repository.
-
-All agents MUST use the changed-code gate before making any commit or push.
-**Never bypass the git hook with `--no-verify`.**
-
-### Run the checks
-
-```powershell
-# Windows (PowerShell) - changed code only
-.\scripts\run-checks.ps1
-```
-
-```bash
-# Linux / macOS / Git Bash - changed code only
-sh scripts/run-checks.sh
-```
-
-Optional full-base analysis:
-
-```powershell
-.\scripts\run-full-checks.ps1
-```
-
-```bash
-sh scripts/run-full-checks.sh
-```
-
-### What the gates enforce
-
-| Gate | Changed-code mode | Full-base mode |
-|------|-------------------|----------------|
-| C# code smells | Build the solution and block diagnostics that touch changed C# files | Build the full solution and block all analyzer diagnostics |
-| C# test coverage | Measure coverage only on changed production C# files | Measure coverage across the full production C# codebase |
-| React/TS code smells | Run ESLint only on changed frontend files | Run ESLint on the full frontend source tree |
-| React/TS test coverage | Measure coverage only on changed production frontend files | Measure coverage across the full production frontend codebase |
-
-### Agent workflow
-
-1. Write the code change.
-2. Run `.\scripts\run-checks.ps1` (or `sh scripts/run-checks.sh`). This is the changed-code gate enforced by hooks.
-3. If **any gate fails**:
-   - Read the failure output carefully.
-   - Fix the violation (add missing tests, resolve the code smell).
-   - Re-run the script until all four gates pass.
-4. Only then: `git add` → `git commit` → `git push`.
-5. The `pre-commit` git hook also runs the same changed-code script automatically — if it was skipped in step 2, the commit will still be blocked.
-6. Run the full-base script only when explicitly requested.
-
-### Frontend testing convention
-
-- For `fotest-react`, keep test ownership split by responsibility:
-   - `src/app/App.test.tsx` for composition/wiring assertions.
-   - `src/app/App.integration.test.tsx` for end-to-end app flow assertions (with mocked UI boundaries).
-   - `src/features/**/hooks/*.test.tsx` for hook-specific behavior and branch coverage.
-- When refactoring app logic into hooks, migrate behavior tests with the logic instead of expanding `App.test.tsx`.
+Repository-wide minimums:
+1. Agents must run `./scripts/run-checks-debug.ps1` (or `sh scripts/run-checks-debug.sh`) before commit/push.
+2. Use full-base debug wrappers only when explicitly requested.
+3. `pre-commit` keeps enforcing the base changed-code gate.
+4. Never bypass hooks with `--no-verify`.
 
 ### First-time setup (install the git hook)
 
