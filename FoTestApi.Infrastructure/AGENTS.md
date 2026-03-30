@@ -40,6 +40,16 @@ Shared technical concerns remain at layer scope (for example `Serialization/` an
 - `dotnet build FoTestApi.Infrastructure/FoTestApi.Infrastructure.csproj`
 - `dotnet test FoTestApi.Infrastructure.Tests/FoTestApi.Infrastructure.Tests.csproj`
 
+## Build/Test Artifact Inventory
+- Common .NET build outputs in this module: `FoTestApi.Infrastructure/bin/` and `FoTestApi.Infrastructure/obj/`.
+- Related test-project outputs: `Tests/FoTestApi.Infrastructure.Tests/bin/`, `Tests/FoTestApi.Infrastructure.Tests/obj/`, and `Tests/FoTestApi.Infrastructure.Tests/artifacts/`.
+- Repository quality-gate logs and coverage aggregates: `artifacts/logs/` and `artifacts/coverage/`.
+
+## Gitignore ownership
+- Root `.gitignore` is authoritative for shared artifacts (`bin/`, `obj/`, `node_modules/`, generic logs, repository `artifacts/`, and `Tests/**/artifacts/`).
+- Infrastructure has no module-local `.gitignore`; keep shared patterns managed at repository root.
+- For artifact read/cleanup requests, inspect module outputs plus the related Infrastructure test-project artifact paths.
+
 ## NuGet packages
 - `MongoDB.Driver`
 - `Microsoft.Extensions.Options`

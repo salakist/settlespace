@@ -95,5 +95,15 @@ Entity naming rule: domain entities must not use an `Entity` suffix (use `Person
 - `dotnet build FoTestApi.Domain/FoTestApi.Domain.csproj`
 - `dotnet test FoTestApi.Domain.Tests/FoTestApi.Domain.Tests.csproj`
 
+## Build/Test Artifact Inventory
+- Common .NET build outputs in this module: `FoTestApi.Domain/bin/` and `FoTestApi.Domain/obj/`.
+- Related test-project outputs: `Tests/FoTestApi.Domain.Tests/bin/`, `Tests/FoTestApi.Domain.Tests/obj/`, and `Tests/FoTestApi.Domain.Tests/artifacts/`.
+- Repository quality-gate logs and coverage aggregates: `artifacts/logs/` and `artifacts/coverage/`.
+
+## Gitignore ownership
+- Root `.gitignore` is authoritative for shared artifacts (`bin/`, `obj/`, `node_modules/`, generic logs, repository `artifacts/`, and `Tests/**/artifacts/`).
+- Domain has no module-local `.gitignore`; keep shared patterns managed at repository root.
+- For artifact read/cleanup requests, inspect module outputs plus the related Domain test-project artifact paths.
+
 ## Dependencies
 - None (no NuGet packages, no project references)
