@@ -58,6 +58,18 @@ namespace FoTestApi.Application.Middleware
                     context.Response.StatusCode = StatusCodes.Status400BadRequest;
                     break;
 
+                case UnauthorizedTransactionAccessException:
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    break;
+
+                case TransactionNotFoundException:
+                    context.Response.StatusCode = StatusCodes.Status404NotFound;
+                    break;
+
+                case InvalidTransactionException:
+                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+                    break;
+
                 case InvalidOperationException when exception.Message.Contains("not found"):
                     context.Response.StatusCode = StatusCodes.Status404NotFound;
                     break;

@@ -41,6 +41,48 @@ public class ExceptionHandlingMiddlewareTests
     }
 
     [Fact]
+    public async Task UnauthorizedTransactionAccessExceptionReturns403Forbidden()
+    {
+        var middleware = new ExceptionHandlingMiddleware(
+            _ => throw new UnauthorizedTransactionAccessException("Forbidden"),
+            new MockLogger(),
+            _environment
+        );
+
+        await middleware.InvokeAsync(_context);
+
+        Assert.Equal(StatusCodes.Status403Forbidden, _context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task TransactionNotFoundExceptionReturns404NotFound()
+    {
+        var middleware = new ExceptionHandlingMiddleware(
+            _ => throw new TransactionNotFoundException("tx-1"),
+            new MockLogger(),
+            _environment
+        );
+
+        await middleware.InvokeAsync(_context);
+
+        Assert.Equal(StatusCodes.Status404NotFound, _context.Response.StatusCode);
+    }
+
+    [Fact]
+    public async Task InvalidTransactionExceptionReturns400BadRequest()
+    {
+        var middleware = new ExceptionHandlingMiddleware(
+            _ => throw new InvalidTransactionException("Invalid"),
+            new MockLogger(),
+            _environment
+        );
+
+        await middleware.InvokeAsync(_context);
+
+        Assert.Equal(StatusCodes.Status400BadRequest, _context.Response.StatusCode);
+    }
+
+    [Fact]
     public async Task InvalidOperationExceptionNotFoundReturns404NotFound()
     {
         var middleware = new ExceptionHandlingMiddleware(

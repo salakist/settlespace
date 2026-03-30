@@ -19,3 +19,24 @@ GET {{fo_test_HostAddress}}/api/persons/{id}
 Accept: application/json
 
 ###
+
+GET {{fo_test_HostAddress}}/api/transactions/me
+Accept: application/json
+
+###
+
+POST {{fo_test_HostAddress}}/api/transactions
+Content-Type: application/json
+
+{
+  "payerPersonId": "000000000000000000000001",
+  "payeePersonId": "000000000000000000000002",
+  "amount": 10.5,
+  "currencyCode": "EUR",
+  "transactionDateUtc": "2026-03-30T12:00:00Z",
+  "description": "Seed sample",
+  "category": "SeedData",
+  "status": "Completed"
+}
+
+###

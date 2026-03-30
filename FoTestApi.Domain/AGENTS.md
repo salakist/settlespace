@@ -13,6 +13,10 @@ This project has **zero infrastructure dependencies** by design.
 - Implement `PersonDomainService` (uniqueness invariant enforcement)
 - Define password-related domain services for strength validation, generation, and hashing
 - Raise domain exceptions (`DuplicatePersonException`, `DomainException`)
+- Define `TransactionEntity` and `TransactionStatus` with transaction invariants
+- Declare `ITransactionRepository` repository interface
+- Declare and implement `ITransactionDomainService`/`TransactionDomainService` for involvement and creator authorization rules
+- Raise transaction-specific domain exceptions (`InvalidTransactionException`, `TransactionNotFoundException`, `UnauthorizedTransactionAccessException`)
 
 ## Domain Rules
 - `FirstName` must not be null or whitespace
@@ -27,6 +31,14 @@ This project has **zero infrastructure dependencies** by design.
 - Two persons are considered duplicates if `FirstName` and `LastName` match case-insensitively
 - Duplicate checking is delegated to `IPersonDomainService.EnsureUniqueAsync`
 - `PersonEntity.MatchesByFullName()` provides in-memory full-name equality for guard comparisons
+- Transaction amount must be greater than zero
+- Transaction currency code must be a 3-letter uppercase code (ISO style)
+- `PayerPersonId` and `PayeePersonId` must be different
+- Transaction description is required (max 200 chars) and category is optional (max 80 chars)
+- `TransactionDateUtc` cannot be far in the future
+- Transaction creator must be either payer or payee
+- Create/update/get transaction operations require logged user involvement (payer or payee)
+- Delete transaction operation is restricted to the creator
 
 ### Password Strength Rules (if provided)
 - Minimum 8 characters

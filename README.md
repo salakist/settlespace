@@ -16,7 +16,7 @@ A full-stack demonstration project showcasing Domain-Driven Design (DDD) with a 
 
 ### Frontend
 - **Framework:** React 18 with TypeScript
-- **Routing:** React Router with browser history support (`/login`, `/register`, `/home`, `/persons`, `/profile`)
+- **Routing:** React Router with browser history support (`/login`, `/register`, `/home`, `/persons`, `/transactions`, `/debts`, `/profile`)
 - **HTTP Client:** Axios
 - **UI Library:** Material UI (MUI) with dark mode
 - **Build Tool:** Create React App
@@ -86,6 +86,8 @@ FoTestApi.Domain/
 | Duplicate check scope | Enforced on both **create** and **update** |
 | Duplicate violation | Raises `DuplicatePersonException` → translated to HTTP `409 Conflict` |
 | Weak password | Raises `WeakPasswordException` → translated to HTTP `400 Bad Request` |
+| Transaction access scope | Create, get, and update require logged-user involvement as payer or payee |
+| Transaction delete scope | Delete is restricted to the transaction creator |
 | Equality method | `PersonEntity.MatchesByFullName(other)` – OrdinalIgnoreCase full-name comparison |
 
 `IPasswordGenerator`/`PasswordGenerator` produces 12+ character passwords that satisfy the same strength policy.
@@ -99,6 +101,7 @@ Persistence layer. Implements repository interfaces from the Domain and owns all
 ```
 FoTestApi.Infrastructure/
 +-- Repositories/PersonRepository.cs   # IPersonRepository implementation
++-- Repositories/TransactionRepository.cs # ITransactionRepository implementation
 +-- Serialization/DateOnlyAsStringSerializer.cs # DateOnly BSON serializer
 +-- FoTestDatabaseSettings.cs          # Connection/database config model
 ```
@@ -116,12 +119,12 @@ Application layer and API host.
 
 ```
 FoTestApi.Application/
-├── Commands/        LoginCommand, RegisterCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, PersonMutationCommand, DeletePersonCommand, AddressCommand
-├── Controllers/     AuthController, PersonsController
+├── Commands/        LoginCommand, RegisterCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, PersonMutationCommand, DeletePersonCommand, AddressCommand, CreateTransactionCommand, UpdateTransactionCommand, DeleteTransactionCommand, TransactionMutationCommand
+├── Controllers/     AuthController, PersonsController, TransactionsController
 ├── Authentication/  AuthSettings, CustomClaimTypes
-├── Mapping/         IPersonMapper, PersonMapper
-├── DTOs/            LoginResponseDto, PersonDto, AddressDto
-├── Services/        AuthService, IPersonApplicationService, PersonApplicationService
+├── Mapping/         IPersonMapper, PersonMapper, ITransactionMapper, TransactionMapper
+├── DTOs/            LoginResponseDto, PersonDto, AddressDto, TransactionDto
+├── Services/        AuthService, IPersonApplicationService, PersonApplicationService, ITransactionApplicationService, TransactionApplicationService
 ├── Program.cs
 └── appsettings.json
 ```
@@ -131,6 +134,8 @@ FoTestApi.Application/
 `PersonApplicationService` orchestrates: map command → validate entity → delegate duplicate check to `IPersonDomainService` → persist via repository.
 
 `AuthService` authenticates against the MongoDB `persons` collection via `IPersonRepository`, issues JWT tokens used by the React frontend, and stores a stable person id claim so profile and password operations keep working even after first/last name changes.
+
+`TransactionsController` and `TransactionApplicationService` expose user-scoped transaction CRUD with a dedicated MongoDB `transactions` collection.
 
 ---
 
@@ -289,6 +294,7 @@ fotest-react/src/
 - Domain hooks:
   - `useAuth` handles authentication/session transitions.
   - `usePersons` handles directory CRUD/search/form state.
+  - `useTransactions` handles transaction CRUD/search/form state.
   - `useProfile` handles profile load/save/password flows.
 - Routes are URL-driven and support browser back/forward navigation.
 - Backend route generation is configured to lowercase URLs.
@@ -381,6 +387,18 @@ npm start
 
 Frontend starts on `http://localhost:3000`.
 
+### 5. Seed demo data manually
+
+With the API running, you can populate persons and transactions with repeatable sample data.
+
+```powershell
+.\scripts\seed-dev-data.ps1
+```
+
+```bash
+sh scripts/seed-dev-data.sh
+```
+
 ---
 
 ## API Reference
@@ -400,6 +418,12 @@ Base URL: `http://localhost:5279/api`
 | PUT | `/persons/me` | Update the authenticated person's profile | `UpdatePersonCommand` | `204`, `400`, `401`, `404`, `409` |
 | PUT | `/persons/{id}` | Update person | `UpdatePersonCommand` | `204`, `404`, `409` Conflict, `400`, `401` |
 | DELETE | `/persons/{id}` | Delete person | none | `204`, `404`, `401` |
+| GET | `/transactions/me` | Get transactions where current user is payer or payee | none | `200` Array of TransactionDto, `401` |
+| GET | `/transactions/me/search/{query}` | Search current-user transactions by description/category | none | `200` Array, `401` |
+| GET | `/transactions/{id}` | Get transaction by ID (must be involved) | none | `200` TransactionDto, `401`, `403`, `404` |
+| POST | `/transactions` | Create transaction (current user must be payer or payee) | `CreateTransactionCommand` | `201` TransactionDto, `400`, `401`, `403` |
+| PUT | `/transactions/{id}` | Update transaction (must be involved) | `UpdateTransactionCommand` | `204`, `400`, `401`, `403`, `404` |
+| DELETE | `/transactions/{id}` | Delete transaction (creator only) | none | `204`, `401`, `403`, `404` |
 
 All `/persons` endpoints require a bearer token returned by `/auth/login`.
 The login endpoint validates credentials against MongoDB persons (`firstName.lastName` + person password), not appsettings.

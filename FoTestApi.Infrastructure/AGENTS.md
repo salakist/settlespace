@@ -6,7 +6,9 @@ Implements the `IPersonRepository` interface defined in the Domain project.
 
 ## Responsibilities
 - Implement `PersonRepository` against MongoDB
+- Implement `TransactionRepository` against MongoDB in a dedicated `transactions` collection
 - Register `BsonClassMap` for `PersonEntity` and `Address` (keeping Domain persistence-agnostic)
+- Register `BsonClassMap` for `TransactionEntity` and `TransactionStatus`
 - Serialize `DateOnly` as ISO `YYYY-MM-DD` strings in MongoDB
 - Hold `FoTestDatabaseSettings` configuration model
 - Provide case-insensitive search and full-name duplicate detection via regex
@@ -14,8 +16,9 @@ Implements the `IPersonRepository` interface defined in the Domain project.
 
 ## Key files
 - `Repositories/PersonRepository.cs` — MongoDB implementation of `IPersonRepository`
+- `Repositories/TransactionRepository.cs` — MongoDB implementation of `ITransactionRepository`
 - `Serialization/DateOnlyAsStringSerializer.cs` — DateOnly BSON serializer used by repository class maps
-- `FoTestDatabaseSettings.cs` — connection string, database name, and collection name config
+- `FoTestDatabaseSettings.cs` — connection string, database name, and collection names config
 
 ## Testability
 - `PersonRepository` has an `internal PersonRepository(IMongoCollection<PersonEntity>)` constructor

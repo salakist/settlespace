@@ -21,6 +21,14 @@ jest.mock('../shared/api/api', () => ({
     delete: jest.fn(),
     search: jest.fn(),
   },
+  transactionApi: {
+    getCurrentUser: jest.fn(),
+    getById: jest.fn(),
+    searchCurrentUser: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
   authStorage: {
     isAuthenticated: jest.fn(),
     getUsername: jest.fn(),
@@ -33,6 +41,7 @@ jest.mock('../shared/api/api', () => ({
 const {
   authApi: mockAuthApi,
   personApi: mockPersonApi,
+  transactionApi: mockTransactionApi,
   authStorage: mockAuthStorage,
 } = jest.requireMock('../shared/api/api') as {
   authApi: {
@@ -49,6 +58,14 @@ const {
     updateCurrent: jest.Mock;
     delete: jest.Mock;
     search: jest.Mock;
+  };
+  transactionApi: {
+    getCurrentUser: jest.Mock;
+    getById: jest.Mock;
+    searchCurrentUser: jest.Mock;
+    create: jest.Mock;
+    update: jest.Mock;
+    delete: jest.Mock;
   };
   authStorage: {
     isAuthenticated: jest.Mock;
@@ -69,6 +86,11 @@ jest.mock('../features/persons/components/SearchBar', () => ({
       <button onClick={() => onSearch('')}>Search Empty</button>
     </div>
   ),
+}));
+
+jest.mock('../features/transactions/components/TransactionsPage', () => ({
+  __esModule: true,
+  default: () => <div>Transactions Page</div>,
 }));
 
 jest.mock('../features/persons/components/PersonForm', () => ({
@@ -184,6 +206,11 @@ beforeEach(() => {
   mockPersonApi.updateCurrent.mockResolvedValue({});
   mockPersonApi.delete.mockResolvedValue({});
   mockPersonApi.search.mockResolvedValue({ data: [] });
+  mockTransactionApi.getCurrentUser.mockResolvedValue({ data: [] });
+  mockTransactionApi.searchCurrentUser.mockResolvedValue({ data: [] });
+  mockTransactionApi.create.mockResolvedValue({});
+  mockTransactionApi.update.mockResolvedValue({});
+  mockTransactionApi.delete.mockResolvedValue({});
 });
 
 test('handles unauthorized responses by clearing session and returning to login', async () => {

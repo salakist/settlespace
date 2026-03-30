@@ -8,10 +8,10 @@ Application layer and API host — orchestrates domain logic, handles HTTP, and 
 FoTestApi.Application/
 ├── Authentication/ AuthSettings, CustomClaimTypes
 ├── Commands/        LoginCommand, RegisterCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, PersonMutationCommand, DeletePersonCommand, AddressCommand
-├── Controllers/     AuthController, PersonsController
+├── Controllers/     AuthController, PersonsController, TransactionsController
 ├── Mapping/         IPersonMapper, PersonMapper
-├── DTOs/            LoginResponseDto, PersonDto, AddressDto
-├── Services/        AuthService, IPersonApplicationService, PersonApplicationService
+├── DTOs/            LoginResponseDto, PersonDto, AddressDto, TransactionDto
+├── Services/        AuthService, IPersonApplicationService, PersonApplicationService, ITransactionApplicationService, TransactionApplicationService
 ├── Program.cs
 └── appsettings.json
 ```
@@ -21,7 +21,9 @@ FoTestApi.Application/
 - Authenticate against MongoDB persons via `IPersonRepository` using `firstName.lastName` usernames
 - Expose an authenticated password-change endpoint for the current user
 - Expose REST endpoints via `PersonsController` (focused on orchestration, not error handling)
+- Expose REST endpoints via `TransactionsController` for user-scoped transaction CRUD
 - Orchestrate commands and queries in `PersonApplicationService`
+- Orchestrate transaction authorization and CRUD in `TransactionApplicationService`
 - Auto-generate strong passwords when none provided on person creation
 - Keep password updates scoped to `AuthController` (`/auth/change-password`) rather than person update routes
 - Hash passwords before persistence and upgrade legacy plaintext passwords on successful login
@@ -32,7 +34,9 @@ FoTestApi.Application/
 - Keep update IDs outside request body models and pass them via route/claims into service methods
 - Register DI in `Program.cs` (repository, domain service, auth service, application service, CORS, Swagger, JWT auth)
 - Register `ExceptionHandlingMiddleware` to translate domain exceptions to HTTP responses (409 Conflict, 404 Not Found, 400 Bad Request)
+- Register transaction exception mappings (400 invalid transaction, 403 unauthorized transaction access, 404 transaction not found)
 - Require JWT authentication for person management endpoints
+- Require JWT authentication for transaction endpoints and enforce claim-based user scoping
 - Treat `Program.cs` as composition-root/bootstrap code for coverage purposes; it remains part of build/analyzer validation but is excluded from the C# coverage gate
 
 ## Interfaces
@@ -53,12 +57,16 @@ FoTestApi.Application/
 - `Services/AuthService.cs` — validates person credentials and mints JWTs
 - `Services/IPersonApplicationService.cs` — application service interface
 - `Services/PersonApplicationService.cs` — command/query orchestration
+- `Services/ITransactionApplicationService.cs` — transaction application service interface
+- `Services/TransactionApplicationService.cs` — transaction command/query orchestration
 - `Commands/` — LoginCommand, RegisterCommand, ChangePasswordCommand, CreatePersonCommand, UpdatePersonCommand, PersonMutationCommand, DeletePersonCommand
+- `Commands/` — includes transaction commands (`CreateTransactionCommand`, `UpdateTransactionCommand`, `DeleteTransactionCommand`, `TransactionMutationCommand`)
 - `Commands/AddressCommand.cs` — inbound address shape for create/register/update commands
 - `DTOs/LoginResponseDto.cs` — outbound JWT response payload
 - `DTOs/PersonDto.cs` and `DTOs/AddressDto.cs` — outbound API data shape
 - `Controllers/AuthController.cs` — login, register, and password change endpoints
 - `Controllers/PersonsController.cs` — REST endpoints
+- `Controllers/TransactionsController.cs` — user-scoped transaction REST endpoints
 - `appsettings.json` — MongoDB and JWT configuration
 
 ## Commands

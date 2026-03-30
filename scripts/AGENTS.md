@@ -9,6 +9,7 @@ Own repository quality-gate and hook automation scripts.
 - `run-checks-debug.ps1` / `run-checks-debug.sh` - changed-code wrappers with mandatory log capture.
 - `run-full-checks-debug.ps1` / `run-full-checks-debug.sh` - full-base wrappers with mandatory log capture.
 - `setup-hooks.ps1` / `setup-hooks.sh` - local git hook installation and refresh.
+- `seed-dev-data.ps1` / `seed-dev-data.sh` - manual local seed scripts for persons and transactions API data.
 - `hooks/` - hook source templates copied to `.git/hooks`.
 - `check-coverage.mjs` - shared coverage evaluator for changed/full modes.
 
@@ -21,6 +22,12 @@ Own repository quality-gate and hook automation scripts.
 2. After gates pass and before commit, documentation updates are mandatory for the same change set.
   2.1 Update only documentation relevant to the actual changes.
   2.2 Typical targets include module `AGENTS.md` files, route notes, behavior notes, and test guidance.
+3. Every commit attempt must include an explicit 2-step checklist summary.
+  3.1 Step 1 status must be `DONE` or `SKIPPED` with reason.
+  3.2 Step 2 status must be `DONE` or `SKIPPED` with reason.
+  3.3 Step 1 may be skipped only if no production code changed since last successful changed-code debug gate run; include the last log path.
+  3.4 Step 2 must still be reviewed against staged changes at commit-time; `SKIPPED` is only valid as `No documentation changes required` with a short staged-diff justification.
+  3.5 If a step has no valid status/reason, do not run `git commit`.
 
 ## Logging rules
 - Debug wrappers must write timestamped logs to `artifacts/logs/`.

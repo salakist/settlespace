@@ -18,6 +18,23 @@ export interface Person {
   addresses?: Address[];
 }
 
+export type TransactionStatus = 'Pending' | 'Completed' | 'Cancelled';
+
+export interface Transaction {
+  id?: string;
+  payerPersonId: string;
+  payeePersonId: string;
+  createdByPersonId?: string;
+  amount: number;
+  currencyCode: string;
+  transactionDateUtc: string;
+  description: string;
+  category?: string;
+  status: TransactionStatus;
+  createdAtUtc?: string;
+  updatedAtUtc?: string;
+}
+
 export interface LoginRequest {
   username: string;
   password: string;

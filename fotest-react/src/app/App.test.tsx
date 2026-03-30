@@ -68,6 +68,11 @@ jest.mock('../features/profile/components/ProfilePage', () => ({
   default: () => <h2>Profile Page</h2>,
 }));
 
+jest.mock('../features/transactions/components/TransactionsPage', () => ({
+  __esModule: true,
+  default: () => <div>Transactions Page</div>,
+}));
+
 const { useAuth: mockUseAuth } = jest.requireMock('../features/auth/hooks/useAuth') as {
   useAuth: jest.Mock;
 };

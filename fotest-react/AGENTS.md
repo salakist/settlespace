@@ -11,7 +11,8 @@ React frontend for person entity management using `FoTestApi`.
 - `src/features/persons/hooks/` owns persons domain behavior (`usePersons`).
 - `src/features/profile/components/` owns authenticated profile editing.
 - `src/features/profile/hooks/` owns profile domain behavior (`useProfile`).
-- `src/features/transactions/components/` owns transactions page (not yet implemented).
+- `src/features/transactions/components/` owns transactions CRUD UI (list, create/edit form, and page composition).
+- `src/features/transactions/hooks/` owns transactions domain behavior (`useTransactions`).
 - `src/features/debts/components/` owns debts page (not yet implemented).
 - `src/shared/api/` owns API calls, auth storage, and request interception.
 - `src/shared/types/` owns shared frontend domain types.

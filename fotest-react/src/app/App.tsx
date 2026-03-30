@@ -331,7 +331,13 @@ function App() {
             />
             <Route
               path={ROUTE_TRANSACTIONS}
-              element={<TransactionsPage />}
+              element={(
+                <TransactionsPage
+                  persons={persons}
+                  currentPersonId={currentPerson?.id}
+                  expireSession={expireSession}
+                />
+              )}
             />
             <Route
               path={ROUTE_DEBTS}

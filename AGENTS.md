@@ -46,13 +46,26 @@ Run all tests: `dotnet test FoTestApi.sln`
 The authoritative script policy now lives in `scripts/AGENTS.md`.
 
 Repository-wide minimums (before commit/push):
-1. Quality gate execution is mandatory before commit/push: run `./scripts/run-checks-debug.ps1` (or `sh scripts/run-checks-debug.sh`).
-	1.1 Use full-base debug wrappers only when explicitly requested.
-	1.2 `pre-commit` keeps enforcing the base changed-code gate.
-	1.3 Never bypass hooks with `--no-verify`.
-2. After gates pass and before commit, documentation updates are mandatory for the same change set.
-	2.1 Update only documentation relevant to the actual changes in the commit.
+1. Step 1 - Quality gate validation.
+	1.1 Run `./scripts/run-checks-debug.ps1` (or `sh scripts/run-checks-debug.sh`) and keep the log path.
+	1.2 Use full-base debug wrappers only when explicitly requested.
+	1.3 `pre-commit` keeps enforcing the base changed-code gate.
+	1.4 Never bypass hooks with `--no-verify`.
+2. Step 2 - Documentation alignment for the same change set.
+	2.1 Update only docs relevant to the actual changes in the commit.
 	2.2 Typical targets include module `AGENTS.md` files, route notes, behavior notes, and test guidance.
+
+### Mandatory commit checklist (must be shown for every commit attempt)
+
+Before running `git commit`, explicitly show this 2-step checklist with a status for each step:
+1. Step 1 status: `DONE` or `SKIPPED`.
+2. Step 2 status: `DONE` or `SKIPPED`.
+
+Checklist rules:
+1. If a step is `SKIPPED`, include a one-line reason.
+2. Step 1 may be `SKIPPED` only when there are no production code changes since the latest successful Step 1 run, and the latest log path is provided.
+3. Step 2 must always be reviewed at commit-time for the current staged diff. You may mark Step 2 as `SKIPPED` only as `No documentation changes required` and include a short reason tied to the staged changes.
+4. If either step is neither `DONE` nor validly `SKIPPED`, do not commit.
 
 ### First-time setup (install the git hook)
 
