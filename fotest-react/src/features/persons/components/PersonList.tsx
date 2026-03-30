@@ -30,7 +30,7 @@ const PersonList: React.FC<PersonListProps> = ({ persons, onEdit, onDelete }) =>
                   Edit
                 </Button>
                 {person.id ? (
-                  <Button size="small" color="error" onClick={() => onDelete(person.id)}>
+                  <Button size="small" color="error" onClick={() => onDelete(person.id!)}>
                     Delete
                   </Button>
                 ) : null}
