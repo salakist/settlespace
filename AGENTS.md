@@ -64,7 +64,6 @@ FoTestApi.sln
 - Repository quality-gate outputs: `artifacts/` including `artifacts/logs/` and `artifacts/coverage/`.
 - Test-project local artifacts: `Tests/**/artifacts/`.
 - SonarScanner working directory: `.scannerwork/`.
-- Local secrets file: `.env` (git-ignored, hidden from VS Code search).
 
 ## Gitignore ownership
 - Root `.gitignore` is authoritative for shared repository patterns and cross-project generated outputs.
@@ -120,7 +119,8 @@ Workflow steps:
 Checklist output (required before `git commit`):
 1. Step 1 status: `DONE` or `SKIPPED`.
 2. Step 2 status: `DONE` or `SKIPPED`.
-3. Agents must print the checklist output in the session immediately before running any `git commit` command.
+3. Agents must state the checklist output in chat immediately before running any `git commit` command.
+  - Do not satisfy this requirement only by printing from inside the terminal command itself.
 4. If the checklist output is missing from the session, do not run `git commit`.
 
 Checklist acceptance rules:
