@@ -22,6 +22,8 @@ api_call() {
       curl -sS -X "$method" "$url"
     fi
   fi
+
+  return 0
 }
 
 ensure_session() {
@@ -42,13 +44,17 @@ ensure_session() {
   fi
 
   echo "$response" | jq -r '.token'
+  return 0
 }
 
 require_cmd() {
-  if ! command -v "$1" >/dev/null 2>&1; then
-    echo "Missing required command: $1" >&2
+  local command_name="$1"
+  if ! command -v "$command_name" >/dev/null 2>&1; then
+    echo "Missing required command: $command_name" >&2
     exit 1
   fi
+
+  return 0
 }
 
 require_cmd curl
@@ -70,13 +76,14 @@ ensure_person() {
   local exists
   exists="$(echo "$persons_json" | jq -r --arg fn "$first_name" --arg ln "$last_name" '.[] | select(.firstName==$fn and .lastName==$ln) | .id' | head -n1)"
   if [[ -n "$exists" ]]; then
-    return
+    return 0
   fi
 
   local payload
   payload="{\"firstName\":\"$first_name\",\"lastName\":\"$last_name\",\"password\":\"$password\",\"email\":\"$email\",\"addresses\":[]}"
   api_call POST "$API_BASE_URL/persons" "$john_token" "$payload" >/dev/null
   persons_json="$(api_call GET "$API_BASE_URL/persons" "$john_token")"
+  return 0
 }
 
 ensure_person "Alice" "Walker" "Seed@Pass3" "alice.walker@example.com"
@@ -86,6 +93,7 @@ person_id() {
   local first_name="$1"
   local last_name="$2"
   echo "$persons_json" | jq -r --arg fn "$first_name" --arg ln "$last_name" '.[] | select(.firstName==$fn and .lastName==$ln) | .id' | head -n1
+  return 0
 }
 
 cleanup_seed_transactions() {
@@ -96,6 +104,8 @@ cleanup_seed_transactions() {
     [[ -z "$tx_id" ]] && continue
     api_call DELETE "$API_BASE_URL/transactions/$tx_id" "$token" >/dev/null
   done <<< "$tx_ids"
+
+  return 0
 }
 
 cleanup_seed_transactions "$john_token"
@@ -108,6 +118,7 @@ bob_id="$(person_id "Bob" "Taylor")"
 
 now_iso() {
   date -u +"%Y-%m-%dT%H:%M:%SZ"
+  return 0
 }
 
 api_call POST "$API_BASE_URL/transactions" "$john_token" "{\"payerPersonId\":\"$john_id\",\"payeePersonId\":\"$jane_id\",\"amount\":18.5,\"currencyCode\":\"EUR\",\"transactionDateUtc\":\"$(now_iso)\",\"description\":\"Lunch split\",\"category\":\"SeedData\",\"status\":\"Completed\"}" >/dev/null

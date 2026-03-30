@@ -29,7 +29,9 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
   } = useTransactions({ expireSession });
 
   useEffect(() => {
-    void loadTransactions();
+    Promise.resolve(loadTransactions()).catch((error) => {
+      console.error(error);
+    });
   }, [loadTransactions]);
 
   return (

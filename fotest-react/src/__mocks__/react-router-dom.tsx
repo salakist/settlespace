@@ -10,7 +10,7 @@ export const Routes = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
-export const Route = ({ element }: { path?: string; element: React.ReactNode }) => {
+export const Route = ({ element }: { element: React.ReactNode }) => {
   return <>{element}</>;
 };
 

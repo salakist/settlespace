@@ -9,12 +9,12 @@ const ROUTE_HOME = '/home';
 export function useAuth() {
   const navigate = useNavigate();
   const [isAuthenticated, setIsAuthenticated] = useState(authStorage.isAuthenticated());
-  const [username, setUsernameState] = useState(authStorage.getUsername() ?? '');
+  const [username, setUsername] = useState(authStorage.getUsername() ?? '');
   const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
 
   const setAuthUsername = useCallback((nextUsername: string) => {
-    setUsernameState(nextUsername);
+    setUsername(nextUsername);
     authStorage.setUsername(nextUsername);
   }, []);
 
@@ -25,7 +25,7 @@ export function useAuth() {
   const expireSession = useCallback((message = 'Your session expired. Please log in again.') => {
     authStorage.clearSession();
     setIsAuthenticated(false);
-    setUsernameState('');
+    setUsername('');
     setAuthError(message);
     navigate(ROUTE_LOGIN);
   }, [navigate]);
@@ -35,7 +35,7 @@ export function useAuth() {
       setAuthLoading(true);
       const response = await authApi.login({ username: loginUsername, password: loginPassword });
       authStorage.saveSession(response.data);
-      setUsernameState(response.data.username);
+      setUsername(response.data.username);
       setIsAuthenticated(true);
       setAuthError(null);
       navigate(ROUTE_HOME);
@@ -54,7 +54,7 @@ export function useAuth() {
       setAuthLoading(true);
       const response = await authApi.register(request);
       authStorage.saveSession(response.data);
-      setUsernameState(response.data.username);
+      setUsername(response.data.username);
       setIsAuthenticated(true);
       setAuthError(null);
       navigate(ROUTE_HOME);
@@ -72,7 +72,7 @@ export function useAuth() {
   const logout = useCallback(() => {
     authStorage.clearSession();
     setIsAuthenticated(false);
-    setUsernameState('');
+    setUsername('');
     setAuthError(null);
     navigate(ROUTE_LOGIN);
   }, [navigate]);

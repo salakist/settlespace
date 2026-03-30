@@ -13,12 +13,15 @@ REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 COVERAGE_ROOT="$REPO_ROOT/artifacts/coverage/full"
 CSHARP_COVERAGE_ROOT="$COVERAGE_ROOT/csharp"
 FAILED=0
+SEPARATOR="======================================================="
 
 print_header() {
+  local title="$1"
   echo ""
-  echo "======================================================="
-  echo "  $1"
-  echo "======================================================="
+  echo "$SEPARATOR"
+  echo "  $title"
+  echo "$SEPARATOR"
+  return 0
 }
 
 invoke_csharp_coverage() {
@@ -29,6 +32,8 @@ invoke_csharp_coverage() {
     -p:CollectCoverage=true \
     -p:CoverletOutputFormat=json \
     -p:CoverletOutput="$output_prefix"
+
+  return $?
 }
 
 rm -rf "$COVERAGE_ROOT"
@@ -102,14 +107,14 @@ fi
 cd "$REPO_ROOT"
 echo ""
 
-if [ "$FAILED" -eq 1 ]; then
-  echo "======================================================="
+if [[ "$FAILED" -eq 1 ]]; then
+  echo "$SEPARATOR"
   echo "  FULL-BASE CHECKS FAILED."
-  echo "======================================================="
+  echo "$SEPARATOR"
   exit 1
 fi
 
-echo "======================================================="
+echo "$SEPARATOR"
 echo "  Full-base quality gates passed."
-echo "======================================================="
+echo "$SEPARATOR"
 exit 0

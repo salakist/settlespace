@@ -48,22 +48,6 @@ namespace FoTestApi.Application.Persons
         }
 
         /// <summary>
-        /// Searches persons by a query string matching first or last name (case-insensitive).
-        /// </summary>
-        /// <param name="query">The query string to search for in first or last names.</param>
-        /// <returns>A list of persons where first name or last name matches the query.</returns>
-        /// <response code="200">Returns the matching persons.</response>
-        /// <response code="401">If the caller is not authenticated.</response>
-        [HttpGet("search/{query}")]
-        [ProducesResponseType(typeof(List<PersonDto>), 200)]
-        [ProducesResponseType(401)]
-        public async Task<ActionResult<List<PersonDto>>> SearchByQuery(string query)
-        {
-            var persons = await _applicationService.SearchPersonsAsync(query);
-            return Ok(persons.Select(_personMapper.ToDto).ToList());
-        }
-
-        /// <summary>
         /// Gets a person by ID.
         /// </summary>
         /// <param name="id">The ID of the person.</param>
@@ -85,6 +69,22 @@ namespace FoTestApi.Application.Persons
             }
 
             return Ok(_personMapper.ToDto(person));
+        }
+
+        /// <summary>
+        /// Searches persons by a query string matching first or last name (case-insensitive).
+        /// </summary>
+        /// <param name="query">The query string to search for in first or last names.</param>
+        /// <returns>A list of persons where first name or last name matches the query.</returns>
+        /// <response code="200">Returns the matching persons.</response>
+        /// <response code="401">If the caller is not authenticated.</response>
+        [HttpGet("search/{query}")]
+        [ProducesResponseType(typeof(List<PersonDto>), 200)]
+        [ProducesResponseType(401)]
+        public async Task<ActionResult<List<PersonDto>>> SearchByQuery(string query)
+        {
+            var persons = await _applicationService.SearchPersonsAsync(query);
+            return Ok(persons.Select(_personMapper.ToDto).ToList());
         }
 
         /// <summary>

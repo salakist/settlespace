@@ -11,23 +11,26 @@ CHANGED_LIST_PATH="$ARTIFACTS_ROOT/changed-files.txt"
 COVERAGE_ROOT="$ARTIFACTS_ROOT/coverage/changed"
 FAILED=0
 CHANGE_SCOPE=""
+SEPARATOR="======================================================="
 
 if [[ $# -gt 0 ]]; then
-  echo "ERROR: scripts/run-checks.sh does not accept arguments."
+  echo "ERROR: scripts/run-checks.sh does not accept arguments." >&2
   exit 2
 fi
 
 print_header() {
+  local title="$1"
   echo ""
-  echo "======================================================="
-  echo "  $1"
-  echo "======================================================="
+  echo "$SEPARATOR"
+  echo "  $title"
+  echo "$SEPARATOR"
+  return 0
 }
 
 get_changed_files() {
   local staged=()
   mapfile -t staged < <(git diff --cached --name-only --diff-filter=ACMR | awk 'NF' | sort -u)
-  if [ "${#staged[@]}" -gt 0 ]; then
+  if [[ "${#staged[@]}" -gt 0 ]]; then
     CHANGE_SCOPE="staged changes"
     CHANGED_FILES=("${staged[@]}")
     return
@@ -37,7 +40,7 @@ get_changed_files() {
   local untracked=()
   mapfile -t working < <(git diff --name-only --diff-filter=ACMR HEAD 2>/dev/null | awk 'NF' | sort -u)
   mapfile -t untracked < <(git ls-files --others --exclude-standard | awk 'NF' | sort -u)
-  if [ "${#working[@]}" -gt 0 ] || [ "${#untracked[@]}" -gt 0 ]; then
+  if [[ "${#working[@]}" -gt 0 ]] || [[ "${#untracked[@]}" -gt 0 ]]; then
     CHANGE_SCOPE="working tree changes"
     mapfile -t CHANGED_FILES < <(printf '%s\n' "${working[@]}" "${untracked[@]}" | awk 'NF' | sort -u)
     return
@@ -59,6 +62,7 @@ get_changed_files() {
 
   CHANGE_SCOPE="tracked files"
   mapfile -t CHANGED_FILES < <(git ls-files | awk 'NF' | sort -u)
+  return 0
 }
 
 is_production_csharp_file() {
@@ -87,6 +91,8 @@ invoke_csharp_coverage() {
     -p:CollectCoverage=true \
     -p:CoverletOutputFormat=json \
     -p:CoverletOutput="$output_prefix"
+
+  return $?
 }
 
 cd "$REPO_ROOT"
@@ -99,14 +105,14 @@ get_changed_files
 
 print_header "Changed-code analysis target"
 echo "Scope: $CHANGE_SCOPE"
-if [ "${#CHANGED_FILES[@]}" -eq 0 ]; then
+if [[ "${#CHANGED_FILES[@]}" -eq 0 ]]; then
   echo "No changed files detected. Skipping changed-code gates."
   exit 0
 fi
 
 printf '%s\n' "${CHANGED_FILES[@]}" > "$CHANGED_LIST_PATH"
 printf '%s\n' "${CHANGED_FILES[@]}" | head -n 20 | sed 's/^/  /'
-if [ "${#CHANGED_FILES[@]}" -gt 20 ]; then
+if [[ "${#CHANGED_FILES[@]}" -gt 20 ]]; then
   echo "  ... and $((${#CHANGED_FILES[@]} - 20)) more file(s)."
 fi
 
@@ -134,7 +140,7 @@ for file in "${CHANGED_FILES[@]}"; do
 done
 
 print_header "[1/4] C# changed-file analyzer gate"
-if [ "${#CHANGED_CSHARP_FILES[@]}" -eq 0 ]; then
+if [[ "${#CHANGED_CSHARP_FILES[@]}" -eq 0 ]]; then
   echo "[SKIP] No changed C# files."
 else
   BUILD_LOG="$ARTIFACTS_ROOT/csharp-build.log"
@@ -159,12 +165,12 @@ else
     done | awk 'NF' | sort -u
   )
 
-  if [ "${#CHANGED_DIAGNOSTICS[@]}" -gt 0 ]; then
+  if [[ "${#CHANGED_DIAGNOSTICS[@]}" -gt 0 ]]; then
     printf '%s\n' "${CHANGED_DIAGNOSTICS[@]}"
     echo ""
     echo "[FAIL] Changed C# files introduced analyzer or compiler violations."
     FAILED=1
-  elif [ "$BUILD_EXIT" -ne 0 ]; then
+  elif [[ "$BUILD_EXIT" -ne 0 ]]; then
     echo "[FAIL] Solution build failed outside the changed-file filter. Commit is blocked until the repository builds cleanly."
     FAILED=1
   else
@@ -173,7 +179,7 @@ else
 fi
 
 print_header "[2/4] C# changed-file coverage gate (threshold: 80%)"
-if [ "${#CHANGED_PRODUCTION_CSHARP_FILES[@]}" -eq 0 ]; then
+if [[ "${#CHANGED_PRODUCTION_CSHARP_FILES[@]}" -eq 0 ]]; then
   echo "[SKIP] No changed production C# files."
 else
   rm -rf "$COVERAGE_ROOT"
@@ -203,7 +209,7 @@ else
 fi
 
 print_header "[3/4] React/TS changed-file ESLint gate"
-if [ "${#CHANGED_REACT_FILES[@]}" -eq 0 ]; then
+if [[ "${#CHANGED_REACT_FILES[@]}" -eq 0 ]]; then
   echo "[SKIP] No changed React/TS files."
 else
   cd "$REPO_ROOT/fotest-react"
@@ -221,7 +227,7 @@ else
 fi
 
 print_header "[4/4] React/TS changed-file coverage gate (threshold: 80%)"
-if [ "${#CHANGED_PRODUCTION_REACT_FILES[@]}" -eq 0 ]; then
+if [[ "${#CHANGED_PRODUCTION_REACT_FILES[@]}" -eq 0 ]]; then
   echo "[SKIP] No changed production React/TS files."
 else
   cd "$REPO_ROOT/fotest-react"
@@ -254,15 +260,15 @@ fi
 cd "$REPO_ROOT"
 echo ""
 
-if [ "$FAILED" -eq 1 ]; then
-  echo "======================================================="
+if [[ "$FAILED" -eq 1 ]]; then
+  echo "$SEPARATOR"
   echo "  CHANGED-CODE CHECKS FAILED. Commit is blocked."
   echo "  Resolve the issues above, then re-run sh scripts/run-checks.sh"
-  echo "======================================================="
+  echo "$SEPARATOR"
   exit 1
 fi
 
-echo "======================================================="
+echo "$SEPARATOR"
 echo "  Changed-code quality gates passed."
-echo "======================================================="
+echo "$SEPARATOR"
 exit 0

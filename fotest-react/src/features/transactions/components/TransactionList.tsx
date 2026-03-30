@@ -50,7 +50,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, persons
               <Stack direction="row" spacing={1}>
                 <Button size="small" variant="outlined" onClick={() => onEdit(transaction)}>Edit</Button>
                 {transaction.id && (
-                  <Button size="small" variant="outlined" color="secondary" onClick={() => onDelete(transaction.id!)}>Delete</Button>
+                  <Button size="small" variant="outlined" color="secondary" onClick={() => onDelete(transaction.id)}>Delete</Button>
                 )}
               </Stack>
             </Stack>

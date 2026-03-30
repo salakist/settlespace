@@ -20,7 +20,7 @@ sh "$REPO_ROOT/scripts/run-full-checks.sh" 2>&1 | tee "$LOG_PATH"
 EXIT_CODE=${PIPESTATUS[0]}
 set -e
 
-if [ "$EXIT_CODE" -ne 0 ]; then
+if [[ "$EXIT_CODE" -ne 0 ]]; then
   echo "[fail] Full-base gate failed. See log: $LOG_PATH"
 else
   echo "[pass] Full-base gate passed. Log: $LOG_PATH"

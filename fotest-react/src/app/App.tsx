@@ -121,8 +121,14 @@ function App() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      void loadPersons();
-      void loadCurrentPerson();
+      const loadInitialData = async () => {
+        await loadPersons();
+        await loadCurrentPerson();
+      };
+
+      loadInitialData().catch((error) => {
+        console.error(error);
+      });
       return;
     }
 

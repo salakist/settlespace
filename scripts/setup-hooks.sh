@@ -15,7 +15,7 @@ verify_hook() {
   local installed_path="$2"
   local hook_name="$3"
 
-  if [ ! -f "$installed_path" ]; then
+  if [[ ! -f "$installed_path" ]]; then
     echo "  [FAIL] $hook_name hook not found after install"
     return 1
   fi
@@ -25,7 +25,7 @@ verify_hook() {
     return 1
   fi
 
-  if [ ! -x "$installed_path" ]; then
+  if [[ ! -x "$installed_path" ]]; then
     echo "  [FAIL] $hook_name hook is not executable"
     return 1
   fi
@@ -34,9 +34,9 @@ verify_hook() {
   return 0
 }
 
-if [ ! -d "$GIT_HOOKS_DIR" ]; then
-  echo "ERROR: .git/hooks directory not found."
-  echo "  Make sure you are running this from inside the fo-test git repository."
+if [[ ! -d "$GIT_HOOKS_DIR" ]]; then
+  echo "ERROR: .git/hooks directory not found." >&2
+  echo "  Make sure you are running this from inside the fo-test git repository." >&2
   exit 1
 fi
 
@@ -48,7 +48,7 @@ chmod +x "$GIT_HOOKS_DIR/pre-commit"
 VERIFY_FAILED=0
 verify_hook "$REPO_ROOT/scripts/hooks/pre-commit" "$GIT_HOOKS_DIR/pre-commit" "pre-commit" || VERIFY_FAILED=1
 
-if [ "$VERIFY_FAILED" -ne 0 ]; then
+if [[ "$VERIFY_FAILED" -ne 0 ]]; then
   echo ""
   echo "Hook installation verification failed. Fix the issues above and rerun setup-hooks."
   exit 1

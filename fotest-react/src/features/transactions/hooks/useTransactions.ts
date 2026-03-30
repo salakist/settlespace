@@ -45,7 +45,7 @@ export function useTransactions({ expireSession }: UseTransactionsOptions) {
 
   const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) {
-      void loadTransactions();
+      await loadTransactions();
       return;
     }
 
@@ -93,7 +93,7 @@ export function useTransactions({ expireSession }: UseTransactionsOptions) {
   }, []);
 
   const handleDelete = useCallback(async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this transaction?')) {
+    if (!globalThis.confirm('Are you sure you want to delete this transaction?')) {
       return;
     }
 

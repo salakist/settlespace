@@ -19,6 +19,21 @@ export const createEmptyAddress = (): Address => ({
   country: '',
 });
 
+const addressKeys = new WeakMap<Address, string>();
+let nextAddressKey = 0;
+
+function getAddressKey(address: Address): string {
+  const existingKey = addressKeys.get(address);
+  if (existingKey) {
+    return existingKey;
+  }
+
+  nextAddressKey += 1;
+  const key = `address-${nextAddressKey}`;
+  addressKeys.set(address, key);
+  return key;
+}
+
 const PersonAddressEditor: React.FC<PersonAddressEditorProps> = ({ addresses, onChange, disabled = false }) => {
   const updateAddress = (index: number, field: keyof Address, value: string) => {
     const nextAddresses = [...addresses];
@@ -51,7 +66,7 @@ const PersonAddressEditor: React.FC<PersonAddressEditorProps> = ({ addresses, on
         <Typography color="text.secondary">No addresses added yet.</Typography>
       ) : (
         addresses.map((address, index) => (
-          <Paper key={index} variant="outlined" sx={{ p: 2.5 }}>
+          <Paper key={getAddressKey(address)} variant="outlined" sx={{ p: 2.5 }}>
             <Stack spacing={2}>
               <Stack direction="row" justifyContent="space-between" alignItems="center">
                 <Typography variant="subtitle1">Address {index + 1}</Typography>

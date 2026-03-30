@@ -66,7 +66,7 @@ export function usePersons({ expireSession }: UsePersonsOptions) {
 
   const handleSearch = useCallback(async (query: string) => {
     if (!query.trim()) {
-      void loadPersons();
+      await loadPersons();
       return;
     }
 
@@ -118,7 +118,7 @@ export function usePersons({ expireSession }: UsePersonsOptions) {
   }, []);
 
   const handleDelete = useCallback(async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this person?')) {
+    if (!globalThis.confirm('Are you sure you want to delete this person?')) {
       return;
     }
 

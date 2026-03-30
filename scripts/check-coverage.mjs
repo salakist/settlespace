@@ -29,7 +29,23 @@ function parseArgs(argv) {
 }
 
 function normalizePath(value) {
-  return value.replace(/\\/g, "/").replace(/^[A-Za-z]:/, "").replace(/^\/+/, "");
+  return value.replaceAll("\\", "/").replace(/^[A-Za-z]:/, "").replace(/^\/+/, "");
+}
+
+function stripComments(value) {
+  return value
+    .replace(/\/\*[\s\S]*?\*\//g, "")
+    .replace(/\/\/.*$/gm, "")
+    .trim();
+}
+
+function hasExecutableSyntax(value) {
+  return /(=>|\bif\b|\bfor\b|\bwhile\b|\bswitch\b|\breturn\b|\bthrow\b|\bawait\b|\bnew\b)/i.test(value);
+}
+
+function isMarkerTypeWithoutExecutableSyntax(value) {
+  const hasTypeDeclaration = /\b(class|record|struct)\b/i.test(value);
+  return hasTypeDeclaration && !hasExecutableSyntax(value);
 }
 
 function toRepoRelativePath(filePath, repoRoot) {
@@ -70,18 +86,14 @@ function fileLikelyHasExecutableCSharp(filePath, repoRoot) {
     return true;
   }
 
-  const content = fs.readFileSync(absolutePath, "utf8");
-  const compact = content
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/\/\/.*$/gm, "")
-    .trim();
+  const compact = stripComments(fs.readFileSync(absolutePath, "utf8"));
 
   if (/\binterface\b/i.test(compact)) {
     return false;
   }
 
   // Empty marker/derived types with no bodies or executable syntax should not fail coverage.
-  if (/\b(class|record|struct)\b/i.test(compact) && !/(=>|\bif\b|\bfor\b|\bwhile\b|\bswitch\b|\breturn\b|\bthrow\b|\bawait\b|\bnew\b)/i.test(compact)) {
+  if (isMarkerTypeWithoutExecutableSyntax(compact)) {
     return false;
   }
 
