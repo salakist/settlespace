@@ -1,25 +1,23 @@
 import React, { useCallback, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Alert, Button, CircularProgress, Container, CssBaseline, Paper, Stack, Tab, Tabs, Typography, ThemeProvider, createTheme } from '@mui/material';
+import { Button, Container, CssBaseline, Paper, Stack, Tab, Tabs, Typography, ThemeProvider, createTheme } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import GroupIcon from '@mui/icons-material/Group';
 import PersonIcon from '@mui/icons-material/Person';
 import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
 import ErrorIcon from '@mui/icons-material/Error';
 import '../styles/App.css';
-import { RegisterRequest } from '../shared/types';
-import PersonList from '../features/persons/components/PersonList';
-import PersonForm from '../features/persons/components/PersonForm';
-import SearchBar from '../features/persons/components/SearchBar';
 import LoginPage from '../features/auth/components/LoginPage';
 import RegisterPage from '../features/auth/components/RegisterPage';
 import ProfilePage from '../features/profile/components/ProfilePage';
 import HomePage from '../features/home/components/HomePage';
+import PersonsPage from '../features/persons/components/PersonsPage';
 import TransactionsPage from '../features/transactions/components/TransactionsPage';
 import DebtsPage from '../features/debts/components/DebtsPage';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { usePersons } from '../features/persons/hooks/usePersons';
 import { useProfile } from '../features/profile/hooks/useProfile';
+import { useAppAuth } from './hooks/useAppAuth';
 
 const ROUTE_LOGIN = '/login';
 const ROUTE_REGISTER = '/register';
@@ -119,6 +117,15 @@ function App() {
     setPersonInList,
   });
 
+  const { handleLogin, handleLogout, handleRegister } = useAppAuth({
+    login,
+    register,
+    logout,
+    clearPersonsError,
+    clearPersonsState,
+    clearProfileState,
+  });
+
   useEffect(() => {
     if (isAuthenticated) {
       const loadInitialData = async () => {
@@ -135,26 +142,6 @@ function App() {
     setDirectoryIdle();
     setProfileIdle();
   }, [isAuthenticated, loadCurrentPerson, loadPersons, setDirectoryIdle, setProfileIdle]);
-
-  const handleLogin = async (loginUsername: string, loginPassword: string) => {
-    const success = await login(loginUsername, loginPassword);
-    if (success) {
-      clearPersonsError();
-    }
-  };
-
-  const handleRegister = async (request: RegisterRequest) => {
-    const success = await register(request);
-    if (success) {
-      clearPersonsError();
-    }
-  };
-
-  const handleLogout = () => {
-    clearPersonsState();
-    clearProfileState();
-    logout();
-  };
 
   if (!isAuthenticated) {
     return (
@@ -309,30 +296,19 @@ function App() {
             <Route
               path={ROUTE_PERSONS}
               element={
-                <>
-                  <SearchBar onSearch={handleSearch} />
-
-                  <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-                    <Typography variant="subtitle1">Manage persons in the database</Typography>
-                    <Button variant="contained" onClick={showCreateForm} disabled={showForm}>
-                      Add New Person
-                    </Button>
-                  </Stack>
-
-                  {showForm && (
-                    <PersonForm person={editingPerson} onSave={handleSave} onCancel={handleCancel} />
-                  )}
-
-                  {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-
-                  {loading ? (
-                    <Stack alignItems="center" sx={{ mt: 4 }}>
-                      <CircularProgress />
-                    </Stack>
-                  ) : (
-                    <PersonList persons={persons} onEdit={handleEdit} onDelete={handleDelete} />
-                  )}
-                </>
+                <PersonsPage
+                  persons={persons}
+                  loading={loading}
+                  error={error}
+                  showForm={showForm}
+                  editingPerson={editingPerson}
+                  onAdd={showCreateForm}
+                  onSearch={handleSearch}
+                  onSave={handleSave}
+                  onCancel={handleCancel}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                />
               }
             />
             <Route

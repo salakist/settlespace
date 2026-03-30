@@ -5,9 +5,10 @@ React frontend for person entity management using `FoTestApi`.
 
 ## Responsibilities
 - `src/app/` owns the app shell and top-level orchestration.
+- `src/app/hooks/` owns app-level orchestration hooks (`useAppAuth` for cross-hook auth coordination).
 - `src/features/auth/components/` owns login, registration, and password change UI.
 - `src/features/auth/hooks/` owns auth/session behavior (`useAuth`).
-- `src/features/persons/components/` owns person list, form, search, and address editor UI.
+- `src/features/persons/components/` owns person list, form, search, address editor UI, and the `PersonsPage` composition component.
 - `src/features/persons/hooks/` owns persons domain behavior (`usePersons`).
 - `src/features/profile/components/` owns authenticated profile editing.
 - `src/features/profile/hooks/` owns profile domain behavior (`useProfile`).
@@ -73,5 +74,7 @@ Guidance for future agents:
 
 ## Refactor guidance
 - Keep `App.tsx` orchestration-focused; prefer extracting domain logic into hooks rather than adding more local handlers.
+- Cross-hook coordination at auth events (login, register, logout) belongs in `useAppAuth` (`src/app/hooks/`), not inline in `App.tsx`.
+- Each route should render a dedicated `*Page` component rather than inline JSX. `PersonsPage` receives state and handlers as props because `usePersons` state is shared with `TransactionsPage`.
 - When introducing hooks, add direct hook tests first, then add/adjust app integration tests for cross-hook flows.
 - Avoid moving all behavior into `App.test.tsx`; keep composition checks there and behavior checks in dedicated hook or integration tests.

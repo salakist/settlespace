@@ -27,6 +27,10 @@ jest.mock('../features/profile/hooks/useProfile', () => ({
   useProfile: jest.fn(),
 }));
 
+jest.mock('./hooks/useAppAuth', () => ({
+  useAppAuth: jest.fn(),
+}));
+
 jest.mock('../features/auth/components/LoginPage', () => ({
   __esModule: true,
   default: ({ onShowRegister, error }: { onShowRegister: () => void; error?: string | null }) => (
@@ -48,19 +52,9 @@ jest.mock('../features/auth/components/RegisterPage', () => ({
   ),
 }));
 
-jest.mock('../features/persons/components/SearchBar', () => ({
+jest.mock('../features/persons/components/PersonsPage', () => ({
   __esModule: true,
-  default: () => <div>Search Bar</div>,
-}));
-
-jest.mock('../features/persons/components/PersonForm', () => ({
-  __esModule: true,
-  default: () => <div>Person Form</div>,
-}));
-
-jest.mock('../features/persons/components/PersonList', () => ({
-  __esModule: true,
-  default: () => <div>Person List</div>,
+  default: () => <div>Persons Page</div>,
 }));
 
 jest.mock('../features/profile/components/ProfilePage', () => ({
@@ -83,6 +77,10 @@ const { usePersons: mockUsePersons } = jest.requireMock('../features/persons/hoo
 
 const { useProfile: mockUseProfile } = jest.requireMock('../features/profile/hooks/useProfile') as {
   useProfile: jest.Mock;
+};
+
+const { useAppAuth: mockUseAppAuth } = jest.requireMock('./hooks/useAppAuth') as {
+  useAppAuth: jest.Mock;
 };
 
 const App = require('./App').default;
@@ -135,6 +133,12 @@ beforeEach(() => {
     profileSaveLoading: false,
     setProfileIdle: jest.fn(),
   });
+
+  mockUseAppAuth.mockReturnValue({
+    handleLogin: jest.fn(),
+    handleLogout: jest.fn(),
+    handleRegister: jest.fn(),
+  });
 });
 
 test('renders authentication shell when user is unauthenticated', () => {
@@ -144,10 +148,8 @@ test('renders authentication shell when user is unauthenticated', () => {
   expect(screen.queryByText(/FoTest Person Manager/i)).not.toBeInTheDocument();
 });
 
-test('renders authenticated shell and calls composed logout actions', () => {
-  const clearPersonsState = jest.fn();
-  const clearProfileState = jest.fn();
-  const logout = jest.fn();
+test('renders authenticated shell and calls handleLogout on logout click', () => {
+  const handleLogout = jest.fn();
 
   mockUseAuth.mockReturnValue({
     authError: null,
@@ -156,33 +158,14 @@ test('renders authenticated shell and calls composed logout actions', () => {
     expireSession: jest.fn(),
     isAuthenticated: true,
     login: jest.fn(),
-    logout,
+    logout: jest.fn(),
     register: jest.fn(),
     setAuthUsername: jest.fn(),
     username: 'john.doe',
   });
 
-  mockUsePersons.mockReturnValue({
-    clearPersonsError: jest.fn(),
-    clearPersonsState,
-    editingPerson: undefined,
-    error: null,
-    handleCancel: jest.fn(),
-    handleDelete: jest.fn(),
-    handleEdit: jest.fn(),
-    handleSave: jest.fn(),
-    handleSearch: jest.fn(),
-    loadPersons: jest.fn(),
-    loading: false,
-    persons: [],
-    setDirectoryIdle: jest.fn(),
-    setPersonInList: jest.fn(),
-    showCreateForm: jest.fn(),
-    showForm: false,
-  });
-
   mockUseProfile.mockReturnValue({
-    clearProfileState,
+    clearProfileState: jest.fn(),
     currentPerson: { firstName: 'John', lastName: 'Doe', addresses: [] },
     handlePasswordChange: jest.fn(),
     handleProfileSave: jest.fn(),
@@ -194,14 +177,18 @@ test('renders authenticated shell and calls composed logout actions', () => {
     setProfileIdle: jest.fn(),
   });
 
+  mockUseAppAuth.mockReturnValue({
+    handleLogin: jest.fn(),
+    handleLogout,
+    handleRegister: jest.fn(),
+  });
+
   render(<App />);
 
   expect(screen.getByText(/FoTest Person Manager/i)).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: /log out/i }));
 
-  expect(clearPersonsState).toHaveBeenCalled();
-  expect(clearProfileState).toHaveBeenCalled();
-  expect(logout).toHaveBeenCalled();
+  expect(handleLogout).toHaveBeenCalled();
 });
 
 test('renders home navigation tabs and shows welcome content', () => {
