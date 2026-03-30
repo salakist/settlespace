@@ -225,7 +225,7 @@ test('supports login, directory actions, profile actions, and logout', async () 
   fireEvent.click(screen.getByRole('button', { name: /Delete Person/i }));
   await waitFor(() => expect(mockPersonApi.delete).toHaveBeenCalledWith('p1'));
 
-  fireEvent.click(screen.getByRole('button', { name: /^Profile$/i }));
+  fireEvent.click(screen.getByRole('button', { name: /john doe/i }));
   expect(screen.getByRole('heading', { name: /Profile Page/i })).toBeInTheDocument();
 
   fireEvent.click(screen.getByRole('button', { name: /Save Profile/i }));

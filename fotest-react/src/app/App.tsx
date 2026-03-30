@@ -1,6 +1,11 @@
 import React, { useCallback, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Alert, Button, CircularProgress, Container, CssBaseline, Stack, Typography, ThemeProvider, createTheme } from '@mui/material';
+import { Alert, Button, CircularProgress, Container, CssBaseline, Paper, Stack, Tab, Tabs, Typography, ThemeProvider, createTheme } from '@mui/material';
+import HomeIcon from '@mui/icons-material/Home';
+import GroupIcon from '@mui/icons-material/Group';
+import PersonIcon from '@mui/icons-material/Person';
+import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
+import ErrorIcon from '@mui/icons-material/Error';
 import '../styles/App.css';
 import { RegisterRequest } from '../shared/types';
 import PersonList from '../features/persons/components/PersonList';
@@ -10,6 +15,8 @@ import LoginPage from '../features/auth/components/LoginPage';
 import RegisterPage from '../features/auth/components/RegisterPage';
 import ProfilePage from '../features/profile/components/ProfilePage';
 import HomePage from '../features/home/components/HomePage';
+import TransactionsPage from '../features/transactions/components/TransactionsPage';
+import DebtsPage from '../features/debts/components/DebtsPage';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { usePersons } from '../features/persons/hooks/usePersons';
 import { useProfile } from '../features/profile/hooks/useProfile';
@@ -19,6 +26,27 @@ const ROUTE_REGISTER = '/register';
 const ROUTE_HOME = '/home';
 const ROUTE_PERSONS = '/persons';
 const ROUTE_PROFILE = '/profile';
+const ROUTE_TRANSACTIONS = '/transactions';
+const ROUTE_DEBTS = '/debts';
+
+const PRIMARY_TABS = [
+  { label: 'Home', value: ROUTE_HOME, icon: HomeIcon },
+  { label: 'Persons', value: ROUTE_PERSONS, icon: GroupIcon },
+  { label: 'Transactions', value: ROUTE_TRANSACTIONS, icon: CompareArrowsIcon },
+  { label: 'Debts', value: ROUTE_DEBTS, icon: ErrorIcon },
+] as const;
+
+function getPrimaryTabValue(pathname: string): string | false {
+  if (pathname === ROUTE_PROFILE) {
+    return false;
+  }
+
+  if (PRIMARY_TABS.some((tab) => tab.value === pathname)) {
+    return pathname;
+  }
+
+  return ROUTE_HOME;
+}
 
 const darkTheme = createTheme({
   palette: {
@@ -161,8 +189,7 @@ function App() {
     );
   }
 
-  const isHomeRoute = location.pathname === ROUTE_HOME;
-  const isPersonsRoute = location.pathname === ROUTE_PERSONS;
+  const primaryTabValue = getPrimaryTabValue(location.pathname);
   const isProfileRoute = location.pathname === ROUTE_PROFILE;
 
   return (
@@ -170,45 +197,84 @@ function App() {
       <CssBaseline />
       <div className="App">
         <Container maxWidth="md">
-          <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} sx={{ pt: 4, mb: 3 }} spacing={2}>
-            <div>
-              <Typography variant="overline" className="eyebrow">
-                Authenticated Session
-              </Typography>
-              <Typography variant="h3" gutterBottom>
-                FoTest Person Manager
-              </Typography>
-              <Typography variant="subtitle1" color="text.secondary">
-                Signed in as {currentPerson ? `${currentPerson.firstName} ${currentPerson.lastName}` : username}
-              </Typography>
-            </div>
-            <Stack direction="row" spacing={1.5}>
-              {!isHomeRoute && (
-                <Button
-                  variant="outlined"
-                  onClick={() => navigate(ROUTE_HOME)}
+          <Stack sx={{ pt: 4, mb: 3 }} spacing={1.5}>
+            <Typography variant="overline" className="eyebrow">
+              Authenticated Session
+            </Typography>
+            <Typography variant="h3">
+              FoTest Person Manager
+            </Typography>
+
+            <Paper
+              variant="outlined"
+              sx={{
+                px: { xs: 1, sm: 2 },
+                py: 1,
+                borderRadius: 2,
+                background: 'linear-gradient(135deg, rgba(144, 202, 249, 0.08) 0%, rgba(244, 143, 177, 0.04) 100%)',
+              }}
+            >
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                justifyContent="space-between"
+                alignItems={{ xs: 'stretch', sm: 'center' }}
+                spacing={1}
+              >
+                <Tabs
+                  value={primaryTabValue}
+                  onChange={(_, value: string) => navigate(value)}
+                  aria-label="Primary navigation"
+                  sx={{
+                    '& .MuiTabs-indicator': {
+                      height: 3,
+                      borderRadius: '3px 3px 0 0',
+                    },
+                  }}
                 >
-                  Back to Home
-                </Button>
-              )}
-              <Button
-                variant={isPersonsRoute ? 'contained' : 'outlined'}
-                onClick={() => navigate(ROUTE_PERSONS)}
-                disabled={isPersonsRoute}
-              >
-                Persons
-              </Button>
-              <Button
-                variant={isProfileRoute ? 'contained' : 'outlined'}
-                onClick={() => navigate(ROUTE_PROFILE)}
-                disabled={isProfileRoute}
-              >
-                Profile
-              </Button>
-              <Button variant="outlined" color="secondary" onClick={handleLogout}>
-                Log Out
-              </Button>
-            </Stack>
+                  {PRIMARY_TABS.map((tab) => {
+                    const Icon = tab.icon;
+
+                    return (
+                      <Tab
+                        key={tab.value}
+                        icon={<Icon sx={{ mr: 0.5 }} />}
+                        label={tab.label}
+                        value={tab.value}
+                        sx={{ textTransform: 'none', fontWeight: 500 }}
+                      />
+                    );
+                  })}
+                </Tabs>
+
+                <Stack
+                  direction="row"
+                  alignItems="center"
+                  spacing={1.5}
+                  sx={{ minWidth: 'fit-content' }}
+                >
+                  <Button
+                    onClick={() => navigate(ROUTE_PROFILE)}
+                    variant={isProfileRoute ? 'contained' : 'outlined'}
+                    startIcon={<PersonIcon />}
+                    sx={{
+                      textTransform: 'none',
+                      fontWeight: isProfileRoute ? 600 : 500,
+                      borderRadius: 1,
+                    }}
+                  >
+                    {currentPerson ? `${currentPerson.firstName} ${currentPerson.lastName}` : username}
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    color="secondary"
+                    onClick={handleLogout}
+                    sx={{ textTransform: 'none', fontWeight: 500 }}
+                  >
+                    Log Out
+                  </Button>
+                </Stack>
+              </Stack>
+            </Paper>
           </Stack>
 
           <Routes>
@@ -262,6 +328,14 @@ function App() {
                   )}
                 </>
               }
+            />
+            <Route
+              path={ROUTE_TRANSACTIONS}
+              element={<TransactionsPage />}
+            />
+            <Route
+              path={ROUTE_DEBTS}
+              element={<DebtsPage />}
             />
             <Route path="*" element={<Navigate to={ROUTE_HOME} replace />} />
           </Routes>

@@ -13,6 +13,8 @@ const {
   __setMockPathname: (pathname: string) => void;
 };
 
+const ARIA_SELECTED = 'aria-selected';
+
 jest.mock('../features/auth/hooks/useAuth', () => ({
   useAuth: jest.fn(),
 }));
@@ -197,7 +199,7 @@ test('renders authenticated shell and calls composed logout actions', () => {
   expect(logout).toHaveBeenCalled();
 });
 
-test('renders home top bar without back to home and shows welcome content', () => {
+test('renders home navigation tabs and shows welcome content', () => {
   mockUseAuth.mockReturnValue({
     authError: null,
     authLoading: false,
@@ -226,13 +228,13 @@ test('renders home top bar without back to home and shows welcome content', () =
 
   render(<App />);
 
-  expect(screen.queryByRole('button', { name: /back to home/i })).not.toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /persons/i })).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /profile/i })).toBeInTheDocument();
+  expect(screen.getByRole('tab', { name: /home/i })).toHaveAttribute(ARIA_SELECTED, 'true');
+  expect(screen.getByRole('tab', { name: /persons/i })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /john doe/i })).toBeInTheDocument();
   expect(screen.getByText(/welcome back, john doe!/i)).toBeInTheDocument();
 });
 
-test('renders non-home top bar with back to home first and navigates correctly', () => {
+test('renders non-home tabs and navigates correctly', () => {
   __setMockPathname('/profile');
 
   mockUseAuth.mockReturnValue({
@@ -248,19 +250,34 @@ test('renders non-home top bar with back to home first and navigates correctly',
     username: 'john.doe',
   });
 
+  mockUseProfile.mockReturnValue({
+    clearProfileState: jest.fn(),
+    currentPerson: { firstName: 'John', lastName: 'Doe', addresses: [] },
+    handlePasswordChange: jest.fn(),
+    handleProfileSave: jest.fn(),
+    loadCurrentPerson: jest.fn(),
+    passwordLoading: false,
+    profileError: null,
+    profileLoading: false,
+    profileSaveLoading: false,
+    setProfileIdle: jest.fn(),
+  });
+
   render(<App />);
 
-  const backToHomeButton = screen.getByRole('button', { name: /back to home/i });
-  const personsButton = screen.getByRole('button', { name: /persons/i });
-  const profileButton = screen.getByRole('button', { name: /profile/i });
+  const homeTab = screen.getByRole('tab', { name: /home/i });
+  const personsTab = screen.getByRole('tab', { name: /persons/i });
+  const profileButton = screen.getByRole('button', { name: /john doe/i });
 
-  expect(backToHomeButton).toBeInTheDocument();
-  expect(profileButton).toBeDisabled();
-  expect(personsButton).not.toBeDisabled();
+  expect(profileButton).toBeInTheDocument();
+  expect(personsTab).toHaveAttribute(ARIA_SELECTED, 'false');
+  expect(homeTab).toHaveAttribute(ARIA_SELECTED, 'false');
 
-  fireEvent.click(backToHomeButton);
-  fireEvent.click(personsButton);
+  fireEvent.click(homeTab);
+  fireEvent.click(personsTab);
+  fireEvent.click(profileButton);
 
   expect(__mockNavigate).toHaveBeenNthCalledWith(1, '/home');
   expect(__mockNavigate).toHaveBeenNthCalledWith(2, '/persons');
+  expect(__mockNavigate).toHaveBeenNthCalledWith(3, '/profile');
 });
