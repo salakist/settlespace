@@ -7,9 +7,12 @@ namespace FoTestApi.Domain.Persons.Entities
     /// Person is the aggregate root for the Person domain.
     /// It encapsulates the business rules and invariants for persons.
     /// </summary>
-    public class Person
+    public partial class Person
     {
-        private static readonly Regex PhoneNumberPattern = new(@"^(?=.*\d)[0-9+()\-.\s]{7,20}$", RegexOptions.Compiled);
+        private const int RegexTimeoutMilliseconds = 1_000;
+
+        [GeneratedRegex(@"^(?=.*\d)[0-9+()\-.\s]{7,20}$", RegexOptions.None, RegexTimeoutMilliseconds)]
+        private static partial Regex PhoneNumberPattern();
 
         /// <summary>
         /// The unique identifier for the person.
@@ -87,7 +90,7 @@ namespace FoTestApi.Domain.Persons.Entities
                 return;
             }
 
-            if (!PhoneNumberPattern.IsMatch(PhoneNumber.Trim()))
+            if (!PhoneNumberPattern().IsMatch(PhoneNumber.Trim()))
             {
                 throw new InvalidOperationException("PhoneNumber is invalid.");
             }

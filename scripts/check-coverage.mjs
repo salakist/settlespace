@@ -2,6 +2,17 @@
 import fs from "node:fs";
 import path from "node:path";
 
+const DEFAULT_COVERAGE_THRESHOLD = 80;
+const EMPTY_LINE_SUMMARY = { total: 0, covered: 0, pct: 0 };
+
+function readOptionValue(argv, index) {
+  if (index + 1 >= argv.length) {
+    return null;
+  }
+
+  return argv[index + 1];
+}
+
 function parseArgs(argv) {
   const args = { report: [] };
 
@@ -13,7 +24,11 @@ function parseArgs(argv) {
     }
 
     const key = token.slice(2);
-    const value = argv[index + 1];
+    const value = readOptionValue(argv, index);
+
+    if (value === null) {
+      continue;
+    }
 
     if (key === "report") {
       args.report.push(value);
@@ -33,10 +48,135 @@ function normalizePath(value) {
 }
 
 function stripComments(value) {
-  return value
-    .replace(/\/\*[\s\S]*?\*\//g, "")
-    .replace(/\/\/.*$/gm, "")
-    .trim();
+  let result = "";
+  let inLineComment = false;
+  let inBlockComment = false;
+  let inString = false;
+  let inVerbatimString = false;
+  let inChar = false;
+  let isEscaped = false;
+
+  for (let index = 0; index < value.length; index += 1) {
+    const current = value[index];
+    const next = value[index + 1] ?? "";
+
+    if (inLineComment) {
+      if (current === "\n") {
+        inLineComment = false;
+        result += current;
+      }
+
+      continue;
+    }
+
+    if (inBlockComment) {
+      if (current === "*" && next === "/") {
+        inBlockComment = false;
+        index += 1;
+        continue;
+      }
+
+      if (current === "\r" || current === "\n") {
+        result += current;
+      }
+
+      continue;
+    }
+
+    if (inString) {
+      result += current;
+
+      if (isEscaped) {
+        isEscaped = false;
+        continue;
+      }
+
+      if (current === "\\") {
+        isEscaped = true;
+        continue;
+      }
+
+      if (current === '"') {
+        inString = false;
+      }
+
+      continue;
+    }
+
+    if (inVerbatimString) {
+      result += current;
+
+      if (current === '"' && next === '"') {
+        result += next;
+        index += 1;
+        continue;
+      }
+
+      if (current === '"') {
+        inVerbatimString = false;
+      }
+
+      continue;
+    }
+
+    if (inChar) {
+      result += current;
+
+      if (isEscaped) {
+        isEscaped = false;
+        continue;
+      }
+
+      if (current === "\\") {
+        isEscaped = true;
+        continue;
+      }
+
+      if (current === "'") {
+        inChar = false;
+      }
+
+      continue;
+    }
+
+    if (current === "@" && next === '"') {
+      inVerbatimString = true;
+      result += current;
+      result += next;
+      index += 1;
+      continue;
+    }
+
+    if (current === "/" && next === "/") {
+      inLineComment = true;
+      index += 1;
+      continue;
+    }
+
+    if (current === "/" && next === "*") {
+      inBlockComment = true;
+      index += 1;
+      continue;
+    }
+
+    if (current === '"') {
+      inString = true;
+      isEscaped = false;
+      result += current;
+      continue;
+    }
+
+    if (current === "'") {
+      inChar = true;
+      isEscaped = false;
+      result += current;
+      continue;
+    }
+
+    result += current;
+  }
+
+  return result.trim();
 }
 
 function hasExecutableSyntax(value) {
@@ -169,22 +309,59 @@ function loadCoverletReports(reportPaths, repoRoot) {
   return fileCoverage;
 }
 
+function getTargetFiles(scope, changedFiles, availableFiles, fileFilter) {
+  const scopeFiles = scope === "changed" ? changedFiles : [...availableFiles];
+  return [...new Set(scopeFiles.filter(fileFilter))].sort((left, right) => left.localeCompare(right));
+}
+
+function summarizeCoveredLines(executableLines) {
+  return {
+    total: executableLines.length,
+    covered: executableLines.filter((hitCount) => hitCount > 0).length,
+  };
+}
+
+function reportCoverageTotals(label, coveredLines, totalLines, threshold) {
+  const totalPercent = Number(formatPercent(coveredLines, totalLines));
+  console.log(`[TOTAL] ${coveredLines}/${totalLines} ${label} covered (${totalPercent.toFixed(2)}%). Threshold: ${threshold.toFixed(2)}%.`);
+  return totalPercent;
+}
+
+function evaluateCSharpFileCoverage(relativePath, coverletCoverage, repoRoot) {
+  const coverageByLine = coverletCoverage.get(relativePath);
+
+  if (!coverageByLine) {
+    return fileLikelyHasExecutableCSharp(relativePath, repoRoot)
+      ? { status: "miss" }
+      : { status: "skip" };
+  }
+
+  const summary = summarizeCoveredLines([...coverageByLine.values()]);
+  return { status: "file", ...summary };
+}
+
+function evaluateReactFileCoverage(relativePath, reactSummary) {
+  const fileSummary = reactSummary.get(relativePath);
+
+  if (!fileSummary) {
+    return { status: "miss" };
+  }
+
+  return {
+    status: "file",
+    total: Number(fileSummary.total ?? 0),
+    covered: Number(fileSummary.covered ?? 0),
+    pct: Number(fileSummary.pct ?? 0),
+  };
+}
+
 function evaluateCSharpCoverage(args) {
   const repoRoot = args["repo-root"];
-  const threshold = Number(args.threshold ?? 80);
+  const threshold = Number(args.threshold ?? DEFAULT_COVERAGE_THRESHOLD);
   const scope = args.scope;
   const changedFiles = readChangedFiles(args["changed-list"]);
   const coverletCoverage = loadCoverletReports(args.report, repoRoot);
-
-  let targetFiles = [];
-
-  if (scope === "changed") {
-    targetFiles = changedFiles.filter(isProductionCSharpFile);
-  } else {
-    targetFiles = [...coverletCoverage.keys()].filter(isProductionCSharpFile);
-  }
-
-  targetFiles = [...new Set(targetFiles)].sort((left, right) => left.localeCompare(right));
+  const targetFiles = getTargetFiles(scope, changedFiles, coverletCoverage.keys(), isProductionCSharpFile);
 
   if (targetFiles.length === 0) {
     console.log("[SKIP] No production C# files matched the requested coverage scope.");
@@ -198,26 +375,23 @@ function evaluateCSharpCoverage(args) {
   console.log(`[INFO] Evaluating C# ${scope} coverage for ${targetFiles.length} file(s).`);
 
   for (const relativePath of targetFiles) {
-    const coverageByLine = coverletCoverage.get(relativePath);
+    const fileCoverage = evaluateCSharpFileCoverage(relativePath, coverletCoverage, repoRoot);
 
-    if (!coverageByLine) {
-      if (fileLikelyHasExecutableCSharp(relativePath, repoRoot)) {
-        console.log(`[MISS] ${relativePath} - no coverage data found.`);
-        missingCoverageData = true;
-      } else {
-        console.log(`[SKIP] ${relativePath} - no executable lines expected.`);
-      }
+    if (fileCoverage.status === "miss") {
+      console.log(`[MISS] ${relativePath} - no coverage data found.`);
+      missingCoverageData = true;
       continue;
     }
 
-    const executableLines = [...coverageByLine.values()];
-    const fileTotal = executableLines.length;
-    const fileCovered = executableLines.filter((hitCount) => hitCount > 0).length;
+    if (fileCoverage.status === "skip") {
+      console.log(`[SKIP] ${relativePath} - no executable lines expected.`);
+      continue;
+    }
 
-    totalLines += fileTotal;
-    coveredLines += fileCovered;
+    totalLines += fileCoverage.total;
+    coveredLines += fileCoverage.covered;
 
-    console.log(`[FILE] ${relativePath} - ${fileCovered}/${fileTotal} executable lines covered (${formatPercent(fileCovered, fileTotal)}%).`);
+    console.log(`[FILE] ${relativePath} - ${fileCoverage.covered}/${fileCoverage.total} executable lines covered (${formatPercent(fileCoverage.covered, fileCoverage.total)}%).`);
   }
 
   if (totalLines === 0) {
@@ -225,8 +399,7 @@ function evaluateCSharpCoverage(args) {
     process.exit(1);
   }
 
-  const totalPercent = Number(formatPercent(coveredLines, totalLines));
-  console.log(`[TOTAL] ${coveredLines}/${totalLines} executable lines covered (${totalPercent.toFixed(2)}%). Threshold: ${threshold.toFixed(2)}%.`);
+  const totalPercent = reportCoverageTotals("executable lines", coveredLines, totalLines, threshold);
 
   if (missingCoverageData || totalPercent < threshold) {
     process.exit(1);
@@ -259,20 +432,11 @@ function loadReactSummary(reportPath, repoRoot) {
 
 function evaluateReactCoverage(args) {
   const repoRoot = args["repo-root"];
-  const threshold = Number(args.threshold ?? 80);
+  const threshold = Number(args.threshold ?? DEFAULT_COVERAGE_THRESHOLD);
   const scope = args.scope;
   const changedFiles = readChangedFiles(args["changed-list"]);
   const reactSummary = loadReactSummary(args.report[0], repoRoot);
-
-  let targetFiles = [];
-
-  if (scope === "changed") {
-    targetFiles = changedFiles.filter(isProductionReactFile);
-  } else {
-    targetFiles = [...reactSummary.keys()].filter(isProductionReactFile);
-  }
-
-  targetFiles = [...new Set(targetFiles)].sort((left, right) => left.localeCompare(right));
+  const targetFiles = getTargetFiles(scope, changedFiles, reactSummary.keys(), isProductionReactFile);
 
   if (targetFiles.length === 0) {
     console.log("[SKIP] No production React/TS files matched the requested coverage scope.");
@@ -286,18 +450,18 @@ function evaluateReactCoverage(args) {
   console.log(`[INFO] Evaluating React/TS ${scope} coverage for ${targetFiles.length} file(s).`);
 
   for (const relativePath of targetFiles) {
-    const fileSummary = reactSummary.get(relativePath);
+    const fileCoverage = evaluateReactFileCoverage(relativePath, reactSummary);
 
-    if (!fileSummary) {
+    if (fileCoverage.status === "miss") {
       console.log(`[MISS] ${relativePath} - no coverage data found.`);
       missingCoverageData = true;
       continue;
     }
 
-    totalLines += Number(fileSummary.total ?? 0);
-    coveredLines += Number(fileSummary.covered ?? 0);
+    totalLines += fileCoverage.total;
+    coveredLines += fileCoverage.covered;
 
-    console.log(`[FILE] ${relativePath} - ${fileSummary.covered}/${fileSummary.total} lines covered (${Number(fileSummary.pct ?? 0).toFixed(2)}%).`);
+    console.log(`[FILE] ${relativePath} - ${fileCoverage.covered}/${fileCoverage.total} lines covered (${fileCoverage.pct.toFixed(2)}%).`);
   }
 
   if (totalLines === 0) {
@@ -305,8 +469,7 @@ function evaluateReactCoverage(args) {
     process.exit(1);
   }
 
-  const totalPercent = Number(formatPercent(coveredLines, totalLines));
-  console.log(`[TOTAL] ${coveredLines}/${totalLines} lines covered (${totalPercent.toFixed(2)}%). Threshold: ${threshold.toFixed(2)}%.`);
+  const totalPercent = reportCoverageTotals("lines", coveredLines, totalLines, threshold);
 
   if (missingCoverageData || totalPercent < threshold) {
     process.exit(1);

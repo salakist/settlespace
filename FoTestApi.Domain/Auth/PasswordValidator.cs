@@ -6,13 +6,22 @@ namespace FoTestApi.Domain.Auth
     /// <summary>
     /// Service for validating password strength against security standards.
     /// </summary>
-    public class PasswordValidator : IPasswordValidator
+    public partial class PasswordValidator : IPasswordValidator
     {
         private const int MinimumLength = 8;
-        private const string UppercasePattern = "[A-Z]";
-        private const string LowercasePattern = "[a-z]";
-        private const string DigitPattern = "[0-9]";
-        private const string SpecialCharPattern = "[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>?]";
+        private const int RegexTimeoutMilliseconds = 1_000;
+
+        [GeneratedRegex("[A-Z]", RegexOptions.None, RegexTimeoutMilliseconds)]
+        private static partial Regex UppercasePattern();
+
+        [GeneratedRegex("[a-z]", RegexOptions.None, RegexTimeoutMilliseconds)]
+        private static partial Regex LowercasePattern();
+
+        [GeneratedRegex("[0-9]", RegexOptions.None, RegexTimeoutMilliseconds)]
+        private static partial Regex DigitPattern();
+
+        [GeneratedRegex("[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>?]", RegexOptions.None, RegexTimeoutMilliseconds)]
+        private static partial Regex SpecialCharPattern();
 
         /// <summary>
         /// Validates that a password meets security requirements.
@@ -35,19 +44,19 @@ namespace FoTestApi.Domain.Auth
                 throw new WeakPasswordException($"Password must be at least {MinimumLength} characters long.");
 
             // Check for uppercase
-            if (!Regex.IsMatch(password, UppercasePattern))
+            if (!UppercasePattern().IsMatch(password))
                 throw new WeakPasswordException("Password must contain at least one uppercase letter (A-Z).");
 
             // Check for lowercase
-            if (!Regex.IsMatch(password, LowercasePattern))
+            if (!LowercasePattern().IsMatch(password))
                 throw new WeakPasswordException("Password must contain at least one lowercase letter (a-z).");
 
             // Check for digit
-            if (!Regex.IsMatch(password, DigitPattern))
+            if (!DigitPattern().IsMatch(password))
                 throw new WeakPasswordException("Password must contain at least one digit (0-9).");
 
             // Check for special character
-            if (!Regex.IsMatch(password, SpecialCharPattern))
+            if (!SpecialCharPattern().IsMatch(password))
                 throw new WeakPasswordException("Password must contain at least one special character (!@#$%^&*()_+-=[]{}';:\"\\\\|,.<>?).");
         }
     }

@@ -66,11 +66,15 @@ get_changed_files() {
 }
 
 is_production_csharp_file() {
-  [[ "$1" =~ ^FoTestApi\.(Application|Domain|Infrastructure)/.*\.cs$ ]] && [[ ! "$1" =~ /Program\.cs$ ]]
+  local file_path="$1"
+  [[ "$file_path" =~ ^FoTestApi\.(Application|Domain|Infrastructure)/.*\.cs$ ]] && [[ ! "$file_path" =~ /Program\.cs$ ]]
+  return $?
 }
 
 is_react_file() {
-  [[ "$1" =~ ^fotest-react/src/.*\.(ts|tsx)$ ]]
+  local file_path="$1"
+  [[ "$file_path" =~ ^fotest-react/src/.*\.(ts|tsx)$ ]]
+  return $?
 }
 
 is_production_react_file() {
@@ -81,6 +85,7 @@ is_production_react_file() {
     && [[ ! "$file_path" =~ /index\.tsx$ ]] \
     && [[ ! "$file_path" =~ /reportWebVitals\.ts$ ]] \
     && [[ ! "$file_path" =~ /react-app-env\.d\.ts$ ]]
+  return $?
 }
 
 invoke_csharp_coverage() {

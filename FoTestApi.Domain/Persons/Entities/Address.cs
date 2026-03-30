@@ -2,9 +2,12 @@ using System.Text.RegularExpressions;
 
 namespace FoTestApi.Domain.Persons.Entities
 {
-    public class Address
+    public partial class Address
     {
-        private static readonly Regex PostalCodePattern = new(@"^[A-Za-z0-9\-\s]{3,12}$", RegexOptions.Compiled);
+        private const int RegexTimeoutMilliseconds = 1_000;
+
+        [GeneratedRegex(@"^[A-Za-z0-9\-\s]{3,12}$", RegexOptions.None, RegexTimeoutMilliseconds)]
+        private static partial Regex PostalCodePattern();
 
         public string Label { get; set; } = null!;
         public string StreetLine1 { get; set; } = null!;
@@ -26,7 +29,7 @@ namespace FoTestApi.Domain.Persons.Entities
                 throw new InvalidOperationException("Address street line 1 cannot be empty.");
             }
 
-            if (string.IsNullOrWhiteSpace(PostalCode) || !PostalCodePattern.IsMatch(PostalCode.Trim()))
+            if (string.IsNullOrWhiteSpace(PostalCode) || !PostalCodePattern().IsMatch(PostalCode.Trim()))
             {
                 throw new InvalidOperationException("Address postal code is invalid.");
             }

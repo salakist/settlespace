@@ -3,9 +3,12 @@ using System.Text.RegularExpressions;
 
 namespace FoTestApi.Domain.Transactions.Entities
 {
-    public class Transaction
+    public partial class Transaction
     {
-        private static readonly Regex CurrencyCodePattern = new("^[A-Z]{3}$", RegexOptions.Compiled);
+        private const int RegexTimeoutMilliseconds = 1_000;
+
+        [GeneratedRegex("^[A-Z]{3}$", RegexOptions.None, RegexTimeoutMilliseconds)]
+        private static partial Regex CurrencyCodePattern();
 
         public string? Id { get; set; }
         public string PayerPersonId { get; set; } = null!;
@@ -58,7 +61,7 @@ namespace FoTestApi.Domain.Transactions.Entities
                 throw new InvalidTransactionException("Amount must be greater than zero.");
             }
 
-            if (string.IsNullOrWhiteSpace(CurrencyCode) || !CurrencyCodePattern.IsMatch(CurrencyCode.Trim()))
+            if (string.IsNullOrWhiteSpace(CurrencyCode) || !CurrencyCodePattern().IsMatch(CurrencyCode.Trim()))
             {
                 throw new InvalidTransactionException("CurrencyCode must be a 3-letter uppercase code.");
             }
