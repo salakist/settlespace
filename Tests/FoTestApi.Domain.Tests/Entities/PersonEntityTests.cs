@@ -5,7 +5,7 @@ namespace FoTestApi.Domain.Tests.Entities;
 public class PersonEntityTests
 {
     [Fact]
-    public void Validate_ValidPerson_DoesNotThrow()
+    public void ValidateValidPersonDoesNotThrow()
     {
         var person = new PersonEntity { FirstName = "John", LastName = "Doe" };
 
@@ -17,7 +17,7 @@ public class PersonEntityTests
     [Theory]
     [InlineData("", "Doe")]
     [InlineData("   ", "Doe")]
-    public void Validate_EmptyOrWhitespaceFirstName_ThrowsInvalidOperationException(string firstName, string lastName)
+    public void ValidateEmptyOrWhitespaceFirstNameThrowsInvalidOperationException(string firstName, string lastName)
     {
         var person = new PersonEntity { FirstName = firstName, LastName = lastName };
 
@@ -27,7 +27,7 @@ public class PersonEntityTests
     [Theory]
     [InlineData("John", "")]
     [InlineData("John", "   ")]
-    public void Validate_EmptyOrWhitespaceLastName_ThrowsInvalidOperationException(string firstName, string lastName)
+    public void ValidateEmptyOrWhitespaceLastNameThrowsInvalidOperationException(string firstName, string lastName)
     {
         var person = new PersonEntity { FirstName = firstName, LastName = lastName };
 
@@ -35,7 +35,7 @@ public class PersonEntityTests
     }
 
     [Fact]
-    public void MatchesByFullName_SameNames_ReturnsTrue()
+    public void MatchesByFullNameSameNamesReturnsTrue()
     {
         var person = new PersonEntity { FirstName = "John", LastName = "Doe" };
         var other  = new PersonEntity { FirstName = "John", LastName = "Doe" };
@@ -44,7 +44,7 @@ public class PersonEntityTests
     }
 
     [Fact]
-    public void MatchesByFullName_DifferentCase_ReturnsTrue()
+    public void MatchesByFullNameDifferentCaseReturnsTrue()
     {
         var person = new PersonEntity { FirstName = "John", LastName = "Doe" };
         var other  = new PersonEntity { FirstName = "JOHN", LastName = "doe" };
@@ -53,7 +53,7 @@ public class PersonEntityTests
     }
 
     [Fact]
-    public void MatchesByFullName_DifferentFirstName_ReturnsFalse()
+    public void MatchesByFullNameDifferentFirstNameReturnsFalse()
     {
         var person = new PersonEntity { FirstName = "John", LastName = "Doe" };
         var other  = new PersonEntity { FirstName = "Jane", LastName = "Doe" };
@@ -62,7 +62,7 @@ public class PersonEntityTests
     }
 
     [Fact]
-    public void MatchesByFullName_DifferentLastName_ReturnsFalse()
+    public void MatchesByFullNameDifferentLastNameReturnsFalse()
     {
         var person = new PersonEntity { FirstName = "John", LastName = "Doe" };
         var other  = new PersonEntity { FirstName = "John", LastName = "Smith" };
@@ -71,7 +71,7 @@ public class PersonEntityTests
     }
 
     [Fact]
-    public void Person_WithPassword_CanBeSetAndRetrieved()
+    public void PersonWithPasswordCanBeSetAndRetrieved()
     {
         var person = new PersonEntity { FirstName = "John", LastName = "Doe", Password = "secret123" };
 
@@ -79,7 +79,7 @@ public class PersonEntityTests
     }
 
     [Fact]
-    public void Person_PasswordCanBeNull()
+    public void PersonPasswordCanBeNull()
     {
         var person = new PersonEntity { FirstName = "John", LastName = "Doe", Password = null };
 
@@ -87,7 +87,7 @@ public class PersonEntityTests
     }
 
     [Fact]
-    public void Validate_WithValidOptionalFields_DoesNotThrow()
+    public void ValidateWithValidOptionalFieldsDoesNotThrow()
     {
         var person = new PersonEntity
         {
@@ -117,7 +117,7 @@ public class PersonEntityTests
     [Theory]
     [InlineData("bad-email")]
     [InlineData("john@")]
-    public void Validate_WithInvalidEmail_ThrowsInvalidOperationException(string email)
+    public void ValidateWithInvalidEmailThrowsInvalidOperationException(string email)
     {
         var person = new PersonEntity { FirstName = "John", LastName = "Doe", Email = email };
 
@@ -127,7 +127,7 @@ public class PersonEntityTests
     [Theory]
     [InlineData("12")]
     [InlineData("abc")]
-    public void Validate_WithInvalidPhoneNumber_ThrowsInvalidOperationException(string phoneNumber)
+    public void ValidateWithInvalidPhoneNumberThrowsInvalidOperationException(string phoneNumber)
     {
         var person = new PersonEntity { FirstName = "John", LastName = "Doe", PhoneNumber = phoneNumber };
 
@@ -135,7 +135,7 @@ public class PersonEntityTests
     }
 
     [Fact]
-    public void Validate_WithFutureDateOfBirth_ThrowsInvalidOperationException()
+    public void ValidateWithFutureDateOfBirthThrowsInvalidOperationException()
     {
         var person = new PersonEntity
         {
@@ -148,7 +148,7 @@ public class PersonEntityTests
     }
 
     [Fact]
-    public void Validate_WithInvalidAddress_ThrowsInvalidOperationException()
+    public void ValidateWithInvalidAddressThrowsInvalidOperationException()
     {
         var person = new PersonEntity
         {

@@ -84,7 +84,6 @@ invoke_csharp_coverage() {
   local output_prefix="$2"
 
   dotnet test "$project_path" \
-    --no-build \
     -p:CollectCoverage=true \
     -p:CoverletOutputFormat=json \
     -p:CoverletOutput="$output_prefix"
@@ -139,7 +138,8 @@ if [ "${#CHANGED_CSHARP_FILES[@]}" -eq 0 ]; then
   echo "[SKIP] No changed C# files."
 else
   BUILD_LOG="$ARTIFACTS_ROOT/csharp-build.log"
-  if dotnet build FoTestApi.sln > "$BUILD_LOG" 2>&1; then
+  # Use Rebuild so analyzer diagnostics are emitted even when incremental build would skip compilation.
+  if dotnet build FoTestApi.sln -t:Rebuild > "$BUILD_LOG" 2>&1; then
     BUILD_EXIT=0
   else
     BUILD_EXIT=$?

@@ -17,6 +17,7 @@ namespace FoTestApi.Application.Services
         private readonly IPersonDomainService _domainService;
         private readonly IPasswordHashingService _passwordHashingService;
         private readonly IPasswordValidator _passwordValidator;
+        private readonly IPasswordGenerator _passwordGenerator;
         private readonly IPersonMapper _personMapper;
 
         public PersonApplicationService(
@@ -24,12 +25,14 @@ namespace FoTestApi.Application.Services
             IPersonDomainService domainService,
             IPasswordHashingService passwordHashingService,
             IPasswordValidator passwordValidator,
+            IPasswordGenerator passwordGenerator,
             IPersonMapper personMapper)
         {
             _repository = repository;
             _domainService = domainService;
             _passwordHashingService = passwordHashingService;
             _passwordValidator = passwordValidator;
+            _passwordGenerator = passwordGenerator;
             _personMapper = personMapper;
         }
 
@@ -55,7 +58,7 @@ namespace FoTestApi.Application.Services
         public async Task<PersonEntity> CreatePersonAsync(CreatePersonCommand command)
         {
             var password = string.IsNullOrWhiteSpace(command.Password)
-                ? PasswordGenerator.GeneratePassword()
+                ? _passwordGenerator.GeneratePassword()
                 : command.Password;
 
             var newPerson = _personMapper.ToEntity(command, password);

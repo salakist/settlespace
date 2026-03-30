@@ -14,8 +14,14 @@ New-Item -ItemType Directory -Path $LogDirectory -Force | Out-Null
 Write-Host "[info] Running changed-code gate with log capture..." -ForegroundColor Yellow
 Write-Host "[info] Log file: $LogPath" -ForegroundColor Yellow
 
-& "$PSScriptRoot\run-checks.ps1" *>&1 | Tee-Object -FilePath $LogPath
-$ExitCode = if ($null -ne $LASTEXITCODE) { $LASTEXITCODE } elseif ($?) { 0 } else { 1 }
+Start-Transcript -Path $LogPath -Force | Out-Null
+try {
+    & "$PSScriptRoot\run-checks.ps1"
+    $ExitCode = if ($null -ne $LASTEXITCODE) { $LASTEXITCODE } elseif ($?) { 0 } else { 1 }
+}
+finally {
+    Stop-Transcript | Out-Null
+}
 
 if ($ExitCode -ne 0) {
     Write-Host "[fail] Changed-code gate failed. See log: $LogPath" -ForegroundColor Red

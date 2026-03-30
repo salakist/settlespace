@@ -8,7 +8,7 @@ public class PasswordValidatorTests
     private readonly PasswordValidator _sut = new();
 
     [Fact]
-    public void Validate_WithStrongPassword_DoesNotThrow()
+    public void ValidateWithStrongPasswordDoesNotThrow()
     {
         var ex = Record.Exception(() => _sut.Validate("StrongP@ss1"));
 
@@ -16,37 +16,37 @@ public class PasswordValidatorTests
     }
 
     [Fact]
-    public void Validate_PasswordTooShort_ThrowsWeakPasswordException()
+    public void ValidatePasswordTooShortThrowsWeakPasswordException()
     {
         Assert.Throws<WeakPasswordException>(() => _sut.Validate("Short1!"));
     }
 
     [Fact]
-    public void Validate_PasswordNoUppercase_ThrowsWeakPasswordException()
+    public void ValidatePasswordNoUppercaseThrowsWeakPasswordException()
     {
         Assert.Throws<WeakPasswordException>(() => _sut.Validate("weakpass1!"));
     }
 
     [Fact]
-    public void Validate_PasswordNoLowercase_ThrowsWeakPasswordException()
+    public void ValidatePasswordNoLowercaseThrowsWeakPasswordException()
     {
         Assert.Throws<WeakPasswordException>(() => _sut.Validate("WEAKPASS1!"));
     }
 
     [Fact]
-    public void Validate_PasswordNoDigit_ThrowsWeakPasswordException()
+    public void ValidatePasswordNoDigitThrowsWeakPasswordException()
     {
         Assert.Throws<WeakPasswordException>(() => _sut.Validate("WeakPass!"));
     }
 
     [Fact]
-    public void Validate_PasswordNoSpecialChar_ThrowsWeakPasswordException()
+    public void ValidatePasswordNoSpecialCharThrowsWeakPasswordException()
     {
         Assert.Throws<WeakPasswordException>(() => _sut.Validate("WeakPass1"));
     }
 
     [Fact]
-    public void Validate_NullPassword_DoesNotThrow()
+    public void ValidateNullPasswordDoesNotThrow()
     {
         var ex = Record.Exception(() => _sut.Validate(null));
 
@@ -54,7 +54,7 @@ public class PasswordValidatorTests
     }
 
     [Fact]
-    public void Validate_EmptyPassword_DoesNotThrow()
+    public void ValidateEmptyPasswordDoesNotThrow()
     {
         var ex = Record.Exception(() => _sut.Validate(string.Empty));
 

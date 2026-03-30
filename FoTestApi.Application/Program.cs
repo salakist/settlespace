@@ -44,6 +44,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 builder.Services.AddScoped<IPersonRepository, PersonRepository>();
 builder.Services.AddScoped<IPersonDomainService, PersonDomainService>();
 builder.Services.AddScoped<IPasswordValidator, PasswordValidator>();
+builder.Services.AddScoped<IPasswordGenerator, PasswordGenerator>();
 builder.Services.AddScoped<IPasswordHashingService, PasswordHashingService>();
 builder.Services.AddScoped<IPersonMapper, PersonMapper>();
 builder.Services.AddScoped<IPersonApplicationService, PersonApplicationService>();

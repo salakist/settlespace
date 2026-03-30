@@ -88,7 +88,7 @@ FoTestApi.Domain/
 | Weak password | Raises `WeakPasswordException` → translated to HTTP `400 Bad Request` |
 | Equality method | `PersonEntity.MatchesByFullName(other)` – OrdinalIgnoreCase full-name comparison |
 
-`PasswordGenerator` produces 12+ character passwords that satisfy the same strength policy.
+`IPasswordGenerator`/`PasswordGenerator` produces 12+ character passwords that satisfy the same strength policy.
 
 ---
 
@@ -224,7 +224,7 @@ sh scripts/setup-hooks.sh
 
 Use debug wrappers by default in automation and agent sessions.
 If a terminal only shows an exit code and hides the gate failure details, these wrappers preserve full output.
-They tee output to timestamped log files under `artifacts/logs/`.
+They capture output to timestamped log files under `artifacts/logs/`.
 
 ```powershell
 .\scripts\run-checks-debug.ps1

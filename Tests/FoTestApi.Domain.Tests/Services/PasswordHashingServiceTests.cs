@@ -7,7 +7,7 @@ public class PasswordHashingServiceTests
     private readonly PasswordHashingService _sut = new();
 
     [Fact]
-    public void HashPassword_ReturnsHashInsteadOfPlaintext()
+    public void HashPasswordReturnsHashInsteadOfPlaintext()
     {
         var password = "Strong@Pass1";
 
@@ -18,7 +18,7 @@ public class PasswordHashingServiceTests
     }
 
     [Fact]
-    public void VerifyPassword_WithMatchingPassword_ReturnsTrue()
+    public void VerifyPasswordWithMatchingPasswordReturnsTrue()
     {
         var passwordHash = _sut.HashPassword("Strong@Pass1");
 
@@ -28,7 +28,7 @@ public class PasswordHashingServiceTests
     }
 
     [Fact]
-    public void VerifyPassword_WithNonMatchingPassword_ReturnsFalse()
+    public void VerifyPasswordWithNonMatchingPasswordReturnsFalse()
     {
         var passwordHash = _sut.HashPassword("Strong@Pass1");
 

@@ -17,7 +17,7 @@ public class PersonDomainServiceTests
     }
 
     [Fact]
-    public async Task EnsureUniqueAsync_NoExistingPerson_DoesNotThrow()
+    public async Task EnsureUniqueAsyncNoExistingPersonDoesNotThrow()
     {
         _repositoryMock
             .Setup(r => r.FindByFullNameAsync("John", "Doe"))
@@ -29,7 +29,7 @@ public class PersonDomainServiceTests
     }
 
     [Fact]
-    public async Task EnsureUniqueAsync_DuplicatePerson_ThrowsDuplicatePersonException()
+    public async Task EnsureUniqueAsyncDuplicatePersonThrowsDuplicatePersonException()
     {
         var existing = new PersonEntity { Id = "abc123", FirstName = "John", LastName = "Doe" };
         _repositoryMock
@@ -41,7 +41,7 @@ public class PersonDomainServiceTests
     }
 
     [Fact]
-    public async Task EnsureUniqueAsync_ExcludeIdMatchesExisting_DoesNotThrow()
+    public async Task EnsureUniqueAsyncExcludeIdMatchesExistingDoesNotThrow()
     {
         // When updating, passing the same person's ID should not throw
         var existing = new PersonEntity { Id = "abc123", FirstName = "John", LastName = "Doe" };
@@ -55,7 +55,7 @@ public class PersonDomainServiceTests
     }
 
     [Fact]
-    public async Task EnsureUniqueAsync_ExcludeIdDiffersFromExisting_ThrowsDuplicatePersonException()
+    public async Task EnsureUniqueAsyncExcludeIdDiffersFromExistingThrowsDuplicatePersonException()
     {
         // Another person already has the same name; the excluded ID is different
         var existing = new PersonEntity { Id = "other456", FirstName = "John", LastName = "Doe" };

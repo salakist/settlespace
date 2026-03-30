@@ -27,7 +27,7 @@ function Invoke-CSharpCoverage([string]$ProjectPath, [string]$OutputPrefix) {
     $outputDirectory = Split-Path -Parent $OutputPrefix
     New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
 
-    dotnet test $ProjectPath --no-build `
+    dotnet test $ProjectPath `
         /p:CollectCoverage=true `
         /p:CoverletOutputFormat=json `
         /p:CoverletOutput=$OutputPrefix | Out-Host
@@ -44,7 +44,7 @@ New-Item -ItemType Directory -Path (Join-Path $CSharpCoverageRoot "infrastructur
 New-Item -ItemType Directory -Path (Join-Path $CSharpCoverageRoot "application") -Force | Out-Null
 
 Write-Header "[1/4] C# full-base build + code-smell analysis"
-dotnet build FoTestApi.sln /p:TreatWarningsAsErrors=true
+dotnet build FoTestApi.sln -t:Rebuild /p:TreatWarningsAsErrors=true
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
     Write-Host "[FAIL] Full-base C# build has analyzer violations." -ForegroundColor Red

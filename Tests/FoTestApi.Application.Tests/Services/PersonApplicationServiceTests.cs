@@ -15,6 +15,7 @@ public class PersonApplicationServiceTests
     private readonly Mock<IPersonDomainService> _domainServiceMock = new();
     private readonly Mock<IPasswordHashingService> _passwordHashingServiceMock = new();
     private readonly Mock<IPasswordValidator> _passwordValidatorMock = new();
+    private readonly Mock<IPasswordGenerator> _passwordGeneratorMock = new();
     private readonly IPersonMapper _personMapper = new PersonMapper();
     private readonly PersonApplicationService _sut;
 
@@ -28,11 +29,16 @@ public class PersonApplicationServiceTests
             .Setup(service => service.HashPassword(It.IsAny<string>()))
             .Returns<string>(password => $"hashed::{password}");
 
+        _passwordGeneratorMock
+            .Setup(generator => generator.GeneratePassword())
+            .Returns("Generated@Pass1");
+
         _sut = new PersonApplicationService(
             _repositoryMock.Object,
             _domainServiceMock.Object,
             _passwordHashingServiceMock.Object,
             _passwordValidatorMock.Object,
+            _passwordGeneratorMock.Object,
             _personMapper);
     }
 
@@ -117,6 +123,7 @@ public class PersonApplicationServiceTests
         Assert.Equal("hashed::Strong@Pass1", result.Password);
         _domainServiceMock.Verify(d => d.EnsureUniqueAsync("John", "Doe", null), Times.Once);
         _passwordHashingServiceMock.Verify(service => service.HashPassword("Strong@Pass1"), Times.Once);
+        _passwordGeneratorMock.Verify(generator => generator.GeneratePassword(), Times.Never);
     }
 
     [Fact]
@@ -144,6 +151,8 @@ public class PersonApplicationServiceTests
         Assert.StartsWith("hashed::", capturedPerson.Password);
         Assert.NotEmpty(hashedPasswordInput);
         Assert.True(hashedPasswordInput.Length >= 8);
+        Assert.Equal("Generated@Pass1", hashedPasswordInput);
+        _passwordGeneratorMock.Verify(generator => generator.GeneratePassword(), Times.Once);
     }
 
     [Fact]
@@ -171,6 +180,8 @@ public class PersonApplicationServiceTests
         Assert.StartsWith("hashed::", capturedPerson.Password);
         Assert.NotEmpty(hashedPasswordInput);
         Assert.True(hashedPasswordInput.Length >= 8);
+        Assert.Equal("Generated@Pass1", hashedPasswordInput);
+        _passwordGeneratorMock.Verify(generator => generator.GeneratePassword(), Times.Once);
     }
 
     [Theory]

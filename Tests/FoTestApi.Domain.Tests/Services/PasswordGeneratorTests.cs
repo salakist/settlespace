@@ -6,53 +6,55 @@ namespace FoTestApi.Domain.Tests.Services;
 
 public class PasswordGeneratorTests
 {
+    private readonly PasswordGenerator _sut = new();
+
     [Fact]
-    public void GeneratePassword_ReturnsValidPassword()
+    public void GeneratePasswordReturnsValidPassword()
     {
-        var password = PasswordGenerator.GeneratePassword();
+        var password = _sut.GeneratePassword();
 
         Assert.NotEmpty(password);
         Assert.True(password.Length >= 8, "Password must be at least 8 characters");
     }
 
     [Fact]
-    public void GeneratePassword_ContainsUppercase()
+    public void GeneratePasswordContainsUppercase()
     {
-        var password = PasswordGenerator.GeneratePassword();
+        var password = _sut.GeneratePassword();
 
         Assert.True(Regex.IsMatch(password, "[A-Z]"), "Password must contain at least one uppercase letter");
     }
 
     [Fact]
-    public void GeneratePassword_ContainsLowercase()
+    public void GeneratePasswordContainsLowercase()
     {
-        var password = PasswordGenerator.GeneratePassword();
+        var password = _sut.GeneratePassword();
 
         Assert.True(Regex.IsMatch(password, "[a-z]"), "Password must contain at least one lowercase letter");
     }
 
     [Fact]
-    public void GeneratePassword_ContainsDigit()
+    public void GeneratePasswordContainsDigit()
     {
-        var password = PasswordGenerator.GeneratePassword();
+        var password = _sut.GeneratePassword();
 
         Assert.True(Regex.IsMatch(password, "[0-9]"), "Password must contain at least one digit");
     }
 
     [Fact]
-    public void GeneratePassword_ContainsSpecialCharacter()
+    public void GeneratePasswordContainsSpecialCharacter()
     {
-        var password = PasswordGenerator.GeneratePassword();
+        var password = _sut.GeneratePassword();
 
         Assert.True(Regex.IsMatch(password, "[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>?]"), 
                     "Password must contain at least one special character");
     }
 
     [Fact]
-    public void GeneratePassword_GeneratesRandomPasswords()
+    public void GeneratePasswordGeneratesRandomPasswords()
     {
-        var password1 = PasswordGenerator.GeneratePassword();
-        var password2 = PasswordGenerator.GeneratePassword();
+        var password1 = _sut.GeneratePassword();
+        var password2 = _sut.GeneratePassword();
 
         // It's extremely unlikely (but technically possible) that two random passwords are identical
         // This test verifies the randomness with high confidence
@@ -63,13 +65,13 @@ public class PasswordGeneratorTests
     [InlineData(1)]
     [InlineData(5)]
     [InlineData(10)]
-    public void GeneratePassword_MultipleGenerations_AllValid(int count)
+    public void GeneratePasswordMultipleGenerationsAllValid(int count)
     {
         var passwordValidator = new PasswordValidator();
 
         for (int i = 0; i < count; i++)
         {
-            var password = PasswordGenerator.GeneratePassword();
+            var password = _sut.GeneratePassword();
 
             // Should not throw WeakPasswordException
             passwordValidator.Validate(password);

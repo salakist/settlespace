@@ -26,7 +26,6 @@ invoke_csharp_coverage() {
   local output_prefix="$2"
 
   dotnet test "$project_path" \
-    --no-build \
     -p:CollectCoverage=true \
     -p:CoverletOutputFormat=json \
     -p:CoverletOutput="$output_prefix"
@@ -38,7 +37,7 @@ mkdir -p "$CSHARP_COVERAGE_ROOT/domain" "$CSHARP_COVERAGE_ROOT/infrastructure" "
 cd "$REPO_ROOT"
 
 print_header "[1/4] C# full-base build + code-smell analysis"
-if dotnet build FoTestApi.sln -p:TreatWarningsAsErrors=true; then
+if dotnet build FoTestApi.sln -t:Rebuild -p:TreatWarningsAsErrors=true; then
   echo "[PASS] Full-base C# build passed."
 else
   echo ""

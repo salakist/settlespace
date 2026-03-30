@@ -5,17 +5,24 @@ namespace FoTestApi.Domain.Exceptions
     /// </summary>
     public class DuplicatePersonException : DomainException
     {
+        public DuplicatePersonException()
+            : base("A person with the same full name already exists.")
+        {
+        }
+
+        public DuplicatePersonException(string message)
+            : base(message)
+        {
+        }
+
+        public DuplicatePersonException(string message, Exception innerException)
+            : base(message, innerException)
+        {
+        }
+
         public DuplicatePersonException(string firstName, string lastName)
             : base($"A person with first name '{firstName}' and last name '{lastName}' already exists.")
         {
         }
-    }
-
-    /// <summary>
-    /// Base class for all domain exceptions.
-    /// </summary>
-    public abstract class DomainException : Exception
-    {
-        protected DomainException(string message) : base(message) { }
     }
 }

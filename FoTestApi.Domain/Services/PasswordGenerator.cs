@@ -5,7 +5,7 @@ namespace FoTestApi.Domain.Services
     /// <summary>
     /// Service for generating random passwords that meet security requirements.
     /// </summary>
-    public class PasswordGenerator
+    public class PasswordGenerator : IPasswordGenerator
     {
         private const int MinimumLength = 12; // Generated passwords are slightly longer for safety
         private const string Uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -24,7 +24,7 @@ namespace FoTestApi.Domain.Services
         /// - Additional random characters from a mixed pool
         /// </summary>
         /// <returns>A randomly generated strong password.</returns>
-        public static string GeneratePassword()
+        public string GeneratePassword()
         {
             var random = new Random();
             var password = new StringBuilder();

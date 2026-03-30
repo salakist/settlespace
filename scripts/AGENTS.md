@@ -32,6 +32,7 @@ Own repository quality-gate and hook automation scripts.
 ## Gate intent
 - Changed-code gate enforces quality only on changed production scope.
 - Full-base gate enforces quality across the full production codebase.
+- C# analyzer steps use solution rebuilds to avoid incremental-build false negatives.
 - Coverage threshold remains 80% unless explicitly changed by repository policy.
 
 ## Update checklist

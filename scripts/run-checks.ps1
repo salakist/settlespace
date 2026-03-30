@@ -73,7 +73,7 @@ function Invoke-CSharpCoverage([string]$ProjectPath, [string]$OutputPrefix) {
     $outputDirectory = Split-Path -Parent $OutputPrefix
     New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
 
-    dotnet test $ProjectPath --no-build `
+    dotnet test $ProjectPath `
         /p:CollectCoverage=true `
         /p:CoverletOutputFormat=json `
         /p:CoverletOutput=$OutputPrefix | Out-Host
@@ -113,7 +113,8 @@ Write-Header "[1/4] C# changed-file analyzer gate"
 if ($changedCSharpFiles.Count -eq 0) {
     Write-Host "[SKIP] No changed C# files." -ForegroundColor Yellow
 } else {
-    $buildOutput = @(dotnet build FoTestApi.sln 2>&1)
+    # Use Rebuild so analyzer diagnostics are emitted even when incremental build would skip compilation.
+    $buildOutput = @(dotnet build FoTestApi.sln -t:Rebuild 2>&1)
     $buildExitCode = $LASTEXITCODE
     $diagnosticLines = @($buildOutput | ForEach-Object { $_.ToString() } | Where-Object { $_ -match ': (warning|error) [A-Za-z]{2,}\d+:' })
     $changedDiagnostics = @()
@@ -121,8 +122,8 @@ if ($changedCSharpFiles.Count -eq 0) {
     foreach ($line in $diagnosticLines) {
         $lowerLine = $line.ToLowerInvariant()
         foreach ($file in $changedCSharpFiles) {
-            $relativeNeedle = $file.ToLowerInvariant().Replace('/', '\\')
-            $absoluteNeedle = (Join-Path $RepoRoot $file.Replace('/', '\\')).ToLowerInvariant()
+            $relativeNeedle = $file.ToLowerInvariant().Replace('/', '\')
+            $absoluteNeedle = (Join-Path $RepoRoot $file.Replace('/', '\')).ToLowerInvariant()
             if ($lowerLine.Contains($relativeNeedle) -or $lowerLine.Contains($absoluteNeedle)) {
                 $changedDiagnostics += $line
                 break

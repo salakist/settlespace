@@ -9,6 +9,7 @@ This project has **zero infrastructure dependencies** by design.
 - Define `Address` value object with validation logic
 - Declare `IPersonRepository` repository interface
 - Declare `IPersonDomainService` domain service interface
+- Declare `IPasswordGenerator` password-generation interface
 - Implement `PersonDomainService` (uniqueness invariant enforcement)
 - Define password-related domain services for strength validation, generation, and hashing
 - Raise domain exceptions (`DuplicatePersonException`, `DomainException`)
@@ -50,6 +51,7 @@ This project has **zero infrastructure dependencies** by design.
 - `Entities/Address.cs` — address value object with `Validate()`
 - `Repositories/IPersonRepository.cs` — repository contract
 - `Services/IPersonDomainService.cs` — domain service interface
+- `Services/IPasswordGenerator.cs` — password generation interface
 - `Services/IPasswordValidator.cs` — password strength validation interface
 - `Services/IPasswordHashingService.cs` — password hashing service interface
 - `Services/PersonDomainService.cs` — enforces uniqueness, throws `DuplicatePersonException`
