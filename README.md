@@ -296,13 +296,25 @@ Two repository-level analysis modes are available:
 .\scripts\setup-hooks.ps1
 ```
 
+### Cleanup workspace artifacts
+
+- `./scripts/cleanup.ps1`
+  - default light cleanup for routine use (including agent sessions)
+  - removes lightweight generated outputs (coverage/build/test-artifacts)
+  - preserves heavy dependency folders such as `node_modules/`
+  - retains only the newest 2 gate logs in `artifacts/logs/`
+  - use `./scripts/cleanup.ps1 -DryRun` to preview planned removals without deleting anything
+- `./scripts/cleanup-full.ps1 -Force`
+  - explicit destructive cleanup for full workspace reset
+  - removes heavy generated/cached outputs including `**/node_modules/`, `**/bin/`, `**/obj/`, `artifacts/`, `.vs/`, and `.scannerwork/`
+  - run only when a full cleanup is explicitly required
+  - use `./scripts/cleanup-full.ps1 -Force -DryRun` to preview full-clean scope without deleting anything
+
 ### Troubleshooting opaque gate output
 
 Use debug wrappers by default in automation and agent sessions.
 If a terminal only shows an exit code and hides the gate failure details, these wrappers preserve full output.
 They capture output to timestamped log files under `artifacts/logs/`.
-
-For script refactor work, the current PowerShell gate behavior baseline is recorded in `scripts/behavior-spec.md` and should be treated as the post-refactor validation checklist.
 
 ```powershell
 .\scripts\run-checks-debug.ps1

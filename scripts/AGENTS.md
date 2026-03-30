@@ -8,12 +8,13 @@ Own repository quality-gate and hook automation scripts.
 - `run-full-checks.ps1` - base full-base gate implementation.
 - `run-checks-debug.ps1` - changed-code wrapper with mandatory log capture.
 - `run-full-checks-debug.ps1` - full-base wrapper with mandatory log capture.
+- `cleanup.ps1` - default light cleanup for routine artifact cleanup.
+- `cleanup-full.ps1` - explicit full cleanup for destructive repository reset.
 - `setup-hooks.ps1` - local git hook installation and refresh.
 - `seed-dev-data.ps1` - manual local seed script for persons and transactions API data.
-- `lib/` - shared PowerShell helper scripts used by the root entry points.
+- `lib/` - shared PowerShell helper scripts used by root entry points, including cleanup mutualization in `lib/cleanup.ps1`.
 - `hooks/` - hook source templates copied to `.git/hooks`; `hooks/pre-commit` remains a minimal shell launcher for Git compatibility and invokes PowerShell.
 - `check-coverage.mjs` - shared coverage evaluator for changed/full modes.
-- `behavior-spec.md` - current-behavior validation baseline for PowerShell gate scripts during refactor work.
 - `package.json` / `.eslintrc.json` - local repo-script lint configuration for Node JS/MJS files under `scripts/`.
 
 ## Agent policy
@@ -28,9 +29,11 @@ Own repository quality-gate and hook automation scripts.
   1.2.5 On Sonar failure, scripts should print a compact issue or technical-error summary that is directly actionable in agent sessions.
     - If the failed quality gate includes unreviewed security hotspots, print the most likely hotspot location returned by SonarCloud.
     - If the failed quality gate includes a coverage condition, print the 10 lowest covered files returned by SonarCloud for the analyzed branch.
-     - If Sonar reports any duplication, print a warning summary with duplication metrics and top duplicated files.
+    - If Sonar reports any duplication, print a warning summary with duplication metrics and top duplicated files.
   1.3 Git hooks should continue invoking base scripts (do not rewrite hooks to call debug wrappers by default).
   1.4 Never suggest bypassing hooks with `--no-verify`.
+  1.5 For cleanup tasks, agents must default to `./scripts/cleanup.ps1`.
+  1.6 Agents may run `./scripts/cleanup-full.ps1 -Force` only when the user explicitly requests full/destructive cleanup.
 2. After gates pass and before commit, documentation updates are mandatory for the same change set.
   2.1 Update only documentation relevant to the actual changes.
   2.2 Typical targets include module `AGENTS.md` files, route notes, behavior notes, and test guidance.
@@ -61,17 +64,20 @@ Own repository quality-gate and hook automation scripts.
 ## Update checklist
 When editing any script in this folder:
 1. Keep the PowerShell entry points authoritative; only the minimal `hooks/pre-commit` launcher remains shell-based.
-2. Update `behavior-spec.md` if observable PowerShell gate behavior changes.
-3. Update related wrapper/help text if command behavior changes.
-4. Verify docs alignment in `AGENTS.md` and `README.md` if command usage changes.
-5. If `scripts/package.json` changes, refresh and commit `scripts/package-lock.json`.
-6. Run the changed-code debug wrapper before commit.
+2. Update related wrapper/help text if command behavior changes.
+3. Verify docs alignment in `AGENTS.md` and `README.md` if command usage changes.
+4. If `scripts/package.json` changes, refresh and commit `scripts/package-lock.json`.
+5. Run the changed-code debug wrapper before commit.
 
 ## Commands
 ```powershell
 .\scripts\run-checks-debug.ps1
 .\scripts\run-full-checks-debug.ps1
 .\scripts\run-full-checks-debug.ps1   # optional Sonar parity: use shell env vars or repo-root .env
+.\scripts\cleanup.ps1
+.\scripts\cleanup.ps1 -DryRun
+.\scripts\cleanup-full.ps1 -Force
+.\scripts\cleanup-full.ps1 -Force -DryRun
 .\scripts\setup-hooks.ps1
 .\scripts\seed-dev-data.ps1
 cd scripts; npm install
