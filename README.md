@@ -29,13 +29,13 @@ A full-stack demonstration project showcasing Domain-Driven Design (DDD) with a 
 ```
 fo-test/
 ├── FoTestApi.sln
-├── FoTestApi.Domain/               # Domain layer — context-first (Auth, Persons, Transactions)
-├── FoTestApi.Infrastructure/       # Infrastructure layer — context-first repositories + shared tech
-├── FoTestApi.Application/          # Application layer — context-first API slices
+├── FoTestApi.Domain/               # Domain layer — business rules and contracts
+├── FoTestApi.Infrastructure/       # Infrastructure layer — MongoDB persistence
+├── FoTestApi.Application/          # Application layer — API, controllers, commands
 ├── Tests/
-│   ├── FoTestApi.Domain.Tests/         # Mirrors Domain context/function structure
-│   ├── FoTestApi.Infrastructure.Tests/ # Mirrors Infrastructure context/function structure
-│   └── FoTestApi.Application.Tests/    # Mirrors Application context/function structure
+│   ├── FoTestApi.Domain.Tests/         # Unit tests — Domain layer
+│   ├── FoTestApi.Infrastructure.Tests/ # Unit tests — Infrastructure layer
+│   └── FoTestApi.Application.Tests/    # Unit tests — Application layer
 ├── fotest-react/                   # React SPA frontend
 ├── AGENTS.md                       # Root agent index
 └── README.md
@@ -345,8 +345,8 @@ fotest-react/src/
 +-- features/
 |   +-- auth/components/            # Login, registration, password change UI
 |   +-- auth/hooks/                 # Auth/session hook (useAuth)
-|   +-- persons/components/         # Person list, form, search, address editor
-|   +-- persons/hooks/              # Persons domain hook (usePersons)
+|   +-- persons/components/         # Person list, form, search, address editor, shared person-details form fields
+|   +-- persons/hooks/              # Persons domain hook (usePersons) + shared person-details form utilities
 |   +-- profile/components/         # Authenticated profile page
 |   +-- profile/hooks/              # Profile domain hook (useProfile)
 +-- shared/
@@ -363,6 +363,7 @@ fotest-react/src/
 ### Frontend architecture notes
 
 - `App.tsx` now focuses on composition and routing, while feature logic lives in hooks.
+- Person details form logic is mutualized in the persons feature (`PersonDetailsFormFields` + `personDetailsFormUtils`) and reused by both `/persons` create/edit and `/profile` update flows.
 - Domain hooks:
   - `useAuth` handles authentication/session transitions.
   - `usePersons` handles directory CRUD/search/form state.

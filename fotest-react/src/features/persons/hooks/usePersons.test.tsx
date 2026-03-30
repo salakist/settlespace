@@ -102,7 +102,14 @@ test('handleSave uses create for new person and update for existing person', asy
   const harness = createPersonsHarness();
 
   await act(async () => {
-    await harness.getHook().handleSave({ firstName: 'New', lastName: 'Person', addresses: [] });
+    await harness.getHook().handleSave({
+      firstName: 'New',
+      lastName: 'Person',
+      phoneNumber: undefined,
+      email: undefined,
+      dateOfBirth: undefined,
+      addresses: [],
+    });
   });
 
   expect(personApi.create).toHaveBeenCalled();
@@ -112,13 +119,56 @@ test('handleSave uses create for new person and update for existing person', asy
   });
 
   await act(async () => {
-    await harness.getHook().handleSave({ firstName: 'Edited', lastName: 'Person', addresses: [] });
+    await harness.getHook().handleSave({
+      firstName: 'Edited',
+      lastName: 'Person',
+      phoneNumber: '555-123-4567',
+      email: 'edited@example.com',
+      dateOfBirth: '1995-02-03',
+      addresses: [],
+    });
   });
 
   expect(personApi.update).toHaveBeenCalledWith(
     'p1',
-    expect.objectContaining({ firstName: 'Edited', lastName: 'Person' }),
+    expect.objectContaining({
+      firstName: 'Edited',
+      lastName: 'Person',
+      phoneNumber: '555-123-4567',
+      email: 'edited@example.com',
+      dateOfBirth: '1995-02-03',
+    }),
   );
+});
+
+test('handleSave toggles saveLoading during save lifecycle', async () => {
+  const harness = createPersonsHarness();
+  let resolveSave: () => void = () => {};
+
+  personApi.create.mockImplementationOnce(() => new Promise<void>((resolve) => {
+    resolveSave = resolve;
+  }));
+
+  let savePromise: Promise<void> | undefined;
+  act(() => {
+    savePromise = harness.getHook().handleSave({
+      firstName: 'Async',
+      lastName: 'Person',
+      phoneNumber: undefined,
+      email: undefined,
+      dateOfBirth: undefined,
+      addresses: [],
+    });
+  });
+
+  expect(harness.getHook().saveLoading).toBe(true);
+
+  await act(async () => {
+    resolveSave();
+    await savePromise;
+  });
+
+  expect(harness.getHook().saveLoading).toBe(false);
 });
 
 test('handleDelete respects confirm dialog and calls delete when confirmed', async () => {

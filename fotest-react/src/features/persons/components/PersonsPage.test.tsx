@@ -16,9 +16,9 @@ jest.mock('./PersonList', () => ({
 
 jest.mock('./PersonForm', () => ({
   __esModule: true,
-  default: ({ onSave, onCancel }: { onSave: (person: unknown) => void; onCancel: () => void }) => (
+  default: ({ onSave, onCancel }: { onSave: (person: unknown) => Promise<void>; onCancel: () => void }) => (
     <div>
-      <button onClick={() => onSave({ firstName: 'John', lastName: 'Doe' })}>Save</button>
+      <button onClick={() => void onSave({ firstName: 'John', lastName: 'Doe', addresses: [] })}>Save</button>
       <button onClick={onCancel}>Cancel</button>
     </div>
   ),
@@ -27,12 +27,13 @@ jest.mock('./PersonForm', () => ({
 const defaultProps = {
   persons: [],
   loading: false,
+  saveLoading: false,
   error: null,
   showForm: false,
   editingPerson: undefined,
   onAdd: jest.fn(),
   onSearch: jest.fn(),
-  onSave: jest.fn(),
+  onSave: jest.fn().mockResolvedValue(undefined),
   onCancel: jest.fn(),
   onEdit: jest.fn(),
   onDelete: jest.fn(),

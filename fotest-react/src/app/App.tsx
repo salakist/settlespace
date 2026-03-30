@@ -90,6 +90,7 @@ function App() {
     loadPersons,
     loading,
     persons,
+    saveLoading,
     setDirectoryIdle,
     setPersonInList,
     showCreateForm,
@@ -299,6 +300,7 @@ function App() {
                 <PersonsPage
                   persons={persons}
                   loading={loading}
+                  saveLoading={saveLoading}
                   error={error}
                   showForm={showForm}
                   editingPerson={editingPerson}

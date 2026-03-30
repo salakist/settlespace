@@ -90,27 +90,27 @@ test('renders profile, submits save, and forwards password change', async () => 
 
   fireEvent.change(screen.getByLabelText(/First Name/i), { target: { value: 'Jane' } });
   fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { value: 'Smith' } });
-  fireEvent.change(screen.getByLabelText(/Phone Number/i), { target: { value: ' 555 ' } });
+  fireEvent.change(screen.getByLabelText(/Phone Number/i), { target: { value: ' +1 555 123 4567 ' } });
   fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: ' jane@smith.com ' } });
   fireEvent.change(screen.getByLabelText(/Date of Birth/i), { target: { value: '2001-02-03' } });
   fireEvent.click(screen.getByRole('button', { name: /Update Addresses/i }));
 
-  fireEvent.submit(screen.getByRole('button', { name: /Save Profile/i }));
+  fireEvent.click(screen.getByRole('button', { name: /Save Profile/i }));
 
   await waitFor(() => expect(onSave).toHaveBeenCalledWith({
     firstName: 'Jane',
     lastName: 'Smith',
-    phoneNumber: '555',
+    phoneNumber: '+1 555 123 4567',
     email: 'jane@smith.com',
     dateOfBirth: '2001-02-03',
     addresses: [
       {
         label: 'Home',
         streetLine1: '123 Main',
-        streetLine2: '',
+        streetLine2: undefined,
         postalCode: '12345',
         city: 'Town',
-        stateOrRegion: '',
+        stateOrRegion: undefined,
         country: 'Country',
       },
     ],

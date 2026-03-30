@@ -8,7 +8,8 @@ Persons feature provides persons CRUD UI, search flow, and feature-level state b
 
 ## Responsibilities
 - `src/features/persons/components/` owns person list/form/search/address editor UI and `PersonsPage` composition.
-- `src/features/persons/hooks/` owns persons domain behavior (`usePersons`).
+- `src/features/persons/components/` also owns shared person-details form fields reused by profile.
+- `src/features/persons/hooks/` owns persons domain behavior (`usePersons`) and shared person-details form utilities reused by profile.
 - Keep persons behavior tests close to hooks/components; keep app shell tests focused on composition.
 
 ## Key files
@@ -17,6 +18,8 @@ Persons feature provides persons CRUD UI, search flow, and feature-level state b
 - `components/PersonForm.tsx`
 - `components/SearchBar.tsx`
 - `components/PersonAddressEditor.tsx`
+- `components/PersonDetailsFormFields.tsx`
+- `hooks/personDetailsFormUtils.ts`
 - `hooks/usePersons.ts`
 
 ## Commands

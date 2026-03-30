@@ -115,6 +115,7 @@ beforeEach(() => {
     loadPersons: jest.fn(),
     loading: false,
     persons: [],
+    saveLoading: false,
     setDirectoryIdle: jest.fn(),
     setPersonInList: jest.fn(),
     showCreateForm: jest.fn(),

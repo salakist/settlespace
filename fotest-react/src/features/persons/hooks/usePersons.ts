@@ -11,6 +11,7 @@ export function usePersons({ expireSession }: UsePersonsOptions) {
   const [editingPerson, setEditingPerson] = useState<Person | undefined>();
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [saveLoading, setSaveLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const normalizePerson = useCallback((person: Person): Person => ({
@@ -23,6 +24,7 @@ export function usePersons({ expireSession }: UsePersonsOptions) {
     setPersons([]);
     setEditingPerson(undefined);
     setShowForm(false);
+    setSaveLoading(false);
     setError(null);
   }, []);
 
@@ -88,19 +90,17 @@ export function usePersons({ expireSession }: UsePersonsOptions) {
   }, [handleUnauthorized, loadPersons, normalizePerson]);
 
   const handleSave = useCallback(async (personData: Omit<Person, 'id'>) => {
+    setSaveLoading(true);
     try {
       if (editingPerson?.id) {
-        await personApi.update(editingPerson.id, {
-          ...editingPerson,
-          ...personData,
-          addresses: editingPerson.addresses ?? [],
-        });
+        await personApi.update(editingPerson.id, personData);
       } else {
         await personApi.create(personData);
       }
 
       setEditingPerson(undefined);
       setShowForm(false);
+      setError(null);
       await loadPersons();
     } catch (err) {
       if (typeof err === 'object' && err && 'response' in err && (err as { response?: { status?: number } }).response?.status === 401) {
@@ -109,6 +109,9 @@ export function usePersons({ expireSession }: UsePersonsOptions) {
       }
       setError('Failed to save person');
       console.error(err);
+      throw err;
+    } finally {
+      setSaveLoading(false);
     }
   }, [editingPerson, handleUnauthorized, loadPersons]);
 
@@ -158,6 +161,7 @@ export function usePersons({ expireSession }: UsePersonsOptions) {
     loadPersons,
     loading,
     persons,
+    saveLoading,
     setDirectoryIdle,
     setPersonInList,
     showCreateForm,

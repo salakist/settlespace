@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material';
 import ChangePasswordForm from '../../auth/components/ChangePasswordForm';
-import PersonAddressEditor from '../../persons/components/PersonAddressEditor';
-import { Address, Person } from '../../../shared/types';
+import { Person } from '../../../shared/types';
+import PersonDetailsFormFields from '../../persons/components/PersonDetailsFormFields';
+import {
+  PersonDetailsFormValues,
+  PersonDetailsValidationErrors,
+  createPersonDetailsValues,
+  toPersonPayload,
+  validatePersonDetails,
+} from '../../persons/hooks/personDetailsFormUtils';
 
 interface ProfilePageProps {
   person: Person | null;
@@ -23,45 +30,31 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
   onSave,
   onChangePassword,
 }) => {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [email, setEmail] = useState('');
-  const [dateOfBirth, setDateOfBirth] = useState('');
-  const [addresses, setAddresses] = useState<Address[]>([]);
+  const [values, setValues] = useState<PersonDetailsFormValues>(() => createPersonDetailsValues());
+  const [validationErrors, setValidationErrors] = useState<PersonDetailsValidationErrors>({});
   const [saveError, setSaveError] = useState<string | null>(null);
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!person) {
-      return;
-    }
-
-    setFirstName(person.firstName);
-    setLastName(person.lastName);
-    setPhoneNumber(person.phoneNumber ?? '');
-    setEmail(person.email ?? '');
-    setDateOfBirth(person.dateOfBirth?.slice(0, 10) ?? '');
-    setAddresses(person.addresses ?? []);
+    setValues(createPersonDetailsValues(person ?? undefined));
+    setValidationErrors({});
   }, [person]);
-
-  const sanitizeAddresses = (items: Address[]) =>
-    items.filter((address) => Object.values(address).some((value) => value?.trim()));
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSaveError(null);
     setSaveSuccess(null);
 
+    const nextValidationErrors = validatePersonDetails(values);
+    if (Object.keys(nextValidationErrors).length > 0) {
+      setValidationErrors(nextValidationErrors);
+      return;
+    }
+
+    setValidationErrors({});
+
     try {
-      await onSave({
-        firstName,
-        lastName,
-        phoneNumber: phoneNumber.trim() || undefined,
-        email: email.trim() || undefined,
-        dateOfBirth: dateOfBirth || undefined,
-        addresses: sanitizeAddresses(addresses),
-      });
+      await onSave(toPersonPayload(values));
       setSaveSuccess('Profile updated successfully.');
     } catch (submissionError) {
       const axiosError = submissionError as { response?: { data?: { error?: string } } };
@@ -97,47 +90,12 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
 
           <form onSubmit={handleSubmit}>
             <Stack spacing={2.5}>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <TextField
-                  label="First Name"
-                  value={firstName}
-                  onChange={(event) => setFirstName(event.target.value)}
-                  fullWidth
-                  required
-                />
-                <TextField
-                  label="Last Name"
-                  value={lastName}
-                  onChange={(event) => setLastName(event.target.value)}
-                  fullWidth
-                  required
-                />
-              </Stack>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <TextField
-                  label="Phone Number"
-                  type="tel"
-                  value={phoneNumber}
-                  onChange={(event) => setPhoneNumber(event.target.value)}
-                  fullWidth
-                />
-                <TextField
-                  label="Email"
-                  type="email"
-                  value={email}
-                  onChange={(event) => setEmail(event.target.value)}
-                  fullWidth
-                />
-              </Stack>
-              <TextField
-                label="Date of Birth"
-                type="date"
-                value={dateOfBirth}
-                onChange={(event) => setDateOfBirth(event.target.value)}
-                InputLabelProps={{ shrink: true }}
-                fullWidth
+              <PersonDetailsFormFields
+                values={values}
+                onChange={setValues}
+                errors={validationErrors}
+                disabled={saveLoading}
               />
-              <PersonAddressEditor addresses={addresses} onChange={setAddresses} disabled={saveLoading} />
               <Button type="submit" variant="contained" disabled={saveLoading}>
                 {saveLoading ? 'Saving Profile...' : 'Save Profile'}
               </Button>

@@ -1,22 +1,54 @@
-import React, { useState } from 'react';
-import { Button, Paper, Stack, TextField, Typography } from '@mui/material';
+import React, { useEffect, useState } from 'react';
+import { Alert, Button, Paper, Stack, Typography } from '@mui/material';
 import { Person } from '../../../shared/types';
+import {
+  PersonDetailsValidationErrors,
+  PersonDetailsFormValues,
+  createPersonDetailsValues,
+  toPersonPayload,
+  validatePersonDetails,
+} from '../hooks/personDetailsFormUtils';
+import PersonDetailsFormFields from './PersonDetailsFormFields';
 
 interface PersonFormProps {
   person?: Person;
-  onSave: (person: Omit<Person, 'id'>) => void;
+  onSave: (person: Omit<Person, 'id'>) => Promise<void>;
   onCancel: () => void;
+  saveLoading: boolean;
 }
 
-const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel }) => {
-  const [firstName, setFirstName] = useState(person?.firstName || '');
-  const [lastName, setLastName] = useState(person?.lastName || '');
+const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel, saveLoading }) => {
+  const [values, setValues] = useState<PersonDetailsFormValues>(() => createPersonDetailsValues(person));
+  const [validationErrors, setValidationErrors] = useState<PersonDetailsValidationErrors>({});
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    setValues(createPersonDetailsValues(person));
+    setValidationErrors({});
+    setSubmitError(null);
+  }, [person]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSave({ firstName, lastName });
-    setFirstName('');
-    setLastName('');
+    setSubmitError(null);
+
+    const nextValidationErrors = validatePersonDetails(values);
+    if (Object.keys(nextValidationErrors).length > 0) {
+      setValidationErrors(nextValidationErrors);
+      return;
+    }
+
+    setValidationErrors({});
+
+    try {
+      await onSave(toPersonPayload(values));
+      if (!person) {
+        setValues(createPersonDetailsValues());
+      }
+    } catch (error) {
+      const axiosError = error as { response?: { data?: { error?: string } } };
+      setSubmitError(axiosError.response?.data?.error ?? 'Failed to save person.');
+    }
   };
 
   return (
@@ -24,27 +56,20 @@ const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel }) => 
       <Typography variant="h6" gutterBottom>
         {person ? 'Edit Person' : 'Add New Person'}
       </Typography>
+      {submitError && <Alert severity="error" sx={{ mb: 2 }}>{submitError}</Alert>}
       <form onSubmit={handleSubmit}>
-        <Stack spacing={2}>
-          <TextField
-            label="First Name"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            required
-            fullWidth
-          />
-          <TextField
-            label="Last Name"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            required
-            fullWidth
+        <Stack spacing={2.5}>
+          <PersonDetailsFormFields
+            values={values}
+            onChange={setValues}
+            errors={validationErrors}
+            disabled={saveLoading}
           />
           <Stack direction="row" spacing={2}>
-            <Button type="submit" variant="contained" color="primary">
-              {person ? 'Update' : 'Add'}
+            <Button type="submit" variant="contained" color="primary" disabled={saveLoading}>
+              {saveLoading ? 'Saving...' : person ? 'Update' : 'Add'}
             </Button>
-            <Button variant="outlined" onClick={onCancel}>
+            <Button variant="outlined" onClick={onCancel} disabled={saveLoading}>
               Cancel
             </Button>
           </Stack>

@@ -22,6 +22,8 @@ Profile feature provides authenticated profile editing and password-management e
 ## Dependencies
 - `src/shared/api/personApi.ts`
 - `src/shared/types/`
+- `src/features/persons/components/PersonDetailsFormFields.tsx`
+- `src/features/persons/hooks/personDetailsFormUtils.ts`
 
 ## Source-of-truth note
 Cross-cutting frontend policy and quality-gate workflow are defined in `fotest-react/AGENTS.md`.

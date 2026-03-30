@@ -95,7 +95,7 @@ jest.mock('../features/transactions/components/TransactionsPage', () => ({
 
 jest.mock('../features/persons/components/PersonForm', () => ({
   __esModule: true,
-  default: ({ onSave, onCancel }: { onSave: (person: unknown) => void; onCancel: () => void }) => (
+  default: ({ onSave, onCancel }: { onSave: (person: unknown) => Promise<void>; onCancel: () => void }) => (
     <div>
       <button
         onClick={() =>
@@ -104,7 +104,6 @@ jest.mock('../features/persons/components/PersonForm', () => ({
             lastName: 'Person',
             dateOfBirth: MOCK_DOB,
             addresses: [],
-            password: 'Pass123!',
           })
         }
       >
@@ -150,7 +149,7 @@ jest.mock('../features/auth/components/RegisterPage', () => ({
 
 jest.mock('../features/profile/components/ProfilePage', () => ({
   __esModule: true,
-  default: ({ onSave, onChangePassword }: { onSave: (person: unknown) => void; onChangePassword: (c: string, n: string) => void }) => (
+  default: ({ onSave, onChangePassword }: { onSave: (person: unknown) => Promise<void>; onChangePassword: (c: string, n: string) => Promise<void> }) => (
     <div>
       <h2>Profile Page</h2>
       <button
@@ -160,13 +159,12 @@ jest.mock('../features/profile/components/ProfilePage', () => ({
             lastName: 'Doe',
             dateOfBirth: MOCK_DOB,
             addresses: [],
-            password: 'Secret!1',
           })
         }
       >
         Save Profile
       </button>
-      <button onClick={() => onChangePassword('old-password', 'new-password')}>Change Password</button>
+      <button onClick={() => void onChangePassword('old-password', 'new-password')}>Change Password</button>
     </div>
   ),
 }));

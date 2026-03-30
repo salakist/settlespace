@@ -8,12 +8,13 @@ import PersonList from './PersonList';
 type PersonsPageProps = {
   persons: Person[];
   loading: boolean;
+  saveLoading: boolean;
   error: string | null;
   showForm: boolean;
   editingPerson?: Person;
   onAdd: () => void;
   onSearch: (query: string) => void;
-  onSave: (person: Omit<Person, 'id'>) => void;
+  onSave: (person: Omit<Person, 'id'>) => Promise<void>;
   onCancel: () => void;
   onEdit: (person: Person) => void;
   onDelete: (id: string) => void;
@@ -22,6 +23,7 @@ type PersonsPageProps = {
 const PersonsPage: React.FC<PersonsPageProps> = ({
   persons,
   loading,
+  saveLoading,
   error,
   showForm,
   editingPerson,
@@ -43,7 +45,7 @@ const PersonsPage: React.FC<PersonsPageProps> = ({
     </Stack>
 
     {showForm && (
-      <PersonForm person={editingPerson} onSave={onSave} onCancel={onCancel} />
+      <PersonForm person={editingPerson} onSave={onSave} onCancel={onCancel} saveLoading={saveLoading} />
     )}
 
     {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
