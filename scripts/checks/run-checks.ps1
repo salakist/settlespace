@@ -1,4 +1,4 @@
-# scripts/run-checks.ps1
+# scripts/checks/run-checks.ps1
 #
 # Runs the changed-code quality gates used by agents and git hooks:
 #   1. C# build + analyzers, filtered to diagnostics in changed C# files
@@ -9,10 +9,10 @@
 
 $ErrorActionPreference = "Continue"
 
-$RepoRoot = Split-Path -Parent $PSScriptRoot
+$RepoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location $RepoRoot
 
-$LibRoot = Join-Path $PSScriptRoot "lib"
+$LibRoot = Join-Path $RepoRoot "scripts\lib"
 . (Join-Path $LibRoot "common.ps1")
 . (Join-Path $LibRoot "change-detection.ps1")
 . (Join-Path $LibRoot "coverage.ps1")
@@ -199,7 +199,7 @@ Write-Host ""
 if ($Failed) {
     Write-Host "=======================================================" -ForegroundColor Red
     Write-Host "  CHANGED-CODE CHECKS FAILED. Commit is blocked." -ForegroundColor Red
-    Write-Host "  Resolve the issues above, then re-run .\scripts\run-checks.ps1" -ForegroundColor Red
+    Write-Host "  Resolve the issues above, then re-run .\scripts\checks\run-checks.ps1" -ForegroundColor Red
     Write-Host "=======================================================" -ForegroundColor Red
     exit 1
 }

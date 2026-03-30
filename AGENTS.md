@@ -1,4 +1,4 @@
-﻿# AGENTS Index
+# AGENTS Index
 
 This repository uses nested AGENTS files so agents can load the narrowest relevant guidance first.
 
@@ -110,7 +110,7 @@ Checklist authority note:
 
 Workflow steps:
 1. Step 1 - Quality gate validation.
-  - Run `./scripts/run-checks-debug.ps1` and keep the log path.
+  - Run `./scripts/checks/run-checks-debug.ps1` and keep the log path.
   - Use full-base debug wrappers only when explicitly requested.
   - Never bypass hooks with `--no-verify`.
 2. Step 2 - Documentation alignment for the same change set.
@@ -136,4 +136,5 @@ Checklist acceptance rules:
 
 ## Purpose
 Maintain clear, hierarchical AGENTS guidance with minimal context noise for AI-assisted development.
+
 

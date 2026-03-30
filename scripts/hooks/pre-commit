@@ -12,13 +12,14 @@ if command -v pwsh >/dev/null 2>&1; then
 elif command -v powershell >/dev/null 2>&1; then
   POWERSHELL_BIN="powershell"
 else
-  echo "ERROR: PowerShell not found on PATH. scripts/run-checks.ps1 cannot be executed."
+  echo "ERROR: PowerShell not found on PATH. scripts/checks/run-checks.ps1 cannot be executed."
   exit 1
 fi
 
-if [ ! -f "scripts/run-checks.ps1" ]; then
-  echo "ERROR: scripts/run-checks.ps1 not found. Is this the fo-test repo root?"
+if [ ! -f "scripts/checks/run-checks.ps1" ]; then
+  echo "ERROR: scripts/checks/run-checks.ps1 not found. Is this the fo-test repo root?"
   exit 1
 fi
 
-"$POWERSHELL_BIN" -NoProfile -ExecutionPolicy Bypass -File "scripts/run-checks.ps1"
+"$POWERSHELL_BIN" -NoProfile -ExecutionPolicy Bypass -File "scripts/checks/run-checks.ps1"
+

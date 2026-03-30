@@ -1,4 +1,4 @@
-# scripts/cleanup-full.ps1
+# scripts/cleanup/cleanup-full.ps1
 #
 # Full cleanup for explicit destructive reset requests.
 # Removes light artifacts plus heavy caches and dependency directories.
@@ -10,7 +10,7 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
-$RepoRoot = Split-Path -Parent $PSScriptRoot
+$RepoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location $RepoRoot
 
 if (-not $Force) {
@@ -18,7 +18,7 @@ if (-not $Force) {
     exit 1
 }
 
-$LibRoot = Join-Path $PSScriptRoot 'lib'
+$LibRoot = Join-Path $RepoRoot 'scripts\lib'
 . (Join-Path $LibRoot 'common.ps1')
 . (Join-Path $LibRoot 'cleanup.ps1')
 

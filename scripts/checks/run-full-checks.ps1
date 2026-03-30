@@ -1,4 +1,4 @@
-# scripts/run-full-checks.ps1
+# scripts/checks/run-full-checks.ps1
 #
 # Runs the full-base quality gates across the repository:
 #   1. C# build + analyzers on the full solution
@@ -9,10 +9,10 @@
 
 $ErrorActionPreference = "Continue"
 
-$RepoRoot = Split-Path -Parent $PSScriptRoot
+$RepoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location $RepoRoot
 
-$LibRoot = Join-Path $PSScriptRoot "lib"
+$LibRoot = Join-Path $RepoRoot "scripts\lib"
 . (Join-Path $LibRoot "common.ps1")
 . (Join-Path $LibRoot "coverage.ps1")
 . (Join-Path $LibRoot "sonar.ps1")

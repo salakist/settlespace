@@ -1,10 +1,10 @@
-# scripts/run-full-checks-debug.ps1
+# scripts/checks/run-full-checks-debug.ps1
 #
-# Wrapper for scripts/run-full-checks.ps1 that always captures output to a timestamped log.
+# Wrapper for scripts/checks/run-full-checks.ps1 that always captures output to a timestamped log.
 
 $ErrorActionPreference = "Continue"
 
-$RepoRoot = Split-Path -Parent $PSScriptRoot
+$RepoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $LogDirectory = Join-Path $RepoRoot "artifacts\logs"
 $TimeStamp = Get-Date -Format "yyyyMMdd-HHmmss"
 $LogPath = Join-Path $LogDirectory "run-full-checks-$TimeStamp.log"

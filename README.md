@@ -233,16 +233,16 @@ Practical note: for a documentation-only commit, both workflow steps may be `SKI
 
 Two repository-level analysis modes are available:
 
-1. `scripts/run-checks.ps1`
+1. `scripts/checks/run-checks.ps1`
   - changed-code gate
   - base changed-code gate implementation (also used by git hooks)
-2. `scripts/run-full-checks.ps1`
+2. `scripts/checks/run-full-checks.ps1`
   - full-base gate
   - base full-base gate implementation
-3. `scripts/run-checks-debug.ps1`
+3. `scripts/checks/run-checks-debug.ps1`
   - changed-code gate with forced log capture
   - recommended entry point for automation and agent sessions
-4. `scripts/run-full-checks-debug.ps1`
+4. `scripts/checks/run-full-checks-debug.ps1`
   - full-base gate with forced log capture
   - recommended entry point for automation and agent sessions when full-base analysis is requested
     - optional Sonar parity step: provide `SONAR_SCANNER_ENABLED=1` and `SONAR_TOKEN` either in shell environment variables or in a repo-root `.env` file (see `.env.example`) to include local `sonar-scanner` analysis for frontend/scripts parity inside the full gate
@@ -289,26 +289,26 @@ Two repository-level analysis modes are available:
 ### Run the gates
 
 ```powershell
-.\scripts\run-checks-debug.ps1
-.\scripts\run-full-checks-debug.ps1
-.\scripts\run-checks.ps1
-.\scripts\run-full-checks.ps1
-.\scripts\setup-hooks.ps1
+.\scripts\checks\run-checks-debug.ps1
+.\scripts\checks\run-full-checks-debug.ps1
+.\scripts\checks\run-checks.ps1
+.\scripts\checks\run-full-checks.ps1
+.\scripts\setup\setup-hooks.ps1
 ```
 
 ### Cleanup workspace artifacts
 
-- `./scripts/cleanup.ps1`
+- `./scripts/cleanup/cleanup.ps1`
   - default light cleanup for routine use (including agent sessions)
   - removes lightweight generated outputs (coverage/build/test-artifacts)
   - preserves heavy dependency folders such as `node_modules/`
   - retains only the newest 2 gate logs in `artifacts/logs/`
-  - use `./scripts/cleanup.ps1 -DryRun` to preview planned removals without deleting anything
-- `./scripts/cleanup-full.ps1 -Force`
+  - use `./scripts/cleanup/cleanup.ps1 -DryRun` to preview planned removals without deleting anything
+- `./scripts/cleanup/cleanup-full.ps1 -Force`
   - explicit destructive cleanup for full workspace reset
   - removes heavy generated/cached outputs including `**/node_modules/`, `**/bin/`, `**/obj/`, `artifacts/`, `.vs/`, and `.scannerwork/`
   - run only when a full cleanup is explicitly required
-  - use `./scripts/cleanup-full.ps1 -Force -DryRun` to preview full-clean scope without deleting anything
+  - use `./scripts/cleanup/cleanup-full.ps1 -Force -DryRun` to preview full-clean scope without deleting anything
 
 ### Troubleshooting opaque gate output
 
@@ -317,8 +317,8 @@ If a terminal only shows an exit code and hides the gate failure details, these 
 They capture output to timestamped log files under `artifacts/logs/`.
 
 ```powershell
-.\scripts\run-checks-debug.ps1
-.\scripts\run-full-checks-debug.ps1
+.\scripts\checks\run-checks-debug.ps1
+.\scripts\checks\run-full-checks-debug.ps1
 ```
 
 ### Git hooks
@@ -390,8 +390,8 @@ npx eslint src --ext .ts,.tsx --max-warnings=0
 
 - Coverage targets production files under `fotest-react/src/`
 - Excluded from frontend coverage scope: `*.test.tsx`, `setupTests.ts`, `reportWebVitals.ts`, `index.tsx`, `react-app-env.d.ts`
-- Repository gate scripts (`scripts/run-checks.*`, `scripts/run-full-checks.*`) are the source of truth for frontend quality validation
-- Changed-code pre-commit validation stays local and fast via ESLint in `scripts/run-checks.*`; optional Sonar parity analysis belongs only to the full-base gate flow
+- Repository gate scripts (`scripts/checks/run-checks.*`, `scripts/checks/run-full-checks.*`) are the source of truth for frontend quality validation
+- Changed-code pre-commit validation stays local and fast via ESLint in `scripts/checks/run-checks.*`; optional Sonar parity analysis belongs only to the full-base gate flow
 
 ### Frontend test strategy
 
@@ -470,7 +470,7 @@ Frontend starts on `http://localhost:3000`.
 With the API running, you can populate persons and transactions with repeatable sample data.
 
 ```powershell
-.\scripts\seed-dev-data.ps1
+.\scripts\setup\seed-dev-data.ps1
 ```
 
 ---
@@ -674,3 +674,5 @@ Navigate to `http://localhost:5279/swagger` for interactive documentation.
   }
 }
 ```
+
+

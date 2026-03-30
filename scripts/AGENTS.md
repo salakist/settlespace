@@ -4,9 +4,9 @@
 Own repository quality-gate and hook automation scripts.
 
 ## Scope
-- `run-checks.ps1` - base changed-code gate implementation.
-- `run-full-checks.ps1` - base full-base gate implementation.
-- `run-checks-debug.ps1` - changed-code wrapper with mandatory log capture.
+- `checks/` - gate scripts (`run-checks.ps1`, `run-checks-debug.ps1`, `run-full-checks.ps1`, `run-full-checks-debug.ps1`).
+- `cleanup/` - cleanup scripts (`cleanup.ps1`, `cleanup-full.ps1`).
+- `setup/` - setup scripts (`setup-hooks.ps1`, `seed-dev-data.ps1`).
 - `run-full-checks-debug.ps1` - full-base wrapper with mandatory log capture.
 - `cleanup.ps1` - default light cleanup for routine artifact cleanup.
 - `cleanup-full.ps1` - explicit full cleanup for destructive repository reset.
@@ -19,8 +19,8 @@ Own repository quality-gate and hook automation scripts.
 
 ## Agent policy
 1. Quality gate execution is mandatory before commit/push unless Step 1 is validly `SKIPPED` under root `AGENTS.md` checklist rules.
-  1.1 Agents must run debug wrappers, not base gate scripts: `./scripts/run-checks-debug.ps1`.
-  1.2 Use `./scripts/run-full-checks-debug.ps1` only when full-base analysis is requested.
+  1.1 Agents must run debug wrappers, not base gate scripts: `./scripts/checks/run-checks-debug.ps1`.
+  1.2 Use `./scripts/checks/run-full-checks-debug.ps1` only when full-base analysis is requested.
   1.2.1 Optional SonarScanner parity analysis belongs only in the full-base gate flow, never in the changed-code pre-commit gate.
   1.2.2 Enable optional SonarScanner parity analysis only when `SONAR_SCANNER_ENABLED=1` (or `true`) and `SONAR_TOKEN` is available.
     - These values may be provided as environment variables in the calling shell or via a repo-root `.env` file loaded by `run-full-checks` scripts.
@@ -32,8 +32,8 @@ Own repository quality-gate and hook automation scripts.
     - If Sonar reports any duplication, print a warning summary with duplication metrics and top duplicated files.
   1.3 Git hooks should continue invoking base scripts (do not rewrite hooks to call debug wrappers by default).
   1.4 Never suggest bypassing hooks with `--no-verify`.
-  1.5 For cleanup tasks, agents must default to `./scripts/cleanup.ps1`.
-  1.6 Agents may run `./scripts/cleanup-full.ps1 -Force` only when the user explicitly requests full/destructive cleanup.
+  1.5 For cleanup tasks, agents must default to `./scripts/cleanup/cleanup.ps1`.
+  1.6 Agents may run `./scripts/cleanup/cleanup-full.ps1 -Force` only when the user explicitly requests full/destructive cleanup.
 2. After gates pass and before commit, documentation updates are mandatory for the same change set.
   2.1 Update only documentation relevant to the actual changes.
   2.2 Typical targets include module `AGENTS.md` files, route notes, behavior notes, and test guidance.
@@ -71,14 +71,16 @@ When editing any script in this folder:
 
 ## Commands
 ```powershell
-.\scripts\run-checks-debug.ps1
-.\scripts\run-full-checks-debug.ps1
-.\scripts\run-full-checks-debug.ps1   # optional Sonar parity: use shell env vars or repo-root .env
-.\scripts\cleanup.ps1
-.\scripts\cleanup.ps1 -DryRun
-.\scripts\cleanup-full.ps1 -Force
-.\scripts\cleanup-full.ps1 -Force -DryRun
-.\scripts\setup-hooks.ps1
-.\scripts\seed-dev-data.ps1
+.\scripts\checks\run-checks-debug.ps1
+.\scripts\checks\run-full-checks-debug.ps1
+.\scripts\checks\run-full-checks-debug.ps1   # optional Sonar parity: use shell env vars or repo-root .env
+.\scripts\cleanup\cleanup.ps1
+.\scripts\cleanup\cleanup.ps1 -DryRun
+.\scripts\cleanup\cleanup-full.ps1 -Force
+.\scripts\cleanup\cleanup-full.ps1 -Force -DryRun
+.\scripts\setup\setup-hooks.ps1
+.\scripts\setup\seed-dev-data.ps1
 cd scripts; npm install
 ```
+
+

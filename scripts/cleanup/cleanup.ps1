@@ -1,4 +1,4 @@
-# scripts/cleanup.ps1
+# scripts/cleanup/cleanup.ps1
 #
 # Light cleanup for routine agent/developer use.
 # Removes lightweight generated artifacts and keeps the newest gate logs.
@@ -10,10 +10,10 @@ param(
 
 $ErrorActionPreference = 'Continue'
 
-$RepoRoot = Split-Path -Parent $PSScriptRoot
+$RepoRoot = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 Set-Location $RepoRoot
 
-$LibRoot = Join-Path $PSScriptRoot 'lib'
+$LibRoot = Join-Path $RepoRoot 'scripts\lib'
 . (Join-Path $LibRoot 'common.ps1')
 . (Join-Path $LibRoot 'cleanup.ps1')
 

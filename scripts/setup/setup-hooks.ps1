@@ -1,10 +1,10 @@
-# scripts/setup-hooks.ps1
+# scripts/setup/setup-hooks.ps1
 #
 # Installs the git hooks from scripts/hooks/ into .git/hooks/.
 # Run once after cloning:
-#   .\scripts\setup-hooks.ps1
+#   .\scripts\setup\setup-hooks.ps1
 
-$RepoRoot    = Split-Path -Parent $PSScriptRoot
+$RepoRoot    = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $GitHooksDir = Join-Path $RepoRoot ".git\hooks"
 
 function Test-HookInstalled {
@@ -55,5 +55,5 @@ if (-not $hooksVerified) {
 Write-Host ""
 Write-Host "Changed-code quality gates will now run automatically before every commit."
 Write-Host "The installed pre-commit hook is a minimal shell launcher that invokes the PowerShell gate."
-Write-Host "To run changed-code checks manually: .\scripts\run-checks.ps1"
-Write-Host "To run full-base checks manually: .\scripts\run-full-checks.ps1"
+Write-Host "To run changed-code checks manually: .\scripts\checks\run-checks.ps1"
+Write-Host "To run full-base checks manually: .\scripts\checks\run-full-checks.ps1"
