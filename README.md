@@ -233,16 +233,16 @@ Practical note: for a documentation-only commit, both workflow steps may be `SKI
 
 Two repository-level analysis modes are available:
 
-1. `scripts/run-checks.ps1` / `scripts/run-checks.sh`
+1. `scripts/run-checks.ps1`
   - changed-code gate
   - base changed-code gate implementation (also used by git hooks)
-2. `scripts/run-full-checks.ps1` / `scripts/run-full-checks.sh`
+2. `scripts/run-full-checks.ps1`
   - full-base gate
   - base full-base gate implementation
-3. `scripts/run-checks-debug.ps1` / `scripts/run-checks-debug.sh`
+3. `scripts/run-checks-debug.ps1`
   - changed-code gate with forced log capture
   - recommended entry point for automation and agent sessions
-4. `scripts/run-full-checks-debug.ps1` / `scripts/run-full-checks-debug.sh`
+4. `scripts/run-full-checks-debug.ps1`
   - full-base gate with forced log capture
   - recommended entry point for automation and agent sessions when full-base analysis is requested
     - optional Sonar parity step: provide `SONAR_SCANNER_ENABLED=1` and `SONAR_TOKEN` either in shell environment variables or in a repo-root `.env` file (see `.env.example`) to include local `sonar-scanner` analysis for frontend/scripts parity inside the full gate
@@ -295,43 +295,28 @@ Two repository-level analysis modes are available:
 .\scripts\setup-hooks.ps1
 ```
 
-```bash
-sh scripts/run-checks-debug.sh
-sh scripts/run-full-checks-debug.sh
-sh scripts/run-checks.sh
-sh scripts/run-full-checks.sh
-sh scripts/setup-hooks.sh
-```
-
 ### Troubleshooting opaque gate output
 
 Use debug wrappers by default in automation and agent sessions.
 If a terminal only shows an exit code and hides the gate failure details, these wrappers preserve full output.
 They capture output to timestamped log files under `artifacts/logs/`.
 
+For script refactor work, the current PowerShell gate behavior baseline is recorded in `scripts/behavior-spec.md` and should be treated as the post-refactor validation checklist.
+
 ```powershell
 .\scripts\run-checks-debug.ps1
 .\scripts\run-full-checks-debug.ps1
 ```
 
-```bash
-sh scripts/run-checks-debug.sh
-sh scripts/run-full-checks-debug.sh
-```
-
 ### Git hooks
 
-- `pre-commit` calls the changed-code gate
+- `pre-commit` calls the changed-code gate through a minimal shell launcher that invokes PowerShell
 - Do not bypass the hooks with `--no-verify`
 
 ### Verify hook installation
 
 ```powershell
 Get-ChildItem .git\hooks\pre-commit
-```
-
-```bash
-ls -l .git/hooks/pre-commit
 ```
 
 If a hook is missing or does not match `scripts/hooks/`, re-run `setup-hooks`.
@@ -473,10 +458,6 @@ With the API running, you can populate persons and transactions with repeatable 
 
 ```powershell
 .\scripts\seed-dev-data.ps1
-```
-
-```bash
-sh scripts/seed-dev-data.sh
 ```
 
 ---

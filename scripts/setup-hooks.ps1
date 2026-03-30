@@ -54,5 +54,6 @@ if (-not $hooksVerified) {
 
 Write-Host ""
 Write-Host "Changed-code quality gates will now run automatically before every commit."
+Write-Host "The installed pre-commit hook is a minimal shell launcher that invokes the PowerShell gate."
 Write-Host "To run changed-code checks manually: .\scripts\run-checks.ps1"
 Write-Host "To run full-base checks manually: .\scripts\run-full-checks.ps1"

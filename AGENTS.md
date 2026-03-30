@@ -110,7 +110,7 @@ Checklist authority note:
 
 Workflow steps:
 1. Step 1 - Quality gate validation.
-  - Run `./scripts/run-checks-debug.ps1` (or `sh scripts/run-checks-debug.sh`) and keep the log path.
+  - Run `./scripts/run-checks-debug.ps1` and keep the log path.
   - Use full-base debug wrappers only when explicitly requested.
   - Never bypass hooks with `--no-verify`.
 2. Step 2 - Documentation alignment for the same change set.
@@ -126,7 +126,7 @@ Checklist output (required before `git commit`):
 Checklist acceptance rules:
 1. If a step is `SKIPPED`, include a one-line reason.
 2. Step 1 may be `SKIPPED` only when there are no production code changes since the latest successful Step 1 run, and the latest log path is provided.
-  - Production code changes means staged or unstaged edits in implementation source files under `FoTestApi.Domain/`, `FoTestApi.Infrastructure/`, `FoTestApi.Application/`, `fotest-react/src/`, and runtime quality-gate script code/config under `scripts/` (for example `*.ps1`, `*.sh`, `*.mjs`, `*.js`, `package.json`, `.eslintrc.json`), excluding test files and documentation-only changes.
+  - Production code changes means staged or unstaged edits in implementation source files under `FoTestApi.Domain/`, `FoTestApi.Infrastructure/`, `FoTestApi.Application/`, `fotest-react/src/`, and runtime quality-gate script code/config under `scripts/` (for example `*.ps1`, `hooks/pre-commit`, `*.mjs`, `*.js`, `package.json`, `.eslintrc.json`), excluding test files and documentation-only changes.
   - The latest successful Step 1 log path must be shown directly in the checklist output.
 3. Step 2 must always be reviewed at commit-time for the current staged diff. You may mark Step 2 as `SKIPPED` only as `No documentation changes required` and include a short reason tied to the staged changes.
 4. If either step is neither `DONE` nor validly `SKIPPED`, do not commit.

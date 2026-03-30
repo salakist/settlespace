@@ -1,15 +1,24 @@
 #!/bin/sh
 # scripts/hooks/pre-commit
 #
-# Git pre-commit hook.
-# Blocks commits when the changed-code quality gates fail.
+# Git pre-commit hook launcher.
+# Blocks commits when the changed-code PowerShell quality gate fails.
 
 REPO_ROOT="$(git rev-parse --show-toplevel)"
-cd "$REPO_ROOT"
+cd "$REPO_ROOT" || exit 1
 
-if [ ! -f "scripts/run-checks.sh" ]; then
-  echo "ERROR: scripts/run-checks.sh not found. Is this the fo-test repo root?"
+if command -v pwsh >/dev/null 2>&1; then
+  POWERSHELL_BIN="pwsh"
+elif command -v powershell >/dev/null 2>&1; then
+  POWERSHELL_BIN="powershell"
+else
+  echo "ERROR: PowerShell not found on PATH. scripts/run-checks.ps1 cannot be executed."
   exit 1
 fi
 
-sh scripts/run-checks.sh
+if [ ! -f "scripts/run-checks.ps1" ]; then
+  echo "ERROR: scripts/run-checks.ps1 not found. Is this the fo-test repo root?"
+  exit 1
+fi
+
+"$POWERSHELL_BIN" -NoProfile -ExecutionPolicy Bypass -File "scripts/run-checks.ps1"

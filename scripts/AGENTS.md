@@ -4,20 +4,22 @@
 Own repository quality-gate and hook automation scripts.
 
 ## Scope
-- `run-checks.ps1` / `run-checks.sh` - base changed-code gate implementations.
-- `run-full-checks.ps1` / `run-full-checks.sh` - base full-base gate implementations.
-- `run-checks-debug.ps1` / `run-checks-debug.sh` - changed-code wrappers with mandatory log capture.
-- `run-full-checks-debug.ps1` / `run-full-checks-debug.sh` - full-base wrappers with mandatory log capture.
-- `setup-hooks.ps1` / `setup-hooks.sh` - local git hook installation and refresh.
-- `seed-dev-data.ps1` / `seed-dev-data.sh` - manual local seed scripts for persons and transactions API data.
-- `hooks/` - hook source templates copied to `.git/hooks`.
+- `run-checks.ps1` - base changed-code gate implementation.
+- `run-full-checks.ps1` - base full-base gate implementation.
+- `run-checks-debug.ps1` - changed-code wrapper with mandatory log capture.
+- `run-full-checks-debug.ps1` - full-base wrapper with mandatory log capture.
+- `setup-hooks.ps1` - local git hook installation and refresh.
+- `seed-dev-data.ps1` - manual local seed script for persons and transactions API data.
+- `lib/` - shared PowerShell helper scripts used by the root entry points.
+- `hooks/` - hook source templates copied to `.git/hooks`; `hooks/pre-commit` remains a minimal shell launcher for Git compatibility and invokes PowerShell.
 - `check-coverage.mjs` - shared coverage evaluator for changed/full modes.
+- `behavior-spec.md` - current-behavior validation baseline for PowerShell gate scripts during refactor work.
 - `package.json` / `.eslintrc.json` - local repo-script lint configuration for Node JS/MJS files under `scripts/`.
 
 ## Agent policy
 1. Quality gate execution is mandatory before commit/push unless Step 1 is validly `SKIPPED` under root `AGENTS.md` checklist rules.
-  1.1 Agents must run debug wrappers, not base gate scripts: `./scripts/run-checks-debug.ps1` (or `sh scripts/run-checks-debug.sh`).
-  1.2 Use `./scripts/run-full-checks-debug.ps1` (or `sh scripts/run-full-checks-debug.sh`) only when full-base analysis is requested.
+  1.1 Agents must run debug wrappers, not base gate scripts: `./scripts/run-checks-debug.ps1`.
+  1.2 Use `./scripts/run-full-checks-debug.ps1` only when full-base analysis is requested.
   1.2.1 Optional SonarScanner parity analysis belongs only in the full-base gate flow, never in the changed-code pre-commit gate.
   1.2.2 Enable optional SonarScanner parity analysis only when `SONAR_SCANNER_ENABLED=1` (or `true`) and `SONAR_TOKEN` is available.
     - These values may be provided as environment variables in the calling shell or via a repo-root `.env` file loaded by `run-full-checks` scripts.
@@ -43,11 +45,6 @@ Own repository quality-gate and hook automation scripts.
 - Wrapper success/failure output must print the resolved log path.
 - Keep log naming stable (`run-checks-<timestamp>.log`, `run-full-checks-<timestamp>.log`).
 
-## Cross-platform parity
-- If a gate rule or threshold changes in one platform script, mirror it in the counterpart script.
-- Keep command semantics aligned between PowerShell and shell scripts.
-- Validate path handling for both Windows-style and POSIX-style environments.
-
 ## Gate intent
 - Changed-code gate enforces quality only on changed production scope.
 - Full-base gate enforces quality across the full production codebase.
@@ -62,11 +59,12 @@ Own repository quality-gate and hook automation scripts.
 
 ## Update checklist
 When editing any script in this folder:
-1. Update both PowerShell and shell implementations when applicable.
-2. Update related wrapper/help text if command behavior changes.
-3. Verify docs alignment in `AGENTS.md` and `README.md` if command usage changes.
-4. If `scripts/package.json` changes, refresh and commit `scripts/package-lock.json`.
-5. Run the changed-code debug wrapper before commit.
+1. Keep the PowerShell entry points authoritative; only the minimal `hooks/pre-commit` launcher remains shell-based.
+2. Update `behavior-spec.md` if observable PowerShell gate behavior changes.
+3. Update related wrapper/help text if command behavior changes.
+4. Verify docs alignment in `AGENTS.md` and `README.md` if command usage changes.
+5. If `scripts/package.json` changes, refresh and commit `scripts/package-lock.json`.
+6. Run the changed-code debug wrapper before commit.
 
 ## Commands
 ```powershell
@@ -74,13 +72,6 @@ When editing any script in this folder:
 .\scripts\run-full-checks-debug.ps1
 .\scripts\run-full-checks-debug.ps1   # optional Sonar parity: use shell env vars or repo-root .env
 .\scripts\setup-hooks.ps1
+.\scripts\seed-dev-data.ps1
 cd scripts; npm install
-```
-
-```bash
-sh scripts/run-checks-debug.sh
-sh scripts/run-full-checks-debug.sh
-SONAR_SCANNER_ENABLED=1 SONAR_TOKEN=... sh scripts/run-full-checks-debug.sh  # or set these in repo-root .env
-sh scripts/setup-hooks.sh
-cd scripts && npm install
 ```
