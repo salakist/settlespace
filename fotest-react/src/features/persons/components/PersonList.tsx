@@ -18,8 +18,11 @@ const PersonList: React.FC<PersonListProps> = ({ persons, onEdit, onDelete }) =>
         <Typography>No persons found.</Typography>
       ) : (
         <Stack spacing={2}>
-          {persons.map((person) => (
-            <Card key={person.id ?? `${person.firstName}-${person.lastName}`}>
+          {persons.map((person) => {
+            const personId = person.id;
+
+            return (
+            <Card key={personId ?? `${person.firstName}-${person.lastName}`}>
               <CardContent>
                 <Typography variant="subtitle1">
                   {person.firstName} {person.lastName}
@@ -29,14 +32,15 @@ const PersonList: React.FC<PersonListProps> = ({ persons, onEdit, onDelete }) =>
                 <Button size="small" onClick={() => onEdit(person)}>
                   Edit
                 </Button>
-                {person.id ? (
-                  <Button size="small" color="error" onClick={() => onDelete(person.id!)}>
+                {personId ? (
+                  <Button size="small" color="error" onClick={() => onDelete(personId)}>
                     Delete
                   </Button>
                 ) : null}
               </CardActions>
             </Card>
-          ))}
+            );
+          })}
         </Stack>
       )}
     </div>

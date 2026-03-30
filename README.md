@@ -245,6 +245,10 @@ Two repository-level analysis modes are available:
 4. `scripts/run-full-checks-debug.ps1` / `scripts/run-full-checks-debug.sh`
   - full-base gate with forced log capture
   - recommended entry point for automation and agent sessions when full-base analysis is requested
+    - optional Sonar parity step: provide `SONAR_SCANNER_ENABLED=1` and `SONAR_TOKEN` either in shell environment variables or in a repo-root `.env` file (see `.env.example`) to include local `sonar-scanner` analysis for frontend/scripts parity inside the full gate
+  - prerequisite: disable SonarCloud Automatic Analysis for the project before using the optional local `sonar-scanner` step
+  - the optional Sonar step waits for the remote SonarCloud quality gate result and fails the full-base gate if the analysis or quality gate fails
+  - on Sonar failure, the full gate now prints a compact summary of failing quality gate conditions, unresolved branch issues, or technical scanner errors instead of relying on raw scanner logs alone
 
 ### Changed-code gate
 
@@ -387,6 +391,7 @@ npx eslint src --ext .ts,.tsx --max-warnings=0
 - Coverage targets production files under `fotest-react/src/`
 - Excluded from frontend coverage scope: `*.test.tsx`, `setupTests.ts`, `reportWebVitals.ts`, `index.tsx`, `react-app-env.d.ts`
 - Repository gate scripts (`scripts/run-checks.*`, `scripts/run-full-checks.*`) are the source of truth for frontend quality validation
+- Changed-code pre-commit validation stays local and fast via ESLint in `scripts/run-checks.*`; optional Sonar parity analysis belongs only to the full-base gate flow
 
 ### Frontend test strategy
 

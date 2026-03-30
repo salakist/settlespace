@@ -24,6 +24,8 @@ Frontend module router for app-shell policy, shared frontend workflow, and featu
 - Frontend routing is URL-driven with React Router.
 - In agent sessions, run tests with `npm run test:ci` to avoid watch mode.
 - Frontend quality gates are executed from repository root scripts.
+- Frontend ESLint is the fast local pre-commit subset gate for React/TypeScript issues it can model directly.
+- Sonar-connected analysis is the parity layer for frontend and repo-script issue classes that ESLint does not fully reproduce.
 
 ## Commands
 - `npm install`

@@ -13,6 +13,22 @@ $RepoRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $RepoRoot
 
 $Failed = $false
+
+# Load .env from repo root if present.
+# Values in .env are only applied when the corresponding env var is not already set,
+# so an env var set in the calling shell always takes precedence.
+$dotEnvPath = Join-Path $RepoRoot ".env"
+if (Test-Path $dotEnvPath) {
+    foreach ($line in Get-Content $dotEnvPath) {
+        if ($line -match '^\s*([A-Za-z_][A-Za-z0-9_]*)=(.*)$') {
+            $key   = $Matches[1]
+            $value = $Matches[2]
+            if (-not (Get-Item -Path "Env:$key" -ErrorAction SilentlyContinue)) {
+                Set-Item -Path "Env:$key" -Value $value
+            }
+        }
+    }
+}
 $CoverageRoot = Join-Path $RepoRoot "artifacts\coverage\full"
 $CSharpCoverageRoot = Join-Path $CoverageRoot "csharp"
 $ReactCoverageRoot = Join-Path $CoverageRoot "react"
@@ -33,6 +49,115 @@ function Invoke-CSharpCoverage([string]$ProjectPath, [string]$OutputPrefix) {
         /p:CoverletOutputFormat=json `
         /p:CoverletOutput=$OutputPrefix | Out-Host
     return $LASTEXITCODE
+}
+
+function Get-SonarProjectProperty([string]$PropertyName) {
+    $configPath = Join-Path $RepoRoot "sonar-project.properties"
+    if (-not (Test-Path $configPath)) {
+        return $null
+    }
+
+    foreach ($line in Get-Content $configPath) {
+        if ($line -match '^\s*([^=]+)=(.*)$' -and $Matches[1].Trim() -eq $PropertyName) {
+            return $Matches[2].Trim()
+        }
+    }
+
+    return $null
+}
+
+function Get-GitBranchName {
+    $branchName = git rev-parse --abbrev-ref HEAD 2>$null
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($branchName) -or $branchName -eq 'HEAD') {
+        return $null
+    }
+
+    return $branchName.Trim()
+}
+
+function Get-SonarAuthHeader([string]$Token) {
+    $encoded = [Convert]::ToBase64String([Text.Encoding]::ASCII.GetBytes("${Token}:"))
+    return @{ Authorization = "Basic $encoded" }
+}
+
+function Show-SonarTechnicalErrors([string[]]$ScannerLines) {
+    Write-Host "[info] Sonar technical error summary:" -ForegroundColor Yellow
+    $errorLines = @($ScannerLines | Where-Object {
+        $_ -match 'ERROR|EXECUTION FAILURE|HttpException|Caused by:|QUALITY GATE STATUS'
+    })
+
+    if ($errorLines.Count -eq 0) {
+        $errorLines = @($ScannerLines | Select-Object -Last 20)
+    }
+
+    $errorLines | Select-Object -First 25 | ForEach-Object {
+        Write-Host "  $_" -ForegroundColor Yellow
+    }
+}
+
+function Show-SonarQualityGateSummary([string]$ProjectKey, [string]$BranchName, [string]$Token) {
+    if ([string]::IsNullOrWhiteSpace($ProjectKey)) {
+        return
+    }
+
+    $uri = "https://sonarcloud.io/api/qualitygates/project_status?projectKey=$([Uri]::EscapeDataString($ProjectKey))"
+    if (-not [string]::IsNullOrWhiteSpace($BranchName)) {
+        $uri += "&branch=$([Uri]::EscapeDataString($BranchName))"
+    }
+
+    try {
+        $response = Invoke-RestMethod -Method Get -Uri $uri -Headers (Get-SonarAuthHeader $Token)
+        $projectStatus = $response.projectStatus
+        Write-Host ("[info] Sonar quality gate status: {0}" -f $projectStatus.status) -ForegroundColor Yellow
+
+        $failingConditions = @($projectStatus.conditions | Where-Object { $_.status -eq 'ERROR' })
+        if ($failingConditions.Count -eq 0) {
+            Write-Host "[info] No failing quality gate conditions were returned by the API." -ForegroundColor Yellow
+            return
+        }
+
+        Write-Host "[info] Failing quality gate conditions:" -ForegroundColor Yellow
+        $failingConditions | ForEach-Object {
+            Write-Host ("  - {0}: actual={1}, threshold={2}, comparator={3}" -f $_.metricKey, $_.actualValue, $_.errorThreshold, $_.comparator) -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host ("[warn] Unable to fetch Sonar quality gate summary: {0}" -f $_.Exception.Message) -ForegroundColor Yellow
+    }
+}
+
+function Show-SonarIssueSummary([string]$ProjectKey, [string]$BranchName, [string]$Token) {
+    if ([string]::IsNullOrWhiteSpace($ProjectKey)) {
+        return
+    }
+
+    $uri = "https://sonarcloud.io/api/issues/search?componentKeys=$([Uri]::EscapeDataString($ProjectKey))&resolved=false&ps=20&p=1&s=FILE_LINE"
+    if (-not [string]::IsNullOrWhiteSpace($BranchName)) {
+        $uri += "&branch=$([Uri]::EscapeDataString($BranchName))"
+    }
+
+    try {
+        $response = Invoke-RestMethod -Method Get -Uri $uri -Headers (Get-SonarAuthHeader $Token)
+        $issues = @($response.issues)
+        Write-Host ("[info] Sonar unresolved issues on analyzed branch: {0}" -f $response.total) -ForegroundColor Yellow
+
+        if ($issues.Count -eq 0) {
+            Write-Host "[info] No unresolved issues were returned by the API." -ForegroundColor Yellow
+            return
+        }
+
+        $issues | ForEach-Object {
+            $componentPath = if ($_.component -match '^[^:]+:(.+)$') { $Matches[1] } else { $_.component }
+            $line = if ($null -ne $_.line) { $_.line } else { '?' }
+            $message = ($_.message -replace '\s+', ' ').Trim()
+            Write-Host ("  - [{0}/{1}] {2}:{3} {4} ({5})" -f $_.type, $_.severity, $componentPath, $line, $message, $_.rule) -ForegroundColor Yellow
+        }
+
+        if ($response.total -gt $issues.Count) {
+            Write-Host ("[info] ... and {0} more unresolved issue(s)." -f ($response.total - $issues.Count)) -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host ("[warn] Unable to fetch Sonar issue summary: {0}" -f $_.Exception.Message) -ForegroundColor Yellow
+    }
 }
 
 if (Test-Path $CoverageRoot) {
@@ -108,7 +233,7 @@ if ($LASTEXITCODE -ne 0) {
 Write-Header "[5/5] React/TS full-base coverage (threshold: 80%)"
 Set-Location "$RepoRoot\fotest-react"
 $env:CI = "true"
-npm test -- --coverage --coverageReporters=json-summary --watchAll=false --runInBand
+npm test -- --coverage --coverageReporters=json-summary --coverageReporters=lcov --watchAll=false --runInBand
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
     Write-Host "[FAIL] React/TS tests failed before full-base coverage evaluation." -ForegroundColor Red
@@ -130,6 +255,49 @@ if ($LASTEXITCODE -ne 0) {
     }
 }
 Remove-Item Env:CI -ErrorAction SilentlyContinue
+
+$runSonarScanner = $env:SONAR_SCANNER_ENABLED -eq "1" -or $env:SONAR_SCANNER_ENABLED -eq "true"
+if ($runSonarScanner) {
+    Write-Header "[optional] SonarScanner parity analysis"
+    Set-Location $RepoRoot
+
+    if (-not (Get-Command "sonar-scanner" -ErrorAction SilentlyContinue)) {
+        Write-Host "[FAIL] SONAR_SCANNER_ENABLED is set, but sonar-scanner is not available on PATH." -ForegroundColor Red
+        $Failed = $true
+    } elseif (-not $env:SONAR_TOKEN) {
+        Write-Host "[FAIL] SONAR_SCANNER_ENABLED is set, but SONAR_TOKEN is missing." -ForegroundColor Red
+        $Failed = $true
+    } else {
+        $projectKey = Get-SonarProjectProperty "sonar.projectKey"
+        $branchName = Get-GitBranchName
+        $sonarArgs = @(
+            "--define",
+            "sonar.token=$($env:SONAR_TOKEN)",
+            "--define",
+            "sonar.qualitygate.wait=true",
+            "--define",
+            "sonar.qualitygate.timeout=300"
+        )
+
+        $scannerLines = @(& sonar-scanner @sonarArgs 2>&1)
+        $scannerExitCode = $LASTEXITCODE
+
+        if ($scannerExitCode -ne 0) {
+            $scannerText = ($scannerLines -join "`n")
+            if ($scannerText -match 'QUALITY GATE STATUS:\s*FAILED') {
+                Show-SonarQualityGateSummary -ProjectKey $projectKey -BranchName $branchName -Token $env:SONAR_TOKEN
+                Show-SonarIssueSummary -ProjectKey $projectKey -BranchName $branchName -Token $env:SONAR_TOKEN
+            } else {
+                Show-SonarTechnicalErrors -ScannerLines $scannerLines
+            }
+
+            Write-Host "[FAIL] Optional SonarScanner parity analysis failed." -ForegroundColor Red
+            $Failed = $true
+        } else {
+            Write-Host "[PASS] Optional SonarScanner parity analysis passed." -ForegroundColor Green
+        }
+    }
+}
 
 Set-Location $RepoRoot
 Write-Host ""

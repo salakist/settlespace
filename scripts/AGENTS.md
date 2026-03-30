@@ -18,6 +18,12 @@ Own repository quality-gate and hook automation scripts.
 1. Quality gate execution is mandatory before commit/push unless Step 1 is validly `SKIPPED` under root `AGENTS.md` checklist rules.
   1.1 Agents must run debug wrappers, not base gate scripts: `./scripts/run-checks-debug.ps1` (or `sh scripts/run-checks-debug.sh`).
   1.2 Use `./scripts/run-full-checks-debug.ps1` (or `sh scripts/run-full-checks-debug.sh`) only when full-base analysis is requested.
+  1.2.1 Optional SonarScanner parity analysis belongs only in the full-base gate flow, never in the changed-code pre-commit gate.
+  1.2.2 Enable optional SonarScanner parity analysis only when `SONAR_SCANNER_ENABLED=1` (or `true`) and `SONAR_TOKEN` is available.
+    - These values may be provided as environment variables in the calling shell or via a repo-root `.env` file loaded by `run-full-checks` scripts.
+  1.2.3 Optional SonarScanner parity analysis requires SonarCloud Automatic Analysis to be disabled for the bound project.
+  1.2.4 Optional SonarScanner parity analysis must wait for the remote quality gate result and fail the full-base gate when SonarCloud reports a failed analysis or failed quality gate.
+  1.2.5 On Sonar failure, scripts should print a compact issue or technical-error summary that is directly actionable in agent sessions.
   1.3 Git hooks should continue invoking base scripts (do not rewrite hooks to call debug wrappers by default).
   1.4 Never suggest bypassing hooks with `--no-verify`.
 2. After gates pass and before commit, documentation updates are mandatory for the same change set.
@@ -49,6 +55,7 @@ Own repository quality-gate and hook automation scripts.
 ## Local prerequisites
 - Repo-script lint track depends on `scripts/package.json` dev dependencies.
 - Ensure `cd scripts && npm install` has been run on developer machines before running quality gates.
+- Optional Sonar parity can be configured in a repo-root `.env` file (`SONAR_SCANNER_ENABLED`, `SONAR_TOKEN`) to avoid setting variables manually each run.
 
 ## Update checklist
 When editing any script in this folder:
@@ -62,6 +69,7 @@ When editing any script in this folder:
 ```powershell
 .\scripts\run-checks-debug.ps1
 .\scripts\run-full-checks-debug.ps1
+.\scripts\run-full-checks-debug.ps1   # optional Sonar parity: use shell env vars or repo-root .env
 .\scripts\setup-hooks.ps1
 cd scripts; npm install
 ```
@@ -69,6 +77,7 @@ cd scripts; npm install
 ```bash
 sh scripts/run-checks-debug.sh
 sh scripts/run-full-checks-debug.sh
+SONAR_SCANNER_ENABLED=1 SONAR_TOKEN=... sh scripts/run-full-checks-debug.sh  # or set these in repo-root .env
 sh scripts/setup-hooks.sh
 cd scripts && npm install
 ```

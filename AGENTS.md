@@ -1,4 +1,4 @@
-# AGENTS Index
+﻿# AGENTS Index
 
 This repository uses nested AGENTS files so agents can load the narrowest relevant guidance first.
 
@@ -63,13 +63,17 @@ FoTestApi.sln
 - Shared dependency outputs: `**/node_modules/`.
 - Repository quality-gate outputs: `artifacts/` including `artifacts/logs/` and `artifacts/coverage/`.
 - Test-project local artifacts: `Tests/**/artifacts/`.
+- SonarScanner working directory: `.scannerwork/`.
+- Local secrets file: `.env` (git-ignored, hidden from VS Code search).
 
 ## Gitignore ownership
 - Root `.gitignore` is authoritative for shared repository patterns and cross-project generated outputs.
 - Subproject `.gitignore` files keep only stack-specific or standalone-use rules not intended to be centralized.
 
+## Agent Rules
+- Agents must not read from `.env` files to ensure sensitive information is protected.
+
 ## When to add deeper nesting
-Create a new child `AGENTS.md` only when at least one rule is true:
 1. The parent AGENTS mixes two or more business contexts.
 2. The file mixes cross-cutting policy and implementation behavior.
 3. Agents repeatedly need to open unrelated sections to complete common tasks.
@@ -132,3 +136,4 @@ Checklist acceptance rules:
 
 ## Purpose
 Maintain clear, hierarchical AGENTS guidance with minimal context noise for AI-assisted development.
+

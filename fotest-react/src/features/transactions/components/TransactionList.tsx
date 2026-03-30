@@ -25,8 +25,11 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, persons
 
   return (
     <Stack spacing={2}>
-      {transactions.map((transaction) => (
-        <Card key={transaction.id} variant="outlined">
+      {transactions.map((transaction) => {
+        const transactionId = transaction.id;
+
+        return (
+        <Card key={transactionId} variant="outlined">
           <CardContent>
             <Stack spacing={1.5}>
               <Stack direction="row" justifyContent="space-between" alignItems="center">
@@ -49,14 +52,15 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, persons
 
               <Stack direction="row" spacing={1}>
                 <Button size="small" variant="outlined" onClick={() => onEdit(transaction)}>Edit</Button>
-                {transaction.id && (
-                  <Button size="small" variant="outlined" color="secondary" onClick={() => onDelete(transaction.id!)}>Delete</Button>
+                {transactionId && (
+                  <Button size="small" variant="outlined" color="secondary" onClick={() => onDelete(transactionId)}>Delete</Button>
                 )}
               </Stack>
             </Stack>
           </CardContent>
         </Card>
-      ))}
+        );
+      })}
     </Stack>
   );
 };

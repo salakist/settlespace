@@ -5,11 +5,22 @@
     "plugin:sonarjs/recommended"
   ],
   "plugins": [
-    "sonarjs"
+    "sonarjs",
+    "@typescript-eslint"
   ],
   "rules": {
+    "no-nested-ternary": "error",
+    "@typescript-eslint/no-non-null-assertion": "error",
     "sonarjs/cognitive-complexity": ["warn", 15],
     "sonarjs/no-duplicate-string": ["warn", { "minimumRepetitions": 3 }],
     "sonarjs/no-identical-functions": "error"
-  }
+  },
+  "overrides": [
+    {
+      "files": ["src/**/*.test.ts", "src/**/*.test.tsx"],
+      "rules": {
+        "@typescript-eslint/no-non-null-assertion": "off"
+      }
+    }
+  ]
 }

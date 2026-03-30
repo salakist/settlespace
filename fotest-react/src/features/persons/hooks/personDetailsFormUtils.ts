@@ -60,7 +60,7 @@ function sanitizeAddress(address: Address): Address {
 
 function isAddressEmpty(address: Address): boolean {
   const sanitized = sanitizeAddress(address);
-  return !Object.values(sanitized).some((value) => value);
+  return !Object.values(sanitized).some(Boolean);
 }
 
 export function sanitizeAddresses(addresses: Address[]): Address[] {

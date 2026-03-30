@@ -179,7 +179,7 @@ function stripComments(value) {
     (currentState, current, next, index, currentResult) => consumeEscapableLiteral(currentState, current, index, currentResult, "inChar", "'"),
   ];
 
-  for (let index = 0; index < value.length; index += 1) {
+  for (let index = 0; index < value.length;) {
     const current = value[index];
     const next = value[index + 1] ?? "";
 
@@ -193,17 +193,18 @@ function stripComments(value) {
     }
 
     if (handledIndex !== null) {
-      index = handledIndex;
+      index = handledIndex + 1;
       continue;
     }
 
     const tokenIndex = startToken(state, current, next, index, result);
     if (tokenIndex !== null) {
-      index = tokenIndex;
+      index = tokenIndex + 1;
       continue;
     }
 
     appendCodeCharacter(current, result);
+    index += 1;
   }
 
   return result.join("").trim();

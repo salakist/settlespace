@@ -21,6 +21,12 @@ const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel, saveL
   const [values, setValues] = useState<PersonDetailsFormValues>(() => createPersonDetailsValues(person));
   const [validationErrors, setValidationErrors] = useState<PersonDetailsValidationErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
+  let submitLabel = 'Add';
+  if (saveLoading) {
+    submitLabel = 'Saving...';
+  } else if (person) {
+    submitLabel = 'Update';
+  }
 
   useEffect(() => {
     setValues(createPersonDetailsValues(person));
@@ -67,7 +73,7 @@ const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel, saveL
           />
           <Stack direction="row" spacing={2}>
             <Button type="submit" variant="contained" color="primary" disabled={saveLoading}>
-              {saveLoading ? 'Saving...' : person ? 'Update' : 'Add'}
+              {submitLabel}
             </Button>
             <Button variant="outlined" onClick={onCancel} disabled={saveLoading}>
               Cancel
