@@ -15,7 +15,7 @@ Own repository quality-gate and hook automation scripts.
 - `package.json` / `.eslintrc.json` - local repo-script lint configuration for Node JS/MJS files under `scripts/`.
 
 ## Agent policy
-1. Quality gate execution is mandatory before commit/push.
+1. Quality gate execution is mandatory before commit/push unless Step 1 is validly `SKIPPED` under root `AGENTS.md` checklist rules.
   1.1 Agents must run debug wrappers, not base gate scripts: `./scripts/run-checks-debug.ps1` (or `sh scripts/run-checks-debug.sh`).
   1.2 Use `./scripts/run-full-checks-debug.ps1` (or `sh scripts/run-full-checks-debug.sh`) only when full-base analysis is requested.
   1.3 Git hooks should continue invoking base scripts (do not rewrite hooks to call debug wrappers by default).
@@ -23,12 +23,9 @@ Own repository quality-gate and hook automation scripts.
 2. After gates pass and before commit, documentation updates are mandatory for the same change set.
   2.1 Update only documentation relevant to the actual changes.
   2.2 Typical targets include module `AGENTS.md` files, route notes, behavior notes, and test guidance.
-3. Every commit attempt must include an explicit 2-step checklist summary.
-  3.1 Step 1 status must be `DONE` or `SKIPPED` with reason.
-  3.2 Step 2 status must be `DONE` or `SKIPPED` with reason.
-  3.3 Step 1 may be skipped only if no production code changed since last successful changed-code debug gate run; include the last log path.
-  3.4 Step 2 must still be reviewed against staged changes at commit-time; `SKIPPED` is only valid as `No documentation changes required` with a short staged-diff justification.
-  3.5 If a step has no valid status/reason, do not run `git commit`.
+3. Every commit attempt must include the mandatory 2-step checklist defined in root `AGENTS.md`.
+  3.1 Do not redefine checklist acceptance rules in this file.
+  3.2 If script behavior changes impact commit workflow, update root `AGENTS.md` checklist policy first.
 
 ## Logging rules
 - Debug wrappers must write timestamped logs to `artifacts/logs/`.

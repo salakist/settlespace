@@ -42,3 +42,9 @@ Unit test project for the Domain layer. Tests pure business logic with no mockin
 ## Dependencies
 - `xunit`, `Moq`
 - Project reference: `FoTestApi.Domain`
+
+## Source-of-truth note
+Domain context behavior under test is documented in:
+- `FoTestApi.Domain/Auth/AGENTS.md`
+- `FoTestApi.Domain/Persons/AGENTS.md`
+- `FoTestApi.Domain/Transactions/AGENTS.md`

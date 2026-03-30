@@ -34,3 +34,8 @@ Unit test project for the Infrastructure layer. Tests `PersonRepository` without
 ## Dependencies
 - `xunit`, `Moq`, `MongoDB.Driver`
 - Project references: `FoTestApi.Domain`, `FoTestApi.Infrastructure`
+
+## Source-of-truth note
+Infrastructure context behavior under test is documented in:
+- `FoTestApi.Infrastructure/Persons/AGENTS.md`
+- `FoTestApi.Infrastructure/Transactions/AGENTS.md`

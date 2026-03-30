@@ -1,55 +1,39 @@
 # FoTestApi.Infrastructure AGENTS Metadata
 
 ## Role
-Infrastructure layer — owns all MongoDB persistence concerns.
-Implements the `IPersonRepository` interface defined in the Domain project.
-
-## Folder structure
-Infrastructure uses context-first folders for repositories:
-- `Persons/` — person persistence
-- `Transactions/` — transaction persistence
-
-Shared technical concerns remain at layer scope (for example `Serialization/` and `FoTestDatabaseSettings.cs`).
+Infrastructure layer router for persistence implementation and shared serialization concerns.
 
 ## Responsibilities
-- Implement `PersonRepository` against MongoDB
-- Implement `TransactionRepository` against MongoDB in a dedicated `transactions` collection
-- Register `BsonClassMap` for `Person` and `Address` (keeping Domain persistence-agnostic)
-- Register `BsonClassMap` for `Transaction` and `TransactionStatus`
-- Serialize `DateOnly` as ISO `YYYY-MM-DD` strings in MongoDB
-- Hold `FoTestDatabaseSettings` configuration model
-- Provide case-insensitive search and full-name duplicate detection via regex
-- Expose an `internal` test constructor on `PersonRepository` for unit testing without a live database
+- Keep layer-wide persistence conventions and testability strategy.
+- Route repository behavior to context AGENTS files.
+- Keep shared serialization/settings guidance at layer scope unless it grows enough to require its own child AGENTS.
 
-## Key files
-- `Persons/PersonRepository.cs` — MongoDB implementation of `IPersonRepository`
-- `Transactions/TransactionRepository.cs` — MongoDB implementation of `ITransactionRepository`
-- `Serialization/DateOnlyAsStringSerializer.cs` — DateOnly BSON serializer used by repository class maps
-- `FoTestDatabaseSettings.cs` — connection string, database name, and collection names config
+## Context AGENTS
+- `Persons/AGENTS.md` - person repository behavior and query patterns.
+- `Transactions/AGENTS.md` - transaction repository behavior and query patterns.
 
-## Testability
-- `PersonRepository` has an `internal PersonRepository(IMongoCollection<Person>)` constructor
-- `FoTestApi.Infrastructure.Tests` is listed in `InternalsVisibleTo` so tests can inject a mock collection
-- Tests mock `IMongoCollection<T>` and `IAsyncCursor<T>` — no live MongoDB required
-
-## Dependency direction
-- References: `FoTestApi.Domain`
-- Must NOT be referenced by `FoTestApi.Domain`
+## Shared layer files
+- `Serialization/DateOnlyAsStringSerializer.cs`
+- `FoTestDatabaseSettings.cs`
 
 ## Commands
 - `dotnet build FoTestApi.Infrastructure/FoTestApi.Infrastructure.csproj`
-- `dotnet test FoTestApi.Infrastructure.Tests/FoTestApi.Infrastructure.Tests.csproj`
+- `dotnet test Tests/FoTestApi.Infrastructure.Tests/FoTestApi.Infrastructure.Tests.csproj`
 
 ## Build/Test Artifact Inventory
-- Common .NET build outputs in this module: `FoTestApi.Infrastructure/bin/` and `FoTestApi.Infrastructure/obj/`.
-- Related test-project outputs: `Tests/FoTestApi.Infrastructure.Tests/bin/`, `Tests/FoTestApi.Infrastructure.Tests/obj/`, and `Tests/FoTestApi.Infrastructure.Tests/artifacts/`.
-- Repository quality-gate logs and coverage aggregates: `artifacts/logs/` and `artifacts/coverage/`.
+- Module build outputs: `FoTestApi.Infrastructure/bin/` and `FoTestApi.Infrastructure/obj/`.
+- Related test artifacts: `Tests/FoTestApi.Infrastructure.Tests/bin/`, `Tests/FoTestApi.Infrastructure.Tests/obj/`, `Tests/FoTestApi.Infrastructure.Tests/artifacts/`.
+- Repository quality-gate outputs: `artifacts/logs/` and `artifacts/coverage/`.
 
 ## Gitignore ownership
-- Root `.gitignore` is authoritative for shared artifacts (`bin/`, `obj/`, `node_modules/`, generic logs, repository `artifacts/`, and `Tests/**/artifacts/`).
-- Infrastructure has no module-local `.gitignore`; keep shared patterns managed at repository root.
-- For artifact read/cleanup requests, inspect module outputs plus the related Infrastructure test-project artifact paths.
+- Root `.gitignore` is authoritative for shared artifacts.
+- Infrastructure has no module-local `.gitignore`.
 
-## NuGet packages
+## Dependencies
 - `MongoDB.Driver`
 - `Microsoft.Extensions.Options`
+- Reference to `FoTestApi.Domain`
+
+## Source-of-truth note
+Global repo policy is in root `AGENTS.md`. Context behavior is in nearest child AGENTS file.
+Mandatory commit checklist acceptance rules are defined only in root `AGENTS.md`.

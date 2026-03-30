@@ -78,3 +78,10 @@ Unit test project for the Application layer. Tests `PersonApplicationService`, `
 ## Dependencies
 - `xunit`, `Moq`
 - Project references: `FoTestApi.Domain`, `FoTestApi.Application`
+
+## Source-of-truth note
+Application context behavior under test is documented in:
+- `FoTestApi.Application/Authentication/AGENTS.md`
+- `FoTestApi.Application/Persons/AGENTS.md`
+- `FoTestApi.Application/Transactions/AGENTS.md`
+- `FoTestApi.Application/Middleware/AGENTS.md`

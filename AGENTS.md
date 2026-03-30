@@ -1,142 +1,131 @@
 # AGENTS Index
 
-This repository defines nested agent metadata to describe project-level and sub-project agent responsibilities.
+This repository uses nested AGENTS files so agents can load the narrowest relevant guidance first.
 
 ## Solution structure
 
 ```
 FoTestApi.sln
-├── FoTestApi.Domain/               — domain layer organized by context (Auth, Persons, Transactions)
-├── FoTestApi.Infrastructure/       — infrastructure layer organized by context (Persons, Transactions) + shared tech folders
-├── FoTestApi.Application/          — application layer organized by context (Authentication, Persons, Transactions)
-├── Tests/
-│   ├── FoTestApi.Domain.Tests/         — mirrors Domain context/function structure
-│   ├── FoTestApi.Infrastructure.Tests/ — mirrors Infrastructure context/function structure
-│   └── FoTestApi.Application.Tests/    — mirrors Application context/function structure
-└── fotest-react/                   — frontend SPA (React + TypeScript + Material UI)
++-- FoTestApi.Domain/
++-- FoTestApi.Infrastructure/
++-- FoTestApi.Application/
++-- Tests/
++-- fotest-react/
 ```
+
+## Routing model
+- Root `AGENTS.md` is the global index and policy router.
+- Layer or app-level `AGENTS.md` files are module routers.
+- Context and feature `AGENTS.md` files are the primary source for implementation behavior.
+- When guidance overlaps, the most specific AGENTS in the path is authoritative.
 
 ## Folder architecture policy
 - Backend production layers use `Layer/Context/Function` organization.
 - A function subfolder is used only when the context contains multiple function groups.
 - If a context would contain only one function subfolder, flatten it and place files directly under the context.
-- Exceptions are treated as a function group and should use an `Exceptions/` subfolder when a context has multiple function groups.
-- Domain entity class names must not use an `Entity` suffix (for example use `Person`, not `PersonEntity`).
-- Test projects must mirror the folder structure of their associated production layer.
+- Test projects mirror the folder structure of their associated production layer.
+- Domain entity class names must not use an `Entity` suffix.
 
-## Sub-agent files
-- `FoTestApi.Domain/AGENTS.md` — domain rules, entities, exceptions, domain service interface
-- `FoTestApi.Infrastructure/AGENTS.md` — MongoDB persistence, BsonClassMap configuration
-- `FoTestApi.Application/AGENTS.md` — application service, commands, REST controllers
-- `fotest-react/AGENTS.md` — frontend SPA implementation and UI behavior
-- `scripts/AGENTS.md` — gate scripts, debug wrappers, hooks, and coverage automation policy
-- `Tests/FoTestApi.Domain.Tests/AGENTS.md` — domain test scope and strategy
-- `Tests/FoTestApi.Infrastructure.Tests/AGENTS.md` — infrastructure repository test scope and strategy
-- `Tests/FoTestApi.Application.Tests/AGENTS.md` — application/controller/auth/middleware test scope and strategy
+## AGENTS file map
 
-## Documentation source of truth
-- Repository architecture and commit workflow policy: this file (`AGENTS.md`).
-- Gate script behavior, wrappers, and logging policy: `scripts/AGENTS.md`.
-- User-facing setup/runbook and API usage examples: `README.md`.
-- Module-specific behavior and testing details: each module `AGENTS.md`.
+### Root and module routers
+- `AGENTS.md`
+- `FoTestApi.Application/AGENTS.md`
+- `FoTestApi.Domain/AGENTS.md`
+- `FoTestApi.Infrastructure/AGENTS.md`
+- `fotest-react/AGENTS.md`
+- `scripts/AGENTS.md`
+- `Tests/FoTestApi.Application.Tests/AGENTS.md`
+- `Tests/FoTestApi.Domain.Tests/AGENTS.md`
+- `Tests/FoTestApi.Infrastructure.Tests/AGENTS.md`
 
-When guidance overlaps, prefer the more specific authoritative file above and update references instead of duplicating policy text.
+### Backend context AGENTS
+- `FoTestApi.Application/Authentication/AGENTS.md`
+- `FoTestApi.Application/Persons/AGENTS.md`
+- `FoTestApi.Application/Transactions/AGENTS.md`
+- `FoTestApi.Application/Middleware/AGENTS.md`
+- `FoTestApi.Domain/Auth/AGENTS.md`
+- `FoTestApi.Domain/Persons/AGENTS.md`
+- `FoTestApi.Domain/Transactions/AGENTS.md`
+- `FoTestApi.Infrastructure/Persons/AGENTS.md`
+- `FoTestApi.Infrastructure/Transactions/AGENTS.md`
+
+### Frontend feature AGENTS
+- `fotest-react/src/features/auth/AGENTS.md`
+- `fotest-react/src/features/home/AGENTS.md`
+- `fotest-react/src/features/persons/AGENTS.md`
+- `fotest-react/src/features/profile/AGENTS.md`
+- `fotest-react/src/features/transactions/AGENTS.md`
+- `fotest-react/src/features/debts/AGENTS.md`
 
 ## Build/Test Artifact Inventory
 - Shared build outputs: `**/bin/`, `**/obj/`.
 - Shared dependency outputs: `**/node_modules/`.
-- Repository quality-gate outputs: `artifacts/` (including `artifacts/logs/` and `artifacts/coverage/`).
+- Repository quality-gate outputs: `artifacts/` including `artifacts/logs/` and `artifacts/coverage/`.
 - Test-project local artifacts: `Tests/**/artifacts/`.
 
 ## Gitignore ownership
 - Root `.gitignore` is authoritative for shared repository patterns and cross-project generated outputs.
-- Subproject `.gitignore` files should keep only stack-specific or standalone-use rules that are not intended to be centralized.
-- For artifact read/cleanup requests, inspect the inventory paths above first, then consult module `AGENTS.md` files for project-local specifics.
+- Subproject `.gitignore` files keep only stack-specific or standalone-use rules not intended to be centralized.
+
+## When to add deeper nesting
+Create a new child `AGENTS.md` only when at least one rule is true:
+1. The parent AGENTS mixes two or more business contexts.
+2. The file mixes cross-cutting policy and implementation behavior.
+3. Agents repeatedly need to open unrelated sections to complete common tasks.
+
+Do not add deeper nesting when all guidance belongs to one stable context with one workflow.
+
+## AGENTS consistency checklist
+Every new or substantially updated AGENTS file should contain:
+1. `Role`
+2. `Responsibilities`
+3. `Key files`
+4. `Commands`
+5. `Dependencies`
+6. `Source-of-truth note`
+
+## Documentation source of truth
+- Repository architecture and commit workflow policy: this file.
+- Gate script behavior and wrappers: `scripts/AGENTS.md`.
+- User-facing setup and API examples: `README.md`.
+- Module and context behavior: nearest module/context/feature `AGENTS.md`.
+
+Checklist authority note:
+- The mandatory commit checklist policy is authoritative only in this file.
+- Other AGENTS files may reference the checklist but must not redefine checklist acceptance rules.
 
 ## Testing
-Each production layer has a corresponding xUnit + Moq test project:
-- `FoTestApi.Domain.Tests/` — pure unit tests, no mocking needed
-- `FoTestApi.Infrastructure.Tests/` — mocks `IMongoCollection<T>` via internal test constructor
-- `FoTestApi.Application.Tests/` — mocks `IPersonRepository` and `IPersonDomainService` for strict isolation
-
-Run all tests: `dotnet test FoTestApi.sln`
-- Test projects live under `Tests/` to keep them separate from production projects.
+- Run all tests: `dotnet test FoTestApi.sln`.
+- Frontend CI tests: `npm run test:ci` from `fotest-react/`.
 
 ## Running the API host
+- From repository root: `dotnet run --project .\\FoTestApi.Application\\FoTestApi.Application.csproj`.
+- If cwd is one level above repo: `dotnet run --project .\\fo-test\\FoTestApi.Application\\FoTestApi.Application.csproj`.
 
-- From the repository root (`fo-test/`), run `dotnet run --project .\FoTestApi.Application\FoTestApi.Application.csproj`.
-- If the current terminal is one level above the repo (for example the workspace root is `Repos/`), run `dotnet run --project .\fo-test\FoTestApi.Application\FoTestApi.Application.csproj` instead.
-- Do not assume the terminal cwd is the repository root; verify the current directory before using a relative project path.
+## Pre-Commit Workflow and Checklist
 
-## Commit workflow requirements
-
-The authoritative script policy now lives in `scripts/AGENTS.md`.
-
-When commit workflow guidance overlaps across docs, `AGENTS.md` files are the source of truth and take precedence over `README.md`.
-
-Repository-wide minimums (before commit/push):
+Workflow steps:
 1. Step 1 - Quality gate validation.
-	1.1 Run `./scripts/run-checks-debug.ps1` (or `sh scripts/run-checks-debug.sh`) and keep the log path.
-	1.2 Use full-base debug wrappers only when explicitly requested.
-	1.3 `pre-commit` keeps enforcing the base changed-code gate.
-	1.4 Never bypass hooks with `--no-verify`.
+  - Run `./scripts/run-checks-debug.ps1` (or `sh scripts/run-checks-debug.sh`) and keep the log path.
+  - Use full-base debug wrappers only when explicitly requested.
+  - Never bypass hooks with `--no-verify`.
 2. Step 2 - Documentation alignment for the same change set.
-	2.1 Update only docs relevant to the actual changes in the commit.
-	2.2 Typical targets include module `AGENTS.md` files, route notes, behavior notes, and test guidance.
+  - Update only docs relevant to actual changes in the commit.
 
-### Mandatory commit checklist (must be shown for every commit attempt)
-
-Before running `git commit`, explicitly show this 2-step checklist with a status for each step:
+Checklist output (required before `git commit`):
 1. Step 1 status: `DONE` or `SKIPPED`.
 2. Step 2 status: `DONE` or `SKIPPED`.
 
-Checklist rules:
+Checklist acceptance rules:
 1. If a step is `SKIPPED`, include a one-line reason.
 2. Step 1 may be `SKIPPED` only when there are no production code changes since the latest successful Step 1 run, and the latest log path is provided.
-	- Production code changes means staged or unstaged edits in implementation source files under `FoTestApi.Domain/`, `FoTestApi.Infrastructure/`, `FoTestApi.Application/`, `fotest-react/src/`, and runtime quality-gate script code/config under `scripts/` (for example `*.ps1`, `*.sh`, `*.mjs`, `*.js`, `package.json`, `.eslintrc.json`), excluding test files and documentation-only changes.
-	- The latest successful Step 1 log path must be shown directly in the commit checklist output (for example under a `Latest Step 1 log` line).
+  - Production code changes means staged or unstaged edits in implementation source files under `FoTestApi.Domain/`, `FoTestApi.Infrastructure/`, `FoTestApi.Application/`, `fotest-react/src/`, and runtime quality-gate script code/config under `scripts/` (for example `*.ps1`, `*.sh`, `*.mjs`, `*.js`, `package.json`, `.eslintrc.json`), excluding test files and documentation-only changes.
+  - The latest successful Step 1 log path must be shown directly in the checklist output.
 3. Step 2 must always be reviewed at commit-time for the current staged diff. You may mark Step 2 as `SKIPPED` only as `No documentation changes required` and include a short reason tied to the staged changes.
 4. If either step is neither `DONE` nor validly `SKIPPED`, do not commit.
 5. A documentation-only commit may mark both steps as `SKIPPED` when all skip conditions above are met.
-	- Typical case: only `*.md` files are changed, there are no production code changes, a latest successful Step 1 log path is shown, and no additional documentation updates are required beyond the staged docs.
-
-### First-time setup (install the git hook)
-
-```powershell
-.\scripts\setup-hooks.ps1      # Windows
-```
-```bash
-sh scripts/setup-hooks.sh      # Linux / macOS / Git Bash
-```
-
-### Verify hooks are healthy
-
-```powershell
-Get-ChildItem .git\hooks\pre-commit
-```
-
-```bash
-ls -l .git/hooks/pre-commit
-```
-
-If the hook is missing or stale, re-run `setup-hooks` before commit.
-
-### Fixing a coverage failure
-
-- Check which file or class is below threshold in the coverlet/Jest output.
-- Add focused unit tests for the uncovered code paths.
-- Re-run the script — do not lower the threshold.
-- In changed-code mode, the threshold is evaluated only against changed production files.
-- In full-base mode, the threshold is evaluated across the full production codebase.
-- The C# coverage scope excludes application startup composition-root files such as `FoTestApi.Application/Program.cs`.
-
-### Fixing a code-smell failure
-
-- Read the diagnostic ID and message in the output (e.g. `RCS1077`, `sonar/cognitive-complexity`).
-- Refactor the offending code to resolve the violation.
-- Re-run the script — do not suppress the diagnostic with `#pragma warning disable` or `// eslint-disable` unless it is a genuine false positive and a comment explains why.
-- Changed-code mode is meant to stop new debt from being introduced.
-- Full-base mode is meant to assess and reduce existing debt across the repository.
+  - Typical case: only `*.md` files are changed, there are no production code changes, a latest successful Step 1 log path is shown, and no additional documentation updates are required beyond the staged docs.
 
 ## Purpose
-Maintain clear per-module guidelines for AI-assisted development and handoff.
+Maintain clear, hierarchical AGENTS guidance with minimal context noise for AI-assisted development.

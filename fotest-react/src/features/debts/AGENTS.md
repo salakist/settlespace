@@ -9,6 +9,9 @@ Debts feature provides UI for managing transaction deficits between persons.
 ## Responsibilities
 - `src/features/debts/components/DebtsPage.tsx` — Displays debts page with placeholder content.
 
+## Key files
+- `src/features/debts/components/DebtsPage.tsx`
+
 ## Source-of-truth note
 Cross-cutting frontend policy and the shelved future-pages backlog are maintained in `fotest-react/AGENTS.md`.
 This file should stay focused on debts feature-local scope and status.
