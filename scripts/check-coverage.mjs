@@ -3,6 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 const DEFAULT_COVERAGE_THRESHOLD = 80;
+const ARG_REPO_ROOT = "repo-root";
+const ARG_CHANGED_LIST = "changed-list";
 
 function readOptionValue(argv, index) {
   if (index + 1 >= argv.length) {
@@ -420,10 +422,10 @@ function evaluateReactFileCoverage(relativePath, reactSummary) {
 }
 
 function evaluateCSharpCoverage(args) {
-  const repoRoot = args["repo-root"];
+  const repoRoot = args[ARG_REPO_ROOT];
   const threshold = Number(args.threshold ?? DEFAULT_COVERAGE_THRESHOLD);
   const scope = args.scope;
-  const changedFiles = readChangedFiles(args["changed-list"]);
+  const changedFiles = readChangedFiles(args[ARG_CHANGED_LIST]);
   const coverletCoverage = loadCoverletReports(args.report, repoRoot);
   const targetFiles = getTargetFiles(scope, changedFiles, coverletCoverage.keys(), isProductionCSharpFile);
 
@@ -453,7 +455,6 @@ function evaluateCSharpCoverage(args) {
     process.exit(1);
   }
 }
-
 function loadReactSummary(reportPath, repoRoot) {
   if (!reportPath || !fs.existsSync(reportPath)) {
     return new Map();
@@ -479,10 +480,10 @@ function loadReactSummary(reportPath, repoRoot) {
 }
 
 function evaluateReactCoverage(args) {
-  const repoRoot = args["repo-root"];
+  const repoRoot = args[ARG_REPO_ROOT];
   const threshold = Number(args.threshold ?? DEFAULT_COVERAGE_THRESHOLD);
   const scope = args.scope;
-  const changedFiles = readChangedFiles(args["changed-list"]);
+  const changedFiles = readChangedFiles(args[ARG_CHANGED_LIST]);
   const reactSummary = loadReactSummary(args.report[0], repoRoot);
   const targetFiles = getTargetFiles(scope, changedFiles, reactSummary.keys(), isProductionReactFile);
 
@@ -512,10 +513,9 @@ function evaluateReactCoverage(args) {
     process.exit(1);
   }
 }
-
 const args = parseArgs(process.argv.slice(2));
 
-if (!args.mode || !args.scope || !args["repo-root"]) {
+if (!args.mode || !args.scope || !args[ARG_REPO_ROOT]) {
   console.error("Usage: node scripts/check-coverage.mjs --mode <csharp|react> --scope <changed|full> --repo-root <path> [--changed-list <file>] --report <path> [--report <path>] [--threshold <number>]");
   process.exit(1);
 }

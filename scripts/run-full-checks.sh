@@ -127,6 +127,130 @@ if (failing.length === 0) {
   }
 }
 NODE
+
+  if printf '%s\n' "$response" | grep -q 'new_security_hotspots_reviewed'; then
+    print_sonar_hotspot_likely_location "$project_key" "$branch_name"
+  fi
+
+  if printf '%s\n' "$response" | grep -q 'coverage'; then
+    print_sonar_lowest_covered_files "$project_key" "$branch_name" 10
+  fi
+}
+
+print_sonar_hotspot_likely_location() {
+  local project_key="$1"
+  local branch_name="$2"
+  local response
+
+  if [[ -z "$project_key" ]]; then
+    return 0
+  fi
+
+  if [[ -n "$branch_name" ]]; then
+    response="$(curl -sS -u "$SONAR_TOKEN:" --get 'https://sonarcloud.io/api/hotspots/search' --data-urlencode "projectKey=$project_key" --data-urlencode 'status=TO_REVIEW' --data-urlencode 'ps=5' --data-urlencode 'p=1' --data-urlencode "branch=$branch_name")" || {
+      echo "[warn] Unable to fetch Sonar hotspot summary."
+      return 0
+    }
+  else
+    response="$(curl -sS -u "$SONAR_TOKEN:" --get 'https://sonarcloud.io/api/hotspots/search' --data-urlencode "projectKey=$project_key" --data-urlencode 'status=TO_REVIEW' --data-urlencode 'ps=5' --data-urlencode 'p=1')" || {
+      echo "[warn] Unable to fetch Sonar hotspot summary."
+      return 0
+    }
+  fi
+
+  SONAR_JSON="$response" node - <<'NODE'
+const data = JSON.parse(process.env.SONAR_JSON || '{}');
+const hotspots = data.hotspots || [];
+if (hotspots.length === 0) {
+  console.log('[info] No unreviewed hotspots were returned by the API.');
+  process.exit(0);
+}
+
+const hotspot = hotspots[0] || {};
+const component = typeof hotspot.component === 'string' && hotspot.component.includes(':')
+  ? hotspot.component.split(':').slice(1).join(':')
+  : (hotspot.component ?? '<unknown>');
+const line = hotspot.line ?? '?';
+const message = String(hotspot.message ?? hotspot.ruleName ?? 'Unreviewed hotspot candidate').replace(/\s+/g, ' ').trim();
+console.log('[info] Likely unreviewed hotspot location:');
+console.log(`  - ${component}:${line} ${message}`);
+
+const total = data.paging?.total ?? data.total ?? hotspots.length;
+if (total > 1) {
+  console.log(`[info] ... and ${total - 1} more unreviewed hotspot candidate(s).`);
+}
+NODE
+}
+
+print_sonar_lowest_covered_files() {
+  local project_key="$1"
+  local branch_name="$2"
+  local limit="${3:-10}"
+  local response
+
+  if [[ -z "$project_key" ]]; then
+    return 0
+  fi
+
+  if [[ -n "$branch_name" ]]; then
+    response="$(curl -sS -u "$SONAR_TOKEN:" --get 'https://sonarcloud.io/api/measures/component_tree' --data-urlencode "component=$project_key" --data-urlencode 'metricKeys=new_coverage,coverage' --data-urlencode 'qualifiers=FIL' --data-urlencode 'ps=500' --data-urlencode 'p=1' --data-urlencode "branch=$branch_name")" || {
+      echo "[warn] Unable to fetch Sonar file coverage summary."
+      return 0
+    }
+  else
+    response="$(curl -sS -u "$SONAR_TOKEN:" --get 'https://sonarcloud.io/api/measures/component_tree' --data-urlencode "component=$project_key" --data-urlencode 'metricKeys=new_coverage,coverage' --data-urlencode 'qualifiers=FIL' --data-urlencode 'ps=500' --data-urlencode 'p=1')" || {
+      echo "[warn] Unable to fetch Sonar file coverage summary."
+      return 0
+    }
+  fi
+
+  SONAR_JSON="$response" SONAR_LIMIT="$limit" node - <<'NODE'
+const data = JSON.parse(process.env.SONAR_JSON || '{}');
+const limit = Number(process.env.SONAR_LIMIT || '10');
+const components = data.components || [];
+
+const ranked = components.map((component) => {
+  const measures = new Map((component.measures || []).map((measure) => {
+    const value = measure.value ?? measure.period?.value;
+    return [measure.metric, value == null || value === '' ? null : Number(value)];
+  }));
+
+  const primaryMetric = measures.get('new_coverage') != null ? 'new_coverage' : (measures.get('coverage') != null ? 'coverage' : null);
+  if (!primaryMetric) {
+    return null;
+  }
+
+  const overallCoverage = measures.get('coverage');
+  return {
+    path: typeof component.key === 'string' && component.key.includes(':')
+      ? component.key.split(':').slice(1).join(':')
+      : (component.path ?? component.key ?? '<unknown>'),
+    primaryMetric,
+    primaryValue: Number(measures.get(primaryMetric)),
+    overallCoverage: overallCoverage == null ? null : Number(overallCoverage),
+  };
+}).filter(Boolean).sort((left, right) => {
+  if (left.primaryValue !== right.primaryValue) {
+    return left.primaryValue - right.primaryValue;
+  }
+
+  return left.path.localeCompare(right.path);
+});
+
+if (ranked.length === 0) {
+  console.log('[info] No file-level Sonar coverage measures were returned by the API.');
+  process.exit(0);
+}
+
+console.log(`[info] ${Math.min(limit, ranked.length)} lowest covered file(s) from SonarCloud:`);
+for (const entry of ranked.slice(0, limit)) {
+  if (entry.overallCoverage != null && entry.primaryMetric !== 'coverage') {
+    console.log(`  - ${entry.path} - ${entry.primaryMetric}=${entry.primaryValue.toFixed(2)}% (coverage=${entry.overallCoverage.toFixed(2)}%)`);
+  } else {
+    console.log(`  - ${entry.path} - ${entry.primaryMetric}=${entry.primaryValue.toFixed(2)}%`);
+  }
+}
+NODE
 }
 
 print_sonar_issue_summary() {

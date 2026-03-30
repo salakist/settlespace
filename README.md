@@ -249,6 +249,8 @@ Two repository-level analysis modes are available:
   - prerequisite: disable SonarCloud Automatic Analysis for the project before using the optional local `sonar-scanner` step
   - the optional Sonar step waits for the remote SonarCloud quality gate result and fails the full-base gate if the analysis or quality gate fails
   - on Sonar failure, the full gate now prints a compact summary of failing quality gate conditions, unresolved branch issues, or technical scanner errors instead of relying on raw scanner logs alone
+  - when the failed Sonar quality gate includes unreviewed security hotspots, the full gate also prints the most likely hotspot location returned by SonarCloud
+  - when the failed Sonar quality gate includes a coverage condition, the full gate also prints the 10 lowest covered files returned by SonarCloud for the analyzed branch
 
 ### Changed-code gate
 

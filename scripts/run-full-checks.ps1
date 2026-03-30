@@ -120,8 +120,149 @@ function Show-SonarQualityGateSummary([string]$ProjectKey, [string]$BranchName, 
         $failingConditions | ForEach-Object {
             Write-Host ("  - {0}: actual={1}, threshold={2}, comparator={3}" -f $_.metricKey, $_.actualValue, $_.errorThreshold, $_.comparator) -ForegroundColor Yellow
         }
+
+        $failingMetricKeys = @($failingConditions | ForEach-Object { $_.metricKey })
+        if ($failingMetricKeys -contains 'new_security_hotspots_reviewed') {
+            Show-SonarHotspotLikelyLocation -ProjectKey $ProjectKey -BranchName $BranchName -Token $Token
+        }
+
+        if (@($failingMetricKeys | Where-Object { $_ -match 'coverage' }).Count -gt 0) {
+            Show-SonarLowestCoveredFiles -ProjectKey $ProjectKey -BranchName $BranchName -Token $Token -Limit 10
+        }
     } catch {
         Write-Host ("[warn] Unable to fetch Sonar quality gate summary: {0}" -f $_.Exception.Message) -ForegroundColor Yellow
+    }
+}
+
+function Show-SonarHotspotLikelyLocation([string]$ProjectKey, [string]$BranchName, [string]$Token) {
+    if ([string]::IsNullOrWhiteSpace($ProjectKey)) {
+        return
+    }
+
+    $uri = "https://sonarcloud.io/api/hotspots/search?projectKey=$([Uri]::EscapeDataString($ProjectKey))&status=TO_REVIEW&ps=5&p=1"
+    if (-not [string]::IsNullOrWhiteSpace($BranchName)) {
+        $uri += "&branch=$([Uri]::EscapeDataString($BranchName))"
+    }
+
+    try {
+        $response = Invoke-RestMethod -Method Get -Uri $uri -Headers (Get-SonarAuthHeader $Token)
+        $hotspots = @($response.hotspots)
+
+        if ($hotspots.Count -eq 0) {
+            Write-Host "[info] No unreviewed hotspots were returned by the API." -ForegroundColor Yellow
+            return
+        }
+
+        $hotspot = $hotspots[0]
+        $componentPath = if ($hotspot.component -match '^[^:]+:(.+)$') { $Matches[1] } else { $hotspot.component }
+        $line = if ($null -ne $hotspot.line) { $hotspot.line } else { '?' }
+        $messageSource = if ($null -ne $hotspot.message -and -not [string]::IsNullOrWhiteSpace($hotspot.message)) {
+            $hotspot.message
+        } elseif ($null -ne $hotspot.ruleName -and -not [string]::IsNullOrWhiteSpace($hotspot.ruleName)) {
+            $hotspot.ruleName
+        } else {
+            'Unreviewed hotspot candidate'
+        }
+        $message = ($messageSource -replace '\s+', ' ').Trim()
+
+        Write-Host "[info] Likely unreviewed hotspot location:" -ForegroundColor Yellow
+        Write-Host ("  - {0}:{1} {2}" -f $componentPath, $line, $message) -ForegroundColor Yellow
+
+        $total = if ($null -ne $response.paging -and $null -ne $response.paging.total) {
+            [int]$response.paging.total
+        } elseif ($null -ne $response.total) {
+            [int]$response.total
+        } else {
+            $hotspots.Count
+        }
+
+        if ($total -gt 1) {
+            Write-Host ("[info] ... and {0} more unreviewed hotspot candidate(s)." -f ($total - 1)) -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host ("[warn] Unable to fetch Sonar hotspot summary: {0}" -f $_.Exception.Message) -ForegroundColor Yellow
+    }
+}
+
+function Show-SonarLowestCoveredFiles([string]$ProjectKey, [string]$BranchName, [string]$Token, [int]$Limit = 10) {
+    if ([string]::IsNullOrWhiteSpace($ProjectKey)) {
+        return
+    }
+
+    $metricKeys = 'new_coverage,coverage'
+    $pageSize = 500
+    $page = 1
+    $allComponents = @()
+
+    try {
+        do {
+            $uri = "https://sonarcloud.io/api/measures/component_tree?component=$([Uri]::EscapeDataString($ProjectKey))&metricKeys=$([Uri]::EscapeDataString($metricKeys))&qualifiers=FIL&ps=$pageSize&p=$page"
+            if (-not [string]::IsNullOrWhiteSpace($BranchName)) {
+                $uri += "&branch=$([Uri]::EscapeDataString($BranchName))"
+            }
+
+            $response = Invoke-RestMethod -Method Get -Uri $uri -Headers (Get-SonarAuthHeader $Token)
+            $components = @($response.components)
+            $allComponents += $components
+
+            $total = if ($null -ne $response.paging -and $null -ne $response.paging.total) {
+                [int]$response.paging.total
+            } else {
+                $allComponents.Count
+            }
+
+            $page += 1
+        } while ($allComponents.Count -lt $total -and $components.Count -gt 0)
+
+        $rankedFiles = @(
+            foreach ($component in $allComponents) {
+                $measureMap = @{}
+                foreach ($measure in @($component.measures)) {
+                    $measureValue = $null
+                    if ($null -ne $measure.value -and -not [string]::IsNullOrWhiteSpace([string]$measure.value)) {
+                        $measureValue = [double]$measure.value
+                    } elseif ($null -ne $measure.period -and $null -ne $measure.period.value -and -not [string]::IsNullOrWhiteSpace([string]$measure.period.value)) {
+                        $measureValue = [double]$measure.period.value
+                    }
+
+                    if ($null -ne $measureValue) {
+                        $measureMap[$measure.metric] = $measureValue
+                    }
+                }
+
+                if (-not $measureMap.ContainsKey('new_coverage') -and -not $measureMap.ContainsKey('coverage')) {
+                    continue
+                }
+
+                $componentPath = if ($component.key -match '^[^:]+:(.+)$') { $Matches[1] } else { $component.path }
+                $primaryMetric = if ($measureMap.ContainsKey('new_coverage')) { 'new_coverage' } else { 'coverage' }
+                $primaryValue = [double]$measureMap[$primaryMetric]
+                $overallCoverage = if ($measureMap.ContainsKey('coverage')) { [double]$measureMap['coverage'] } else { $null }
+
+                [pscustomobject]@{
+                    Path = $componentPath
+                    PrimaryMetric = $primaryMetric
+                    PrimaryValue = $primaryValue
+                    OverallCoverage = $overallCoverage
+                }
+            }
+        ) | Sort-Object PrimaryValue, Path
+
+        if ($rankedFiles.Count -eq 0) {
+            Write-Host "[info] No file-level Sonar coverage measures were returned by the API." -ForegroundColor Yellow
+            return
+        }
+
+        Write-Host ("[info] {0} lowest covered file(s) from SonarCloud:" -f [Math]::Min($Limit, $rankedFiles.Count)) -ForegroundColor Yellow
+        $rankedFiles | Select-Object -First $Limit | ForEach-Object {
+            if ($null -ne $_.OverallCoverage -and $_.PrimaryMetric -ne 'coverage') {
+                Write-Host ("  - {0} - {1}={2:N2}% (coverage={3:N2}%)" -f $_.Path, $_.PrimaryMetric, $_.PrimaryValue, $_.OverallCoverage) -ForegroundColor Yellow
+            } else {
+                Write-Host ("  - {0} - {1}={2:N2}%" -f $_.Path, $_.PrimaryMetric, $_.PrimaryValue) -ForegroundColor Yellow
+            }
+        }
+    } catch {
+        Write-Host ("[warn] Unable to fetch Sonar file coverage summary: {0}" -f $_.Exception.Message) -ForegroundColor Yellow
     }
 }
 
