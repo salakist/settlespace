@@ -41,15 +41,18 @@ Run all tests: `dotnet test FoTestApi.sln`
 - If the current terminal is one level above the repo (for example the workspace root is `Repos/`), run `dotnet run --project .\fo-test\FoTestApi.Application\FoTestApi.Application.csproj` instead.
 - Do not assume the terminal cwd is the repository root; verify the current directory before using a relative project path.
 
-## Quality gates — mandatory before every commit
+## Commit workflow requirements
 
 The authoritative script policy now lives in `scripts/AGENTS.md`.
 
-Repository-wide minimums:
-1. Agents must run `./scripts/run-checks-debug.ps1` (or `sh scripts/run-checks-debug.sh`) before commit/push.
-2. Use full-base debug wrappers only when explicitly requested.
-3. `pre-commit` keeps enforcing the base changed-code gate.
-4. Never bypass hooks with `--no-verify`.
+Repository-wide minimums (before commit/push):
+1. Quality gate execution is mandatory before commit/push: run `./scripts/run-checks-debug.ps1` (or `sh scripts/run-checks-debug.sh`).
+	1.1 Use full-base debug wrappers only when explicitly requested.
+	1.2 `pre-commit` keeps enforcing the base changed-code gate.
+	1.3 Never bypass hooks with `--no-verify`.
+2. After gates pass and before commit, documentation updates are mandatory for the same change set.
+	2.1 Update only documentation relevant to the actual changes in the commit.
+	2.2 Typical targets include module `AGENTS.md` files, route notes, behavior notes, and test guidance.
 
 ### First-time setup (install the git hook)
 

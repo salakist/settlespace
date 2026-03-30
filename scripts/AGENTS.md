@@ -13,11 +13,14 @@ Own repository quality-gate and hook automation scripts.
 - `check-coverage.mjs` - shared coverage evaluator for changed/full modes.
 
 ## Agent policy
-- Agents must run debug wrappers, not base gate scripts, before commit/push:
-  - `./scripts/run-checks-debug.ps1` (or `sh scripts/run-checks-debug.sh`)
-  - `./scripts/run-full-checks-debug.ps1` (or `sh scripts/run-full-checks-debug.sh`) when full-base analysis is requested
-- Git hooks should continue invoking base scripts (do not rewrite hooks to call debug wrappers by default).
-- Never suggest bypassing hooks with `--no-verify`.
+1. Quality gate execution is mandatory before commit/push.
+  1.1 Agents must run debug wrappers, not base gate scripts: `./scripts/run-checks-debug.ps1` (or `sh scripts/run-checks-debug.sh`).
+  1.2 Use `./scripts/run-full-checks-debug.ps1` (or `sh scripts/run-full-checks-debug.sh`) only when full-base analysis is requested.
+  1.3 Git hooks should continue invoking base scripts (do not rewrite hooks to call debug wrappers by default).
+  1.4 Never suggest bypassing hooks with `--no-verify`.
+2. After gates pass and before commit, documentation updates are mandatory for the same change set.
+  2.1 Update only documentation relevant to the actual changes.
+  2.2 Typical targets include module `AGENTS.md` files, route notes, behavior notes, and test guidance.
 
 ## Logging rules
 - Debug wrappers must write timestamped logs to `artifacts/logs/`.
