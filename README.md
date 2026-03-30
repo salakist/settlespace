@@ -172,6 +172,10 @@ dotnet test Tests/FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj
 
 ## Quality Gates
 
+Policy precedence note: for commit workflow requirements and skip rules, `AGENTS.md` is authoritative if any guidance overlaps with this README.
+
+Practical note: for a documentation-only commit, both workflow steps may be `SKIPPED` when `AGENTS.md` skip conditions are satisfied (including showing the latest successful Step 1 log path).
+
 Two repository-level analysis modes are available:
 
 1. `scripts/run-checks.ps1` / `scripts/run-checks.sh`

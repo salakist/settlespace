@@ -45,6 +45,8 @@ Run all tests: `dotnet test FoTestApi.sln`
 
 The authoritative script policy now lives in `scripts/AGENTS.md`.
 
+When commit workflow guidance overlaps across docs, `AGENTS.md` files are the source of truth and take precedence over `README.md`.
+
 Repository-wide minimums (before commit/push):
 1. Step 1 - Quality gate validation.
 	1.1 Run `./scripts/run-checks-debug.ps1` (or `sh scripts/run-checks-debug.sh`) and keep the log path.
@@ -64,8 +66,12 @@ Before running `git commit`, explicitly show this 2-step checklist with a status
 Checklist rules:
 1. If a step is `SKIPPED`, include a one-line reason.
 2. Step 1 may be `SKIPPED` only when there are no production code changes since the latest successful Step 1 run, and the latest log path is provided.
+	- Production code changes means staged or unstaged edits in implementation source files under `FoTestApi.Domain/`, `FoTestApi.Infrastructure/`, `FoTestApi.Application/`, and `fotest-react/src/`, excluding test files and documentation-only changes.
+	- The latest successful Step 1 log path must be shown directly in the commit checklist output (for example under a `Latest Step 1 log` line).
 3. Step 2 must always be reviewed at commit-time for the current staged diff. You may mark Step 2 as `SKIPPED` only as `No documentation changes required` and include a short reason tied to the staged changes.
 4. If either step is neither `DONE` nor validly `SKIPPED`, do not commit.
+5. A documentation-only commit may mark both steps as `SKIPPED` when all skip conditions above are met.
+	- Typical case: only `*.md` files are changed, there are no production code changes, a latest successful Step 1 log path is shown, and no additional documentation updates are required beyond the staged docs.
 
 ### First-time setup (install the git hook)
 
