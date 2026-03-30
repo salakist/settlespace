@@ -35,6 +35,17 @@ React frontend for person entity management using `FoTestApi`.
 ## Notes
 Current UI uses Material UI and dark mode theme.
 
+### Build/Test Artifact Inventory
+- Frontend production build output: `fotest-react/build/`.
+- Frontend test coverage output: `fotest-react/coverage/`.
+- Frontend dependency install output: `fotest-react/node_modules/`.
+- Repo-level quality-gate outputs used by frontend checks: `artifacts/logs/` and `artifacts/coverage/`.
+
+### Gitignore ownership
+- Shared generated outputs are ignored by repository root `.gitignore`.
+- Frontend-local `.gitignore` keeps React-specific outputs and environment-local files (`build/`, `coverage/`, `.env.*.local`, npm/yarn debug logs).
+- For frontend artifact read/cleanup requests, inspect the inventory paths above before searching broader folders.
+
 ### App Shell & Navigation
 The authenticated app shell renders a fixed navigation bar below the app title with:
 - **Left side**: Tabs component for primary navigation (Home, Persons, Transactions, Debts) with icons

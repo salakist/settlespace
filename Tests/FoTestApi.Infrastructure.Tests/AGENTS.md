@@ -22,6 +22,15 @@ Unit test project for the Infrastructure layer. Tests `PersonRepository` without
 ## Commands
 - `dotnet test Tests/FoTestApi.Infrastructure.Tests/FoTestApi.Infrastructure.Tests.csproj`
 
+## Build/Test Artifact Inventory
+- Project-local test artifacts: `Tests/FoTestApi.Infrastructure.Tests/artifacts/`.
+- Project-local build outputs: `Tests/FoTestApi.Infrastructure.Tests/bin/` and `Tests/FoTestApi.Infrastructure.Tests/obj/`.
+- Repository-level quality-gate logs and coverage aggregates: `artifacts/logs/` and `artifacts/coverage/`.
+
+## Gitignore ownership
+- Root `.gitignore` is authoritative for shared `bin/`, `obj/`, and `Tests/**/artifacts/` patterns.
+- For cleanup/read requests, inspect this test project folder plus repository `artifacts/` outputs.
+
 ## Dependencies
 - `xunit`, `Moq`, `MongoDB.Driver`
 - Project references: `FoTestApi.Domain`, `FoTestApi.Infrastructure`

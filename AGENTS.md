@@ -42,6 +42,17 @@ FoTestApi.sln
 
 When guidance overlaps, prefer the more specific authoritative file above and update references instead of duplicating policy text.
 
+## Build/Test Artifact Inventory
+- Shared build outputs: `**/bin/`, `**/obj/`.
+- Shared dependency outputs: `**/node_modules/`.
+- Repository quality-gate outputs: `artifacts/` (including `artifacts/logs/` and `artifacts/coverage/`).
+- Test-project local artifacts: `Tests/**/artifacts/`.
+
+## Gitignore ownership
+- Root `.gitignore` is authoritative for shared repository patterns and cross-project generated outputs.
+- Subproject `.gitignore` files should keep only stack-specific or standalone-use rules that are not intended to be centralized.
+- For artifact read/cleanup requests, inspect the inventory paths above first, then consult module `AGENTS.md` files for project-local specifics.
+
 ## Testing
 Each production layer has a corresponding xUnit + Moq test project:
 - `FoTestApi.Domain.Tests/` — pure unit tests, no mocking needed

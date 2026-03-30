@@ -1,13 +1,12 @@
-bin/
-obj/
+# Shared repository ignore rules (root is authoritative for common artifacts)
+**/bin/
+**/obj/
 *.user
 *.suo
-*.vs
-.vscode
+.vs/
+.vscode/
 .env
 *.log
 **/node_modules/
-**/bin/
-**/obj/
 artifacts/
 Tests/**/artifacts/

@@ -91,6 +91,16 @@ Function subfolders are used only when a context contains multiple function grou
 - From workspace root one level above the repo: `dotnet run --project .\fo-test\FoTestApi.Application\FoTestApi.Application.csproj`
 - From repository root: `dotnet test Tests/FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj`
 
+## Build/Test Artifact Inventory
+- Common .NET build outputs in this module: `FoTestApi.Application/bin/` and `FoTestApi.Application/obj/`.
+- Additional local build configuration outputs (standalone project workflows): `FoTestApi.Application/Debug/`, `FoTestApi.Application/Release/`, and platform-specific build folders.
+- Repository quality-gate logs and coverage aggregates: `artifacts/logs/` and `artifacts/coverage/`.
+
+## Gitignore ownership
+- Root `.gitignore` is authoritative for shared artifacts (`bin/`, `obj/`, `node_modules/`, generic logs, repository `artifacts/`).
+- `FoTestApi.Application/.gitignore` keeps application-local and standalone-use rules that are not centralized at root.
+- For artifact read/cleanup requests, check module-local build folders plus repository `artifacts/` outputs.
+
 ## Working directory note
 - `dotnet run` without `--project` only works when the terminal cwd is `FoTestApi.Application/`.
 - If the cwd is different, always use an explicit `--project` path that matches the current directory depth.

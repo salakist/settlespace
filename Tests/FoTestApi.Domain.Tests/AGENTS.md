@@ -30,6 +30,15 @@ Unit test project for the Domain layer. Tests pure business logic with no mockin
 ## Commands
 - `dotnet test Tests/FoTestApi.Domain.Tests/FoTestApi.Domain.Tests.csproj`
 
+## Build/Test Artifact Inventory
+- Project-local test artifacts: `Tests/FoTestApi.Domain.Tests/artifacts/`.
+- Project-local build outputs: `Tests/FoTestApi.Domain.Tests/bin/` and `Tests/FoTestApi.Domain.Tests/obj/`.
+- Repository-level quality-gate logs and coverage aggregates: `artifacts/logs/` and `artifacts/coverage/`.
+
+## Gitignore ownership
+- Root `.gitignore` is authoritative for shared `bin/`, `obj/`, and `Tests/**/artifacts/` patterns.
+- For cleanup/read requests, inspect this test project folder plus repository `artifacts/` outputs.
+
 ## Dependencies
 - `xunit`, `Moq`
 - Project reference: `FoTestApi.Domain`

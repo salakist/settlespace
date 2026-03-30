@@ -66,6 +66,15 @@ Unit test project for the Application layer. Tests `PersonApplicationService`, `
 ## Commands
 - `dotnet test Tests/FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj`
 
+## Build/Test Artifact Inventory
+- Project-local test artifacts: `Tests/FoTestApi.Application.Tests/artifacts/`.
+- Project-local build outputs: `Tests/FoTestApi.Application.Tests/bin/` and `Tests/FoTestApi.Application.Tests/obj/`.
+- Repository-level quality-gate logs and coverage aggregates: `artifacts/logs/` and `artifacts/coverage/`.
+
+## Gitignore ownership
+- Root `.gitignore` is authoritative for shared `bin/`, `obj/`, and `Tests/**/artifacts/` patterns.
+- Keep test-project guidance focused on where artifacts appear during test runs and gate execution.
+
 ## Dependencies
 - `xunit`, `Moq`
 - Project references: `FoTestApi.Domain`, `FoTestApi.Application`
