@@ -34,6 +34,14 @@ FoTestApi.sln
 - `Tests/FoTestApi.Infrastructure.Tests/AGENTS.md` — infrastructure repository test scope and strategy
 - `Tests/FoTestApi.Application.Tests/AGENTS.md` — application/controller/auth/middleware test scope and strategy
 
+## Documentation source of truth
+- Repository architecture and commit workflow policy: this file (`AGENTS.md`).
+- Gate script behavior, wrappers, and logging policy: `scripts/AGENTS.md`.
+- User-facing setup/runbook and API usage examples: `README.md`.
+- Module-specific behavior and testing details: each module `AGENTS.md`.
+
+When guidance overlaps, prefer the more specific authoritative file above and update references instead of duplicating policy text.
+
 ## Testing
 Each production layer has a corresponding xUnit + Moq test project:
 - `FoTestApi.Domain.Tests/` — pure unit tests, no mocking needed

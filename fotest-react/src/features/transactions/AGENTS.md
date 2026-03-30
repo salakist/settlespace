@@ -1,26 +1,26 @@
 # Transactions Feature AGENTS Metadata
 
 ## Status
-**Not yet implemented** — Placeholder pages and routing only.
+Implemented.
 
 ## Role
-Transactions feature provides UI for managing transactions between persons.
+Transactions feature provides UI and state management for user-scoped transaction CRUD.
 
 ## Responsibilities
-- `src/features/transactions/components/TransactionsPage.tsx` — Displays transactions page with placeholder content.
+- `src/features/transactions/components/TransactionsPage.tsx` — page composition and orchestration.
+- `src/features/transactions/components/TransactionList.tsx` — transaction list rendering.
+- `src/features/transactions/components/TransactionForm.tsx` — create/update transaction form.
+- `src/features/transactions/hooks/useTransactions.ts` — feature state, validation, and API interaction.
+- `src/features/transactions/components/*.test.tsx` and `src/features/transactions/hooks/useTransactions.test.tsx` — component and hook tests.
 
-## Future Implementation Plan
-- Add hook for transaction state management and API interactions
-- Implement transaction list view with filtering/sorting
-- Add transaction creation/editing UI
-- Implement transaction history view
-- Add transaction status tracking
-- Integrate with backend transaction API endpoints
+## Source-of-truth note
+Cross-cutting frontend policy, quality-gate workflow, and shelved backlog items are defined in `fotest-react/AGENTS.md`.
+This file should stay focused on transactions feature-specific behavior.
 
 ## Commands
-- Tests will be added after implementation
+- `npm run test:ci -- src/features/transactions`
+- `npx eslint src/features/transactions --ext .ts,.tsx --max-warnings=0`
 
-## Dependencies (Future)
-- Transaction API endpoints (backend)
-- Transaction domain types
-- useTransactions hook (not yet implemented)
+## Dependencies
+- `src/shared/api/transactionApi.ts`
+- Shared transaction types under `src/shared/types/`

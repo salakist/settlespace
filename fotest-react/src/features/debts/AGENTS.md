@@ -9,13 +9,9 @@ Debts feature provides UI for managing transaction deficits between persons.
 ## Responsibilities
 - `src/features/debts/components/DebtsPage.tsx` — Displays debts page with placeholder content.
 
-## Future Implementation Plan
-- Add hook for debts state management and calculations
-- Implement debts summary view showing net balance with each person
-- Add debts detail view with transaction breakdown
-- Implement settlement suggestions/tracking
-- Add export/reporting capabilities for debts
-- Integrate with backend debts calculation API endpoints
+## Source-of-truth note
+Cross-cutting frontend policy and the shelved future-pages backlog are maintained in `fotest-react/AGENTS.md`.
+This file should stay focused on debts feature-local scope and status.
 
 ## Commands
 - Tests will be added after implementation

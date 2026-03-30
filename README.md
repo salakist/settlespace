@@ -43,7 +43,7 @@ fo-test/
 
 ### Folder architecture policy
 
-Use this as the single source of truth when adding or moving backend code:
+Summary for contributors (authoritative policy lives in `AGENTS.md` under "Folder architecture policy"):
 
 1. Organize backend code as `Layer/Context/Function`.
 2. Pick the business context first (`Authentication`, `Persons`, `Transactions`, etc.), then place files under `Layer/Context/...`.
@@ -224,7 +224,10 @@ dotnet test Tests/FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj
 
 ## Quality Gates
 
-Policy precedence note: for commit workflow requirements and skip rules, `AGENTS.md` is authoritative if any guidance overlaps with this README.
+Policy precedence note:
+- Commit workflow requirements and skip rules are authoritative in `AGENTS.md`.
+- Script behavior, gate intent, and wrapper policy are authoritative in `scripts/AGENTS.md`.
+- This section is a user-facing runbook summary.
 
 Practical note: for a documentation-only commit, both workflow steps may be `SKIPPED` when `AGENTS.md` skip conditions are satisfied (including showing the latest successful Step 1 log path).
 
