@@ -6,6 +6,7 @@ obj/
 .vscode
 .env
 *.log
+**/node_modules/
 **/bin/
 **/obj/
 artifacts/

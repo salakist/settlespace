@@ -4,7 +4,8 @@
 #   1. C# build + analyzers, filtered to diagnostics in changed C# files
 #   2. C# coverage on changed production C# files (threshold: 80%)
 #   3. React/TS ESLint on changed frontend files
-#   4. React/TS coverage on changed production frontend files (threshold: 80%)
+#   4. Repo JS/MJS ESLint on changed script files
+#   5. React/TS coverage on changed production frontend files (threshold: 80%)
 
 $ErrorActionPreference = "Continue"
 
@@ -69,6 +70,10 @@ function Is-ProductionReactFile([string]$Path) {
     return (Is-ReactFile $Path) -and $Path -notmatch '\.test\.(ts|tsx)$' -and $Path -notmatch '/setupTests\.ts$' -and $Path -notmatch '/index\.tsx$' -and $Path -notmatch '/reportWebVitals\.ts$' -and $Path -notmatch '/react-app-env\.d\.ts$'
 }
 
+function Is-ScriptLintFile([string]$Path) {
+    return $Path -match '^scripts/.*\.(js|cjs|mjs)$'
+}
+
 function Invoke-CSharpCoverage([string]$ProjectPath, [string]$OutputPrefix) {
     $outputDirectory = Split-Path -Parent $OutputPrefix
     New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
@@ -107,9 +112,10 @@ Set-Content -Path $ChangedListPath -Value $changedFiles
 $changedCSharpFiles = @($changedFiles | Where-Object { $_ -match '\.cs$' })
 $changedProductionCSharpFiles = @($changedFiles | Where-Object { Is-ProductionCSharpFile $_ })
 $changedReactFiles = @($changedFiles | Where-Object { Is-ReactFile $_ })
+$changedScriptLintFiles = @($changedFiles | Where-Object { Is-ScriptLintFile $_ })
 $changedProductionReactFiles = @($changedFiles | Where-Object { Is-ProductionReactFile $_ })
 
-Write-Header "[1/4] C# changed-file analyzer gate"
+Write-Header "[1/5] C# changed-file analyzer gate"
 if ($changedCSharpFiles.Count -eq 0) {
     Write-Host "[SKIP] No changed C# files." -ForegroundColor Yellow
 } else {
@@ -146,7 +152,7 @@ if ($changedCSharpFiles.Count -eq 0) {
     }
 }
 
-Write-Header "[2/4] C# changed-file coverage gate (threshold: 80%)"
+Write-Header "[2/5] C# changed-file coverage gate (threshold: 80%)"
 if ($changedProductionCSharpFiles.Count -eq 0) {
     Write-Host "[SKIP] No changed production C# files." -ForegroundColor Yellow
 } else {
@@ -184,7 +190,7 @@ if ($changedProductionCSharpFiles.Count -eq 0) {
     }
 }
 
-Write-Header "[3/4] React/TS changed-file ESLint gate"
+Write-Header "[3/5] React/TS changed-file ESLint gate"
 if ($changedReactFiles.Count -eq 0) {
     Write-Host "[SKIP] No changed React/TS files." -ForegroundColor Yellow
 } else {
@@ -199,7 +205,22 @@ if ($changedReactFiles.Count -eq 0) {
     }
 }
 
-Write-Header "[4/4] React/TS changed-file coverage gate (threshold: 80%)"
+Write-Header "[4/5] Repo JS/MJS changed-file ESLint gate"
+if ($changedScriptLintFiles.Count -eq 0) {
+    Write-Host "[SKIP] No changed repo JS/MJS script files." -ForegroundColor Yellow
+} else {
+    $scriptLintTargets = @($changedScriptLintFiles | ForEach-Object { $_ -replace '^scripts/', '' })
+    Set-Location "$RepoRoot\scripts"
+    & npx eslint --max-warnings=0 $scriptLintTargets
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "[FAIL] ESLint found violations in changed repo JS/MJS script files." -ForegroundColor Red
+        $Failed = $true
+    } else {
+        Write-Host "[PASS] No ESLint violations in changed repo JS/MJS script files." -ForegroundColor Green
+    }
+}
+
+Write-Header "[5/5] React/TS changed-file coverage gate (threshold: 80%)"
 if ($changedProductionReactFiles.Count -eq 0) {
     Write-Host "[SKIP] No changed production React/TS files." -ForegroundColor Yellow
 } else {

@@ -4,7 +4,8 @@
 #   1. C# build + analyzers on the full solution
 #   2. C# coverage on the full production codebase (threshold: 80%)
 #   3. React/TS ESLint on the full frontend source tree
-#   4. React/TS coverage on the full production frontend codebase (threshold: 80%)
+#   4. Repo JS/MJS ESLint on the full scripts tree
+#   5. React/TS coverage on the full production frontend codebase (threshold: 80%)
 
 $ErrorActionPreference = "Continue"
 
@@ -43,7 +44,7 @@ New-Item -ItemType Directory -Path (Join-Path $CSharpCoverageRoot "domain") -For
 New-Item -ItemType Directory -Path (Join-Path $CSharpCoverageRoot "infrastructure") -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $CSharpCoverageRoot "application") -Force | Out-Null
 
-Write-Header "[1/4] C# full-base build + code-smell analysis"
+Write-Header "[1/5] C# full-base build + code-smell analysis"
 dotnet build FoTestApi.sln -t:Rebuild /p:TreatWarningsAsErrors=true
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
@@ -53,7 +54,7 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "[PASS] Full-base C# build passed." -ForegroundColor Green
 }
 
-Write-Header "[2/4] C# full-base coverage (threshold: 80%)"
+Write-Header "[2/5] C# full-base coverage (threshold: 80%)"
 
 $DomainExit = Invoke-CSharpCoverage "Tests\FoTestApi.Domain.Tests\FoTestApi.Domain.Tests.csproj" (Join-Path $CSharpCoverageRoot "domain\coverage")
 $InfrastructureExit = Invoke-CSharpCoverage "Tests\FoTestApi.Infrastructure.Tests\FoTestApi.Infrastructure.Tests.csproj" (Join-Path $CSharpCoverageRoot "infrastructure\coverage")
@@ -82,7 +83,7 @@ if ($DomainExit -ne 0 -or $InfrastructureExit -ne 0 -or $ApplicationExit -ne 0) 
     }
 }
 
-Write-Header "[3/4] React/TS full-base ESLint"
+Write-Header "[3/5] React/TS full-base ESLint"
 Set-Location "$RepoRoot\fotest-react"
 npx eslint src --ext .ts,.tsx --max-warnings=0
 if ($LASTEXITCODE -ne 0) {
@@ -93,7 +94,19 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host "[PASS] Full-base React/TS ESLint passed." -ForegroundColor Green
 }
 
-Write-Header "[4/4] React/TS full-base coverage (threshold: 80%)"
+Write-Header "[4/5] Repo JS/MJS full-base ESLint"
+Set-Location "$RepoRoot\scripts"
+npx eslint . --ext .js,.cjs,.mjs --max-warnings=0
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "" 
+    Write-Host "[FAIL] Full-base repo JS/MJS ESLint found violations." -ForegroundColor Red
+    $Failed = $true
+} else {
+    Write-Host "[PASS] Full-base repo JS/MJS ESLint passed." -ForegroundColor Green
+}
+
+Write-Header "[5/5] React/TS full-base coverage (threshold: 80%)"
+Set-Location "$RepoRoot\fotest-react"
 $env:CI = "true"
 npm test -- --coverage --coverageReporters=json-summary --watchAll=false --runInBand
 if ($LASTEXITCODE -ne 0) {

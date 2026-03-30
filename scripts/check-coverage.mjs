@@ -3,7 +3,6 @@ import fs from "node:fs";
 import path from "node:path";
 
 const DEFAULT_COVERAGE_THRESHOLD = 80;
-const EMPTY_LINE_SUMMARY = { total: 0, covered: 0, pct: 0 };
 
 function readOptionValue(argv, index) {
   if (index + 1 >= argv.length) {
@@ -47,136 +46,167 @@ function normalizePath(value) {
   return value.replaceAll("\\", "/").replace(/^[A-Za-z]:/, "").replace(/^\/+/, "");
 }
 
+function createStripState() {
+  return {
+    inLineComment: false,
+    inBlockComment: false,
+    inString: false,
+    inVerbatimString: false,
+    inChar: false,
+    isEscaped: false,
+  };
+}
+
+function consumeLineComment(state, current, index, result) {
+  if (!state.inLineComment) {
+    return null;
+  }
+
+  if (current === "\n") {
+    state.inLineComment = false;
+    result.push(current);
+  }
+
+  return index;
+}
+
+function consumeBlockComment(state, current, next, index, result) {
+  if (!state.inBlockComment) {
+    return null;
+  }
+
+  if (current === "*" && next === "/") {
+    state.inBlockComment = false;
+    return index + 1;
+  }
+
+  if (current === "\r" || current === "\n") {
+    result.push(current);
+  }
+
+  return index;
+}
+
+function consumeEscapableLiteral(state, current, index, result, flagName, delimiter) {
+  if (!state[flagName]) {
+    return null;
+  }
+
+  result.push(current);
+
+  if (state.isEscaped) {
+    state.isEscaped = false;
+    return index;
+  }
+
+  if (current === "\\") {
+    state.isEscaped = true;
+    return index;
+  }
+
+  if (current === delimiter) {
+    state[flagName] = false;
+  }
+
+  return index;
+}
+
+function consumeVerbatimString(state, current, next, index, result) {
+  if (!state.inVerbatimString) {
+    return null;
+  }
+
+  result.push(current);
+
+  if (current === '"' && next === '"') {
+    result.push(next);
+    return index + 1;
+  }
+
+  if (current === '"') {
+    state.inVerbatimString = false;
+  }
+
+  return index;
+}
+
+function startToken(state, current, next, index, result) {
+  if (current === "@" && next === '"') {
+    state.inVerbatimString = true;
+    result.push(current, next);
+    return index + 1;
+  }
+
+  if (current === "/" && next === "/") {
+    state.inLineComment = true;
+    return index + 1;
+  }
+
+  if (current === "/" && next === "*") {
+    state.inBlockComment = true;
+    return index + 1;
+  }
+
+  if (current === '"') {
+    state.inString = true;
+    state.isEscaped = false;
+    result.push(current);
+    return index;
+  }
+
+  if (current === "'") {
+    state.inChar = true;
+    state.isEscaped = false;
+    result.push(current);
+    return index;
+  }
+
+  return null;
+}
+
+function appendCodeCharacter(current, result) {
+  result.push(current);
+}
+
 function stripComments(value) {
-  let result = "";
-  let inLineComment = false;
-  let inBlockComment = false;
-  let inString = false;
-  let inVerbatimString = false;
-  let inChar = false;
-  let isEscaped = false;
+  const result = [];
+  const state = createStripState();
+  const activeHandlers = [
+    consumeLineComment,
+    consumeBlockComment,
+    (currentState, current, next, index, currentResult) => consumeEscapableLiteral(currentState, current, index, currentResult, "inString", '"'),
+    consumeVerbatimString,
+    (currentState, current, next, index, currentResult) => consumeEscapableLiteral(currentState, current, index, currentResult, "inChar", "'"),
+  ];
 
   for (let index = 0; index < value.length; index += 1) {
     const current = value[index];
     const next = value[index + 1] ?? "";
 
-    if (inLineComment) {
-      if (current === "\n") {
-        inLineComment = false;
-        result += current;
-      }
+    let handledIndex = null;
 
+    for (const handler of activeHandlers) {
+      handledIndex = handler(state, current, next, index, result);
+      if (handledIndex !== null) {
+        break;
+      }
+    }
+
+    if (handledIndex !== null) {
+      index = handledIndex;
       continue;
     }
 
-    if (inBlockComment) {
-      if (current === "*" && next === "/") {
-        inBlockComment = false;
-        index += 1;
-        continue;
-      }
-
-      if (current === "\r" || current === "\n") {
-        result += current;
-      }
-
+    const tokenIndex = startToken(state, current, next, index, result);
+    if (tokenIndex !== null) {
+      index = tokenIndex;
       continue;
     }
 
-    if (inString) {
-      result += current;
-
-      if (isEscaped) {
-        isEscaped = false;
-        continue;
-      }
-
-      if (current === "\\") {
-        isEscaped = true;
-        continue;
-      }
-
-      if (current === '"') {
-        inString = false;
-      }
-
-      continue;
-    }
-
-    if (inVerbatimString) {
-      result += current;
-
-      if (current === '"' && next === '"') {
-        result += next;
-        index += 1;
-        continue;
-      }
-
-      if (current === '"') {
-        inVerbatimString = false;
-      }
-
-      continue;
-    }
-
-    if (inChar) {
-      result += current;
-
-      if (isEscaped) {
-        isEscaped = false;
-        continue;
-      }
-
-      if (current === "\\") {
-        isEscaped = true;
-        continue;
-      }
-
-      if (current === "'") {
-        inChar = false;
-      }
-
-      continue;
-    }
-
-    if (current === "@" && next === '"') {
-      inVerbatimString = true;
-      result += current;
-      result += next;
-      index += 1;
-      continue;
-    }
-
-    if (current === "/" && next === "/") {
-      inLineComment = true;
-      index += 1;
-      continue;
-    }
-
-    if (current === "/" && next === "*") {
-      inBlockComment = true;
-      index += 1;
-      continue;
-    }
-
-    if (current === '"') {
-      inString = true;
-      isEscaped = false;
-      result += current;
-      continue;
-    }
-
-    if (current === "'") {
-      inChar = true;
-      isEscaped = false;
-      result += current;
-      continue;
-    }
-
-    result += current;
+    appendCodeCharacter(current, result);
   }
 
-  return result.trim();
+  return result.join("").trim();
 }
 
 function hasExecutableSyntax(value) {
@@ -227,17 +257,7 @@ function fileLikelyHasExecutableCSharp(filePath, repoRoot) {
   }
 
   const compact = stripComments(fs.readFileSync(absolutePath, "utf8"));
-
-  if (/\binterface\b/i.test(compact)) {
-    return false;
-  }
-
-  // Empty marker/derived types with no bodies or executable syntax should not fail coverage.
-  if (isMarkerTypeWithoutExecutableSyntax(compact)) {
-    return false;
-  }
-
-  return true;
+  return !/\binterface\b/i.test(compact) && !isMarkerTypeWithoutExecutableSyntax(compact);
 }
 
 function isProductionReactFile(relativePath) {
@@ -259,6 +279,48 @@ function formatPercent(covered, total) {
   return ((covered / total) * 100).toFixed(2);
 }
 
+function isObjectRecord(value) {
+  return Boolean(value) && typeof value === "object";
+}
+
+function mergeMethodLines(coverageByLine, methodData) {
+  const lines = methodData.Lines ?? {};
+
+  for (const [lineNumber, hitCount] of Object.entries(lines)) {
+    const existingHits = coverageByLine.get(lineNumber) ?? 0;
+    coverageByLine.set(lineNumber, existingHits + Number(hitCount));
+  }
+}
+
+function mergeDocumentCoverage(coverageByLine, documentData) {
+  for (const typeData of Object.values(documentData)) {
+    if (!isObjectRecord(typeData)) {
+      continue;
+    }
+
+    for (const methodData of Object.values(typeData)) {
+      if (!isObjectRecord(methodData)) {
+        continue;
+      }
+
+      mergeMethodLines(coverageByLine, methodData);
+    }
+  }
+}
+
+function mergeModuleCoverage(fileCoverage, moduleData, repoRoot) {
+  for (const [documentPath, documentData] of Object.entries(moduleData)) {
+    if (!isObjectRecord(documentData)) {
+      continue;
+    }
+
+    const relativePath = toRepoRelativePath(documentPath, repoRoot);
+    const coverageByLine = fileCoverage.get(relativePath) ?? new Map();
+    mergeDocumentCoverage(coverageByLine, documentData);
+    fileCoverage.set(relativePath, coverageByLine);
+  }
+}
+
 function loadCoverletReports(reportPaths, repoRoot) {
   const fileCoverage = new Map();
 
@@ -270,39 +332,11 @@ function loadCoverletReports(reportPaths, repoRoot) {
     const reportJson = JSON.parse(fs.readFileSync(reportPath, "utf8"));
 
     for (const moduleData of Object.values(reportJson)) {
-      if (!moduleData || typeof moduleData !== "object") {
+      if (!isObjectRecord(moduleData)) {
         continue;
       }
 
-      for (const [documentPath, documentData] of Object.entries(moduleData)) {
-        const relativePath = toRepoRelativePath(documentPath, repoRoot);
-        const coverageByLine = fileCoverage.get(relativePath) ?? new Map();
-
-        if (!documentData || typeof documentData !== "object") {
-          continue;
-        }
-
-        for (const typeData of Object.values(documentData)) {
-          if (!typeData || typeof typeData !== "object") {
-            continue;
-          }
-
-          for (const methodData of Object.values(typeData)) {
-            if (!methodData || typeof methodData !== "object") {
-              continue;
-            }
-
-            const lines = methodData.Lines ?? {};
-
-            for (const [lineNumber, hitCount] of Object.entries(lines)) {
-              const existingHits = coverageByLine.get(lineNumber) ?? 0;
-              coverageByLine.set(lineNumber, existingHits + Number(hitCount));
-            }
-          }
-        }
-
-        fileCoverage.set(relativePath, coverageByLine);
-      }
+      mergeModuleCoverage(fileCoverage, moduleData, repoRoot);
     }
   }
 
@@ -325,6 +359,35 @@ function reportCoverageTotals(label, coveredLines, totalLines, threshold) {
   const totalPercent = Number(formatPercent(coveredLines, totalLines));
   console.log(`[TOTAL] ${coveredLines}/${totalLines} ${label} covered (${totalPercent.toFixed(2)}%). Threshold: ${threshold.toFixed(2)}%.`);
   return totalPercent;
+}
+
+function collectCoverageTotals(targetFiles, evaluateFileCoverage, logCoverageSummary) {
+  const totals = {
+    totalLines: 0,
+    coveredLines: 0,
+    missingCoverageData: false,
+  };
+
+  for (const relativePath of targetFiles) {
+    const fileCoverage = evaluateFileCoverage(relativePath);
+
+    if (fileCoverage.status === "miss") {
+      console.log(`[MISS] ${relativePath} - no coverage data found.`);
+      totals.missingCoverageData = true;
+      continue;
+    }
+
+    if (fileCoverage.status === "skip") {
+      console.log(`[SKIP] ${relativePath} - no executable lines expected.`);
+      continue;
+    }
+
+    totals.totalLines += fileCoverage.total;
+    totals.coveredLines += fileCoverage.covered;
+    logCoverageSummary(relativePath, fileCoverage);
+  }
+
+  return totals;
 }
 
 function evaluateCSharpFileCoverage(relativePath, coverletCoverage, repoRoot) {
@@ -368,40 +431,24 @@ function evaluateCSharpCoverage(args) {
     process.exit(0);
   }
 
-  let totalLines = 0;
-  let coveredLines = 0;
-  let missingCoverageData = false;
-
   console.log(`[INFO] Evaluating C# ${scope} coverage for ${targetFiles.length} file(s).`);
 
-  for (const relativePath of targetFiles) {
-    const fileCoverage = evaluateCSharpFileCoverage(relativePath, coverletCoverage, repoRoot);
+  const totals = collectCoverageTotals(
+    targetFiles,
+    (relativePath) => evaluateCSharpFileCoverage(relativePath, coverletCoverage, repoRoot),
+    (relativePath, fileCoverage) => {
+      console.log(`[FILE] ${relativePath} - ${fileCoverage.covered}/${fileCoverage.total} executable lines covered (${formatPercent(fileCoverage.covered, fileCoverage.total)}%).`);
+    },
+  );
 
-    if (fileCoverage.status === "miss") {
-      console.log(`[MISS] ${relativePath} - no coverage data found.`);
-      missingCoverageData = true;
-      continue;
-    }
-
-    if (fileCoverage.status === "skip") {
-      console.log(`[SKIP] ${relativePath} - no executable lines expected.`);
-      continue;
-    }
-
-    totalLines += fileCoverage.total;
-    coveredLines += fileCoverage.covered;
-
-    console.log(`[FILE] ${relativePath} - ${fileCoverage.covered}/${fileCoverage.total} executable lines covered (${formatPercent(fileCoverage.covered, fileCoverage.total)}%).`);
-  }
-
-  if (totalLines === 0) {
+  if (totals.totalLines === 0) {
     console.log("[FAIL] No executable C# lines were found for the requested scope.");
     process.exit(1);
   }
 
-  const totalPercent = reportCoverageTotals("executable lines", coveredLines, totalLines, threshold);
+  const totalPercent = reportCoverageTotals("executable lines", totals.coveredLines, totals.totalLines, threshold);
 
-  if (missingCoverageData || totalPercent < threshold) {
+  if (totals.missingCoverageData || totalPercent < threshold) {
     process.exit(1);
   }
 }
@@ -443,35 +490,24 @@ function evaluateReactCoverage(args) {
     process.exit(0);
   }
 
-  let totalLines = 0;
-  let coveredLines = 0;
-  let missingCoverageData = false;
-
   console.log(`[INFO] Evaluating React/TS ${scope} coverage for ${targetFiles.length} file(s).`);
 
-  for (const relativePath of targetFiles) {
-    const fileCoverage = evaluateReactFileCoverage(relativePath, reactSummary);
+  const totals = collectCoverageTotals(
+    targetFiles,
+    (relativePath) => evaluateReactFileCoverage(relativePath, reactSummary),
+    (relativePath, fileCoverage) => {
+      console.log(`[FILE] ${relativePath} - ${fileCoverage.covered}/${fileCoverage.total} lines covered (${fileCoverage.pct.toFixed(2)}%).`);
+    },
+  );
 
-    if (fileCoverage.status === "miss") {
-      console.log(`[MISS] ${relativePath} - no coverage data found.`);
-      missingCoverageData = true;
-      continue;
-    }
-
-    totalLines += fileCoverage.total;
-    coveredLines += fileCoverage.covered;
-
-    console.log(`[FILE] ${relativePath} - ${fileCoverage.covered}/${fileCoverage.total} lines covered (${fileCoverage.pct.toFixed(2)}%).`);
-  }
-
-  if (totalLines === 0) {
+  if (totals.totalLines === 0) {
     console.log("[FAIL] No measurable React/TS lines were found for the requested scope.");
     process.exit(1);
   }
 
-  const totalPercent = reportCoverageTotals("lines", coveredLines, totalLines, threshold);
+  const totalPercent = reportCoverageTotals("lines", totals.coveredLines, totals.totalLines, threshold);
 
-  if (missingCoverageData || totalPercent < threshold) {
+  if (totals.missingCoverageData || totalPercent < threshold) {
     process.exit(1);
   }
 }

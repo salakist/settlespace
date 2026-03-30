@@ -5,7 +5,8 @@
 #   1. C# build + analyzers on the full solution
 #   2. C# coverage on the full production codebase (threshold: 80%)
 #   3. React/TS ESLint on the full frontend source tree
-#   4. React/TS coverage on the full production frontend codebase (threshold: 80%)
+#   4. Repo JS/MJS ESLint on the full scripts tree
+#   5. React/TS coverage on the full production frontend codebase (threshold: 80%)
 
 set -euo pipefail
 
@@ -41,7 +42,7 @@ mkdir -p "$CSHARP_COVERAGE_ROOT/domain" "$CSHARP_COVERAGE_ROOT/infrastructure" "
 
 cd "$REPO_ROOT"
 
-print_header "[1/4] C# full-base build + code-smell analysis"
+print_header "[1/5] C# full-base build + code-smell analysis"
 if dotnet build FoTestApi.sln -t:Rebuild -p:TreatWarningsAsErrors=true; then
   echo "[PASS] Full-base C# build passed."
 else
@@ -50,7 +51,7 @@ else
   FAILED=1
 fi
 
-print_header "[2/4] C# full-base coverage (threshold: 80%)"
+print_header "[2/5] C# full-base coverage (threshold: 80%)"
 if invoke_csharp_coverage "Tests/FoTestApi.Domain.Tests/FoTestApi.Domain.Tests.csproj" "$CSHARP_COVERAGE_ROOT/domain/coverage" \
   && invoke_csharp_coverage "Tests/FoTestApi.Infrastructure.Tests/FoTestApi.Infrastructure.Tests.csproj" "$CSHARP_COVERAGE_ROOT/infrastructure/coverage" \
   && invoke_csharp_coverage "Tests/FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj" "$CSHARP_COVERAGE_ROOT/application/coverage"; then
@@ -74,7 +75,7 @@ else
   FAILED=1
 fi
 
-print_header "[3/4] React/TS full-base ESLint"
+print_header "[3/5] React/TS full-base ESLint"
 cd "$REPO_ROOT/fotest-react"
 if npx eslint src --ext .ts,.tsx --max-warnings=0; then
   echo "[PASS] Full-base React/TS ESLint passed."
@@ -84,7 +85,18 @@ else
   FAILED=1
 fi
 
-print_header "[4/4] React/TS full-base coverage (threshold: 80%)"
+print_header "[4/5] Repo JS/MJS full-base ESLint"
+cd "$REPO_ROOT/scripts"
+if npx eslint . --ext .js,.cjs,.mjs --max-warnings=0; then
+  echo "[PASS] Full-base repo JS/MJS ESLint passed."
+else
+  echo ""
+  echo "[FAIL] Full-base repo JS/MJS ESLint found violations."
+  FAILED=1
+fi
+
+print_header "[5/5] React/TS full-base coverage (threshold: 80%)"
+cd "$REPO_ROOT/fotest-react"
 if CI=true npm test -- --coverage --coverageReporters=json-summary --watchAll=false --runInBand; then
   if node ../scripts/check-coverage.mjs \
       --mode react \

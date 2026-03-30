@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 # scripts/run-checks.sh
 #
-# Runs the changed-code quality gates used by agents and git hooks.
+# Runs the changed-code quality gates used by agents and git hooks:
+#   1. C# build + analyzers, filtered to diagnostics in changed C# files
+#   2. C# coverage on changed production C# files (threshold: 80%)
+#   3. React/TS ESLint on changed frontend files
+#   4. Repo JS/MJS ESLint on changed script files
+#   5. React/TS coverage on changed production frontend files (threshold: 80%)
 
 set -euo pipefail
 
@@ -88,6 +93,12 @@ is_production_react_file() {
   return $?
 }
 
+is_script_lint_file() {
+  local file_path="$1"
+  [[ "$file_path" =~ ^scripts/.*\.(js|cjs|mjs)$ ]]
+  return $?
+}
+
 invoke_csharp_coverage() {
   local project_path="$1"
   local output_prefix="$2"
@@ -124,6 +135,7 @@ fi
 declare -a CHANGED_CSHARP_FILES=()
 declare -a CHANGED_PRODUCTION_CSHARP_FILES=()
 declare -a CHANGED_REACT_FILES=()
+declare -a CHANGED_SCRIPT_LINT_FILES=()
 declare -a CHANGED_PRODUCTION_REACT_FILES=()
 
 for file in "${CHANGED_FILES[@]}"; do
@@ -139,12 +151,16 @@ for file in "${CHANGED_FILES[@]}"; do
     CHANGED_REACT_FILES+=("$file")
   fi
 
+  if is_script_lint_file "$file"; then
+    CHANGED_SCRIPT_LINT_FILES+=("$file")
+  fi
+
   if is_production_react_file "$file"; then
     CHANGED_PRODUCTION_REACT_FILES+=("$file")
   fi
 done
 
-print_header "[1/4] C# changed-file analyzer gate"
+print_header "[1/5] C# changed-file analyzer gate"
 if [[ "${#CHANGED_CSHARP_FILES[@]}" -eq 0 ]]; then
   echo "[SKIP] No changed C# files."
 else
@@ -183,7 +199,7 @@ else
   fi
 fi
 
-print_header "[2/4] C# changed-file coverage gate (threshold: 80%)"
+print_header "[2/5] C# changed-file coverage gate (threshold: 80%)"
 if [[ "${#CHANGED_PRODUCTION_CSHARP_FILES[@]}" -eq 0 ]]; then
   echo "[SKIP] No changed production C# files."
 else
@@ -213,7 +229,7 @@ else
   fi
 fi
 
-print_header "[3/4] React/TS changed-file ESLint gate"
+print_header "[3/5] React/TS changed-file ESLint gate"
 if [[ "${#CHANGED_REACT_FILES[@]}" -eq 0 ]]; then
   echo "[SKIP] No changed React/TS files."
 else
@@ -231,7 +247,25 @@ else
   fi
 fi
 
-print_header "[4/4] React/TS changed-file coverage gate (threshold: 80%)"
+print_header "[4/5] Repo JS/MJS changed-file ESLint gate"
+if [[ "${#CHANGED_SCRIPT_LINT_FILES[@]}" -eq 0 ]]; then
+  echo "[SKIP] No changed repo JS/MJS script files."
+else
+  cd "$REPO_ROOT/scripts"
+  declare -a SCRIPT_LINT_TARGETS=()
+  for file in "${CHANGED_SCRIPT_LINT_FILES[@]}"; do
+    SCRIPT_LINT_TARGETS+=("${file#scripts/}")
+  done
+
+  if npx eslint --max-warnings=0 "${SCRIPT_LINT_TARGETS[@]}"; then
+    echo "[PASS] No ESLint violations in changed repo JS/MJS script files."
+  else
+    echo "[FAIL] ESLint found violations in changed repo JS/MJS script files."
+    FAILED=1
+  fi
+fi
+
+print_header "[5/5] React/TS changed-file coverage gate (threshold: 80%)"
 if [[ "${#CHANGED_PRODUCTION_REACT_FILES[@]}" -eq 0 ]]; then
   echo "[SKIP] No changed production React/TS files."
 else

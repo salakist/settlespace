@@ -82,7 +82,7 @@ Before running `git commit`, explicitly show this 2-step checklist with a status
 Checklist rules:
 1. If a step is `SKIPPED`, include a one-line reason.
 2. Step 1 may be `SKIPPED` only when there are no production code changes since the latest successful Step 1 run, and the latest log path is provided.
-	- Production code changes means staged or unstaged edits in implementation source files under `FoTestApi.Domain/`, `FoTestApi.Infrastructure/`, `FoTestApi.Application/`, and `fotest-react/src/`, excluding test files and documentation-only changes.
+	- Production code changes means staged or unstaged edits in implementation source files under `FoTestApi.Domain/`, `FoTestApi.Infrastructure/`, `FoTestApi.Application/`, `fotest-react/src/`, and runtime quality-gate script code/config under `scripts/` (for example `*.ps1`, `*.sh`, `*.mjs`, `*.js`, `package.json`, `.eslintrc.json`), excluding test files and documentation-only changes.
 	- The latest successful Step 1 log path must be shown directly in the commit checklist output (for example under a `Latest Step 1 log` line).
 3. Step 2 must always be reviewed at commit-time for the current staged diff. You may mark Step 2 as `SKIPPED` only as `No documentation changes required` and include a short reason tied to the staged changes.
 4. If either step is neither `DONE` nor validly `SKIPPED`, do not commit.

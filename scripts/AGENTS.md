@@ -12,6 +12,7 @@ Own repository quality-gate and hook automation scripts.
 - `seed-dev-data.ps1` / `seed-dev-data.sh` - manual local seed scripts for persons and transactions API data.
 - `hooks/` - hook source templates copied to `.git/hooks`.
 - `check-coverage.mjs` - shared coverage evaluator for changed/full modes.
+- `package.json` / `.eslintrc.json` - local repo-script lint configuration for Node JS/MJS files under `scripts/`.
 
 ## Agent policy
 1. Quality gate execution is mandatory before commit/push.
@@ -43,24 +44,32 @@ Own repository quality-gate and hook automation scripts.
 - Changed-code gate enforces quality only on changed production scope.
 - Full-base gate enforces quality across the full production codebase.
 - C# analyzer steps use solution rebuilds to avoid incremental-build false negatives.
+- JavaScript analysis is intentionally split between the React app lint track and the repo-script lint track so failures stay local to their runtime context.
 - Coverage threshold remains 80% unless explicitly changed by repository policy.
+
+## Local prerequisites
+- Repo-script lint track depends on `scripts/package.json` dev dependencies.
+- Ensure `cd scripts && npm install` has been run on developer machines before running quality gates.
 
 ## Update checklist
 When editing any script in this folder:
 1. Update both PowerShell and shell implementations when applicable.
 2. Update related wrapper/help text if command behavior changes.
 3. Verify docs alignment in `AGENTS.md` and `README.md` if command usage changes.
-4. Run the changed-code debug wrapper before commit.
+4. If `scripts/package.json` changes, refresh and commit `scripts/package-lock.json`.
+5. Run the changed-code debug wrapper before commit.
 
 ## Commands
 ```powershell
 .\scripts\run-checks-debug.ps1
 .\scripts\run-full-checks-debug.ps1
 .\scripts\setup-hooks.ps1
+cd scripts; npm install
 ```
 
 ```bash
 sh scripts/run-checks-debug.sh
 sh scripts/run-full-checks-debug.sh
 sh scripts/setup-hooks.sh
+cd scripts && npm install
 ```

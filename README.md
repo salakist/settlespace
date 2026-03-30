@@ -250,7 +250,8 @@ Two repository-level analysis modes are available:
 
 - Builds the solution and blocks analyzer/compiler diagnostics that touch changed C# files
 - Measures coverage only for changed production C# files
-- Runs ESLint only on changed frontend files
+- Runs ESLint on changed frontend files
+- Runs ESLint on changed repo JS/MJS script files under `scripts/`
 - Measures coverage only for changed production frontend files
 
 ### Full-base gate
@@ -258,7 +259,19 @@ Two repository-level analysis modes are available:
 - Builds the full solution and blocks all analyzer/compiler diagnostics
 - Measures coverage across the full production C# codebase
 - Runs ESLint on the full frontend source tree
+- Runs ESLint on the full repo JS/MJS script scope under `scripts/`
 - Measures coverage across the full production frontend codebase
+
+### Local analyzer tracks
+
+- Backend C# analysis runs during `dotnet build` via Roslyn analyzers configured in `Directory.Build.props`
+- Frontend React analysis runs through the existing `fotest-react` ESLint configuration
+- Repo-script JS/MJS analysis runs through a separate ESLint configuration under `scripts/`
+
+### Gate prerequisites
+
+- Install frontend dependencies once: `cd fotest-react && npm install`
+- Install repo-script lint dependencies once: `cd scripts && npm install`
 
 ### Coverage policy
 
