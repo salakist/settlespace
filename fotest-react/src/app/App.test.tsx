@@ -1,8 +1,17 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { __mockNavigate, __resetRouterMocks, __setMockPathname } from 'react-router-dom';
 
 jest.mock('react-router-dom');
+
+const {
+  __mockNavigate,
+  __resetRouterMocks,
+  __setMockPathname,
+} = jest.requireMock('react-router-dom') as {
+  __mockNavigate: jest.Mock;
+  __resetRouterMocks: () => void;
+  __setMockPathname: (pathname: string) => void;
+};
 
 jest.mock('../features/auth/hooks/useAuth', () => ({
   useAuth: jest.fn(),
