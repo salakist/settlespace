@@ -109,7 +109,7 @@ test('handleSave calls create for new transaction and update for edited one', as
 
 test('handleDelete respects confirm dialog and deletes when confirmed', async () => {
   const harness = createHarness();
-  const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
+  const confirmSpy = jest.spyOn(globalThis, 'confirm').mockReturnValue(false);
 
   await act(async () => {
     await harness.getHook().handleDelete('tx-1');
@@ -194,7 +194,7 @@ test('handleSave failure sets error message', async () => {
 test('handleDelete failure sets error message', async () => {
   transactionApi.delete.mockRejectedValueOnce(new Error('boom'));
   const harness = createHarness();
-  const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+  const confirmSpy = jest.spyOn(globalThis, 'confirm').mockReturnValue(true);
 
   await act(async () => {
     await harness.getHook().handleDelete('tx-1');

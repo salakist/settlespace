@@ -28,6 +28,7 @@ Own repository quality-gate and hook automation scripts.
   1.2.5 On Sonar failure, scripts should print a compact issue or technical-error summary that is directly actionable in agent sessions.
     - If the failed quality gate includes unreviewed security hotspots, print the most likely hotspot location returned by SonarCloud.
     - If the failed quality gate includes a coverage condition, print the 10 lowest covered files returned by SonarCloud for the analyzed branch.
+     - If Sonar reports any duplication, print a warning summary with duplication metrics and top duplicated files.
   1.3 Git hooks should continue invoking base scripts (do not rewrite hooks to call debug wrappers by default).
   1.4 Never suggest bypassing hooks with `--no-verify`.
 2. After gates pass and before commit, documentation updates are mandatory for the same change set.

@@ -33,6 +33,11 @@ jest.mock('./TransactionList', () => ({
   default: () => <div>Transaction List</div>,
 }));
 
+jest.mock('./TransactionForm', () => ({
+  __esModule: true,
+  default: () => <div>Transaction Form</div>,
+}));
+
 test('renders list and loads transactions on mount', () => {
   render(
     <TransactionsPage
@@ -60,4 +65,51 @@ test('forwards search and create actions', () => {
 
   expect(mockHook.handleSearch).toHaveBeenCalledWith('test');
   expect(mockHook.showCreateForm).toHaveBeenCalled();
+});
+
+test('shows loading spinner when loading is true', () => {
+  mockHook.loading = true;
+
+  render(
+    <TransactionsPage
+      persons={[]}
+      currentPersonId="p1"
+      expireSession={jest.fn()}
+    />,
+  );
+
+  expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  mockHook.loading = false;
+});
+
+test('shows error alert when error is set', () => {
+  mockHook.error = 'Something went wrong';
+
+  render(
+    <TransactionsPage
+      persons={[]}
+      currentPersonId="p1"
+      expireSession={jest.fn()}
+    />,
+  );
+
+  expect(screen.getByRole('alert')).toBeInTheDocument();
+  expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+  mockHook.error = null;
+});
+
+test('renders transaction form when showForm is true', () => {
+  mockHook.showForm = true;
+
+  render(
+    <TransactionsPage
+      persons={[{ id: 'p1', firstName: 'John', lastName: 'Doe', addresses: [] }]}
+      currentPersonId="p1"
+      expireSession={jest.fn()}
+    />,
+  );
+
+  expect(screen.getByText('Transaction Form')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /add transaction/i })).toBeDisabled();
+  mockHook.showForm = false;
 });

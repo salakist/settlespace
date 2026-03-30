@@ -37,7 +37,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
   const sanitizeAddresses = (items: Address[]) =>
     items.filter((address) => Object.values(address).some((value) => value?.trim()));
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     setValidationError(null);
 
@@ -124,7 +124,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
                 type="date"
                 value={dateOfBirth}
                 onChange={(event) => setDateOfBirth(event.target.value)}
-                InputLabelProps={{ shrink: true }}
+                slotProps={{ inputLabel: { shrink: true } }}
                 fullWidth
               />
               <PersonAddressEditor addresses={addresses} onChange={setAddresses} disabled={loading} />

@@ -34,7 +34,7 @@ const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel, saveL
     setSubmitError(null);
   }, [person]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setSubmitError(null);
 

@@ -247,3 +247,77 @@ function Show-SonarQualityGateSummary([string]$ProjectKey, [string]$BranchName, 
         Write-Host ("[warn] Unable to fetch Sonar quality gate summary: {0}" -f $_.Exception.Message) -ForegroundColor Yellow
     }
 }
+
+function Show-SonarDuplicationWarning([string]$ProjectKey, [string]$BranchName, [string]$Token, [int]$TopFiles = 10) {
+    if ([string]::IsNullOrWhiteSpace($ProjectKey) -or [string]::IsNullOrWhiteSpace($Token)) {
+        return
+    }
+
+    try {
+        $metricsUri = "https://sonarcloud.io/api/measures/component?component=$([Uri]::EscapeDataString($ProjectKey))&metricKeys=duplicated_lines_density,duplicated_lines,duplicated_blocks"
+        if (-not [string]::IsNullOrWhiteSpace($BranchName)) {
+            $metricsUri += "&branch=$([Uri]::EscapeDataString($BranchName))"
+        }
+
+        $metricsResponse = Invoke-RestMethod -Method Get -Uri $metricsUri -Headers (Get-SonarAuthHeader $Token)
+        $metricMap = @{}
+        foreach ($measure in @($metricsResponse.component.measures)) {
+            $metricMap[$measure.metric] = $measure.value
+        }
+
+        $duplicatedLines = if ($metricMap.ContainsKey('duplicated_lines')) { [int]$metricMap['duplicated_lines'] } else { 0 }
+        $duplicatedBlocks = if ($metricMap.ContainsKey('duplicated_blocks')) { [int]$metricMap['duplicated_blocks'] } else { 0 }
+        $duplicatedDensity = if ($metricMap.ContainsKey('duplicated_lines_density')) { [double]$metricMap['duplicated_lines_density'] } else { 0 }
+
+        if ($duplicatedLines -le 0 -and $duplicatedBlocks -le 0) {
+            return
+        }
+
+        Write-Host ("[warn] Sonar duplication detected: duplicated_lines_density={0:N1}%, duplicated_lines={1}, duplicated_blocks={2}." -f $duplicatedDensity, $duplicatedLines, $duplicatedBlocks) -ForegroundColor Yellow
+
+        $treeUri = "https://sonarcloud.io/api/measures/component_tree?component=$([Uri]::EscapeDataString($ProjectKey))&metricKeys=duplicated_lines_density,duplicated_lines,duplicated_blocks&qualifiers=FIL&ps=500&p=1"
+        if (-not [string]::IsNullOrWhiteSpace($BranchName)) {
+            $treeUri += "&branch=$([Uri]::EscapeDataString($BranchName))"
+        }
+
+        $treeResponse = Invoke-RestMethod -Method Get -Uri $treeUri -Headers (Get-SonarAuthHeader $Token)
+        $rankedFiles = @(
+            foreach ($component in @($treeResponse.components)) {
+                $fileMetricMap = @{}
+                foreach ($measure in @($component.measures)) {
+                    $fileMetricMap[$measure.metric] = $measure.value
+                }
+
+                $fileDuplicatedLines = if ($fileMetricMap.ContainsKey('duplicated_lines')) { [int]$fileMetricMap['duplicated_lines'] } else { 0 }
+                $fileDuplicatedBlocks = if ($fileMetricMap.ContainsKey('duplicated_blocks')) { [int]$fileMetricMap['duplicated_blocks'] } else { 0 }
+
+                if ($fileDuplicatedLines -le 0 -and $fileDuplicatedBlocks -le 0) {
+                    continue
+                }
+
+                $componentPath = if ($component.key -match '^[^:]+:(.+)$') { $Matches[1] } else { $component.path }
+                [pscustomobject]@{
+                    Path = $componentPath
+                    DuplicatedLinesDensity = if ($fileMetricMap.ContainsKey('duplicated_lines_density')) { [double]$fileMetricMap['duplicated_lines_density'] } else { 0 }
+                    DuplicatedLines = $fileDuplicatedLines
+                    DuplicatedBlocks = $fileDuplicatedBlocks
+                }
+            }
+        ) | Sort-Object @(
+            @{ Expression = { $_.DuplicatedLinesDensity }; Descending = $true },
+            @{ Expression = { $_.DuplicatedLines }; Descending = $true },
+            @{ Expression = { $_.Path }; Descending = $false }
+        )
+
+        if ($rankedFiles.Count -eq 0) {
+            return
+        }
+
+        Write-Host ("[warn] Top duplicated files from SonarCloud (up to {0}):" -f [Math]::Min($TopFiles, $rankedFiles.Count)) -ForegroundColor Yellow
+        $rankedFiles | Select-Object -First $TopFiles | ForEach-Object {
+            Write-Host ("  - {0} - duplicated_lines_density={1:N1}%, duplicated_lines={2}, duplicated_blocks={3}" -f $_.Path, $_.DuplicatedLinesDensity, $_.DuplicatedLines, $_.DuplicatedBlocks) -ForegroundColor Yellow
+        }
+    } catch {
+        Write-Host ("[warn] Unable to fetch Sonar duplication summary: {0}" -f $_.Exception.Message) -ForegroundColor Yellow
+    }
+}

@@ -151,6 +151,7 @@ if ($runSonarScanner) {
             if ($scannerText -match 'QUALITY GATE STATUS:\s*FAILED') {
                 Show-SonarQualityGateSummary -ProjectKey $projectKey -BranchName $branchName -Token $env:SONAR_TOKEN
                 Show-SonarIssueSummary -ProjectKey $projectKey -BranchName $branchName -Token $env:SONAR_TOKEN
+                Show-SonarDuplicationWarning -ProjectKey $projectKey -BranchName $branchName -Token $env:SONAR_TOKEN
             } else {
                 Show-SonarTechnicalErrors -ScannerLines $scannerLines
             }
@@ -158,6 +159,7 @@ if ($runSonarScanner) {
             Write-Host "[FAIL] Optional SonarScanner parity analysis failed." -ForegroundColor Red
             $Failed = $true
         } else {
+            Show-SonarDuplicationWarning -ProjectKey $projectKey -BranchName $branchName -Token $env:SONAR_TOKEN
             Write-Host "[PASS] Optional SonarScanner parity analysis passed." -ForegroundColor Green
         }
     }

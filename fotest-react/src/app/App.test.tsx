@@ -86,6 +86,34 @@ const { useAppAuth: mockUseAppAuth } = jest.requireMock('./hooks/useAppAuth') as
 
 const App = require('./App').default;
 
+const setAuthenticatedSession = (currentPersonId?: string) => {
+  mockUseAuth.mockReturnValue({
+    authError: null,
+    authLoading: false,
+    clearAuthError: jest.fn(),
+    expireSession: jest.fn(),
+    isAuthenticated: true,
+    login: jest.fn(),
+    logout: jest.fn(),
+    register: jest.fn(),
+    setAuthUsername: jest.fn(),
+    username: 'john.doe',
+  });
+
+  mockUseProfile.mockReturnValue({
+    clearProfileState: jest.fn(),
+    currentPerson: { id: currentPersonId, firstName: 'John', lastName: 'Doe', addresses: [] },
+    handlePasswordChange: jest.fn(),
+    handleProfileSave: jest.fn(),
+    loadCurrentPerson: jest.fn(),
+    passwordLoading: false,
+    profileError: null,
+    profileLoading: false,
+    profileSaveLoading: false,
+    setProfileIdle: jest.fn(),
+  });
+};
+
 beforeEach(() => {
   jest.clearAllMocks();
   __resetRouterMocks();
@@ -154,31 +182,7 @@ test('renders authentication shell when user is unauthenticated', () => {
 test('renders authenticated shell and calls handleLogout on logout click', () => {
   const handleLogout = jest.fn();
 
-  mockUseAuth.mockReturnValue({
-    authError: null,
-    authLoading: false,
-    clearAuthError: jest.fn(),
-    expireSession: jest.fn(),
-    isAuthenticated: true,
-    login: jest.fn(),
-    logout: jest.fn(),
-    register: jest.fn(),
-    setAuthUsername: jest.fn(),
-    username: 'john.doe',
-  });
-
-  mockUseProfile.mockReturnValue({
-    clearProfileState: jest.fn(),
-    currentPerson: { firstName: 'John', lastName: 'Doe', addresses: [] },
-    handlePasswordChange: jest.fn(),
-    handleProfileSave: jest.fn(),
-    loadCurrentPerson: jest.fn(),
-    passwordLoading: false,
-    profileError: null,
-    profileLoading: false,
-    profileSaveLoading: false,
-    setProfileIdle: jest.fn(),
-  });
+  setAuthenticatedSession();
 
   mockUseAppAuth.mockReturnValue({
     handleLogin: jest.fn(),
@@ -195,31 +199,7 @@ test('renders authenticated shell and calls handleLogout on logout click', () =>
 });
 
 test('renders home navigation tabs and shows welcome content', () => {
-  mockUseAuth.mockReturnValue({
-    authError: null,
-    authLoading: false,
-    clearAuthError: jest.fn(),
-    expireSession: jest.fn(),
-    isAuthenticated: true,
-    login: jest.fn(),
-    logout: jest.fn(),
-    register: jest.fn(),
-    setAuthUsername: jest.fn(),
-    username: 'john.doe',
-  });
-
-  mockUseProfile.mockReturnValue({
-    clearProfileState: jest.fn(),
-    currentPerson: { firstName: 'John', lastName: 'Doe', addresses: [] },
-    handlePasswordChange: jest.fn(),
-    handleProfileSave: jest.fn(),
-    loadCurrentPerson: jest.fn(),
-    passwordLoading: false,
-    profileError: null,
-    profileLoading: false,
-    profileSaveLoading: false,
-    setProfileIdle: jest.fn(),
-  });
+  setAuthenticatedSession();
 
   render(<App />);
 
@@ -232,31 +212,7 @@ test('renders home navigation tabs and shows welcome content', () => {
 test('renders non-home tabs and navigates correctly', () => {
   __setMockPathname('/profile');
 
-  mockUseAuth.mockReturnValue({
-    authError: null,
-    authLoading: false,
-    clearAuthError: jest.fn(),
-    expireSession: jest.fn(),
-    isAuthenticated: true,
-    login: jest.fn(),
-    logout: jest.fn(),
-    register: jest.fn(),
-    setAuthUsername: jest.fn(),
-    username: 'john.doe',
-  });
-
-  mockUseProfile.mockReturnValue({
-    clearProfileState: jest.fn(),
-    currentPerson: { firstName: 'John', lastName: 'Doe', addresses: [] },
-    handlePasswordChange: jest.fn(),
-    handleProfileSave: jest.fn(),
-    loadCurrentPerson: jest.fn(),
-    passwordLoading: false,
-    profileError: null,
-    profileLoading: false,
-    profileSaveLoading: false,
-    setProfileIdle: jest.fn(),
-  });
+  setAuthenticatedSession();
 
   render(<App />);
 
@@ -279,19 +235,7 @@ test('renders non-home tabs and navigates correctly', () => {
 
 test('does not pass logged-in user to persons page list', () => {
   __setMockPathname('/persons');
-
-  mockUseAuth.mockReturnValue({
-    authError: null,
-    authLoading: false,
-    clearAuthError: jest.fn(),
-    expireSession: jest.fn(),
-    isAuthenticated: true,
-    login: jest.fn(),
-    logout: jest.fn(),
-    register: jest.fn(),
-    setAuthUsername: jest.fn(),
-    username: 'john.doe',
-  });
+  setAuthenticatedSession('1');
 
   mockUsePersons.mockReturnValue({
     clearPersonsError: jest.fn(),
@@ -314,19 +258,6 @@ test('does not pass logged-in user to persons page list', () => {
     setPersonInList: jest.fn(),
     showCreateForm: jest.fn(),
     showForm: false,
-  });
-
-  mockUseProfile.mockReturnValue({
-    clearProfileState: jest.fn(),
-    currentPerson: { id: '1', firstName: 'John', lastName: 'Doe', addresses: [] },
-    handlePasswordChange: jest.fn(),
-    handleProfileSave: jest.fn(),
-    loadCurrentPerson: jest.fn(),
-    passwordLoading: false,
-    profileError: null,
-    profileLoading: false,
-    profileSaveLoading: false,
-    setProfileIdle: jest.fn(),
   });
 
   render(<App />);

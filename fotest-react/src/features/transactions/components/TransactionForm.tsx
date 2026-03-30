@@ -40,7 +40,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   const selectablePersons = useMemo(() => persons.filter((person) => person.id), [persons]);
   const isCurrentUserInvolved = !currentPersonId || payerPersonId === currentPersonId || payeePersonId === currentPersonId;
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     setValidationError(null);
 
@@ -127,7 +127,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             value={amount}
             onChange={(event) => setAmount(event.target.value)}
             fullWidth
-            inputProps={{ min: 0, step: '0.01' }}
+            slotProps={{ htmlInput: { min: 0, step: '0.01' } }}
             required
           />
 
@@ -135,7 +135,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             label="Currency"
             value={currencyCode}
             onChange={(event) => setCurrencyCode(event.target.value.toUpperCase())}
-            inputProps={{ maxLength: 3 }}
+            slotProps={{ htmlInput: { maxLength: 3 } }}
             fullWidth
             required
           />
@@ -145,7 +145,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             type="date"
             value={transactionDateUtc}
             onChange={(event) => setTransactionDateUtc(event.target.value)}
-            InputLabelProps={{ shrink: true }}
+            slotProps={{ inputLabel: { shrink: true } }}
             fullWidth
             required
           />
@@ -154,7 +154,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             label="Description"
             value={description}
             onChange={(event) => setDescription(event.target.value)}
-            inputProps={{ maxLength: 200 }}
+            slotProps={{ htmlInput: { maxLength: 200 } }}
             fullWidth
             required
           />
@@ -163,7 +163,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             label="Category"
             value={category}
             onChange={(event) => setCategory(event.target.value)}
-            inputProps={{ maxLength: 80 }}
+            slotProps={{ htmlInput: { maxLength: 80 } }}
             fullWidth
           />
 

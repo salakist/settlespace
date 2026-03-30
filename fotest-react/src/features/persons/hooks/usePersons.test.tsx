@@ -22,6 +22,8 @@ const { personApi } = jest.requireMock('../../../shared/api/api') as {
   };
 };
 
+const SESSION_EXPIRED_MESSAGE = 'Your session expired. Please log in again.';
+
 type PersonsHookResult = ReturnType<typeof usePersons>;
 
 function createPersonsHarness(expireSession = jest.fn()) {
@@ -84,7 +86,7 @@ test('loadPersons unauthorized triggers expireSession callback', async () => {
     await harness.getHook().loadPersons();
   });
 
-  expect(harness.expireSession).toHaveBeenCalledWith('Your session expired. Please log in again.');
+  expect(harness.expireSession).toHaveBeenCalledWith(SESSION_EXPIRED_MESSAGE);
   expect(harness.getHook().persons).toEqual([]);
 });
 
@@ -173,7 +175,7 @@ test('handleSave toggles saveLoading during save lifecycle', async () => {
 
 test('handleDelete respects confirm dialog and calls delete when confirmed', async () => {
   const harness = createPersonsHarness();
-  const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
+  const confirmSpy = jest.spyOn(globalThis, 'confirm').mockReturnValue(false);
 
   await act(async () => {
     await harness.getHook().handleDelete('p1');
@@ -189,4 +191,151 @@ test('handleDelete respects confirm dialog and calls delete when confirmed', asy
 
   expect(personApi.delete).toHaveBeenCalledWith('p1');
   confirmSpy.mockRestore();
+});
+
+test('loadPersons non-401 error sets error state', async () => {
+  personApi.getAll.mockRejectedValueOnce(new Error('Network error'));
+  const harness = createPersonsHarness();
+
+  await act(async () => {
+    await harness.getHook().loadPersons();
+  });
+
+  expect(harness.getHook().error).toBe('Failed to load persons');
+  expect(harness.getHook().persons).toEqual([]);
+});
+
+test('handleSearch returns results for non-empty query', async () => {
+  const harness = createPersonsHarness();
+
+  await act(async () => {
+    await harness.getHook().handleSearch('Jane');
+  });
+
+  await waitFor(() => {
+    expect(harness.getHook().persons).toEqual([
+      {
+        id: 'p2',
+        firstName: 'Jane',
+        lastName: 'Doe',
+        dateOfBirth: '1980-05-20',
+        addresses: [],
+      },
+    ]);
+  });
+  expect(harness.getHook().loading).toBe(false);
+});
+
+test('handleSearch unauthorized triggers expireSession', async () => {
+  personApi.search.mockRejectedValueOnce({ response: { status: 401 } });
+  const harness = createPersonsHarness();
+
+  await act(async () => {
+    await harness.getHook().handleSearch('query');
+  });
+
+  expect(harness.expireSession).toHaveBeenCalledWith(SESSION_EXPIRED_MESSAGE);
+});
+
+test('handleSearch non-401 error sets error state', async () => {
+  personApi.search.mockRejectedValueOnce(new Error('Search error'));
+  const harness = createPersonsHarness();
+
+  await act(async () => {
+    await harness.getHook().handleSearch('fail');
+  });
+
+  expect(harness.getHook().error).toBe('Search failed');
+});
+
+test('handleSave unauthorized triggers expireSession', async () => {
+  personApi.create.mockRejectedValueOnce({ response: { status: 401 } });
+  const harness = createPersonsHarness();
+
+  await act(async () => {
+    await harness.getHook().handleSave({
+      firstName: 'Test',
+      lastName: 'Person',
+      phoneNumber: undefined,
+      email: undefined,
+      dateOfBirth: undefined,
+      addresses: [],
+    });
+  });
+
+  expect(harness.expireSession).toHaveBeenCalledWith(SESSION_EXPIRED_MESSAGE);
+});
+
+test('handleSave non-401 error sets error state and rethrows', async () => {
+  personApi.create.mockRejectedValueOnce(new Error('Save failed'));
+  const harness = createPersonsHarness();
+
+  await act(async () => {
+    await expect(
+      harness.getHook().handleSave({
+        firstName: 'Test',
+        lastName: 'Person',
+        phoneNumber: undefined,
+        email: undefined,
+        dateOfBirth: undefined,
+        addresses: [],
+      }),
+    ).rejects.toThrow();
+  });
+
+  expect(harness.getHook().error).toBe('Failed to save person');
+});
+
+test('handleDelete unauthorized triggers expireSession', async () => {
+  const confirmSpy = jest.spyOn(globalThis, 'confirm').mockReturnValue(true);
+  personApi.delete.mockRejectedValueOnce({ response: { status: 401 } });
+  const harness = createPersonsHarness();
+
+  await act(async () => {
+    await harness.getHook().handleDelete('p1');
+  });
+
+  expect(harness.expireSession).toHaveBeenCalledWith(SESSION_EXPIRED_MESSAGE);
+  confirmSpy.mockRestore();
+});
+
+test('handleDelete non-401 error sets error state', async () => {
+  const confirmSpy = jest.spyOn(globalThis, 'confirm').mockReturnValue(true);
+  personApi.delete.mockRejectedValueOnce(new Error('Delete error'));
+  const harness = createPersonsHarness();
+
+  await act(async () => {
+    await harness.getHook().handleDelete('p1');
+  });
+
+  expect(harness.getHook().error).toBe('Failed to delete person');
+  confirmSpy.mockRestore();
+});
+
+test('handleCancel clears editing state and hides form', () => {
+  const harness = createPersonsHarness();
+
+  act(() => {
+    harness.getHook().handleEdit({ id: 'p1', firstName: 'Edit', lastName: 'Me', addresses: [] });
+  });
+
+  expect(harness.getHook().showForm).toBe(true);
+
+  act(() => {
+    harness.getHook().handleCancel();
+  });
+
+  expect(harness.getHook().showForm).toBe(false);
+  expect(harness.getHook().editingPerson).toBeUndefined();
+});
+
+test('showCreateForm shows form without an editing person', () => {
+  const harness = createPersonsHarness();
+
+  act(() => {
+    harness.getHook().showCreateForm();
+  });
+
+  expect(harness.getHook().showForm).toBe(true);
+  expect(harness.getHook().editingPerson).toBeUndefined();
 });

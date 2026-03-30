@@ -197,6 +197,9 @@ Base full-base quality gate for repository-wide validation.
   - likely hotspot location when hotspot-review condition fails
   - 10 lowest covered files from SonarCloud when a coverage condition fails
   - unresolved issue summary
+- If Sonar parity is enabled and SonarCloud reports duplication on the analyzed branch, prints warning lines with:
+  - duplicated_lines_density, duplicated_lines, and duplicated_blocks
+  - top duplicated files and their duplication metrics
 - If Sonar scanner fails for technical reasons instead of a failed quality gate, prints a technical error summary instead of the API-based issue summary.
 
 ### Artifacts And Side Effects

@@ -19,7 +19,7 @@ export interface PersonDetailsValidationErrors {
 }
 
 const PHONE_NUMBER_REGEX = /^(?=.*\d)[0-9+()\-.\s]{7,20}$/;
-const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@.]+\.[^\s@]+$/;
 const DATE_REGEX = /^\d{4}-\d{2}-\d{2}$/;
 const POSTAL_CODE_REGEX = /^[A-Za-z0-9\-\s]{3,12}$/;
 

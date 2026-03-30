@@ -223,7 +223,7 @@ test('handles unauthorized responses by clearing session and returning to login'
 });
 
 test('supports login, directory actions, profile actions, and logout', async () => {
-  const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
+  const confirmSpy = jest.spyOn(globalThis, 'confirm').mockReturnValue(true);
 
   render(<App />);
 

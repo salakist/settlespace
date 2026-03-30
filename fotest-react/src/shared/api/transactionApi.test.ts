@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { mockDelete, mockGet, mockPost, mockPut, mockRequestUse, setupApiClientMock } from './apiTestClientMock';
 
 jest.mock('axios');
 
@@ -6,27 +7,8 @@ const TX_DATE = '2026-03-29T00:00:00Z';
 const TX_ID = 'tx-1';
 const TX_ROUTE = '/transactions/tx-1';
 
-const mockGet = jest.fn();
-const mockPost = jest.fn();
-const mockPut = jest.fn();
-const mockDelete = jest.fn();
-const mockRequestUse = jest.fn();
-
 beforeEach(() => {
-  jest.clearAllMocks();
-  localStorage.clear();
-
-  (axios.create as jest.Mock).mockReturnValue({
-    get: mockGet,
-    post: mockPost,
-    put: mockPut,
-    delete: mockDelete,
-    interceptors: {
-      request: {
-        use: mockRequestUse,
-      },
-    },
-  });
+  setupApiClientMock();
 });
 
 test('registers interceptor and applies bearer token when present', () => {

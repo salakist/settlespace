@@ -40,7 +40,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
     setValidationErrors({});
   }, [person]);
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSaveError(null);
     setSaveSuccess(null);

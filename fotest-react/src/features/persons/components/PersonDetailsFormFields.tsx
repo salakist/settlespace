@@ -74,7 +74,7 @@ const PersonDetailsFormFields: React.FC<PersonDetailsFormFieldsProps> = ({
         type="date"
         value={values.dateOfBirth}
         onChange={(event) => setField('dateOfBirth', event.target.value)}
-        InputLabelProps={{ shrink: true }}
+        slotProps={{ inputLabel: { shrink: true } }}
         fullWidth
         disabled={disabled}
         error={Boolean(errors?.dateOfBirth)}

@@ -39,6 +39,7 @@
     "collectCoverageFrom": [
       "src/**/*.{ts,tsx}",
       "!src/**/*.test.{ts,tsx}",
+      "!src/__mocks__/**",
       "!src/reportWebVitals.ts",
       "!src/react-app-env.d.ts",
       "!src/setupTests.ts",
