@@ -116,6 +116,8 @@ Workflow steps:
 Checklist output (required before `git commit`):
 1. Step 1 status: `DONE` or `SKIPPED`.
 2. Step 2 status: `DONE` or `SKIPPED`.
+3. Agents must print the checklist output in the session immediately before running any `git commit` command.
+4. If the checklist output is missing from the session, do not run `git commit`.
 
 Checklist acceptance rules:
 1. If a step is `SKIPPED`, include a one-line reason.
@@ -124,7 +126,8 @@ Checklist acceptance rules:
   - The latest successful Step 1 log path must be shown directly in the checklist output.
 3. Step 2 must always be reviewed at commit-time for the current staged diff. You may mark Step 2 as `SKIPPED` only as `No documentation changes required` and include a short reason tied to the staged changes.
 4. If either step is neither `DONE` nor validly `SKIPPED`, do not commit.
-5. A documentation-only commit may mark both steps as `SKIPPED` when all skip conditions above are met.
+5. If the checklist state changes after it is printed (for example new edits or a failed gate), print an updated checklist again before commit.
+6. A documentation-only commit may mark both steps as `SKIPPED` when all skip conditions above are met.
   - Typical case: only `*.md` files are changed, there are no production code changes, a latest successful Step 1 log path is shown, and no additional documentation updates are required beyond the staged docs.
 
 ## Purpose

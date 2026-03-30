@@ -65,6 +65,12 @@ test('shows form when showForm is true', () => {
   expect(screen.getByRole('button', { name: /cancel/i })).toBeInTheDocument();
 });
 
+test('hides person list when form is shown', () => {
+  render(<PersonsPage {...defaultProps} showForm={true} />);
+
+  expect(screen.queryByText(/person list/i)).not.toBeInTheDocument();
+});
+
 test('disables add button when form is shown', () => {
   render(<PersonsPage {...defaultProps} showForm={true} />);
 

@@ -26,6 +26,8 @@ Own repository quality-gate and hook automation scripts.
 3. Every commit attempt must include the mandatory 2-step checklist defined in root `AGENTS.md`.
   3.1 Do not redefine checklist acceptance rules in this file.
   3.2 If script behavior changes impact commit workflow, update root `AGENTS.md` checklist policy first.
+  3.3 Agents must display Step 1 and Step 2 states in-session immediately before any `git commit` command.
+  3.4 If checklist output is missing or stale, agents must refresh and display it before committing.
 
 ## Logging rules
 - Debug wrappers must write timestamped logs to `artifacts/logs/`.

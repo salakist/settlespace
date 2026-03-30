@@ -14,6 +14,7 @@ const {
 };
 
 const ARIA_SELECTED = 'aria-selected';
+const mockPersonsPage = jest.fn(() => <div>Persons Page</div>);
 
 jest.mock('../features/auth/hooks/useAuth', () => ({
   useAuth: jest.fn(),
@@ -54,7 +55,7 @@ jest.mock('../features/auth/components/RegisterPage', () => ({
 
 jest.mock('../features/persons/components/PersonsPage', () => ({
   __esModule: true,
-  default: () => <div>Persons Page</div>,
+  default: (props: unknown) => mockPersonsPage(props),
 }));
 
 jest.mock('../features/profile/components/ProfilePage', () => ({
@@ -88,6 +89,7 @@ const App = require('./App').default;
 beforeEach(() => {
   jest.clearAllMocks();
   __resetRouterMocks();
+  mockPersonsPage.mockClear();
 
   mockUseAuth.mockReturnValue({
     authError: null,
@@ -273,4 +275,66 @@ test('renders non-home tabs and navigates correctly', () => {
   expect(__mockNavigate).toHaveBeenNthCalledWith(1, '/home');
   expect(__mockNavigate).toHaveBeenNthCalledWith(2, '/persons');
   expect(__mockNavigate).toHaveBeenNthCalledWith(3, '/profile');
+});
+
+test('does not pass logged-in user to persons page list', () => {
+  __setMockPathname('/persons');
+
+  mockUseAuth.mockReturnValue({
+    authError: null,
+    authLoading: false,
+    clearAuthError: jest.fn(),
+    expireSession: jest.fn(),
+    isAuthenticated: true,
+    login: jest.fn(),
+    logout: jest.fn(),
+    register: jest.fn(),
+    setAuthUsername: jest.fn(),
+    username: 'john.doe',
+  });
+
+  mockUsePersons.mockReturnValue({
+    clearPersonsError: jest.fn(),
+    clearPersonsState: jest.fn(),
+    editingPerson: undefined,
+    error: null,
+    handleCancel: jest.fn(),
+    handleDelete: jest.fn(),
+    handleEdit: jest.fn(),
+    handleSave: jest.fn(),
+    handleSearch: jest.fn(),
+    loadPersons: jest.fn(),
+    loading: false,
+    persons: [
+      { id: '1', firstName: 'John', lastName: 'Doe', addresses: [] },
+      { id: '2', firstName: 'Jane', lastName: 'Smith', addresses: [] },
+    ],
+    saveLoading: false,
+    setDirectoryIdle: jest.fn(),
+    setPersonInList: jest.fn(),
+    showCreateForm: jest.fn(),
+    showForm: false,
+  });
+
+  mockUseProfile.mockReturnValue({
+    clearProfileState: jest.fn(),
+    currentPerson: { id: '1', firstName: 'John', lastName: 'Doe', addresses: [] },
+    handlePasswordChange: jest.fn(),
+    handleProfileSave: jest.fn(),
+    loadCurrentPerson: jest.fn(),
+    passwordLoading: false,
+    profileError: null,
+    profileLoading: false,
+    profileSaveLoading: false,
+    setProfileIdle: jest.fn(),
+  });
+
+  render(<App />);
+
+  expect(mockPersonsPage).toHaveBeenCalled();
+
+  const personsPageProps = mockPersonsPage.mock.calls[0][0] as { persons: Array<{ id: string }> };
+  expect(personsPageProps.persons).toEqual([
+    { id: '2', firstName: 'Jane', lastName: 'Smith', addresses: [] },
+  ]);
 });

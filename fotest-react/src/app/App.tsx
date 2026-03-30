@@ -185,6 +185,9 @@ function App() {
 
   const primaryTabValue = getPrimaryTabValue(location.pathname);
   const isProfileRoute = location.pathname === ROUTE_PROFILE;
+  const visiblePersons = currentPerson?.id
+    ? persons.filter((person) => person.id !== currentPerson.id)
+    : persons;
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -298,7 +301,7 @@ function App() {
               path={ROUTE_PERSONS}
               element={
                 <PersonsPage
-                  persons={persons}
+                  persons={visiblePersons}
                   loading={loading}
                   saveLoading={saveLoading}
                   error={error}

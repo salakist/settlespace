@@ -55,7 +55,7 @@ const PersonsPage: React.FC<PersonsPageProps> = ({
         <CircularProgress />
       </Stack>
     ) : (
-      <PersonList persons={persons} onEdit={onEdit} onDelete={onDelete} />
+      !showForm && <PersonList persons={persons} onEdit={onEdit} onDelete={onDelete} />
     )}
   </>
 );
