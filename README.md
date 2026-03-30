@@ -43,12 +43,16 @@ fo-test/
 
 ### Folder architecture policy
 
-- Backend folders use `Layer/Context/Function` ordering.
-- A function subfolder is used only when a context has multiple function groups.
-- If a context would have only one function subfolder, files are flattened directly under the context.
-- Exceptions are treated as a function group and use `Exceptions/` when that context has multiple function groups.
-- Domain entity class names must not use an `Entity` suffix (for example `Person`, not `PersonEntity`).
-- Test projects mirror the structure of their associated production layer.
+Use this as the single source of truth when adding or moving backend code:
+
+1. Organize backend code as `Layer/Context/Function`.
+2. Pick the business context first (`Authentication`, `Persons`, `Transactions`, etc.), then place files under `Layer/Context/...`.
+3. Create a function subfolder (`Commands`, `Services`, `Mapping`, `Entities`, `Exceptions`) only when that context has multiple function groups.
+4. If a context would otherwise contain only one function folder, flatten it and place files directly under the context.
+5. Treat `Exceptions` as a function group and use an `Exceptions/` folder when the context has multiple function groups.
+6. Keep test files in the matching test project with the same context/function shape as production.
+7. Keep namespaces aligned with folder paths.
+8. In Domain, entity class names must not use the `Entity` suffix (for example, `Person`, not `PersonEntity`).
 
 ### Dependency direction
 
