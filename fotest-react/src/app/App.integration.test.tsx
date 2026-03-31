@@ -32,9 +32,11 @@ jest.mock('../shared/api/api', () => ({
   authStorage: {
     isAuthenticated: jest.fn(),
     getUsername: jest.fn(),
+    getRole: jest.fn(),
     saveSession: jest.fn(),
     clearSession: jest.fn(),
     setUsername: jest.fn(),
+    setRole: jest.fn(),
   },
 }));
 
@@ -70,9 +72,11 @@ const {
   authStorage: {
     isAuthenticated: jest.Mock;
     getUsername: jest.Mock;
+    getRole: jest.Mock;
     saveSession: jest.Mock;
     clearSession: jest.Mock;
     setUsername: jest.Mock;
+    setRole: jest.Mock;
   };
 };
 
@@ -174,9 +178,10 @@ beforeEach(() => {
 
   mockAuthStorage.isAuthenticated.mockReturnValue(false);
   mockAuthStorage.getUsername.mockReturnValue(null);
+  mockAuthStorage.getRole.mockReturnValue(null);
 
-  mockAuthApi.login.mockResolvedValue({ data: { token: 'token', username: 'john.doe' } });
-  mockAuthApi.register.mockResolvedValue({ data: { token: 'token2', username: 'jane.doe' } });
+  mockAuthApi.login.mockResolvedValue({ data: { token: 'token', username: 'john.doe', role: 'ADMIN' } });
+  mockAuthApi.register.mockResolvedValue({ data: { token: 'token2', username: 'jane.doe', role: 'USER' } });
   mockAuthApi.changePassword.mockResolvedValue({});
 
   mockPersonApi.getAll.mockResolvedValue({
@@ -185,6 +190,7 @@ beforeEach(() => {
         id: 'p1',
         firstName: 'John',
         lastName: 'Doe',
+        role: 'ADMIN',
         dateOfBirth: MOCK_DOB,
         addresses: [],
       },
@@ -195,6 +201,7 @@ beforeEach(() => {
       id: 'p1',
       firstName: 'John',
       lastName: 'Doe',
+      role: 'ADMIN',
       dateOfBirth: MOCK_DOB,
       addresses: [],
     },

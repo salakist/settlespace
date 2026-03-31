@@ -1,11 +1,13 @@
 import React, { useMemo, useState } from 'react';
 import { Alert, Button, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
-import { Person, Transaction, TransactionStatus } from '../../../shared/types';
+import { canCreateTransaction } from '../../../shared/auth/permissions';
+import { Person, PersonRole, Transaction, TransactionStatus } from '../../../shared/types';
 
 type TransactionFormProps = {
   transaction?: Transaction;
   persons: Person[];
   currentPersonId?: string;
+  role: PersonRole | null;
   onSave: (transaction: Omit<Transaction, 'id' | 'createdByPersonId' | 'createdAtUtc' | 'updatedAtUtc'>) => void;
   onCancel: () => void;
 };
@@ -24,6 +26,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   transaction,
   persons,
   currentPersonId,
+  role,
   onSave,
   onCancel,
 }) => {
@@ -38,7 +41,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const selectablePersons = useMemo(() => persons.filter((person) => person.id), [persons]);
-  const isCurrentUserInvolved = !currentPersonId || payerPersonId === currentPersonId || payeePersonId === currentPersonId;
+  const canCreateWithParticipants = canCreateTransaction(role, currentPersonId, payerPersonId, payeePersonId);
+  const canSubmit = transaction ? true : canCreateWithParticipants;
 
   const handleSubmit = (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -54,7 +58,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
       return;
     }
 
-    if (!isCurrentUserInvolved) {
+    if (!transaction && !canCreateWithParticipants) {
       setValidationError('You must be either the payer or the payee for this transaction.');
       return;
     }
@@ -181,11 +185,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           </TextField>
 
           <Stack direction="row" spacing={2}>
-            <Button type="submit" variant="contained" disabled={!isCurrentUserInvolved}>Save</Button>
+            <Button type="submit" variant="contained" disabled={!canSubmit}>Save</Button>
             <Button variant="outlined" color="secondary" onClick={onCancel}>Cancel</Button>
           </Stack>
 
-          {!isCurrentUserInvolved && (
+          {!transaction && !canCreateWithParticipants && (
             <Alert severity="warning">
               You must be either the payer or the payee for this transaction.
             </Alert>

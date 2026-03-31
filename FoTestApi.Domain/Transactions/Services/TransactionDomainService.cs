@@ -1,3 +1,4 @@
+using FoTestApi.Domain.Persons.Entities;
 using FoTestApi.Domain.Transactions.Entities;
 using FoTestApi.Domain.Transactions.Exceptions;
 
@@ -5,11 +6,13 @@ namespace FoTestApi.Domain.Transactions.Services
 {
     public class TransactionDomainService : ITransactionDomainService
     {
-        public void EnsureCanCreate(Transaction transaction, string loggedPersonId)
+        public void EnsureCanCreate(Transaction transaction, string loggedPersonId, PersonRole loggedRole)
         {
-            if (string.IsNullOrWhiteSpace(loggedPersonId))
+            EnsureLoggedPersonId(loggedPersonId);
+
+            if (loggedRole.IsStaffRole())
             {
-                throw new UnauthorizedTransactionAccessException("Authenticated user identifier is required.");
+                return;
             }
 
             if (!transaction.IsUserInvolved(loggedPersonId))
@@ -18,11 +21,23 @@ namespace FoTestApi.Domain.Transactions.Services
             }
         }
 
-        public void EnsureCanReadOrUpdate(Transaction transaction, string loggedPersonId)
+        public void EnsureCanRead(Transaction transaction, string loggedPersonId, PersonRole loggedRole)
         {
-            if (string.IsNullOrWhiteSpace(loggedPersonId))
+            EnsureLoggedPersonId(loggedPersonId);
+
+            if (loggedRole == PersonRole.ADMIN)
             {
-                throw new UnauthorizedTransactionAccessException("Authenticated user identifier is required.");
+                return;
+            }
+
+            if (loggedRole == PersonRole.MANAGER)
+            {
+                if (!transaction.IsUserInvolved(loggedPersonId) && !transaction.IsCreatedBy(loggedPersonId))
+                {
+                    throw new UnauthorizedTransactionAccessException("Managers can only access transactions where they are involved or creator.");
+                }
+
+                return;
             }
 
             if (!transaction.IsUserInvolved(loggedPersonId))
@@ -31,16 +46,58 @@ namespace FoTestApi.Domain.Transactions.Services
             }
         }
 
-        public void EnsureCanDelete(Transaction transaction, string loggedPersonId)
+        public void EnsureCanUpdate(Transaction transaction, string loggedPersonId, PersonRole loggedRole)
         {
-            if (string.IsNullOrWhiteSpace(loggedPersonId))
+            EnsureLoggedPersonId(loggedPersonId);
+
+            if (loggedRole == PersonRole.ADMIN)
             {
-                throw new UnauthorizedTransactionAccessException("Authenticated user identifier is required.");
+                return;
+            }
+
+            if (!transaction.IsCreatedBy(loggedPersonId))
+            {
+                throw new UnauthorizedTransactionAccessException("You can only update transactions that you created.");
+            }
+        }
+
+        public void EnsureCanDelete(Transaction transaction, string loggedPersonId, PersonRole loggedRole)
+        {
+            EnsureLoggedPersonId(loggedPersonId);
+
+            if (loggedRole == PersonRole.ADMIN)
+            {
+                return;
             }
 
             if (!transaction.IsCreatedBy(loggedPersonId))
             {
                 throw new UnauthorizedTransactionAccessException("You can only delete transactions that you created.");
+            }
+        }
+
+        public List<Transaction> FilterReadableTransactions(IEnumerable<Transaction> transactions, string loggedPersonId, PersonRole loggedRole)
+        {
+            EnsureLoggedPersonId(loggedPersonId);
+
+            if (loggedRole == PersonRole.ADMIN)
+            {
+                return [.. transactions];
+            }
+
+            if (loggedRole == PersonRole.MANAGER)
+            {
+                return [.. transactions.Where(transaction => transaction.IsUserInvolved(loggedPersonId) || transaction.IsCreatedBy(loggedPersonId))];
+            }
+
+            return [.. transactions.Where(transaction => transaction.IsUserInvolved(loggedPersonId))];
+        }
+
+        private static void EnsureLoggedPersonId(string loggedPersonId)
+        {
+            if (string.IsNullOrWhiteSpace(loggedPersonId))
+            {
+                throw new UnauthorizedTransactionAccessException("Authenticated user identifier is required.");
             }
         }
     }

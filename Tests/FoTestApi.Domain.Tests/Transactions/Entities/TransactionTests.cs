@@ -52,6 +52,71 @@ public class TransactionTests
     }
 
     [Fact]
+    public void ValidateWithBlankPayerThrowsInvalidTransactionException()
+    {
+        var transaction = BuildValidTransaction();
+        transaction.PayerPersonId = " ";
+
+        Assert.Throws<InvalidTransactionException>(() => transaction.Validate());
+    }
+
+    [Fact]
+    public void ValidateWithBlankPayeeThrowsInvalidTransactionException()
+    {
+        var transaction = BuildValidTransaction();
+        transaction.PayeePersonId = " ";
+
+        Assert.Throws<InvalidTransactionException>(() => transaction.Validate());
+    }
+
+    [Fact]
+    public void ValidateWithBlankCreatorThrowsInvalidTransactionException()
+    {
+        var transaction = BuildValidTransaction();
+        transaction.CreatedByPersonId = " ";
+
+        Assert.Throws<InvalidTransactionException>(() => transaction.Validate());
+    }
+
+    [Fact]
+    public void ValidateWithLongDescriptionThrowsInvalidTransactionException()
+    {
+        var transaction = BuildValidTransaction();
+        transaction.Description = new string('a', 201);
+
+        Assert.Throws<InvalidTransactionException>(() => transaction.Validate());
+    }
+
+    [Fact]
+    public void ValidateWithLongCategoryThrowsInvalidTransactionException()
+    {
+        var transaction = BuildValidTransaction();
+        transaction.Category = new string('b', 81);
+
+        Assert.Throws<InvalidTransactionException>(() => transaction.Validate());
+    }
+
+    [Fact]
+    public void ValidateWithFarFutureTransactionDateThrowsInvalidTransactionException()
+    {
+        var transaction = BuildValidTransaction();
+        transaction.TransactionDateUtc = DateTime.UtcNow.AddDays(2);
+
+        Assert.Throws<InvalidTransactionException>(() => transaction.Validate());
+    }
+
+    [Fact]
+    public void ValidateAllowsCreatorOutsidePayerAndPayee()
+    {
+        var transaction = BuildValidTransaction();
+        transaction.CreatedByPersonId = "manager-1";
+
+        var ex = Record.Exception(() => transaction.Validate());
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public void IsUserInvolvedReturnsTrueForPayerAndPayee()
     {
         var transaction = BuildValidTransaction();
@@ -59,6 +124,15 @@ public class TransactionTests
         Assert.True(transaction.IsUserInvolved("payer-1"));
         Assert.True(transaction.IsUserInvolved("payee-1"));
         Assert.False(transaction.IsUserInvolved("other"));
+    }
+
+    [Fact]
+    public void IsCreatedByReturnsTrueOnlyForCreator()
+    {
+        var transaction = BuildValidTransaction();
+
+        Assert.True(transaction.IsCreatedBy("payer-1"));
+        Assert.False(transaction.IsCreatedBy("other"));
     }
 
     private static Transaction BuildValidTransaction() =>

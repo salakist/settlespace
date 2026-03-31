@@ -1,8 +1,8 @@
 using FoTestApi.Application.Persons.Commands;
 using FoTestApi.Application.Persons.Mapping;
+using FoTestApi.Domain.Auth;
 using FoTestApi.Domain.Persons.Entities;
 using FoTestApi.Domain.Persons;
-using FoTestApi.Domain.Auth;
 using FoTestApi.Domain.Persons.Services;
 
 namespace FoTestApi.Application.Persons.Services
@@ -39,9 +39,16 @@ namespace FoTestApi.Application.Persons.Services
 
         // Queries
 
-        public async Task<List<Person>> GetAllPersonsAsync()
+        public async Task<List<Person>> GetPersonsAsync(string loggedPersonId, PersonRole loggedRole)
         {
+            _domainService.EnsureCanAccessDirectory(loggedRole);
             return await _repository.GetAllAsync();
+        }
+
+        public async Task<List<Person>> SearchPersonsAsync(string query, string loggedPersonId, PersonRole loggedRole)
+        {
+            _domainService.EnsureCanAccessDirectory(loggedRole);
+            return await _repository.SearchAsync(query);
         }
 
         public async Task<Person?> GetPersonByIdAsync(string id)
@@ -49,20 +56,74 @@ namespace FoTestApi.Application.Persons.Services
             return await _repository.GetByIdAsync(id);
         }
 
-        public async Task<List<Person>> SearchPersonsAsync(string query)
+        public async Task<Person?> GetPersonByIdAsync(string id, string loggedPersonId, PersonRole loggedRole)
         {
-            return await _repository.SearchAsync(query);
+            _domainService.EnsureCanAccessDirectory(loggedRole);
+            return await _repository.GetByIdAsync(id);
         }
 
         // Commands
 
         public async Task<Person> CreatePersonAsync(CreatePersonCommand command)
         {
+            var role = await ResolveBootstrapAwareCreationRoleAsync(command.Role);
+            return await CreatePersonCoreAsync(command, role);
+        }
+
+        public async Task<Person> CreatePersonAsync(CreatePersonCommand command, string loggedPersonId, PersonRole loggedRole)
+        {
+            var role = command.Role ?? PersonRole.USER;
+            _domainService.EnsureCanCreateManagedPerson(loggedRole, role);
+            return await CreatePersonCoreAsync(command, role);
+        }
+
+        public async Task UpdatePersonAsync(string id, UpdatePersonCommand command)
+        {
+            await UpdatePersonCoreAsync(
+                id,
+                command,
+                (existingPerson, requestedRole) => _domainService.EnsureCanUpdateSelf(existingPerson, requestedRole));
+        }
+
+        public async Task UpdatePersonAsync(string id, UpdatePersonCommand command, string loggedPersonId, PersonRole loggedRole)
+        {
+            await UpdatePersonCoreAsync(
+                id,
+                command,
+                (existingPerson, requestedRole) => _domainService.EnsureCanUpdateManagedPerson(loggedRole, loggedPersonId, existingPerson, requestedRole));
+        }
+
+        public async Task DeletePersonAsync(DeletePersonCommand command, string loggedPersonId, PersonRole loggedRole)
+        {
+            var person = await _repository.GetByIdAsync(command.Id);
+            if (person == null)
+            {
+                throw new InvalidOperationException($"Person with ID '{command.Id}' not found.");
+            }
+
+            _domainService.EnsureCanDeleteManagedPerson(loggedRole, person);
+
+            await _repository.DeleteAsync(command.Id);
+        }
+
+        private async Task<PersonRole> ResolveBootstrapAwareCreationRoleAsync(PersonRole? requestedRole)
+        {
+            if (requestedRole.HasValue)
+            {
+                return requestedRole.Value;
+            }
+
+            var existingPersons = await _repository.GetAllAsync() ?? [];
+            return existingPersons.Count == 0 ? PersonRole.ADMIN : PersonRole.USER;
+        }
+
+        private async Task<Person> CreatePersonCoreAsync(CreatePersonCommand command, PersonRole role)
+        {
             var password = string.IsNullOrWhiteSpace(command.Password)
                 ? _passwordGenerator.GeneratePassword()
                 : command.Password;
 
-            var newPerson = _personMapper.ToEntity(command, password);
+            var newPerson = _personMapper.ToEntity(command, password, role);
 
             newPerson.Validate();
             _passwordValidator.Validate(password);
@@ -74,7 +135,10 @@ namespace FoTestApi.Application.Persons.Services
             return await _repository.AddAsync(newPerson);
         }
 
-        public async Task UpdatePersonAsync(string id, UpdatePersonCommand command)
+        private async Task UpdatePersonCoreAsync(
+            string id,
+            UpdatePersonCommand command,
+            Action<Person, PersonRole> ensureAuthorized)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
@@ -87,24 +151,15 @@ namespace FoTestApi.Application.Persons.Services
                 throw new InvalidOperationException($"Person with ID '{id}' not found.");
             }
 
-            var updatedPerson = _personMapper.ToEntity(id, command, existingPerson.Password);
+            var requestedRole = command.Role ?? existingPerson.Role;
+            ensureAuthorized(existingPerson, requestedRole);
 
+            var updatedPerson = _personMapper.ToEntity(id, command, existingPerson.Password, requestedRole);
             updatedPerson.Validate();
 
             await _domainService.EnsureUniqueAsync(updatedPerson.FirstName, updatedPerson.LastName, id);
 
             await _repository.UpdateAsync(id, updatedPerson);
-        }
-
-        public async Task DeletePersonAsync(DeletePersonCommand command)
-        {
-            var person = await _repository.GetByIdAsync(command.Id);
-            if (person == null)
-            {
-                throw new InvalidOperationException($"Person with ID '{command.Id}' not found.");
-            }
-
-            await _repository.DeleteAsync(command.Id);
         }
     }
 }

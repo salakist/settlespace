@@ -6,9 +6,11 @@ interface PersonListProps {
   persons: Person[];
   onEdit: (person: Person) => void;
   onDelete: (id: string) => void;
+  canEdit: (person: Person) => boolean;
+  canDelete: (person: Person) => boolean;
 }
 
-const PersonList: React.FC<PersonListProps> = ({ persons, onEdit, onDelete }) => {
+const PersonList: React.FC<PersonListProps> = ({ persons, onEdit, onDelete, canEdit, canDelete }) => {
   return (
     <div>
       <Typography variant="h5" gutterBottom>
@@ -29,11 +31,11 @@ const PersonList: React.FC<PersonListProps> = ({ persons, onEdit, onDelete }) =>
                 </Typography>
               </CardContent>
               <CardActions>
-                <Button size="small" onClick={() => onEdit(person)}>
+                <Button size="small" onClick={() => onEdit(person)} disabled={!canEdit(person)}>
                   Edit
                 </Button>
                 {personId ? (
-                  <Button size="small" color="error" onClick={() => onDelete(personId)}>
+                  <Button size="small" color="error" onClick={() => onDelete(personId)} disabled={!canDelete(person)}>
                     Delete
                   </Button>
                 ) : null}

@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Alert, Button, CircularProgress, Stack, Typography } from '@mui/material';
-import { Person } from '../../../shared/types';
+import { canUpdateOrDeleteTransaction } from '../../../shared/auth/permissions';
+import { Person, PersonRole, Transaction } from '../../../shared/types';
 import SearchBar from '../../persons/components/SearchBar';
 import TransactionForm from './TransactionForm';
 import TransactionList from './TransactionList';
@@ -9,10 +10,11 @@ import { useTransactions } from '../hooks/useTransactions';
 type TransactionsPageProps = {
   persons: Person[];
   currentPersonId?: string;
+  role: PersonRole | null;
   expireSession: (message?: string) => void;
 };
 
-const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPersonId, expireSession }) => {
+const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPersonId, role, expireSession }) => {
   const {
     editingTransaction,
     error,
@@ -26,7 +28,9 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
     showCreateForm,
     showForm,
     transactions,
-  } = useTransactions({ expireSession });
+  } = useTransactions({ expireSession, currentPersonId, role });
+
+  const canManageTransaction = (transaction: Transaction) => canUpdateOrDeleteTransaction(role, currentPersonId, transaction);
 
   useEffect(() => {
     Promise.resolve(loadTransactions()).catch((error) => {
@@ -50,6 +54,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
           transaction={editingTransaction}
           persons={persons}
           currentPersonId={currentPersonId}
+          role={role}
           onSave={handleSave}
           onCancel={handleCancel}
         />
@@ -65,6 +70,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
         <TransactionList
           transactions={transactions}
           persons={persons}
+          canManage={canManageTransaction}
           onEdit={handleEdit}
           onDelete={handleDelete}
         />

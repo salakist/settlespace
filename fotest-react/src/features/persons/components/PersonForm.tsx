@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Button, Paper, Stack, Typography } from '@mui/material';
-import { Person } from '../../../shared/types';
+import { Alert, Button, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
+import { Person, PersonRole } from '../../../shared/types';
 import {
   PersonDetailsValidationErrors,
   PersonDetailsFormValues,
@@ -15,10 +15,15 @@ interface PersonFormProps {
   onSave: (person: Omit<Person, 'id'>) => Promise<void>;
   onCancel: () => void;
   saveLoading: boolean;
+  canEditRole: boolean;
+  defaultRole: PersonRole;
 }
 
-const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel, saveLoading }) => {
+const ROLE_VALUES: PersonRole[] = ['ADMIN', 'MANAGER', 'USER'];
+
+const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel, saveLoading, canEditRole, defaultRole }) => {
   const [values, setValues] = useState<PersonDetailsFormValues>(() => createPersonDetailsValues(person));
+  const [role, setRole] = useState<PersonRole>(person?.role ?? defaultRole);
   const [validationErrors, setValidationErrors] = useState<PersonDetailsValidationErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   let submitLabel = 'Add';
@@ -30,9 +35,10 @@ const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel, saveL
 
   useEffect(() => {
     setValues(createPersonDetailsValues(person));
+    setRole(person?.role ?? defaultRole);
     setValidationErrors({});
     setSubmitError(null);
-  }, [person]);
+  }, [defaultRole, person]);
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -47,9 +53,13 @@ const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel, saveL
     setValidationErrors({});
 
     try {
-      await onSave(toPersonPayload(values));
+      await onSave({
+        ...toPersonPayload(values),
+        role,
+      });
       if (!person) {
         setValues(createPersonDetailsValues());
+        setRole(defaultRole);
       }
     } catch (error) {
       const axiosError = error as { response?: { data?: { error?: string } } };
@@ -71,6 +81,18 @@ const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel, saveL
             errors={validationErrors}
             disabled={saveLoading}
           />
+          <TextField
+            select
+            label="Role"
+            value={role}
+            onChange={(event) => setRole(event.target.value as PersonRole)}
+            disabled={saveLoading || !canEditRole}
+            fullWidth
+          >
+            {ROLE_VALUES.map((value) => (
+              <MenuItem key={value} value={value}>{value}</MenuItem>
+            ))}
+          </TextField>
           <Stack direction="row" spacing={2}>
             <Button type="submit" variant="contained" color="primary" disabled={saveLoading}>
               {submitLabel}

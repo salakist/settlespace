@@ -12,6 +12,7 @@ test('renders empty state when there are no transactions', () => {
     <TransactionList
       transactions={[]}
       persons={persons}
+      canManage={() => true}
       onEdit={jest.fn()}
       onDelete={jest.fn()}
     />, 
@@ -39,6 +40,7 @@ test('renders transactions and calls edit/delete callbacks', () => {
         },
       ]}
       persons={persons}
+      canManage={() => true}
       onEdit={onEdit}
       onDelete={onDelete}
     />,

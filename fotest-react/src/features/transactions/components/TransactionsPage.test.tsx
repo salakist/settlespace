@@ -4,7 +4,7 @@ import TransactionsPage from './TransactionsPage';
 
 const mockHook = {
   editingTransaction: undefined,
-  error: null,
+  error: null as string | null,
   handleCancel: jest.fn(),
   handleDelete: jest.fn(),
   handleEdit: jest.fn(),
@@ -41,8 +41,9 @@ jest.mock('./TransactionForm', () => ({
 test('renders list and loads transactions on mount', () => {
   render(
     <TransactionsPage
-      persons={[{ id: 'p1', firstName: 'John', lastName: 'Doe', addresses: [] }]}
+      persons={[{ id: 'p1', firstName: 'John', lastName: 'Doe', addresses: [], role: 'USER' }]}
       currentPersonId="p1"
+      role="USER"
       expireSession={jest.fn()}
     />,
   );
@@ -54,8 +55,9 @@ test('renders list and loads transactions on mount', () => {
 test('forwards search and create actions', () => {
   render(
     <TransactionsPage
-      persons={[{ id: 'p1', firstName: 'John', lastName: 'Doe', addresses: [] }]}
+      persons={[{ id: 'p1', firstName: 'John', lastName: 'Doe', addresses: [], role: 'USER' }]}
       currentPersonId="p1"
+      role="USER"
       expireSession={jest.fn()}
     />,
   );
@@ -74,6 +76,7 @@ test('shows loading spinner when loading is true', () => {
     <TransactionsPage
       persons={[]}
       currentPersonId="p1"
+      role="USER"
       expireSession={jest.fn()}
     />,
   );
@@ -89,6 +92,7 @@ test('shows error alert when error is set', () => {
     <TransactionsPage
       persons={[]}
       currentPersonId="p1"
+      role="USER"
       expireSession={jest.fn()}
     />,
   );
@@ -103,8 +107,9 @@ test('renders transaction form when showForm is true', () => {
 
   render(
     <TransactionsPage
-      persons={[{ id: 'p1', firstName: 'John', lastName: 'Doe', addresses: [] }]}
+      persons={[{ id: 'p1', firstName: 'John', lastName: 'Doe', addresses: [], role: 'USER' }]}
       currentPersonId="p1"
+      role="USER"
       expireSession={jest.fn()}
     />,
   );

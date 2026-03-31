@@ -1,12 +1,23 @@
 import { useCallback, useState } from 'react';
 import { personApi } from '../../../shared/api/api';
-import { Person } from '../../../shared/types';
+import {
+  handleRequestError,
+  rejectUnauthorizedAction,
+} from '../../../shared/api/requestHandling';
+import {
+  canCreatePerson,
+  canDeletePerson,
+  canUpdatePerson,
+} from '../../../shared/auth/permissions';
+import { Person, PersonRole } from '../../../shared/types';
 
 type UsePersonsOptions = {
   expireSession: (message?: string) => void;
+  currentPersonId?: string;
+  role: PersonRole | null;
 };
 
-export function usePersons({ expireSession }: UsePersonsOptions) {
+export function usePersons({ expireSession, currentPersonId, role }: UsePersonsOptions) {
   const [persons, setPersons] = useState<Person[]>([]);
   const [editingPerson, setEditingPerson] = useState<Person | undefined>();
   const [showForm, setShowForm] = useState(false);
@@ -55,12 +66,12 @@ export function usePersons({ expireSession }: UsePersonsOptions) {
       setPersons(response.data.map(normalizePerson));
       setError(null);
     } catch (err) {
-      if (typeof err === 'object' && err && 'response' in err && (err as { response?: { status?: number } }).response?.status === 401) {
-        handleUnauthorized();
-        return;
-      }
-      setError('Failed to load persons');
-      console.error(err);
+      handleRequestError({
+        error: err,
+        onUnauthorized: handleUnauthorized,
+        setError,
+        fallbackMessage: 'Failed to load persons',
+      });
     } finally {
       setLoading(false);
     }
@@ -78,18 +89,36 @@ export function usePersons({ expireSession }: UsePersonsOptions) {
       setPersons(response.data.map(normalizePerson));
       setError(null);
     } catch (err) {
-      if (typeof err === 'object' && err && 'response' in err && (err as { response?: { status?: number } }).response?.status === 401) {
-        handleUnauthorized();
-        return;
-      }
-      setError('Search failed');
-      console.error(err);
+      handleRequestError({
+        error: err,
+        onUnauthorized: handleUnauthorized,
+        setError,
+        fallbackMessage: 'Search failed',
+      });
     } finally {
       setLoading(false);
     }
   }, [handleUnauthorized, loadPersons, normalizePerson]);
 
   const handleSave = useCallback(async (personData: Omit<Person, 'id'>) => {
+    const requestedRole = personData.role ?? 'USER';
+
+    if (editingPerson) {
+      if (rejectUnauthorizedAction(
+        canUpdatePerson(role, currentPersonId, editingPerson, requestedRole),
+        setError,
+        'You are not allowed to update this person.',
+      )) {
+        return;
+      }
+    } else if (rejectUnauthorizedAction(
+      canCreatePerson(role, requestedRole),
+      setError,
+      'You are not allowed to create this person.',
+    )) {
+      return;
+    }
+
     setSaveLoading(true);
     try {
       if (editingPerson?.id) {
@@ -103,24 +132,43 @@ export function usePersons({ expireSession }: UsePersonsOptions) {
       setError(null);
       await loadPersons();
     } catch (err) {
-      if (typeof err === 'object' && err && 'response' in err && (err as { response?: { status?: number } }).response?.status === 401) {
-        handleUnauthorized();
-        return;
-      }
-      setError('Failed to save person');
-      console.error(err);
-      throw err;
+      handleRequestError({
+        error: err,
+        onUnauthorized: handleUnauthorized,
+        setError,
+        fallbackMessage: 'Failed to save person',
+        forbiddenMessage: 'You are not allowed to save this person.',
+        rethrow: true,
+      });
     } finally {
       setSaveLoading(false);
     }
-  }, [editingPerson, handleUnauthorized, loadPersons]);
+  }, [currentPersonId, editingPerson, handleUnauthorized, loadPersons, role]);
 
   const handleEdit = useCallback((person: Person) => {
+    const requestedRole = person.role ?? 'USER';
+    if (rejectUnauthorizedAction(
+      canUpdatePerson(role, currentPersonId, person, requestedRole),
+      setError,
+      'You are not allowed to edit this person.',
+    )) {
+      return;
+    }
+
     setEditingPerson(person);
     setShowForm(true);
-  }, []);
+  }, [currentPersonId, role]);
 
   const handleDelete = useCallback(async (id: string) => {
+    const target = persons.find((person) => person.id === id);
+    if (target && rejectUnauthorizedAction(
+      canDeletePerson(role, target),
+      setError,
+      'You are not allowed to delete this person.',
+    )) {
+      return;
+    }
+
     if (!globalThis.confirm('Are you sure you want to delete this person?')) {
       return;
     }
@@ -129,14 +177,15 @@ export function usePersons({ expireSession }: UsePersonsOptions) {
       await personApi.delete(id);
       await loadPersons();
     } catch (err) {
-      if (typeof err === 'object' && err && 'response' in err && (err as { response?: { status?: number } }).response?.status === 401) {
-        handleUnauthorized();
-        return;
-      }
-      setError('Failed to delete person');
-      console.error(err);
+      handleRequestError({
+        error: err,
+        onUnauthorized: handleUnauthorized,
+        setError,
+        fallbackMessage: 'Failed to delete person',
+        forbiddenMessage: 'You are not allowed to delete this person.',
+      });
     }
-  }, [handleUnauthorized, loadPersons]);
+  }, [handleUnauthorized, loadPersons, persons, role]);
 
   const handleCancel = useCallback(() => {
     setEditingPerson(undefined);
@@ -144,9 +193,17 @@ export function usePersons({ expireSession }: UsePersonsOptions) {
   }, []);
 
   const showCreateForm = useCallback(() => {
+    if (rejectUnauthorizedAction(
+      canCreatePerson(role, 'USER'),
+      setError,
+      'You are not allowed to create persons.',
+    )) {
+      return;
+    }
+
     setEditingPerson(undefined);
     setShowForm(true);
-  }, []);
+  }, [role]);
 
   return {
     clearPersonsError,

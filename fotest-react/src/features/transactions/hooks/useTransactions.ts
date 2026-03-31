@@ -1,12 +1,19 @@
 import { useCallback, useState } from 'react';
+import {
+  handleRequestError,
+  rejectUnauthorizedAction,
+} from '../../../shared/api/requestHandling';
 import { transactionApi } from '../../../shared/api/transactionApi';
-import { Transaction } from '../../../shared/types';
+import { canUpdateOrDeleteTransaction } from '../../../shared/auth/permissions';
+import { PersonRole, Transaction } from '../../../shared/types';
 
 type UseTransactionsOptions = {
   expireSession: (message?: string) => void;
+  currentPersonId?: string;
+  role: PersonRole | null;
 };
 
-export function useTransactions({ expireSession }: UseTransactionsOptions) {
+export function useTransactions({ expireSession, currentPersonId, role }: UseTransactionsOptions) {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | undefined>();
   const [showForm, setShowForm] = useState(false);
@@ -32,12 +39,12 @@ export function useTransactions({ expireSession }: UseTransactionsOptions) {
       setTransactions(response.data);
       setError(null);
     } catch (err) {
-      if (typeof err === 'object' && err && 'response' in err && (err as { response?: { status?: number } }).response?.status === 401) {
-        handleUnauthorized();
-        return;
-      }
-      setError('Failed to load transactions');
-      console.error(err);
+      handleRequestError({
+        error: err,
+        onUnauthorized: handleUnauthorized,
+        setError,
+        fallbackMessage: 'Failed to load transactions',
+      });
     } finally {
       setLoading(false);
     }
@@ -55,12 +62,12 @@ export function useTransactions({ expireSession }: UseTransactionsOptions) {
       setTransactions(response.data);
       setError(null);
     } catch (err) {
-      if (typeof err === 'object' && err && 'response' in err && (err as { response?: { status?: number } }).response?.status === 401) {
-        handleUnauthorized();
-        return;
-      }
-      setError('Search failed');
-      console.error(err);
+      handleRequestError({
+        error: err,
+        onUnauthorized: handleUnauthorized,
+        setError,
+        fallbackMessage: 'Search failed',
+      });
     } finally {
       setLoading(false);
     }
@@ -78,21 +85,39 @@ export function useTransactions({ expireSession }: UseTransactionsOptions) {
       setShowForm(false);
       await loadTransactions();
     } catch (err) {
-      if (typeof err === 'object' && err && 'response' in err && (err as { response?: { status?: number } }).response?.status === 401) {
-        handleUnauthorized();
-        return;
-      }
-      setError('Failed to save transaction');
-      console.error(err);
+      handleRequestError({
+        error: err,
+        onUnauthorized: handleUnauthorized,
+        setError,
+        fallbackMessage: 'Failed to save transaction',
+        forbiddenMessage: 'You are not allowed to save this transaction.',
+      });
     }
   }, [editingTransaction, handleUnauthorized, loadTransactions]);
 
   const handleEdit = useCallback((transaction: Transaction) => {
+    if (rejectUnauthorizedAction(
+      canUpdateOrDeleteTransaction(role, currentPersonId, transaction),
+      setError,
+      'You are not allowed to edit this transaction.',
+    )) {
+      return;
+    }
+
     setEditingTransaction(transaction);
     setShowForm(true);
-  }, []);
+  }, [currentPersonId, role]);
 
   const handleDelete = useCallback(async (id: string) => {
+    const target = transactions.find((transaction) => transaction.id === id);
+    if (target && rejectUnauthorizedAction(
+      canUpdateOrDeleteTransaction(role, currentPersonId, target),
+      setError,
+      'You are not allowed to delete this transaction.',
+    )) {
+      return;
+    }
+
     if (!globalThis.confirm('Are you sure you want to delete this transaction?')) {
       return;
     }
@@ -101,14 +126,15 @@ export function useTransactions({ expireSession }: UseTransactionsOptions) {
       await transactionApi.delete(id);
       await loadTransactions();
     } catch (err) {
-      if (typeof err === 'object' && err && 'response' in err && (err as { response?: { status?: number } }).response?.status === 401) {
-        handleUnauthorized();
-        return;
-      }
-      setError('Failed to delete transaction');
-      console.error(err);
+      handleRequestError({
+        error: err,
+        onUnauthorized: handleUnauthorized,
+        setError,
+        fallbackMessage: 'Failed to delete transaction',
+        forbiddenMessage: 'You are not allowed to delete this transaction.',
+      });
     }
-  }, [handleUnauthorized, loadTransactions]);
+  }, [currentPersonId, handleUnauthorized, loadTransactions, role, transactions]);
 
   const handleCancel = useCallback(() => {
     setEditingTransaction(undefined);

@@ -5,14 +5,18 @@ namespace FoTestApi.Application.Persons.Services
 {
     public interface IPersonApplicationService
     {
-        Task<List<Person>> GetAllPersonsAsync();
+        Task<List<Person>> GetPersonsAsync(string loggedPersonId, PersonRole loggedRole);
+        Task<List<Person>> SearchPersonsAsync(string query, string loggedPersonId, PersonRole loggedRole);
         Task<Person?> GetPersonByIdAsync(string id);
-        Task<List<Person>> SearchPersonsAsync(string query);
+        Task<Person?> GetPersonByIdAsync(string id, string loggedPersonId, PersonRole loggedRole);
         Task<Person> CreatePersonAsync(CreatePersonCommand command);
+        Task<Person> CreatePersonAsync(CreatePersonCommand command, string loggedPersonId, PersonRole loggedRole);
         Task UpdatePersonAsync(string id, UpdatePersonCommand command);
-        Task DeletePersonAsync(DeletePersonCommand command);
+        Task UpdatePersonAsync(string id, UpdatePersonCommand command, string loggedPersonId, PersonRole loggedRole);
+        Task DeletePersonAsync(DeletePersonCommand command, string loggedPersonId, PersonRole loggedRole);
     }
 }
+
 
 
 

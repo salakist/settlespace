@@ -3,7 +3,15 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import PersonList from './PersonList';
 
 test('renders empty state', () => {
-  render(<PersonList persons={[]} onEdit={jest.fn()} onDelete={jest.fn()} />);
+  render(
+    <PersonList
+      persons={[]}
+      canEdit={() => true}
+      canDelete={() => true}
+      onEdit={jest.fn()}
+      onDelete={jest.fn()}
+    />,
+  );
   expect(screen.getByText(/No persons found/i)).toBeInTheDocument();
 });
 
@@ -17,6 +25,8 @@ test('renders persons and edit/delete actions', () => {
         { id: '1', firstName: 'John', lastName: 'Doe' },
         { firstName: 'No', lastName: 'Id' },
       ]}
+      canEdit={() => true}
+      canDelete={() => true}
       onEdit={onEdit}
       onDelete={onDelete}
     />

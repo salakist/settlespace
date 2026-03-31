@@ -6,7 +6,7 @@ test('creates person and clears fields', async () => {
   const onSave = jest.fn().mockResolvedValue(undefined);
   const onCancel = jest.fn();
 
-  render(<PersonForm onSave={onSave} onCancel={onCancel} saveLoading={false} />);
+  render(<PersonForm onSave={onSave} onCancel={onCancel} saveLoading={false} canEditRole={true} defaultRole="USER" />);
 
   fireEvent.change(screen.getByLabelText(/First Name/i), { target: { value: 'John' } });
   fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { value: 'Doe' } });
@@ -23,6 +23,7 @@ test('creates person and clears fields', async () => {
       email: 'john@doe.com',
       dateOfBirth: '1990-01-01',
       addresses: [],
+      role: 'USER',
     });
   });
 
@@ -42,10 +43,12 @@ test('updates existing person', async () => {
 
   render(
     <PersonForm
-      person={{ id: '1', firstName: 'Jane', lastName: 'Smith', addresses: [] }}
+      person={{ id: '1', firstName: 'Jane', lastName: 'Smith', addresses: [], role: 'USER' }}
       onSave={onSave}
       onCancel={jest.fn()}
       saveLoading={false}
+      canEditRole={true}
+      defaultRole="USER"
     />
   );
 
@@ -60,6 +63,7 @@ test('updates existing person', async () => {
       email: undefined,
       dateOfBirth: undefined,
       addresses: [],
+      role: 'USER',
     });
   });
 });
@@ -67,7 +71,7 @@ test('updates existing person', async () => {
 test('shows validation errors and blocks submit when data is invalid', async () => {
   const onSave = jest.fn().mockResolvedValue(undefined);
 
-  render(<PersonForm onSave={onSave} onCancel={jest.fn()} saveLoading={false} />);
+  render(<PersonForm onSave={onSave} onCancel={jest.fn()} saveLoading={false} canEditRole={true} defaultRole="USER" />);
 
   fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: 'invalid-email' } });
   fireEvent.change(screen.getByLabelText(/Phone Number/i), { target: { value: '12' } });

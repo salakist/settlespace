@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Alert, Box, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material';
+import { Alert, Box, Button, CircularProgress, Paper, Stack, TextField, Typography } from '@mui/material';
 import ChangePasswordForm from '../../auth/components/ChangePasswordForm';
 import { Person } from '../../../shared/types';
 import PersonDetailsFormFields from '../../persons/components/PersonDetailsFormFields';
@@ -90,6 +90,13 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
 
           <form onSubmit={handleSubmit}>
             <Stack spacing={2.5}>
+              <TextField
+                label="Role"
+                value={person?.role ?? ''}
+                fullWidth
+                InputProps={{ readOnly: true }}
+                disabled
+              />
               <PersonDetailsFormFields
                 values={values}
                 onChange={setValues}

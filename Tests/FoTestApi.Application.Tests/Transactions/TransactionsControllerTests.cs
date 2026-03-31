@@ -1,8 +1,11 @@
 using FoTestApi.Application.Authentication;
+using FoTestApi.Application.Authentication.Services;
+using FoTestApi.Domain.Auth;
 using FoTestApi.Application.Transactions.Commands;
 using FoTestApi.Application.Transactions;
 using FoTestApi.Application.Transactions.Mapping;
 using FoTestApi.Application.Transactions.Services;
+using FoTestApi.Domain.Persons.Entities;
 using FoTestApi.Domain.Transactions.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -14,11 +17,12 @@ namespace FoTestApi.Application.Tests.Transactions;
 public class TransactionsControllerTests
 {
     private readonly Mock<ITransactionApplicationService> _serviceMock = new();
+    private readonly Mock<IAuthService> _authServiceMock = new();
     private readonly TransactionsController _controller;
 
     public TransactionsControllerTests()
     {
-        _controller = new TransactionsController(_serviceMock.Object, new TransactionMapper());
+        _controller = new TransactionsController(_serviceMock.Object, new TransactionMapper(), _authServiceMock.Object);
     }
 
     [Fact]
@@ -28,8 +32,8 @@ public class TransactionsControllerTests
         {
             BuildTransaction("tx-1")
         };
-        _serviceMock.Setup(s => s.GetCurrentUserTransactionsAsync("user-1")).ReturnsAsync(transactions);
-        SetUser("user-1");
+        _serviceMock.Setup(s => s.GetCurrentUserTransactionsAsync("user-1", PersonRole.USER)).ReturnsAsync(transactions);
+        SetUser("user-1", PersonRole.USER);
 
         var result = await _controller.GetCurrentUserTransactions();
 
@@ -52,8 +56,8 @@ public class TransactionsControllerTests
             Status = TransactionStatus.Completed,
         };
         var created = BuildTransaction("507f1f77bcf86cd799439011");
-        _serviceMock.Setup(s => s.CreateTransactionAsync("user-1", command)).ReturnsAsync(created);
-        SetUser("user-1");
+        _serviceMock.Setup(s => s.CreateTransactionAsync("user-1", PersonRole.USER, command)).ReturnsAsync(created);
+        SetUser("user-1", PersonRole.USER);
 
         var result = await _controller.Post(command);
 
@@ -64,9 +68,9 @@ public class TransactionsControllerTests
     [Fact]
     public async Task DeleteReturnsNoContent()
     {
-        _serviceMock.Setup(s => s.DeleteTransactionAsync("507f1f77bcf86cd799439011", "user-1"))
+        _serviceMock.Setup(s => s.DeleteTransactionAsync("507f1f77bcf86cd799439011", "user-1", PersonRole.USER))
             .Returns(Task.CompletedTask);
-        SetUser("user-1");
+        SetUser("user-1", PersonRole.USER);
 
         var result = await _controller.Delete("507f1f77bcf86cd799439011");
 
@@ -74,27 +78,21 @@ public class TransactionsControllerTests
     }
 
     [Fact]
-    public async Task GetByIdReturnsUnauthorizedWhenClaimMissing()
+    public async Task GetByIdThrowsAuthContextExceptionWhenClaimMissing()
     {
-        _controller.ControllerContext = new ControllerContext
-        {
-            HttpContext = new DefaultHttpContext
-            {
-                User = new ClaimsPrincipal(new ClaimsIdentity())
-            }
-        };
+        _authServiceMock.Setup(s => s.ResolveAuthContext(It.IsAny<ClaimsPrincipal>()))
+            .Throws<AuthContextException>();
 
-        var result = await _controller.GetById("507f1f77bcf86cd799439011");
-
-        Assert.IsType<UnauthorizedResult>(result.Result);
+        await Assert.ThrowsAsync<AuthContextException>(
+            () => _controller.GetById("507f1f77bcf86cd799439011"));
     }
 
     [Fact]
     public async Task SearchCurrentUserTransactionsReturnsOk()
     {
-        _serviceMock.Setup(s => s.SearchCurrentUserTransactionsAsync("user-1", "taxi"))
+        _serviceMock.Setup(s => s.SearchCurrentUserTransactionsAsync("user-1", PersonRole.USER, "taxi"))
             .ReturnsAsync(new List<Transaction> { BuildTransaction("tx-1") });
-        SetUser("user-1");
+        SetUser("user-1", PersonRole.USER);
 
         var result = await _controller.SearchCurrentUserTransactions("taxi");
 
@@ -114,26 +112,34 @@ public class TransactionsControllerTests
             Description = "Updated",
             Status = TransactionStatus.Completed,
         };
-        _serviceMock.Setup(s => s.UpdateTransactionAsync("507f1f77bcf86cd799439011", "user-1", command))
+        _serviceMock.Setup(s => s.UpdateTransactionAsync("507f1f77bcf86cd799439011", "user-1", PersonRole.USER, command))
             .Returns(Task.CompletedTask);
-        SetUser("user-1");
+        SetUser("user-1", PersonRole.USER);
 
         var result = await _controller.Update("507f1f77bcf86cd799439011", command);
 
         Assert.IsType<NoContentResult>(result);
     }
 
-    private void SetUser(string personId)
+    private void SetUser(string personId, PersonRole role)
     {
         _controller.ControllerContext = new ControllerContext
         {
             HttpContext = new DefaultHttpContext
             {
                 User = new ClaimsPrincipal(new ClaimsIdentity(
-                    new[] { new Claim(CustomClaimTypes.PersonId, personId) },
+                    new[]
+                    {
+                        new Claim(CustomClaimTypes.PersonId, personId),
+                        new Claim(CustomClaimTypes.PersonRole, role.ToString())
+                    },
                     "TestAuth"))
             }
         };
+
+        _authServiceMock
+            .Setup(s => s.ResolveAuthContext(It.IsAny<ClaimsPrincipal>()))
+            .Returns((personId, role));
     }
 
     private static Transaction BuildTransaction(string id) =>

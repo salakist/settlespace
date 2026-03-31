@@ -1,9 +1,10 @@
 import axios from 'axios';
-import { ChangePasswordRequest, LoginRequest, LoginResponse, Person, RegisterRequest } from '../types';
+import { ChangePasswordRequest, LoginRequest, LoginResponse, Person, PersonRole, RegisterRequest } from '../types';
 
 const API_BASE_URL = 'http://localhost:5279/api';
 const TOKEN_STORAGE_KEY = 'fotest.auth.token';
 const USERNAME_STORAGE_KEY = 'fotest.auth.username';
+const ROLE_STORAGE_KEY = 'fotest.auth.role';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -21,15 +22,19 @@ api.interceptors.request.use((config) => {
 export const authStorage = {
   getToken: () => localStorage.getItem(TOKEN_STORAGE_KEY),
   getUsername: () => localStorage.getItem(USERNAME_STORAGE_KEY),
+  getRole: () => localStorage.getItem(ROLE_STORAGE_KEY) as PersonRole | null,
   isAuthenticated: () => Boolean(localStorage.getItem(TOKEN_STORAGE_KEY)),
   setUsername: (username: string) => localStorage.setItem(USERNAME_STORAGE_KEY, username),
+  setRole: (role: PersonRole) => localStorage.setItem(ROLE_STORAGE_KEY, role),
   saveSession: (response: LoginResponse) => {
     localStorage.setItem(TOKEN_STORAGE_KEY, response.token);
     localStorage.setItem(USERNAME_STORAGE_KEY, response.username);
+    localStorage.setItem(ROLE_STORAGE_KEY, response.role);
   },
   clearSession: () => {
     localStorage.removeItem(TOKEN_STORAGE_KEY);
     localStorage.removeItem(USERNAME_STORAGE_KEY);
+    localStorage.removeItem(ROLE_STORAGE_KEY);
   },
 };
 

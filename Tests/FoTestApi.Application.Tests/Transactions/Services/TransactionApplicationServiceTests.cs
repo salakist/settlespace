@@ -1,6 +1,7 @@
 using FoTestApi.Application.Transactions.Commands;
 using FoTestApi.Application.Transactions.Mapping;
 using FoTestApi.Application.Transactions.Services;
+using FoTestApi.Domain.Persons.Entities;
 using FoTestApi.Domain.Transactions;
 using FoTestApi.Domain.Transactions.Entities;
 using FoTestApi.Domain.Transactions.Exceptions;
@@ -25,9 +26,12 @@ public class TransactionApplicationServiceTests
     public async Task GetCurrentUserTransactionsAsyncReturnsRepositoryResults()
     {
         var transactions = new List<Transaction> { BuildTransaction("tx-1") };
-        _repositoryMock.Setup(r => r.GetByInvolvedPersonIdAsync("user-1")).ReturnsAsync(transactions);
+        _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(transactions);
+        _domainServiceMock
+            .Setup(d => d.FilterReadableTransactions(transactions, "user-1", PersonRole.USER))
+            .Returns(transactions);
 
-        var result = await _sut.GetCurrentUserTransactionsAsync("user-1");
+        var result = await _sut.GetCurrentUserTransactionsAsync("user-1", PersonRole.USER);
 
         Assert.Single(result);
     }
@@ -49,9 +53,9 @@ public class TransactionApplicationServiceTests
         _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Transaction>()))
             .ReturnsAsync((Transaction tx) => tx);
 
-        var result = await _sut.CreateTransactionAsync("user-1", command);
+        var result = await _sut.CreateTransactionAsync("user-1", PersonRole.USER, command);
 
-        _domainServiceMock.Verify(d => d.EnsureCanCreate(It.IsAny<Transaction>(), "user-1"), Times.Once);
+        _domainServiceMock.Verify(d => d.EnsureCanCreate(It.IsAny<Transaction>(), "user-1", PersonRole.USER), Times.Once);
         Assert.Equal("EUR", result.CurrencyCode);
     }
 
@@ -60,7 +64,7 @@ public class TransactionApplicationServiceTests
     {
         _repositoryMock.Setup(r => r.GetByIdAsync("missing")).ReturnsAsync((Transaction?)null);
 
-        await Assert.ThrowsAsync<TransactionNotFoundException>(() => _sut.GetTransactionByIdAsync("missing", "user-1"));
+        await Assert.ThrowsAsync<TransactionNotFoundException>(() => _sut.GetTransactionByIdAsync("missing", "user-1", PersonRole.USER));
     }
 
     [Fact]
@@ -69,19 +73,22 @@ public class TransactionApplicationServiceTests
         _repositoryMock.Setup(r => r.GetByIdAsync("tx-1")).ReturnsAsync(BuildTransaction("tx-1"));
         _repositoryMock.Setup(r => r.DeleteAsync("tx-1")).Returns(Task.CompletedTask);
 
-        await _sut.DeleteTransactionAsync("tx-1", "user-1");
+        await _sut.DeleteTransactionAsync("tx-1", "user-1", PersonRole.USER);
 
-        _domainServiceMock.Verify(d => d.EnsureCanDelete(It.IsAny<Transaction>(), "user-1"), Times.Once);
+        _domainServiceMock.Verify(d => d.EnsureCanDelete(It.IsAny<Transaction>(), "user-1", PersonRole.USER), Times.Once);
         _repositoryMock.Verify(r => r.DeleteAsync("tx-1"), Times.Once);
     }
 
     [Fact]
     public async Task SearchCurrentUserTransactionsAsyncDelegatesToRepository()
     {
-        _repositoryMock.Setup(r => r.SearchByInvolvedPersonIdAsync("user-1", "taxi"))
+        _repositoryMock.Setup(r => r.SearchAsync("taxi"))
             .ReturnsAsync(new List<Transaction> { BuildTransaction("tx-1") });
+        _domainServiceMock
+            .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
 
-        var result = await _sut.SearchCurrentUserTransactionsAsync("user-1", "taxi");
+        var result = await _sut.SearchCurrentUserTransactionsAsync("user-1", PersonRole.USER, "taxi");
 
         Assert.Single(result);
     }
@@ -104,7 +111,7 @@ public class TransactionApplicationServiceTests
         _repositoryMock.Setup(r => r.GetByIdAsync("tx-1")).ReturnsAsync(existing);
         _repositoryMock.Setup(r => r.UpdateAsync("tx-1", It.IsAny<Transaction>())).Returns(Task.CompletedTask);
 
-        await _sut.UpdateTransactionAsync("tx-1", "user-1", command);
+        await _sut.UpdateTransactionAsync("tx-1", "user-1", PersonRole.USER, command);
 
         _repositoryMock.Verify(r => r.UpdateAsync("tx-1", It.Is<Transaction>(t => t.CurrencyCode == "USD")), Times.Once);
     }
@@ -112,7 +119,15 @@ public class TransactionApplicationServiceTests
     [Fact]
     public async Task GetCurrentUserTransactionsAsyncMissingUserThrowsUnauthorizedTransactionAccessException()
     {
-        await Assert.ThrowsAsync<UnauthorizedTransactionAccessException>(() => _sut.GetCurrentUserTransactionsAsync(" "));
+        _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Transaction>());
+        _domainServiceMock
+            .Setup(d => d.FilterReadableTransactions(
+                It.IsAny<IEnumerable<Transaction>>(),
+                It.Is<string>(personId => string.IsNullOrWhiteSpace(personId)),
+                PersonRole.USER))
+            .Throws(new UnauthorizedTransactionAccessException("Authenticated user identifier is required."));
+
+        await Assert.ThrowsAsync<UnauthorizedTransactionAccessException>(() => _sut.GetCurrentUserTransactionsAsync(" ", PersonRole.USER));
     }
 
     private static Transaction BuildTransaction(string id) =>

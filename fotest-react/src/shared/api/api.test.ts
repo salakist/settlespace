@@ -89,11 +89,13 @@ test('authStorage reads and writes to localStorage', () => {
 
   expect(authStorage.getToken()).toBeNull();
   expect(authStorage.getUsername()).toBeNull();
+  expect(authStorage.getRole()).toBeNull();
   expect(authStorage.isAuthenticated()).toBe(false);
 
-  authStorage.saveSession({ token: 'tok', username: 'john', expiresAtUtc: '2026-01-01T00:00:00Z' });
+  authStorage.saveSession({ token: 'tok', username: 'john', role: 'USER', expiresAtUtc: '2026-01-01T00:00:00Z' });
   expect(authStorage.getToken()).toBe('tok');
   expect(authStorage.getUsername()).toBe('john');
+  expect(authStorage.getRole()).toBe('USER');
   expect(authStorage.isAuthenticated()).toBe(true);
 
   authStorage.setUsername('jane');
@@ -102,5 +104,6 @@ test('authStorage reads and writes to localStorage', () => {
   authStorage.clearSession();
   expect(authStorage.getToken()).toBeNull();
   expect(authStorage.getUsername()).toBeNull();
+  expect(authStorage.getRole()).toBeNull();
   expect(authStorage.isAuthenticated()).toBe(false);
 });

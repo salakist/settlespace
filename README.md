@@ -120,12 +120,17 @@ FoTestApi.Domain/
 | `Email` validation | Optional; if provided must be a valid email address |
 | `DateOfBirth` validation | Optional; if provided cannot be in the future |
 | Address validation | Optional list; each address requires non-empty `Label`, `StreetLine1`, `City`, `Country`, and `PostalCode` matching `^[A-Za-z0-9\-\s]{3,12}$` |
+| Role model | Every person has a role: `ADMIN`, `USER`, or `MANAGER` |
+| Default role | New persons default to `USER`; bootstrap rule: first registered account is `ADMIN` when no accounts exist |
 | No duplicate persons | Two persons are duplicates if `FirstName` and `LastName` match case-insensitively |
 | Duplicate check scope | Enforced on both **create** and **update** |
 | Duplicate violation | Raises `DuplicatePersonException` → translated to HTTP `409 Conflict` |
 | Weak password | Raises `WeakPasswordException` → translated to HTTP `400 Bad Request` |
-| Transaction access scope | Create, get, and update require logged-user involvement as payer or payee |
-| Transaction delete scope | Delete is restricted to the transaction creator |
+| Persons management scope | `USER` cannot create/update/delete persons; `MANAGER` can create/update/delete only `USER` accounts and cannot change roles; `ADMIN` is unrestricted |
+| Self role mutation | A person cannot change their own role |
+| Transaction create scope | `USER` can create only when involved; `MANAGER` and `ADMIN` can create without involvement |
+| Transaction read scope | `USER`: involved transactions only; `MANAGER`: involved + created transactions; `ADMIN`: unrestricted |
+| Transaction update/delete scope | `USER` and `MANAGER`: creator-only; `ADMIN`: unrestricted |
 | Equality method | `Person.MatchesByFullName(other)` – OrdinalIgnoreCase full-name comparison |
 
 `IPasswordGenerator`/`PasswordGenerator` produces 12+ character passwords that satisfy the same strength policy.
@@ -469,6 +474,16 @@ Frontend starts on `http://localhost:3000`.
 
 With the API running, you can populate persons and transactions with repeatable sample data.
 
+If you are introducing this role model on an existing local database, clear/recreate local data first, then run the seed script so all persons include a persisted `role` value.
+
+Database reset note:
+- `./scripts/cleanup/cleanup.ps1` and `./scripts/cleanup/cleanup-full.ps1` only clean workspace artifacts; they do not reset MongoDB data.
+- Before reseeding this feature, drop the local `fo-test` database or clear the `persons` and `transactions` collections, then run the seed script below.
+
+Seed expectations:
+- `john.doe` is seeded as `ADMIN` (bootstrap first-account rule on empty data).
+- Other seeded accounts are `USER`.
+
 ```powershell
 .\scripts\setup\seed-dev-data.ps1
 ```
@@ -488,16 +503,16 @@ Base URL: `http://localhost:5279/api`
 | GET | `/persons/me` | Get the authenticated person's profile | none | `200` PersonDto, `401`, `404` |
 | GET | `/persons/{id}` | Get by ID | none | `200` PersonDto, `404`, `401` |
 | GET | `/persons/search/{query}` | Search by name (case-insensitive) | none | `200` Array, `401` |
-| POST | `/persons` | Create person | `CreatePersonCommand` | `201` PersonDto, `409` Conflict, `400`, `401` |
+| POST | `/persons` | Create person (role rules apply) | `CreatePersonCommand` | `201` PersonDto, `409` Conflict, `400`, `401`, `403` |
 | PUT | `/persons/me` | Update the authenticated person's profile | `UpdatePersonCommand` | `204`, `400`, `401`, `404`, `409` |
-| PUT | `/persons/{id}` | Update person | `UpdatePersonCommand` | `204`, `404`, `409` Conflict, `400`, `401` |
-| DELETE | `/persons/{id}` | Delete person | none | `204`, `404`, `401` |
-| GET | `/transactions/me` | Get transactions where current user is payer or payee | none | `200` Array of TransactionDto, `401` |
+| PUT | `/persons/{id}` | Update person (role rules apply) | `UpdatePersonCommand` | `204`, `404`, `409` Conflict, `400`, `401`, `403` |
+| DELETE | `/persons/{id}` | Delete person (role rules apply) | none | `204`, `404`, `401`, `403` |
+| GET | `/transactions/me` | Get transactions in role-based scope | none | `200` Array of TransactionDto, `401` |
 | GET | `/transactions/me/search/{query}` | Search current-user transactions by description/category | none | `200` Array, `401` |
-| GET | `/transactions/{id}` | Get transaction by ID (must be involved) | none | `200` TransactionDto, `401`, `403`, `404` |
-| POST | `/transactions` | Create transaction (current user must be payer or payee) | `CreateTransactionCommand` | `201` TransactionDto, `400`, `401`, `403` |
-| PUT | `/transactions/{id}` | Update transaction (must be involved) | `UpdateTransactionCommand` | `204`, `400`, `401`, `403`, `404` |
-| DELETE | `/transactions/{id}` | Delete transaction (creator only) | none | `204`, `401`, `403`, `404` |
+| GET | `/transactions/{id}` | Get transaction by ID (role rules apply) | none | `200` TransactionDto, `401`, `403`, `404` |
+| POST | `/transactions` | Create transaction (role rules apply) | `CreateTransactionCommand` | `201` TransactionDto, `400`, `401`, `403` |
+| PUT | `/transactions/{id}` | Update transaction (role rules apply) | `UpdateTransactionCommand` | `204`, `400`, `401`, `403`, `404` |
+| DELETE | `/transactions/{id}` | Delete transaction (role rules apply) | none | `204`, `401`, `403`, `404` |
 
 All `/persons` endpoints require a bearer token returned by `/auth/login`.
 The login endpoint validates credentials against MongoDB persons (`firstName.lastName` + person password), not appsettings.
@@ -520,6 +535,7 @@ Passwords are stored as PBKDF2 hashes. If an older plaintext password is encount
 {
   "token": "jwt-token",
   "username": "John.Doe",
+  "role": "ADMIN",
   "expiresAtUtc": "2026-03-29T16:00:00Z"
 }
 ```
@@ -569,6 +585,7 @@ Frontend users can access this action from the authenticated profile page.
   "id": "string",
   "firstName": "string",
   "lastName": "string",
+  "role": "ADMIN | USER | MANAGER",
   "phoneNumber": "string | null",
   "email": "string | null",
   "dateOfBirth": "YYYY-MM-DD | null",
@@ -593,6 +610,7 @@ Frontend users can access this action from the authenticated profile page.
   "firstName": "string",
   "lastName": "string",
   "password": "string (optional, must meet strength requirements if provided)",
+  "role": "ADMIN | USER | MANAGER (optional, defaults to USER)",
   "phoneNumber": "string (optional)",
   "email": "string (optional)",
   "dateOfBirth": "YYYY-MM-DD (optional)",
@@ -616,6 +634,7 @@ Frontend users can access this action from the authenticated profile page.
 {
   "firstName": "string",
   "lastName": "string",
+  "role": "ADMIN | USER | MANAGER (optional)",
   "phoneNumber": "string (optional)",
   "email": "string (optional)",
   "dateOfBirth": "YYYY-MM-DD (optional)",
@@ -638,6 +657,7 @@ Provided create/register passwords are validated before being hashed for storage
 `UpdatePersonCommand` does not accept a password field; use `/auth/change-password` instead.
 `UpdatePersonCommand` also does not carry an `id`; the id comes from route (`/persons/{id}`) or auth claim (`/persons/me`).
 When a person edits their own profile, the frontend uses `/persons/me`; administrative CRUD continues to use `/persons/{id}`.
+Role changes are restricted by role-based authorization rules; a person cannot change their own role.
 
 ### Error response (409 Conflict)
 

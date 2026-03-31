@@ -16,9 +16,11 @@ jest.mock('../../../shared/api/api', () => ({
   authStorage: {
     isAuthenticated: jest.fn(),
     getUsername: jest.fn(),
+    getRole: jest.fn(),
     saveSession: jest.fn(),
     clearSession: jest.fn(),
     setUsername: jest.fn(),
+    setRole: jest.fn(),
   },
 }));
 
@@ -30,9 +32,11 @@ const { authApi, authStorage } = jest.requireMock('../../../shared/api/api') as 
   authStorage: {
     isAuthenticated: jest.Mock;
     getUsername: jest.Mock;
+    getRole: jest.Mock;
     saveSession: jest.Mock;
     clearSession: jest.Mock;
     setUsername: jest.Mock;
+    setRole: jest.Mock;
   };
 };
 
@@ -57,8 +61,9 @@ beforeEach(() => {
   jest.clearAllMocks();
   authStorage.isAuthenticated.mockReturnValue(false);
   authStorage.getUsername.mockReturnValue('');
-  authApi.login.mockResolvedValue({ data: { token: 't1', username: 'john.doe' } });
-  authApi.register.mockResolvedValue({ data: { token: 't2', username: 'jane.doe' } });
+  authStorage.getRole.mockReturnValue(null);
+  authApi.login.mockResolvedValue({ data: { token: 't1', username: 'john.doe', role: 'USER' } });
+  authApi.register.mockResolvedValue({ data: { token: 't2', username: 'jane.doe', role: 'USER' } });
 });
 
 test('login saves session, updates auth state, and navigates to home', async () => {
@@ -70,7 +75,7 @@ test('login saves session, updates auth state, and navigates to home', async () 
   });
 
   await waitFor(() => {
-    expect(authStorage.saveSession).toHaveBeenCalledWith({ token: 't1', username: 'john.doe' });
+    expect(authStorage.saveSession).toHaveBeenCalledWith({ token: 't1', username: 'john.doe', role: 'USER' });
   });
 
   expect(harness.getHook().isAuthenticated).toBe(true);

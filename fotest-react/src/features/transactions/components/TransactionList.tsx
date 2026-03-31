@@ -5,6 +5,7 @@ import { Person, Transaction } from '../../../shared/types';
 type TransactionListProps = {
   transactions: Transaction[];
   persons: Person[];
+  canManage: (transaction: Transaction) => boolean;
   onEdit: (transaction: Transaction) => void;
   onDelete: (id: string) => void;
 };
@@ -18,7 +19,7 @@ function resolvePersonName(persons: Person[], personId: string): string {
   return `${person.firstName} ${person.lastName}`;
 }
 
-const TransactionList: React.FC<TransactionListProps> = ({ transactions, persons, onEdit, onDelete }) => {
+const TransactionList: React.FC<TransactionListProps> = ({ transactions, persons, canManage, onEdit, onDelete }) => {
   if (transactions.length === 0) {
     return <Typography color="text.secondary">No transactions found for your account.</Typography>;
   }
@@ -51,9 +52,9 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, persons
               </Typography>
 
               <Stack direction="row" spacing={1}>
-                <Button size="small" variant="outlined" onClick={() => onEdit(transaction)}>Edit</Button>
+                <Button size="small" variant="outlined" onClick={() => onEdit(transaction)} disabled={!canManage(transaction)}>Edit</Button>
                 {transactionId && (
-                  <Button size="small" variant="outlined" color="secondary" onClick={() => onDelete(transactionId)}>Delete</Button>
+                  <Button size="small" variant="outlined" color="secondary" onClick={() => onDelete(transactionId)} disabled={!canManage(transaction)}>Delete</Button>
                 )}
               </Stack>
             </Stack>

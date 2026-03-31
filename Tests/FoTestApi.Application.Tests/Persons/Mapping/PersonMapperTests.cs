@@ -59,6 +59,7 @@ public class PersonMapperTests
         {
             FirstName = "Jane",
             LastName = "Doe",
+            Role = PersonRole.MANAGER,
             PhoneNumber = "+1 555 123 4567",
             Email = "jane.doe@example.com",
             DateOfBirth = new DateOnly(1992, 7, 10),
@@ -77,7 +78,7 @@ public class PersonMapperTests
             ]
         };
 
-        var result = _sut.ToEntity(command, "hashed::secret");
+        var result = _sut.ToEntity(command, "hashed::secret", command.Role!.Value);
 
         Assert.Null(result.Id);
         Assert.Equal(command.FirstName, result.FirstName);
@@ -85,6 +86,7 @@ public class PersonMapperTests
         Assert.Equal(command.PhoneNumber, result.PhoneNumber);
         Assert.Equal(command.Email, result.Email);
         Assert.Equal(command.DateOfBirth, result.DateOfBirth);
+        Assert.Equal(PersonRole.MANAGER, result.Role);
         Assert.Equal("hashed::secret", result.Password);
         Assert.Single(result.Addresses);
         Assert.Equal("Office", result.Addresses[0].Label);
@@ -103,6 +105,7 @@ public class PersonMapperTests
         {
             FirstName = "Janet",
             LastName = "Smith",
+            Role = PersonRole.USER,
             PhoneNumber = "+44 20 7946 0958",
             Email = "janet.smith@example.com",
             DateOfBirth = new DateOnly(1988, 3, 14),
@@ -121,7 +124,7 @@ public class PersonMapperTests
             ]
         };
 
-        var result = _sut.ToEntity("person-99", command, "hashed::existing");
+        var result = _sut.ToEntity("person-99", command, "hashed::existing", command.Role!.Value);
 
         Assert.Equal("person-99", result.Id);
         Assert.Equal(command.FirstName, result.FirstName);
@@ -129,6 +132,7 @@ public class PersonMapperTests
         Assert.Equal(command.PhoneNumber, result.PhoneNumber);
         Assert.Equal(command.Email, result.Email);
         Assert.Equal(command.DateOfBirth, result.DateOfBirth);
+        Assert.Equal(PersonRole.USER, result.Role);
         Assert.Equal("hashed::existing", result.Password);
         Assert.Single(result.Addresses);
         Assert.Equal("Billing", result.Addresses[0].Label);

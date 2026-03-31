@@ -1,11 +1,10 @@
-using FoTestApi.Application.Authentication;
+using FoTestApi.Application.Authentication.Services;
 using FoTestApi.Application.Persons.Mapping;
 using FoTestApi.Application.Persons.Services;
 using FoTestApi.Application.Persons.Commands;
 using FoTestApi.Application.Persons.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace FoTestApi.Application.Persons
 {
@@ -20,16 +19,19 @@ namespace FoTestApi.Application.Persons
     {
         private readonly IPersonApplicationService _applicationService;
         private readonly IPersonMapper _personMapper;
+        private readonly IAuthService _authService;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="PersonsController"/> class.
         /// </summary>
         /// <param name="applicationService">The person application service.</param>
         /// <param name="personMapper">The mapper from domain entities to DTOs.</param>
-        public PersonsController(IPersonApplicationService applicationService, IPersonMapper personMapper)
+        /// <param name="authService">The auth service used to resolve the caller identity from the request claims.</param>
+        public PersonsController(IPersonApplicationService applicationService, IPersonMapper personMapper, IAuthService authService)
         {
             _applicationService = applicationService;
             _personMapper = personMapper;
+            _authService = authService;
         }
 
         /// <summary>
@@ -43,7 +45,8 @@ namespace FoTestApi.Application.Persons
         [ProducesResponseType(401)]
         public async Task<ActionResult<List<PersonDto>>> Get()
         {
-            var persons = await _applicationService.GetAllPersonsAsync();
+            var (personId, personRole) = _authService.ResolveAuthContext(User);
+            var persons = await _applicationService.GetPersonsAsync(personId, personRole);
             return Ok(persons.Select(_personMapper.ToDto).ToList());
         }
 
@@ -61,7 +64,8 @@ namespace FoTestApi.Application.Persons
         [ProducesResponseType(401)]
         public async Task<ActionResult<PersonDto>> Get(string id)
         {
-            var person = await _applicationService.GetPersonByIdAsync(id);
+            var (personId, personRole) = _authService.ResolveAuthContext(User);
+            var person = await _applicationService.GetPersonByIdAsync(id, personId, personRole);
 
             if (person is null)
             {
@@ -83,7 +87,8 @@ namespace FoTestApi.Application.Persons
         [ProducesResponseType(401)]
         public async Task<ActionResult<List<PersonDto>>> SearchByQuery(string query)
         {
-            var persons = await _applicationService.SearchPersonsAsync(query);
+            var (personId, personRole) = _authService.ResolveAuthContext(User);
+            var persons = await _applicationService.SearchPersonsAsync(query, personId, personRole);
             return Ok(persons.Select(_personMapper.ToDto).ToList());
         }
 
@@ -96,12 +101,7 @@ namespace FoTestApi.Application.Persons
         [ProducesResponseType(404)]
         public async Task<ActionResult<PersonDto>> GetCurrent()
         {
-            var personId = User.FindFirstValue(CustomClaimTypes.PersonId);
-            if (string.IsNullOrWhiteSpace(personId))
-            {
-                return Unauthorized();
-            }
-
+            var (personId, _) = _authService.ResolveAuthContext(User);
             var person = await _applicationService.GetPersonByIdAsync(personId);
             if (person is null)
             {
@@ -127,7 +127,8 @@ namespace FoTestApi.Application.Persons
         [ProducesResponseType(401)]
         public async Task<IActionResult> Post([FromBody] CreatePersonCommand command)
         {
-            var person = await _applicationService.CreatePersonAsync(command);
+            var (personId, personRole) = _authService.ResolveAuthContext(User);
+            var person = await _applicationService.CreatePersonAsync(command, personId, personRole);
             return CreatedAtAction(nameof(Get), new { id = person.Id }, _personMapper.ToDto(person));
         }
 
@@ -149,7 +150,8 @@ namespace FoTestApi.Application.Persons
         [ProducesResponseType(401)]
         public async Task<IActionResult> Update(string id, [FromBody] UpdatePersonCommand command)
         {
-            await _applicationService.UpdatePersonAsync(id, command);
+            var (personId, personRole) = _authService.ResolveAuthContext(User);
+            await _applicationService.UpdatePersonAsync(id, command, personId, personRole);
             return NoContent();
         }
 
@@ -164,12 +166,7 @@ namespace FoTestApi.Application.Persons
         [ProducesResponseType(409)]
         public async Task<IActionResult> UpdateCurrent([FromBody] UpdatePersonCommand command)
         {
-            var personId = User.FindFirstValue(CustomClaimTypes.PersonId);
-            if (string.IsNullOrWhiteSpace(personId))
-            {
-                return Unauthorized();
-            }
-
+            var (personId, _) = _authService.ResolveAuthContext(User);
             await _applicationService.UpdatePersonAsync(personId, command);
             return NoContent();
         }
@@ -187,7 +184,8 @@ namespace FoTestApi.Application.Persons
         [ProducesResponseType(401)]
         public async Task<IActionResult> Delete(string id)
         {
-            await _applicationService.DeletePersonAsync(new DeletePersonCommand { Id = id });
+            var (personId, personRole) = _authService.ResolveAuthContext(User);
+            await _applicationService.DeletePersonAsync(new DeletePersonCommand { Id = id }, personId, personRole);
             return NoContent();
         }
     }

@@ -5,6 +5,7 @@ import TransactionForm from './TransactionForm';
 const persons = [
   { id: 'p1', firstName: 'John', lastName: 'Doe', addresses: [] },
   { id: 'p2', firstName: 'Jane', lastName: 'Smith', addresses: [] },
+  { id: 'p3', firstName: 'Alex', lastName: 'Taylor', addresses: [] },
 ];
 const TX_DATE = '2026-03-29T00:00:00Z';
 const STATUS_COMPLETED = 'Completed' as const;
@@ -26,6 +27,7 @@ test('submits valid transaction data', () => {
       }}
       persons={persons}
       currentPersonId="p1"
+      role="USER"
       onSave={onSave}
       onCancel={onCancel}
     />,
@@ -60,6 +62,7 @@ test('shows validation error when payer and payee are equal', () => {
       }}
       persons={persons}
       currentPersonId="p1"
+      role="USER"
       onSave={jest.fn()}
       onCancel={jest.fn()}
     />,
@@ -85,6 +88,7 @@ test('shows validation error when amount is invalid', () => {
       }}
       persons={persons}
       currentPersonId="p1"
+      role="USER"
       onSave={onSave}
       onCancel={jest.fn()}
     />,
@@ -112,6 +116,7 @@ test('shows validation error when currency code is invalid', () => {
       }}
       persons={persons}
       currentPersonId="p1"
+      role="USER"
       onSave={onSave}
       onCancel={jest.fn()}
     />,
@@ -129,6 +134,7 @@ test('cancel button triggers onCancel callback', () => {
     <TransactionForm
       persons={persons}
       currentPersonId="p1"
+      role="USER"
       onSave={jest.fn()}
       onCancel={onCancel}
     />,
@@ -138,24 +144,21 @@ test('cancel button triggers onCancel callback', () => {
   expect(onCancel).toHaveBeenCalled();
 });
 
-test('disables save when current user is not payer or payee', () => {
+test('disables save when creating and current user is not payer or payee', () => {
   render(
     <TransactionForm
-      transaction={{
-        payerPersonId: 'p2',
-        payeePersonId: 'p2',
-        amount: 10.5,
-        currencyCode: 'EUR',
-        transactionDateUtc: TX_DATE,
-        description: 'Lunch',
-        status: STATUS_COMPLETED,
-      }}
       persons={persons}
       currentPersonId="p1"
+      role="USER"
       onSave={jest.fn()}
       onCancel={jest.fn()}
     />,
   );
+
+  fireEvent.mouseDown(screen.getByLabelText(/payer/i));
+  fireEvent.click(screen.getByRole('option', { name: /jane smith/i }));
+  fireEvent.mouseDown(screen.getByLabelText(/payee/i));
+  fireEvent.click(screen.getByRole('option', { name: /alex taylor/i }));
 
   expect(screen.getByRole('button', { name: /save/i })).toBeDisabled();
   expect(screen.getByText(/must be either the payer or the payee/i)).toBeInTheDocument();

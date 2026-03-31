@@ -14,7 +14,7 @@ const {
 };
 
 const ARIA_SELECTED = 'aria-selected';
-const mockPersonsPage = jest.fn(() => <div>Persons Page</div>);
+const mockPersonsPage = jest.fn((_props?: unknown) => <div>Persons Page</div>);
 
 jest.mock('../features/auth/hooks/useAuth', () => ({
   useAuth: jest.fn(),
@@ -86,7 +86,7 @@ const { useAppAuth: mockUseAppAuth } = jest.requireMock('./hooks/useAppAuth') as
 
 const App = require('./App').default;
 
-const setAuthenticatedSession = (currentPersonId?: string) => {
+const setAuthenticatedSession = (currentPersonId?: string, role: 'ADMIN' | 'MANAGER' | 'USER' = 'ADMIN') => {
   mockUseAuth.mockReturnValue({
     authError: null,
     authLoading: false,
@@ -95,7 +95,9 @@ const setAuthenticatedSession = (currentPersonId?: string) => {
     isAuthenticated: true,
     login: jest.fn(),
     logout: jest.fn(),
+    role,
     register: jest.fn(),
+    setAuthRole: jest.fn(),
     setAuthUsername: jest.fn(),
     username: 'john.doe',
   });
@@ -127,7 +129,9 @@ beforeEach(() => {
     isAuthenticated: false,
     login: jest.fn(),
     logout: jest.fn(),
+    role: null,
     register: jest.fn(),
+    setAuthRole: jest.fn(),
     setAuthUsername: jest.fn(),
     username: '',
   });
@@ -264,7 +268,7 @@ test('does not pass logged-in user to persons page list', () => {
 
   expect(mockPersonsPage).toHaveBeenCalled();
 
-  const personsPageProps = mockPersonsPage.mock.calls[0][0] as { persons: Array<{ id: string }> };
+  const personsPageProps = mockPersonsPage.mock.calls[0]?.[0] as unknown as { persons: Array<{ id: string }> };
   expect(personsPageProps.persons).toEqual([
     { id: '2', firstName: 'Jane', lastName: 'Smith', addresses: [] },
   ]);

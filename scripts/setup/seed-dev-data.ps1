@@ -84,8 +84,8 @@ $janeToken = $janeSession.token
 $persons = Invoke-Api -Method "GET" -Url "$ApiBaseUrl/persons" -Token $johnToken
 
 $seedPersons = @(
-    @{ firstName = "Alice"; lastName = "Walker"; password = "Seed@Pass3"; email = "alice.walker@example.com"; addresses = @() },
-    @{ firstName = "Bob"; lastName = "Taylor"; password = "Seed@Pass4"; email = "bob.taylor@example.com"; addresses = @() }
+    @{ firstName = "Alice"; lastName = "Walker"; password = "Seed@Pass3"; role = "USER"; email = "alice.walker@example.com"; addresses = @() },
+    @{ firstName = "Bob"; lastName = "Taylor"; password = "Seed@Pass4"; role = "USER"; email = "bob.taylor@example.com"; addresses = @() }
 )
 
 foreach ($seedPerson in $seedPersons) {

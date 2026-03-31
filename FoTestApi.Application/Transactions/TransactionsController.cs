@@ -1,11 +1,9 @@
-using FoTestApi.Application.Authentication;
+using FoTestApi.Application.Authentication.Services;
 using FoTestApi.Application.Transactions.Commands;
-using FoTestApi.Application.Transactions;
 using FoTestApi.Application.Transactions.Mapping;
 using FoTestApi.Application.Transactions.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace FoTestApi.Application.Transactions
 {
@@ -16,13 +14,16 @@ namespace FoTestApi.Application.Transactions
     {
         private readonly ITransactionApplicationService _applicationService;
         private readonly ITransactionMapper _transactionMapper;
+        private readonly IAuthService _authService;
 
         public TransactionsController(
             ITransactionApplicationService applicationService,
-            ITransactionMapper transactionMapper)
+            ITransactionMapper transactionMapper,
+            IAuthService authService)
         {
             _applicationService = applicationService;
             _transactionMapper = transactionMapper;
+            _authService = authService;
         }
 
         [HttpGet("me")]
@@ -30,13 +31,9 @@ namespace FoTestApi.Application.Transactions
         [ProducesResponseType(401)]
         public async Task<ActionResult<List<TransactionDto>>> GetCurrentUserTransactions()
         {
-            var personId = User.FindFirstValue(CustomClaimTypes.PersonId);
-            if (string.IsNullOrWhiteSpace(personId))
-            {
-                return Unauthorized();
-            }
+            var (personId, personRole) = _authService.ResolveAuthContext(User);
+            var transactions = await _applicationService.GetCurrentUserTransactionsAsync(personId, personRole);
 
-            var transactions = await _applicationService.GetCurrentUserTransactionsAsync(personId);
             return Ok(transactions.Select(_transactionMapper.ToDto).ToList());
         }
 
@@ -45,13 +42,9 @@ namespace FoTestApi.Application.Transactions
         [ProducesResponseType(401)]
         public async Task<ActionResult<List<TransactionDto>>> SearchCurrentUserTransactions(string query)
         {
-            var personId = User.FindFirstValue(CustomClaimTypes.PersonId);
-            if (string.IsNullOrWhiteSpace(personId))
-            {
-                return Unauthorized();
-            }
+            var (personId, personRole) = _authService.ResolveAuthContext(User);
+            var transactions = await _applicationService.SearchCurrentUserTransactionsAsync(personId, personRole, query);
 
-            var transactions = await _applicationService.SearchCurrentUserTransactionsAsync(personId, query);
             return Ok(transactions.Select(_transactionMapper.ToDto).ToList());
         }
 
@@ -62,13 +55,9 @@ namespace FoTestApi.Application.Transactions
         [ProducesResponseType(404)]
         public async Task<ActionResult<TransactionDto>> GetById(string id)
         {
-            var personId = User.FindFirstValue(CustomClaimTypes.PersonId);
-            if (string.IsNullOrWhiteSpace(personId))
-            {
-                return Unauthorized();
-            }
+            var (personId, personRole) = _authService.ResolveAuthContext(User);
+            var transaction = await _applicationService.GetTransactionByIdAsync(id, personId, personRole);
 
-            var transaction = await _applicationService.GetTransactionByIdAsync(id, personId);
             return Ok(_transactionMapper.ToDto(transaction));
         }
 
@@ -79,13 +68,9 @@ namespace FoTestApi.Application.Transactions
         [ProducesResponseType(403)]
         public async Task<IActionResult> Post([FromBody] CreateTransactionCommand command)
         {
-            var personId = User.FindFirstValue(CustomClaimTypes.PersonId);
-            if (string.IsNullOrWhiteSpace(personId))
-            {
-                return Unauthorized();
-            }
+            var (personId, personRole) = _authService.ResolveAuthContext(User);
+            var transaction = await _applicationService.CreateTransactionAsync(personId, personRole, command);
 
-            var transaction = await _applicationService.CreateTransactionAsync(personId, command);
             return CreatedAtAction(nameof(GetById), new { id = transaction.Id }, _transactionMapper.ToDto(transaction));
         }
 
@@ -97,13 +82,9 @@ namespace FoTestApi.Application.Transactions
         [ProducesResponseType(404)]
         public async Task<IActionResult> Update(string id, [FromBody] UpdateTransactionCommand command)
         {
-            var personId = User.FindFirstValue(CustomClaimTypes.PersonId);
-            if (string.IsNullOrWhiteSpace(personId))
-            {
-                return Unauthorized();
-            }
+            var (personId, personRole) = _authService.ResolveAuthContext(User);
+            await _applicationService.UpdateTransactionAsync(id, personId, personRole, command);
 
-            await _applicationService.UpdateTransactionAsync(id, personId, command);
             return NoContent();
         }
 
@@ -114,13 +95,9 @@ namespace FoTestApi.Application.Transactions
         [ProducesResponseType(404)]
         public async Task<IActionResult> Delete(string id)
         {
-            var personId = User.FindFirstValue(CustomClaimTypes.PersonId);
-            if (string.IsNullOrWhiteSpace(personId))
-            {
-                return Unauthorized();
-            }
+            var (personId, personRole) = _authService.ResolveAuthContext(User);
+            await _applicationService.DeleteTransactionAsync(id, personId, personRole);
 
-            await _applicationService.DeleteTransactionAsync(id, personId);
             return NoContent();
         }
     }

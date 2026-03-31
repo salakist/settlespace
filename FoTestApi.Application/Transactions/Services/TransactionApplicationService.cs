@@ -1,5 +1,6 @@
 using FoTestApi.Application.Transactions.Commands;
 using FoTestApi.Application.Transactions.Mapping;
+using FoTestApi.Domain.Persons.Entities;
 using FoTestApi.Domain.Transactions.Entities;
 using FoTestApi.Domain.Transactions.Exceptions;
 using FoTestApi.Domain.Transactions;
@@ -23,82 +24,66 @@ namespace FoTestApi.Application.Transactions.Services
             _transactionMapper = transactionMapper;
         }
 
-        public async Task<List<Transaction>> GetCurrentUserTransactionsAsync(string loggedPersonId)
+        public async Task<List<Transaction>> GetCurrentUserTransactionsAsync(string loggedPersonId, PersonRole loggedRole)
         {
-            EnsureLoggedPersonId(loggedPersonId);
-            return await _repository.GetByInvolvedPersonIdAsync(loggedPersonId);
+            var transactions = await _repository.GetAllAsync();
+            return _domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
         }
 
-        public async Task<List<Transaction>> SearchCurrentUserTransactionsAsync(string loggedPersonId, string query)
+        public async Task<List<Transaction>> SearchCurrentUserTransactionsAsync(string loggedPersonId, PersonRole loggedRole, string query)
         {
-            EnsureLoggedPersonId(loggedPersonId);
-            return await _repository.SearchByInvolvedPersonIdAsync(loggedPersonId, query);
+            var transactions = await _repository.SearchAsync(query);
+            return _domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
         }
 
-        public async Task<Transaction> GetTransactionByIdAsync(string id, string loggedPersonId)
+        public async Task<Transaction> GetTransactionByIdAsync(string id, string loggedPersonId, PersonRole loggedRole)
         {
-            EnsureLoggedPersonId(loggedPersonId);
-
             var transaction = await _repository.GetByIdAsync(id);
             if (transaction == null)
             {
                 throw new TransactionNotFoundException(id);
             }
 
-            _domainService.EnsureCanReadOrUpdate(transaction, loggedPersonId);
+            _domainService.EnsureCanRead(transaction, loggedPersonId, loggedRole);
             return transaction;
         }
 
-        public async Task<Transaction> CreateTransactionAsync(string loggedPersonId, CreateTransactionCommand command)
+        public async Task<Transaction> CreateTransactionAsync(string loggedPersonId, PersonRole loggedRole, CreateTransactionCommand command)
         {
-            EnsureLoggedPersonId(loggedPersonId);
-
             var transaction = _transactionMapper.ToEntity(command, loggedPersonId);
-            _domainService.EnsureCanCreate(transaction, loggedPersonId);
+            _domainService.EnsureCanCreate(transaction, loggedPersonId, loggedRole);
             transaction.Validate();
 
             return await _repository.AddAsync(transaction);
         }
 
-        public async Task UpdateTransactionAsync(string id, string loggedPersonId, UpdateTransactionCommand command)
+        public async Task UpdateTransactionAsync(string id, string loggedPersonId, PersonRole loggedRole, UpdateTransactionCommand command)
         {
-            EnsureLoggedPersonId(loggedPersonId);
-
             var existing = await _repository.GetByIdAsync(id);
             if (existing == null)
             {
                 throw new TransactionNotFoundException(id);
             }
 
-            _domainService.EnsureCanReadOrUpdate(existing, loggedPersonId);
+            _domainService.EnsureCanUpdate(existing, loggedPersonId, loggedRole);
 
             var updated = _transactionMapper.ToEntity(id, command, existing.CreatedByPersonId, existing.CreatedAtUtc);
-            _domainService.EnsureCanReadOrUpdate(updated, loggedPersonId);
+            _domainService.EnsureCanUpdate(updated, loggedPersonId, loggedRole);
             updated.Validate();
 
             await _repository.UpdateAsync(id, updated);
         }
 
-        public async Task DeleteTransactionAsync(string id, string loggedPersonId)
+        public async Task DeleteTransactionAsync(string id, string loggedPersonId, PersonRole loggedRole)
         {
-            EnsureLoggedPersonId(loggedPersonId);
-
             var existing = await _repository.GetByIdAsync(id);
             if (existing == null)
             {
                 throw new TransactionNotFoundException(id);
             }
 
-            _domainService.EnsureCanDelete(existing, loggedPersonId);
+            _domainService.EnsureCanDelete(existing, loggedPersonId, loggedRole);
             await _repository.DeleteAsync(id);
-        }
-
-        private static void EnsureLoggedPersonId(string loggedPersonId)
-        {
-            if (string.IsNullOrWhiteSpace(loggedPersonId))
-            {
-                throw new UnauthorizedTransactionAccessException("Authenticated user identifier is required.");
-            }
         }
     }
 }

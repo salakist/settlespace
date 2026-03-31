@@ -4,6 +4,8 @@ namespace FoTestApi.Domain.Transactions
 {
     public interface ITransactionRepository
     {
+        Task<List<Transaction>> GetAllAsync();
+        Task<List<Transaction>> SearchAsync(string query);
         Task<Transaction?> GetByIdAsync(string id);
         Task<List<Transaction>> GetByInvolvedPersonIdAsync(string personId);
         Task<List<Transaction>> SearchByInvolvedPersonIdAsync(string personId, string query);

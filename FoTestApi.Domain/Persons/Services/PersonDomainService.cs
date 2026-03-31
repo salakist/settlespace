@@ -1,4 +1,5 @@
 using FoTestApi.Domain.Persons;
+using FoTestApi.Domain.Persons.Entities;
 using FoTestApi.Domain.Persons.Exceptions;
 
 namespace FoTestApi.Domain.Persons.Services
@@ -36,6 +37,71 @@ namespace FoTestApi.Domain.Persons.Services
             if (existing != null && existing.Id != excludeId)
             {
                 throw new DuplicatePersonException(firstName, lastName);
+            }
+        }
+
+        public void EnsureCanAccessDirectory(PersonRole loggedRole)
+        {
+            _ = loggedRole;
+        }
+
+        public void EnsureCanCreateManagedPerson(PersonRole loggedRole, PersonRole targetRole)
+        {
+            if (!loggedRole.IsStaffRole())
+            {
+                throw new UnauthorizedPersonAccessException("Users cannot create persons.");
+            }
+
+            if (loggedRole == PersonRole.MANAGER && targetRole != PersonRole.USER)
+            {
+                throw new UnauthorizedPersonAccessException("Managers can only create users.");
+            }
+        }
+
+        public void EnsureCanUpdateManagedPerson(PersonRole loggedRole, string loggedPersonId, Person existingPerson, PersonRole requestedRole)
+        {
+            if (loggedRole == PersonRole.USER)
+            {
+                throw new UnauthorizedPersonAccessException("Users cannot update persons.");
+            }
+
+            if (string.Equals(existingPerson.Id, loggedPersonId, StringComparison.Ordinal) && existingPerson.Role != requestedRole)
+            {
+                throw new UnauthorizedPersonAccessException("You cannot change your own role.");
+            }
+
+            if (loggedRole == PersonRole.MANAGER)
+            {
+                if (existingPerson.Role != PersonRole.USER)
+                {
+                    throw new UnauthorizedPersonAccessException("Managers can only update users.");
+                }
+
+                if (existingPerson.Role != requestedRole)
+                {
+                    throw new UnauthorizedPersonAccessException("Managers cannot change person roles.");
+                }
+            }
+        }
+
+        public void EnsureCanDeleteManagedPerson(PersonRole loggedRole, Person existingPerson)
+        {
+            if (loggedRole == PersonRole.USER)
+            {
+                throw new UnauthorizedPersonAccessException("Users cannot delete persons.");
+            }
+
+            if (loggedRole == PersonRole.MANAGER && existingPerson.Role != PersonRole.USER)
+            {
+                throw new UnauthorizedPersonAccessException("Managers can only delete users.");
+            }
+        }
+
+        public void EnsureCanUpdateSelf(Person existingPerson, PersonRole requestedRole)
+        {
+            if (existingPerson.Role != requestedRole)
+            {
+                throw new UnauthorizedPersonAccessException("You cannot change your own role.");
             }
         }
     }

@@ -5,8 +5,9 @@ using FoTestApi.Application.Authentication;
 using FoTestApi.Application.Authentication.Commands;
 using FoTestApi.Application.Persons.Commands;
 using FoTestApi.Application.Persons.Services;
-using FoTestApi.Domain.Persons;
 using FoTestApi.Domain.Auth;
+using FoTestApi.Domain.Persons;
+using FoTestApi.Domain.Persons.Entities;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 
@@ -72,7 +73,9 @@ namespace FoTestApi.Application.Authentication.Services
                 new Claim(JwtRegisteredClaimNames.Sub, resolvedUsername),
                 new Claim(JwtRegisteredClaimNames.UniqueName, resolvedUsername),
                 new Claim(ClaimTypes.Name, resolvedUsername),
-                new Claim(CustomClaimTypes.PersonId, person.Id!)
+                new Claim(ClaimTypes.Role, person.Role.ToString()),
+                new Claim(CustomClaimTypes.PersonId, person.Id!),
+                new Claim(CustomClaimTypes.PersonRole, person.Role.ToString())
             };
 
             var credentials = new SigningCredentials(
@@ -90,6 +93,7 @@ namespace FoTestApi.Application.Authentication.Services
             {
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
                 Username = resolvedUsername,
+                Role = person.Role,
                 ExpiresAtUtc = expiresAtUtc
             };
         }
@@ -138,6 +142,31 @@ namespace FoTestApi.Application.Authentication.Services
             person.Password = _passwordHashingService.HashPassword(command.NewPassword);
             await _personRepository.UpdateAsync(person.Id, person);
             return true;
+        }
+
+        public (string PersonId, PersonRole Role) ResolveAuthContext(ClaimsPrincipal user)
+        {
+            if (user?.Identity?.IsAuthenticated != true)
+            {
+                throw new AuthContextException();
+            }
+
+            var personId = user.FindFirstValue(CustomClaimTypes.PersonId) ?? string.Empty;
+            var roleValue = user.FindFirstValue(CustomClaimTypes.PersonRole) ?? user.FindFirstValue(ClaimTypes.Role);
+
+            if (string.IsNullOrWhiteSpace(personId))
+            {
+                throw new AuthContextException();
+            }
+
+            if (string.IsNullOrWhiteSpace(roleValue)
+                || !Enum.TryParse<PersonRole>(roleValue, ignoreCase: true, out var personRole)
+                || !Enum.IsDefined(personRole))
+            {
+                personRole = PersonRole.USER;
+            }
+
+            return (personId, personRole);
         }
 
         private static (string? FirstName, string? LastName) ParseUsername(string username)

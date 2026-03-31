@@ -62,6 +62,17 @@ public class TransactionRepositoryTests
     }
 
     [Fact]
+    public async Task GetAllAsyncReturnsTransactions()
+    {
+        var transactions = new[] { BuildTransaction("tx-1"), BuildTransaction("tx-2") };
+        var repo = new TransactionRepository(BuildCollectionMock(transactions).Object);
+
+        var result = await repo.GetAllAsync();
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
     public async Task AddAsyncInsertsTransactionAndReturnsIt()
     {
         var tx = BuildTransaction(null);
@@ -85,6 +96,28 @@ public class TransactionRepositoryTests
         var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
 
         var result = await repo.SearchByInvolvedPersonIdAsync("user-1", string.Empty);
+
+        Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task SearchAsyncEmptyQueryReturnsAllTransactions()
+    {
+        var transactions = new[] { BuildTransaction("tx-1"), BuildTransaction("tx-2") };
+        var repo = new TransactionRepository(BuildCollectionMock(transactions).Object);
+
+        var result = await repo.SearchAsync(string.Empty);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task SearchAsyncWithQueryReturnsMatchingTransactions()
+    {
+        var tx = BuildTransaction("tx-1");
+        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+
+        var result = await repo.SearchAsync("taxi");
 
         Assert.Single(result);
     }

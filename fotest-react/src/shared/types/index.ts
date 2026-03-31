@@ -1,3 +1,5 @@
+export type PersonRole = 'ADMIN' | 'USER' | 'MANAGER';
+
 export interface Address {
   label: string;
   streetLine1: string;
@@ -12,6 +14,7 @@ export interface Person {
   id?: string;
   firstName: string;
   lastName: string;
+  role?: PersonRole;
   phoneNumber?: string;
   email?: string;
   dateOfBirth?: string;
@@ -58,5 +61,6 @@ export interface ChangePasswordRequest {
 export interface LoginResponse {
   token: string;
   username: string;
+  role: PersonRole;
   expiresAtUtc: string;
 }

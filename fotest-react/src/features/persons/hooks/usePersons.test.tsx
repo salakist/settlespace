@@ -30,7 +30,7 @@ function createPersonsHarness(expireSession = jest.fn()) {
   let latest: PersonsHookResult;
 
   const Harness = () => {
-    latest = usePersons({ expireSession });
+    latest = usePersons({ expireSession, role: 'ADMIN', currentPersonId: 'p-admin' });
     return null;
   };
 

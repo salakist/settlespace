@@ -1,4 +1,5 @@
 using FoTestApi.Application.Authentication;
+using FoTestApi.Application.Authentication.Services;
 using FoTestApi.Application.Persons;
 using FoTestApi.Application.Persons.Commands;
 using FoTestApi.Application.Persons.DTOs;
@@ -15,11 +16,12 @@ namespace FoTestApi.Application.Tests.Persons;
 public class PersonsControllerTests
 {
     private readonly Mock<IPersonApplicationService> _serviceMock = new();
+    private readonly Mock<IAuthService> _authServiceMock = new();
     private readonly PersonsController _controller;
 
     public PersonsControllerTests()
     {
-        _controller = new PersonsController(_serviceMock.Object, new PersonMapper());
+        _controller = new PersonsController(_serviceMock.Object, new PersonMapper(), _authServiceMock.Object);
     }
 
     // -----------------------------------------------------------------------
@@ -33,7 +35,8 @@ public class PersonsControllerTests
         {
             new() { Id = "1", FirstName = "John", LastName = "Doe", Password = "hashed::secret" }
         };
-        _serviceMock.Setup(s => s.GetAllPersonsAsync()).ReturnsAsync(persons);
+        _serviceMock.Setup(s => s.GetPersonsAsync("user-1", PersonRole.ADMIN)).ReturnsAsync(persons);
+        SetUser("user-1", PersonRole.ADMIN);
 
         var result = await _controller.Get();
 
@@ -52,7 +55,8 @@ public class PersonsControllerTests
     public async Task GetByIdExistingPersonReturnsOkWithDto()
     {
         var person = new Person { Id = "507f1f77bcf86cd799439011", FirstName = "John", LastName = "Doe" };
-        _serviceMock.Setup(s => s.GetPersonByIdAsync(person.Id!)).ReturnsAsync(person);
+        _serviceMock.Setup(s => s.GetPersonByIdAsync(person.Id!, "user-1", PersonRole.ADMIN)).ReturnsAsync(person);
+        SetUser("user-1", PersonRole.ADMIN);
 
         var result = await _controller.Get(person.Id!);
 
@@ -64,8 +68,9 @@ public class PersonsControllerTests
     [Fact]
     public async Task GetByIdPersonNotFoundReturnsNotFound()
     {
-        _serviceMock.Setup(s => s.GetPersonByIdAsync(It.IsAny<string>()))
+        _serviceMock.Setup(s => s.GetPersonByIdAsync(It.IsAny<string>(), "user-1", PersonRole.ADMIN))
                     .ReturnsAsync((Person?)null);
+        SetUser("user-1", PersonRole.ADMIN);
 
         var result = await _controller.Get("507f1f77bcf86cd799439011");
 
@@ -77,15 +82,7 @@ public class PersonsControllerTests
     {
         var person = new Person { Id = "507f1f77bcf86cd799439011", FirstName = "John", LastName = "Doe" };
         _serviceMock.Setup(s => s.GetPersonByIdAsync(person.Id!)).ReturnsAsync(person);
-        _controller.ControllerContext = new ControllerContext
-        {
-            HttpContext = new DefaultHttpContext
-            {
-                User = new ClaimsPrincipal(new ClaimsIdentity(
-                    new[] { new Claim(CustomClaimTypes.PersonId, person.Id!) },
-                    "TestAuth"))
-            }
-        };
+        SetUser(person.Id!, PersonRole.USER);
 
         var result = await _controller.GetCurrent();
 
@@ -103,7 +100,8 @@ public class PersonsControllerTests
     {
         var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
         var person  = new Person { Id = "507f1f77bcf86cd799439011", FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
-        _serviceMock.Setup(s => s.CreatePersonAsync(command)).ReturnsAsync(person);
+        _serviceMock.Setup(s => s.CreatePersonAsync(command, "user-1", PersonRole.ADMIN)).ReturnsAsync(person);
+        SetUser("user-1", PersonRole.ADMIN);
 
         var result = await _controller.Post(command);
 
@@ -121,8 +119,9 @@ public class PersonsControllerTests
     {
         var id      = "507f1f77bcf86cd799439011";
         var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
-        _serviceMock.Setup(s => s.UpdatePersonAsync(id, command))
+        _serviceMock.Setup(s => s.UpdatePersonAsync(id, command, "user-1", PersonRole.ADMIN))
                     .Returns(Task.CompletedTask);
+        SetUser("user-1", PersonRole.ADMIN);
 
         var result = await _controller.Update(id, command);
 
@@ -136,15 +135,7 @@ public class PersonsControllerTests
         var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
         _serviceMock.Setup(s => s.UpdatePersonAsync(id, command))
             .Returns(Task.CompletedTask);
-        _controller.ControllerContext = new ControllerContext
-        {
-            HttpContext = new DefaultHttpContext
-            {
-                User = new ClaimsPrincipal(new ClaimsIdentity(
-                    new[] { new Claim(CustomClaimTypes.PersonId, id) },
-                    "TestAuth"))
-            }
-        };
+        SetUser(id, PersonRole.USER);
 
         var result = await _controller.UpdateCurrent(command);
 
@@ -158,12 +149,34 @@ public class PersonsControllerTests
     [Fact]
     public async Task DeleteExistingPersonReturnsNoContent()
     {
-        _serviceMock.Setup(s => s.DeletePersonAsync(It.IsAny<DeletePersonCommand>()))
+        _serviceMock.Setup(s => s.DeletePersonAsync(It.IsAny<DeletePersonCommand>(), "user-1", PersonRole.ADMIN))
                     .Returns(Task.CompletedTask);
+        SetUser("user-1", PersonRole.ADMIN);
 
         var result = await _controller.Delete("507f1f77bcf86cd799439011");
 
         Assert.IsType<NoContentResult>(result);
+    }
+
+    private void SetUser(string personId, PersonRole role)
+    {
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext
+            {
+                User = new ClaimsPrincipal(new ClaimsIdentity(
+                    new[]
+                    {
+                        new Claim(CustomClaimTypes.PersonId, personId),
+                        new Claim(CustomClaimTypes.PersonRole, role.ToString())
+                    },
+                    "TestAuth"))
+            }
+        };
+
+        _authServiceMock
+            .Setup(s => s.ResolveAuthContext(It.IsAny<ClaimsPrincipal>()))
+            .Returns((personId, role));
     }
 }
 

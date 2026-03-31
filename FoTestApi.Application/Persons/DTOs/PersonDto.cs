@@ -1,3 +1,5 @@
+using FoTestApi.Domain.Persons.Entities;
+
 namespace FoTestApi.Application.Persons.DTOs
 {
     /// <summary>
@@ -11,6 +13,7 @@ namespace FoTestApi.Application.Persons.DTOs
         public string? PhoneNumber { get; set; }
         public string? Email { get; set; }
         public DateOnly? DateOfBirth { get; set; }
+        public PersonRole Role { get; set; }
         public List<AddressDto> Addresses { get; set; } = [];
     }
 }

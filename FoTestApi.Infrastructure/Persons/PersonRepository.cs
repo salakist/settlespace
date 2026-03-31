@@ -51,9 +51,13 @@ namespace FoTestApi.Infrastructure.Persons
                     cm.MapMember(p => p.Password).SetElementName("password");
                     cm.MapMember(p => p.PhoneNumber).SetElementName("phoneNumber");
                     cm.MapMember(p => p.Email).SetElementName("email");
-                                        cm.MapMember(p => p.DateOfBirth)
-                                            .SetElementName("dateOfBirth")
-                                            .SetSerializer(new NullableSerializer<DateOnly>(new DateOnlyAsStringSerializer()));
+                    cm.MapMember(p => p.DateOfBirth)
+                        .SetElementName("dateOfBirth")
+                        .SetSerializer(new NullableSerializer<DateOnly>(new DateOnlyAsStringSerializer()));
+                    cm.MapMember(p => p.Role)
+                        .SetElementName("role")
+                        .SetIsRequired(true)
+                        .SetSerializer(new EnumSerializer<PersonRole>(BsonType.String));
                     cm.MapMember(p => p.Addresses).SetElementName("addresses");
                 });
             }

@@ -86,10 +86,6 @@ namespace FoTestApi.Domain.Transactions.Entities
                 throw new InvalidTransactionException("TransactionDateUtc cannot be in the far future.");
             }
 
-            if (!IsUserInvolved(CreatedByPersonId))
-            {
-                throw new InvalidTransactionException("CreatedByPersonId must match the payer or payee.");
-            }
         }
     }
 }

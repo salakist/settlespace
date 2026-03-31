@@ -1,3 +1,4 @@
+using FoTestApi.Domain.Auth;
 using FoTestApi.Domain.Exceptions;
 using FoTestApi.Domain.Persons.Exceptions;
 using FoTestApi.Domain.Transactions.Exceptions;
@@ -52,6 +53,10 @@ namespace FoTestApi.Application.Middleware
 
             switch (exception)
             {
+                case AuthContextException:
+                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                    break;
+
                 case DuplicatePersonException:
                     context.Response.StatusCode = StatusCodes.Status409Conflict;
                     break;
@@ -61,6 +66,10 @@ namespace FoTestApi.Application.Middleware
                     break;
 
                 case UnauthorizedTransactionAccessException:
+                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                    break;
+
+                case UnauthorizedPersonAccessException:
                     context.Response.StatusCode = StatusCodes.Status403Forbidden;
                     break;
 

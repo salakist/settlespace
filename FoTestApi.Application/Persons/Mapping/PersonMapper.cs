@@ -15,16 +15,17 @@ namespace FoTestApi.Application.Persons.Mapping
                 PhoneNumber = entity.PhoneNumber,
                 Email = entity.Email,
                 DateOfBirth = entity.DateOfBirth,
+                Role = entity.Role,
                 Addresses = entity.Addresses.Select(ToDto).ToList()
             };
 
-        public Person ToEntity(CreatePersonCommand command, string password) =>
-            BuildPerson(command, null, password);
+        public Person ToEntity(CreatePersonCommand command, string password, PersonRole role) =>
+            BuildPerson(command, null, password, role);
 
-        public Person ToEntity(string id, UpdatePersonCommand command, string? existingPassword) =>
-            BuildPerson(command, id, existingPassword);
+        public Person ToEntity(string id, UpdatePersonCommand command, string? existingPassword, PersonRole role) =>
+            BuildPerson(command, id, existingPassword, role);
 
-        private static Person BuildPerson(PersonMutationCommand command, string? id, string? password) =>
+        private static Person BuildPerson(PersonMutationCommand command, string? id, string? password, PersonRole role) =>
             new()
             {
                 Id = id,
@@ -34,6 +35,7 @@ namespace FoTestApi.Application.Persons.Mapping
                 PhoneNumber = command.PhoneNumber,
                 Email = command.Email,
                 DateOfBirth = command.DateOfBirth,
+                Role = role,
                 Addresses = command.Addresses.Select(ToEntity).ToList()
             };
 

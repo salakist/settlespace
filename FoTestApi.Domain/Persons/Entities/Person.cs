@@ -55,6 +55,11 @@ namespace FoTestApi.Domain.Persons.Entities
         public List<Address> Addresses { get; set; } = [];
 
         /// <summary>
+        /// The role of the person in the system.
+        /// </summary>
+        public PersonRole Role { get; set; } = PersonRole.USER;
+
+        /// <summary>
         /// Validates that the person has non-empty first and last names.
         /// Password strength validation is handled at the application boundary
         /// before passwords are hashed for persistence.
@@ -72,6 +77,7 @@ namespace FoTestApi.Domain.Persons.Entities
             ValidateEmail();
             ValidateDateOfBirth();
             ValidateAddresses();
+            ValidateRole();
         }
 
         /// <summary>
@@ -135,6 +141,14 @@ namespace FoTestApi.Domain.Persons.Entities
             foreach (var address in Addresses)
             {
                 address.Validate();
+            }
+        }
+
+        private void ValidateRole()
+        {
+            if (!Enum.IsDefined(Role))
+            {
+                throw new InvalidOperationException("Role is invalid.");
             }
         }
     }

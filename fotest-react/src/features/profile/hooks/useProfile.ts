@@ -1,14 +1,15 @@
 import { useCallback, useState } from 'react';
 import { authApi, personApi } from '../../../shared/api/api';
-import { Person } from '../../../shared/types';
+import { Person, PersonRole } from '../../../shared/types';
 
 type UseProfileOptions = {
   handleUnauthorized: () => void;
   setAuthUsername: (nextUsername: string) => void;
+  setAuthRole: (nextRole: PersonRole) => void;
   setPersonInList: (person: Person) => void;
 };
 
-export function useProfile({ handleUnauthorized, setAuthUsername, setPersonInList }: UseProfileOptions) {
+export function useProfile({ handleUnauthorized, setAuthUsername, setAuthRole, setPersonInList }: UseProfileOptions) {
   const [currentPerson, setCurrentPerson] = useState<Person | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileSaveLoading, setProfileSaveLoading] = useState(false);
@@ -40,6 +41,9 @@ export function useProfile({ handleUnauthorized, setAuthUsername, setPersonInLis
       setPersonInList(person);
       const nextUsername = `${person.firstName}.${person.lastName}`;
       setAuthUsername(nextUsername);
+      if (person.role) {
+        setAuthRole(person.role);
+      }
       setProfileError(null);
     } catch (err) {
       if (typeof err === 'object' && err && 'response' in err && (err as { response?: { status?: number } }).response?.status === 401) {
@@ -53,7 +57,7 @@ export function useProfile({ handleUnauthorized, setAuthUsername, setPersonInLis
     } finally {
       setProfileLoading(false);
     }
-  }, [clearProfileState, handleUnauthorized, setAuthUsername, setPersonInList]);
+  }, [clearProfileState, handleUnauthorized, setAuthRole, setAuthUsername, setPersonInList]);
 
   const handleProfileSave = useCallback(async (personData: Omit<Person, 'id'>) => {
     setProfileSaveLoading(true);

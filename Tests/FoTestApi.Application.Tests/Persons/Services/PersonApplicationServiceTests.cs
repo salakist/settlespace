@@ -48,20 +48,6 @@ public class PersonApplicationServiceTests
     // -----------------------------------------------------------------------
 
     [Fact]
-    public async Task GetAllPersonsAsyncReturnsAllPersons()
-    {
-        var persons = new List<Person>
-        {
-            new() { Id = "1", FirstName = "John", LastName = "Doe" }
-        };
-        _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(persons);
-
-        var result = await _sut.GetAllPersonsAsync();
-
-        Assert.Equal(persons, result);
-    }
-
-    [Fact]
     public async Task GetPersonByIdAsyncExistingIdReturnsPerson()
     {
         var person = new Person { Id = "1", FirstName = "John", LastName = "Doe" };
@@ -83,17 +69,47 @@ public class PersonApplicationServiceTests
     }
 
     [Fact]
-    public async Task SearchPersonsAsyncReturnsMatchingPersons()
+    public async Task GetPersonsAsyncAuthorizedRoleReturnsAllPersons()
     {
         var persons = new List<Person>
         {
-            new() { Id = "1", FirstName = "John", LastName = "Doe" }
+            new() { Id = "1", FirstName = "John", LastName = "Doe", Role = PersonRole.ADMIN }
         };
-        _repositoryMock.Setup(r => r.SearchAsync("John")).ReturnsAsync(persons);
 
-        var result = await _sut.SearchPersonsAsync("John");
+        _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(persons);
+
+        var result = await _sut.GetPersonsAsync("admin-1", PersonRole.ADMIN);
 
         Assert.Equal(persons, result);
+        _domainServiceMock.Verify(d => d.EnsureCanAccessDirectory(PersonRole.ADMIN), Times.Once);
+    }
+
+    [Fact]
+    public async Task SearchPersonsAsyncAuthorizedRoleReturnsMatches()
+    {
+        var persons = new List<Person>
+        {
+            new() { Id = "1", FirstName = "John", LastName = "Doe", Role = PersonRole.USER }
+        };
+
+        _repositoryMock.Setup(r => r.SearchAsync("John")).ReturnsAsync(persons);
+
+        var result = await _sut.SearchPersonsAsync("John", "manager-1", PersonRole.MANAGER);
+
+        Assert.Equal(persons, result);
+        _domainServiceMock.Verify(d => d.EnsureCanAccessDirectory(PersonRole.MANAGER), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetPersonByIdAsyncWithContextChecksAccessBeforeLoading()
+    {
+        var person = new Person { Id = "1", FirstName = "John", LastName = "Doe", Role = PersonRole.USER };
+        _repositoryMock.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(person);
+
+        var result = await _sut.GetPersonByIdAsync("1", "manager-1", PersonRole.MANAGER);
+
+        Assert.Equal(person, result);
+        _domainServiceMock.Verify(d => d.EnsureCanAccessDirectory(PersonRole.MANAGER), Times.Once);
     }
 
     // -----------------------------------------------------------------------
@@ -220,6 +236,89 @@ public class PersonApplicationServiceTests
             () => _sut.CreatePersonAsync(command));
     }
 
+    [Fact]
+    public async Task CreatePersonAsyncWithRequestedRoleSkipsBootstrapLookup()
+    {
+        var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "Strong@Pass1", Role = PersonRole.MANAGER };
+        Person? capturedPerson = null;
+
+        _domainServiceMock
+            .Setup(d => d.EnsureUniqueAsync("John", "Doe", null))
+            .Returns(Task.CompletedTask);
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Person>()))
+            .Callback<Person>(person => capturedPerson = person)
+            .ReturnsAsync((Person person) => person);
+
+        await _sut.CreatePersonAsync(command);
+
+        Assert.NotNull(capturedPerson);
+        Assert.Equal(PersonRole.MANAGER, capturedPerson!.Role);
+        _repositoryMock.Verify(r => r.GetAllAsync(), Times.Never);
+    }
+
+    [Fact]
+    public async Task CreatePersonAsyncWithoutRequestedRoleBootstrapsAdminForFirstPerson()
+    {
+        var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
+        Person? capturedPerson = null;
+
+        _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Person>());
+        _domainServiceMock
+            .Setup(d => d.EnsureUniqueAsync("John", "Doe", null))
+            .Returns(Task.CompletedTask);
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Person>()))
+            .Callback<Person>(person => capturedPerson = person)
+            .ReturnsAsync((Person person) => person);
+
+        await _sut.CreatePersonAsync(command);
+
+        Assert.NotNull(capturedPerson);
+        Assert.Equal(PersonRole.ADMIN, capturedPerson!.Role);
+    }
+
+    [Fact]
+    public async Task CreatePersonAsyncWithoutRequestedRoleDefaultsToUserWhenRepositoryNotEmpty()
+    {
+        var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
+        Person? capturedPerson = null;
+
+        _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Person>
+        {
+            new() { Id = "existing", FirstName = "Existing", LastName = "User", Role = PersonRole.ADMIN }
+        });
+        _domainServiceMock
+            .Setup(d => d.EnsureUniqueAsync("John", "Doe", null))
+            .Returns(Task.CompletedTask);
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Person>()))
+            .Callback<Person>(person => capturedPerson = person)
+            .ReturnsAsync((Person person) => person);
+
+        await _sut.CreatePersonAsync(command);
+
+        Assert.NotNull(capturedPerson);
+        Assert.Equal(PersonRole.USER, capturedPerson!.Role);
+    }
+
+    [Fact]
+    public async Task CreatePersonAsyncManagedPersonUsesRequestedRoleAndAuthorization()
+    {
+        var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "Strong@Pass1", Role = PersonRole.MANAGER };
+        Person? capturedPerson = null;
+
+        _domainServiceMock
+            .Setup(d => d.EnsureUniqueAsync("John", "Doe", null))
+            .Returns(Task.CompletedTask);
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Person>()))
+            .Callback<Person>(person => capturedPerson = person)
+            .ReturnsAsync((Person person) => person);
+
+        await _sut.CreatePersonAsync(command, "admin-1", PersonRole.ADMIN);
+
+        Assert.NotNull(capturedPerson);
+        Assert.Equal(PersonRole.MANAGER, capturedPerson!.Role);
+        _domainServiceMock.Verify(d => d.EnsureCanCreateManagedPerson(PersonRole.ADMIN, PersonRole.MANAGER), Times.Once);
+    }
+
     // -----------------------------------------------------------------------
     // Update
     // -----------------------------------------------------------------------
@@ -311,34 +410,69 @@ public class PersonApplicationServiceTests
             () => _sut.UpdatePersonAsync("1", command));
     }
 
+    [Fact]
+    public async Task UpdatePersonAsyncManagedPersonUsesRequestedRoleForAuthorizationAndMapping()
+    {
+        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe", Role = PersonRole.MANAGER };
+        var existing = new Person { Id = "1", FirstName = "John", LastName = "Doe", Password = "hashed::Old@Pass1", Role = PersonRole.USER };
+        Person? updatedPerson = null;
+
+        _repositoryMock.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(existing);
+        _domainServiceMock.Setup(d => d.EnsureUniqueAsync("Jane", "Doe", "1")).Returns(Task.CompletedTask);
+        _repositoryMock.Setup(r => r.UpdateAsync("1", It.IsAny<Person>()))
+            .Callback<string, Person>((_, person) => updatedPerson = person)
+            .Returns(Task.CompletedTask);
+
+        await _sut.UpdatePersonAsync("1", command, "admin-1", PersonRole.ADMIN);
+
+        Assert.NotNull(updatedPerson);
+        Assert.Equal(PersonRole.MANAGER, updatedPerson!.Role);
+        _domainServiceMock.Verify(d => d.EnsureCanUpdateManagedPerson(PersonRole.ADMIN, "admin-1", existing, PersonRole.MANAGER), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdatePersonAsyncManagedPersonWithoutRoleUsesExistingRole()
+    {
+        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
+        var existing = new Person { Id = "1", FirstName = "John", LastName = "Doe", Password = "hashed::Old@Pass1", Role = PersonRole.USER };
+
+        _repositoryMock.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(existing);
+        _domainServiceMock.Setup(d => d.EnsureUniqueAsync("Jane", "Doe", "1")).Returns(Task.CompletedTask);
+        _repositoryMock.Setup(r => r.UpdateAsync("1", It.IsAny<Person>())).Returns(Task.CompletedTask);
+
+        await _sut.UpdatePersonAsync("1", command, "manager-1", PersonRole.MANAGER);
+
+        _domainServiceMock.Verify(d => d.EnsureCanUpdateManagedPerson(PersonRole.MANAGER, "manager-1", existing, PersonRole.USER), Times.Once);
+    }
+
     // -----------------------------------------------------------------------
     // Delete
     // -----------------------------------------------------------------------
 
     [Fact]
-    public async Task DeletePersonAsyncExistingPersonDeletesPerson()
+    public async Task DeletePersonAsyncManagedPersonDeletesAfterAuthorization()
     {
-        var person  = new Person { Id = "1", FirstName = "John", LastName = "Doe" };
         var command = new DeletePersonCommand { Id = "1" };
+        var person = new Person { Id = "1", FirstName = "John", LastName = "Doe", Role = PersonRole.USER };
 
         _repositoryMock.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(person);
         _repositoryMock.Setup(r => r.DeleteAsync("1")).Returns(Task.CompletedTask);
 
-        await _sut.DeletePersonAsync(command);
+        await _sut.DeletePersonAsync(command, "manager-1", PersonRole.MANAGER);
 
+        _domainServiceMock.Verify(d => d.EnsureCanDeleteManagedPerson(PersonRole.MANAGER, person), Times.Once);
         _repositoryMock.Verify(r => r.DeleteAsync("1"), Times.Once);
     }
 
     [Fact]
-    public async Task DeletePersonAsyncPersonNotFoundThrowsInvalidOperationException()
+    public async Task DeletePersonAsyncManagedPersonNotFoundThrowsInvalidOperationException()
     {
         var command = new DeletePersonCommand { Id = "missing" };
 
-        _repositoryMock.Setup(r => r.GetByIdAsync("missing"))
-                       .ReturnsAsync((Person?)null);
+        _repositoryMock.Setup(r => r.GetByIdAsync("missing")).ReturnsAsync((Person?)null);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => _sut.DeletePersonAsync(command));
+            () => _sut.DeletePersonAsync(command, "admin-1", PersonRole.ADMIN));
     }
 }
 

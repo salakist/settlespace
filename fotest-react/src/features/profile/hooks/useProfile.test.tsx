@@ -27,6 +27,7 @@ type ProfileHookResult = ReturnType<typeof useProfile>;
 function createProfileHarness(options: {
   handleUnauthorized: jest.Mock;
   setAuthUsername: jest.Mock;
+  setAuthRole: jest.Mock;
   setPersonInList: jest.Mock;
 }) {
   let latest: ProfileHookResult;
@@ -63,10 +64,12 @@ beforeEach(() => {
 test('loads current person and normalizes profile data', async () => {
   const handleUnauthorized = jest.fn();
   const setAuthUsername = jest.fn();
+  const setAuthRole = jest.fn();
   const setPersonInList = jest.fn();
   const harness = createProfileHarness({
     handleUnauthorized,
     setAuthUsername,
+    setAuthRole,
     setPersonInList,
   });
 
@@ -96,6 +99,7 @@ test('handles unauthorized profile load by clearing state and delegating session
   const harness = createProfileHarness({
     handleUnauthorized,
     setAuthUsername: jest.fn(),
+    setAuthRole: jest.fn(),
     setPersonInList: jest.fn(),
   });
 
@@ -114,6 +118,7 @@ test('sets profile error when profile save fails with non-401 response', async (
   const harness = createProfileHarness({
     handleUnauthorized: jest.fn(),
     setAuthUsername: jest.fn(),
+    setAuthRole: jest.fn(),
     setPersonInList: jest.fn(),
   });
 
@@ -136,6 +141,7 @@ test('delegates unauthorized password-change failures and keeps state safe', asy
   const harness = createProfileHarness({
     handleUnauthorized,
     setAuthUsername: jest.fn(),
+    setAuthRole: jest.fn(),
     setPersonInList: jest.fn(),
   });
 

@@ -7,9 +7,9 @@ using FoTestApi.Domain.Persons.Entities;
 using FoTestApi.Domain.Persons.Exceptions;
 using FoTestApi.Domain.Persons;
 using FoTestApi.Domain.Auth;
-using FoTestApi.Domain.Persons.Services;
 using Microsoft.Extensions.Options;
 using Moq;
+using System.Security.Claims;
 
 namespace FoTestApi.Application.Tests.Authentication.Services;
 
@@ -262,6 +262,61 @@ public class AuthServiceTests
             }));
 
         _personRepositoryMock.Verify(repository => repository.UpdateAsync(It.IsAny<string>(), It.IsAny<Person>()), Times.Never);
+    }
+
+    [Fact]
+    public void ResolveAuthContextWithValidClaimsReturnsPersonIdAndRole()
+    {
+        var sut = CreateService();
+        var user = BuildUser("person-1", PersonRole.MANAGER);
+
+        var result = sut.ResolveAuthContext(user);
+
+        Assert.Equal("person-1", result.PersonId);
+        Assert.Equal(PersonRole.MANAGER, result.Role);
+    }
+
+    [Fact]
+    public void ResolveAuthContextWithMissingPersonIdThrowsAuthContextException()
+    {
+        var sut = CreateService();
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity(
+                new[] { new Claim(CustomClaimTypes.PersonRole, PersonRole.USER.ToString()) },
+                "TestAuth"));
+
+        Assert.Throws<AuthContextException>(() => sut.ResolveAuthContext(user));
+    }
+
+    [Fact]
+    public void ResolveAuthContextWithInvalidRoleFallsBackToUser()
+    {
+        var sut = CreateService();
+        var user = new ClaimsPrincipal(
+            new ClaimsIdentity(
+                new[]
+                {
+                    new Claim(CustomClaimTypes.PersonId, "person-1"),
+                    new Claim(CustomClaimTypes.PersonRole, "NOT_A_ROLE")
+                },
+                "TestAuth"));
+
+        var result = sut.ResolveAuthContext(user);
+
+        Assert.Equal("person-1", result.PersonId);
+        Assert.Equal(PersonRole.USER, result.Role);
+    }
+
+    private static ClaimsPrincipal BuildUser(string personId, PersonRole role)
+    {
+        return new ClaimsPrincipal(
+            new ClaimsIdentity(
+                new[]
+                {
+                    new Claim(CustomClaimTypes.PersonId, personId),
+                    new Claim(CustomClaimTypes.PersonRole, role.ToString())
+                },
+                "TestAuth"));
     }
 }
 

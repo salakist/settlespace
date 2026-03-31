@@ -64,8 +64,8 @@ public class PersonRepositoryTests
     {
         var persons = new List<Person>
         {
-            new() { Id = "1", FirstName = "John", LastName = "Doe" },
-            new() { Id = "2", FirstName = "Jane", LastName = "Smith" }
+            new() { Id = "1", FirstName = "John", LastName = "Doe", Role = PersonRole.ADMIN },
+            new() { Id = "2", FirstName = "Jane", LastName = "Smith", Role = PersonRole.USER }
         };
         var repo = CreateRepo(BuildCollectionMock(persons).Object);
 
@@ -73,19 +73,21 @@ public class PersonRepositoryTests
 
         Assert.Equal(2, result.Count);
         Assert.Equal("John", result[0].FirstName);
+        Assert.Equal(PersonRole.ADMIN, result[0].Role);
     }
 
     /// <summary>Gets person by id with existing person returns the person.</summary>
     [Fact]
     public async Task GetByIdAsyncExistingPersonReturnsPerson()
     {
-        var person = new Person { Id = "1", FirstName = "John", LastName = "Doe" };
+        var person = new Person { Id = "1", FirstName = "John", LastName = "Doe", Role = PersonRole.MANAGER };
         var repo = CreateRepo(BuildCollectionMock(new[] { person }).Object);
 
         var result = await repo.GetByIdAsync("1");
 
         Assert.NotNull(result);
         Assert.Equal("John", result.FirstName);
+        Assert.Equal(PersonRole.MANAGER, result.Role);
     }
 
     /// <summary>Gets person by id with unknown id returns null.</summary>
@@ -105,14 +107,16 @@ public class PersonRepositoryTests
     {
         var persons = new List<Person>
         {
-            new() { Id = "1", FirstName = "John", LastName = "Doe" },
-            new() { Id = "2", FirstName = "Jane", LastName = "Smith" }
+            new() { Id = "1", FirstName = "John", LastName = "Doe", Role = PersonRole.USER },
+            new() { Id = "2", FirstName = "Jane", LastName = "Smith", Role = PersonRole.ADMIN }
         };
         var repo = CreateRepo(BuildCollectionMock(persons).Object);
 
         var result = await repo.SearchAsync(string.Empty);
 
         Assert.Equal(2, result.Count);
+        Assert.Equal(PersonRole.USER, result[0].Role);
+        Assert.Equal(PersonRole.ADMIN, result[1].Role);
     }
 
     /// <summary>Searches with valid query returns filtered results.</summary>

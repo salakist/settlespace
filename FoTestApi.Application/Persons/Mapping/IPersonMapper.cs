@@ -7,8 +7,8 @@ namespace FoTestApi.Application.Persons.Mapping
     public interface IPersonMapper
     {
         PersonDto ToDto(Person entity);
-        Person ToEntity(CreatePersonCommand command, string password);
-        Person ToEntity(string id, UpdatePersonCommand command, string? existingPassword);
+        Person ToEntity(CreatePersonCommand command, string password, PersonRole role);
+        Person ToEntity(string id, UpdatePersonCommand command, string? existingPassword, PersonRole role);
     }
 }
 

@@ -18,6 +18,13 @@ import { useAuth } from '../features/auth/hooks/useAuth';
 import { usePersons } from '../features/persons/hooks/usePersons';
 import { useProfile } from '../features/profile/hooks/useProfile';
 import { useAppAuth } from './hooks/useAppAuth';
+import {
+  canAccessPersonsPage,
+  canDeletePerson,
+  canEditRole,
+  canUpdatePerson,
+} from '../shared/auth/permissions';
+import { Person } from '../shared/types';
 
 const ROUTE_LOGIN = '/login';
 const ROUTE_REGISTER = '/register';
@@ -34,12 +41,12 @@ const PRIMARY_TABS = [
   { label: 'Debts', value: ROUTE_DEBTS, icon: ErrorIcon },
 ] as const;
 
-function getPrimaryTabValue(pathname: string): string | false {
+function getPrimaryTabValue(pathname: string, tabs: readonly { value: string }[]): string | false {
   if (pathname === ROUTE_PROFILE) {
     return false;
   }
 
-  if (PRIMARY_TABS.some((tab) => tab.value === pathname)) {
+  if (tabs.some((tab) => tab.value === pathname)) {
     return pathname;
   }
 
@@ -73,7 +80,9 @@ function App() {
     isAuthenticated,
     login,
     logout,
+    role,
     register,
+    setAuthRole,
     setAuthUsername,
     username,
   } = useAuth();
@@ -95,7 +104,7 @@ function App() {
     setPersonInList,
     showCreateForm,
     showForm,
-  } = usePersons({ expireSession });
+  } = usePersons({ expireSession, role });
   const handleUnauthorized = useCallback(() => {
     clearPersonsState();
     expireSession('Your session expired. Please log in again.');
@@ -114,6 +123,7 @@ function App() {
     setProfileIdle,
   } = useProfile({
     handleUnauthorized,
+    setAuthRole,
     setAuthUsername,
     setPersonInList,
   });
@@ -183,11 +193,19 @@ function App() {
     );
   }
 
-  const primaryTabValue = getPrimaryTabValue(location.pathname);
+  const canAccessPersons = canAccessPersonsPage(role);
+  const primaryTabs = PRIMARY_TABS.filter((tab) => tab.value !== ROUTE_PERSONS || canAccessPersons);
+  const primaryTabValue = getPrimaryTabValue(location.pathname, primaryTabs);
   const isProfileRoute = location.pathname === ROUTE_PROFILE;
   const visiblePersons = currentPerson?.id
     ? persons.filter((person) => person.id !== currentPerson.id)
     : persons;
+  const canCreateManagedPerson = role === 'ADMIN' || role === 'MANAGER';
+
+  const canEditManagedPerson = (person: Person) =>
+    canUpdatePerson(role, currentPerson?.id, person, person.role ?? 'USER');
+
+  const canDeleteManagedPerson = (person: Person) => canDeletePerson(role, person);
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -228,7 +246,7 @@ function App() {
                     },
                   }}
                 >
-                  {PRIMARY_TABS.map((tab) => {
+                  {primaryTabs.map((tab) => {
                     const Icon = tab.icon;
 
                     return (
@@ -300,20 +318,29 @@ function App() {
             <Route
               path={ROUTE_PERSONS}
               element={
-                <PersonsPage
-                  persons={visiblePersons}
-                  loading={loading}
-                  saveLoading={saveLoading}
-                  error={error}
-                  showForm={showForm}
-                  editingPerson={editingPerson}
-                  onAdd={showCreateForm}
-                  onSearch={handleSearch}
-                  onSave={handleSave}
-                  onCancel={handleCancel}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                />
+                canAccessPersons
+                  ? (
+                    <PersonsPage
+                      persons={visiblePersons}
+                      loading={loading}
+                      saveLoading={saveLoading}
+                      error={error}
+                      showForm={showForm}
+                      editingPerson={editingPerson}
+                      canCreate={canCreateManagedPerson}
+                      canEdit={canEditManagedPerson}
+                      canDelete={canDeleteManagedPerson}
+                      canEditRole={canEditRole(role)}
+                      defaultCreateRole="USER"
+                      onAdd={showCreateForm}
+                      onSearch={handleSearch}
+                      onSave={handleSave}
+                      onCancel={handleCancel}
+                      onEdit={handleEdit}
+                      onDelete={handleDelete}
+                    />
+                    )
+                  : <Navigate to={ROUTE_HOME} replace />
               }
             />
             <Route
@@ -322,6 +349,7 @@ function App() {
                 <TransactionsPage
                   persons={persons}
                   currentPersonId={currentPerson?.id}
+                  role={role}
                   expireSession={expireSession}
                 />
               )}
