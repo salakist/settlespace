@@ -3,9 +3,10 @@ import { Button, Paper, Stack, TextField } from '@mui/material';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
+  placeholder?: string;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
+const SearchBar: React.FC<SearchBarProps> = ({ onSearch, placeholder = 'Search by first or last name' }) => {
   const [query, setQuery] = useState('');
 
   const handleSubmit = (e: React.SyntheticEvent) => {
@@ -22,7 +23,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }) => {
             variant="outlined"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by first or last name"
+            placeholder={placeholder}
           />
           <Button variant="contained" type="submit">
             Search

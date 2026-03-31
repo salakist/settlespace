@@ -23,8 +23,11 @@ jest.mock('../hooks/useTransactions', () => ({
 
 jest.mock('../../persons/components/SearchBar', () => ({
   __esModule: true,
-  default: ({ onSearch }: { onSearch: (query: string) => void }) => (
-    <button onClick={() => onSearch('test')}>Search</button>
+  default: ({ onSearch, placeholder }: { onSearch: (query: string) => void; placeholder?: string }) => (
+    <>
+      <input placeholder={placeholder} readOnly />
+      <button onClick={() => onSearch('test')}>Search</button>
+    </>
   ),
 }));
 
@@ -62,6 +65,7 @@ test('forwards search and create actions', () => {
     />,
   );
 
+  expect(screen.getByPlaceholderText(/description, category, or involved person's name/i)).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: /search/i }));
   fireEvent.click(screen.getByRole('button', { name: /add transaction/i }));
 

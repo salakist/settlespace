@@ -1,5 +1,6 @@
 using FoTestApi.Application.Transactions.Commands;
 using FoTestApi.Application.Transactions.Mapping;
+using FoTestApi.Domain.Persons;
 using FoTestApi.Domain.Persons.Entities;
 using FoTestApi.Domain.Transactions.Entities;
 using FoTestApi.Domain.Transactions.Exceptions;
@@ -10,15 +11,18 @@ namespace FoTestApi.Application.Transactions.Services
 {
     public class TransactionApplicationService : ITransactionApplicationService
     {
+        private readonly IPersonRepository _personRepository;
         private readonly ITransactionRepository _repository;
         private readonly ITransactionDomainService _domainService;
         private readonly ITransactionMapper _transactionMapper;
 
         public TransactionApplicationService(
+            IPersonRepository personRepository,
             ITransactionRepository repository,
             ITransactionDomainService domainService,
             ITransactionMapper transactionMapper)
         {
+            _personRepository = personRepository;
             _repository = repository;
             _domainService = domainService;
             _transactionMapper = transactionMapper;
@@ -32,7 +36,7 @@ namespace FoTestApi.Application.Transactions.Services
 
         public async Task<List<Transaction>> SearchCurrentUserTransactionsAsync(string loggedPersonId, PersonRole loggedRole, string query)
         {
-            var transactions = await _repository.SearchAsync(query);
+            var transactions = await SearchTransactionsIncludingInvolvedPersonsAsync(query);
             return _domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
         }
 
@@ -84,6 +88,51 @@ namespace FoTestApi.Application.Transactions.Services
 
             _domainService.EnsureCanDelete(existing, loggedPersonId, loggedRole);
             await _repository.DeleteAsync(id);
+        }
+
+        private async Task<List<Transaction>> SearchTransactionsIncludingInvolvedPersonsAsync(string query)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return await _repository.GetAllAsync();
+            }
+
+            var transactionSearchTask = _repository.SearchAsync(query);
+            var personSearchTask = _personRepository.SearchAsync(query);
+
+            await Task.WhenAll(transactionSearchTask, personSearchTask);
+
+            var matchedTransactions = transactionSearchTask.Result;
+            var matchedPersonIds = personSearchTask.Result
+                .Select(person => person.Id)
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Cast<string>()
+                .ToHashSet(StringComparer.Ordinal);
+
+            if (matchedPersonIds.Count == 0)
+            {
+                return matchedTransactions;
+            }
+
+            var allTransactions = await _repository.GetAllAsync();
+
+            return [.. matchedTransactions
+                .Concat(allTransactions.Where(transaction =>
+                    matchedPersonIds.Contains(transaction.PayerPersonId) ||
+                    matchedPersonIds.Contains(transaction.PayeePersonId)))
+                .DistinctBy(BuildSearchResultKey)
+                .OrderByDescending(transaction => transaction.TransactionDateUtc)];
+        }
+
+        private static string BuildSearchResultKey(Transaction transaction)
+        {
+            return transaction.Id ?? string.Join("|",
+                transaction.PayerPersonId,
+                transaction.PayeePersonId,
+                transaction.CreatedByPersonId,
+                transaction.TransactionDateUtc.ToString("O"),
+                transaction.Description,
+                transaction.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
     }
 }

@@ -11,3 +11,9 @@ test('submits search query', () => {
 
   expect(onSearch).toHaveBeenCalledWith('john');
 });
+
+test('renders a custom placeholder when provided', () => {
+  render(<SearchBar onSearch={jest.fn()} placeholder="Search transactions or people" />);
+
+  expect(screen.getByPlaceholderText(/search transactions or people/i)).toBeInTheDocument();
+});

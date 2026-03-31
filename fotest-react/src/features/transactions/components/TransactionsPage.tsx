@@ -40,7 +40,10 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
 
   return (
     <>
-      <SearchBar onSearch={handleSearch} />
+      <SearchBar
+        onSearch={handleSearch}
+        placeholder="Search by description, category, or involved person's name"
+      />
 
       <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
         <Typography variant="subtitle1">Manage your transactions</Typography>

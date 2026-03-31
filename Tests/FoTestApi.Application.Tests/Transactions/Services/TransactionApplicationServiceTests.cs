@@ -1,6 +1,7 @@
 using FoTestApi.Application.Transactions.Commands;
 using FoTestApi.Application.Transactions.Mapping;
 using FoTestApi.Application.Transactions.Services;
+using FoTestApi.Domain.Persons;
 using FoTestApi.Domain.Persons.Entities;
 using FoTestApi.Domain.Transactions;
 using FoTestApi.Domain.Transactions.Entities;
@@ -12,6 +13,7 @@ namespace FoTestApi.Application.Tests.Transactions.Services;
 
 public class TransactionApplicationServiceTests
 {
+    private readonly Mock<IPersonRepository> _personRepositoryMock = new();
     private readonly Mock<ITransactionRepository> _repositoryMock = new();
     private readonly Mock<ITransactionDomainService> _domainServiceMock = new();
     private readonly ITransactionMapper _mapper = new TransactionMapper();
@@ -19,7 +21,7 @@ public class TransactionApplicationServiceTests
 
     public TransactionApplicationServiceTests()
     {
-        _sut = new TransactionApplicationService(_repositoryMock.Object, _domainServiceMock.Object, _mapper);
+        _sut = new TransactionApplicationService(_personRepositoryMock.Object, _repositoryMock.Object, _domainServiceMock.Object, _mapper);
     }
 
     [Fact]
@@ -82,6 +84,7 @@ public class TransactionApplicationServiceTests
     [Fact]
     public async Task SearchCurrentUserTransactionsAsyncDelegatesToRepository()
     {
+        _personRepositoryMock.Setup(r => r.SearchAsync("taxi")).ReturnsAsync([]);
         _repositoryMock.Setup(r => r.SearchAsync("taxi"))
             .ReturnsAsync(new List<Transaction> { BuildTransaction("tx-1") });
         _domainServiceMock
@@ -91,6 +94,36 @@ public class TransactionApplicationServiceTests
         var result = await _sut.SearchCurrentUserTransactionsAsync("user-1", PersonRole.USER, "taxi");
 
         Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task SearchCurrentUserTransactionsAsyncIncludesTransactionsMatchingInvolvedPersonNames()
+    {
+        var matchingTransaction = BuildTransaction("tx-1");
+        var nonMatchingTransaction = BuildTransaction("tx-2");
+        nonMatchingTransaction.PayerPersonId = "user-3";
+        nonMatchingTransaction.PayeePersonId = "user-4";
+
+        _personRepositoryMock.Setup(r => r.SearchAsync("john"))
+            .ReturnsAsync([
+                new Person
+                {
+                    Id = "user-1",
+                    FirstName = "John",
+                    LastName = "Doe",
+                    Password = "hashed"
+                }
+            ]);
+        _repositoryMock.Setup(r => r.SearchAsync("john")).ReturnsAsync([]);
+        _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync([matchingTransaction, nonMatchingTransaction]);
+        _domainServiceMock
+            .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+
+        var result = await _sut.SearchCurrentUserTransactionsAsync("user-1", PersonRole.USER, "john");
+
+        Assert.Single(result);
+        Assert.Equal("tx-1", result[0].Id);
     }
 
     [Fact]
