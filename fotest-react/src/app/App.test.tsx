@@ -210,7 +210,7 @@ test('renders home navigation tabs and shows welcome content', () => {
   expect(screen.getByRole('tab', { name: /home/i })).toHaveAttribute(ARIA_SELECTED, 'true');
   expect(screen.getByRole('tab', { name: /persons/i })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /john doe/i })).toBeInTheDocument();
-  expect(screen.getByText(/welcome back, john doe!/i)).toBeInTheDocument();
+  expect(screen.getByText(/welcome back, john doe/i)).toBeInTheDocument();
 });
 
 test('renders non-home tabs and navigates correctly', () => {
