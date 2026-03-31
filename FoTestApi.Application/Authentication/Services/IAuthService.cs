@@ -1,7 +1,5 @@
 using System.Security.Claims;
 using FoTestApi.Application.Authentication.Commands;
-using FoTestApi.Application.Authentication;
-using FoTestApi.Domain.Auth;
 using FoTestApi.Domain.Persons.Entities;
 
 namespace FoTestApi.Application.Authentication.Services

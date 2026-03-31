@@ -1,6 +1,5 @@
 using FoTestApi.Domain.Auth;
 using System.Text.RegularExpressions;
-using Xunit;
 
 namespace FoTestApi.Domain.Tests.Auth;
 

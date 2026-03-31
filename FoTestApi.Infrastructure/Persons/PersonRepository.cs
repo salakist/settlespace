@@ -1,6 +1,5 @@
 using FoTestApi.Domain.Persons.Entities;
 using FoTestApi.Domain.Persons;
-using FoTestApi.Infrastructure;
 using FoTestApi.Infrastructure.Serialization;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;

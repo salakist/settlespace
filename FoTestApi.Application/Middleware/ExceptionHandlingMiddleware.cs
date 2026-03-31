@@ -1,8 +1,6 @@
 using FoTestApi.Domain.Auth;
-using FoTestApi.Domain.Exceptions;
 using FoTestApi.Domain.Persons.Exceptions;
 using FoTestApi.Domain.Transactions.Exceptions;
-using System.Text.Json;
 
 namespace FoTestApi.Application.Middleware
 {

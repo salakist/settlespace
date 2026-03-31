@@ -1,5 +1,4 @@
 using FoTestApi.Domain.Persons.Exceptions;
-using Xunit;
 
 namespace FoTestApi.Domain.Tests.Persons.Exceptions
 {

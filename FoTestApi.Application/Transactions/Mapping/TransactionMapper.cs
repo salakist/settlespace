@@ -1,5 +1,4 @@
 using FoTestApi.Application.Transactions.Commands;
-using FoTestApi.Application.Transactions;
 using FoTestApi.Domain.Transactions.Entities;
 
 namespace FoTestApi.Application.Transactions.Mapping

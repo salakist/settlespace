@@ -1,5 +1,3 @@
-using FoTestApi.Infrastructure;
-
 namespace FoTestApi.Infrastructure.Tests;
 
 public class FoTestDatabaseSettingsTests

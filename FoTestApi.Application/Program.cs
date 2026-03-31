@@ -17,7 +17,6 @@ using FoTestApi.Infrastructure.Transactions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text.Json.Serialization;
-using System.IO;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);

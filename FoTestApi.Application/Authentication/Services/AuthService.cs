@@ -1,7 +1,6 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using FoTestApi.Application.Authentication;
 using FoTestApi.Application.Authentication.Commands;
 using FoTestApi.Application.Persons.Commands;
 using FoTestApi.Application.Persons.Services;

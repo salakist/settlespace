@@ -1,11 +1,9 @@
 using FoTestApi.Application.Middleware;
-using FoTestApi.Domain.Exceptions;
 using FoTestApi.Domain.Persons.Exceptions;
 using FoTestApi.Domain.Transactions.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Xunit;
 
 namespace FoTestApi.Application.Tests.Middleware;
 

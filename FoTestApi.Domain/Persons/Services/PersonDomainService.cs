@@ -1,4 +1,3 @@
-using FoTestApi.Domain.Persons;
 using FoTestApi.Domain.Persons.Entities;
 using FoTestApi.Domain.Persons.Exceptions;
 

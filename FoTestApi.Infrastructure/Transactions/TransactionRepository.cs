@@ -1,6 +1,5 @@
 using FoTestApi.Domain.Transactions.Entities;
 using FoTestApi.Domain.Transactions;
-using FoTestApi.Infrastructure;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;

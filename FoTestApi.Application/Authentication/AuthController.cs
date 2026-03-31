@@ -1,7 +1,5 @@
 using FoTestApi.Application.Authentication.Commands;
-using FoTestApi.Application.Persons.Commands;
 using FoTestApi.Application.Authentication.Services;
-using FoTestApi.Domain.Exceptions;
 using FoTestApi.Domain.Persons.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
