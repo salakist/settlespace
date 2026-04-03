@@ -3,27 +3,11 @@
 Prioritized backlog for **planned / shelved product work**.
 
 > These items fit the current app direction, but they are not committed delivery promises.
+> The debts summary and settle-up flow are now part of the implemented MVP and are no longer pending.
 
 ## MVP / next up
 
-### 1. Debts summary and settle-up flow
-**Why first:** this is already scaffolded in the app and is the most natural extension of the existing transactions flow.
-
-**Status:** route/page exists, but implementation is still pending.
-
-**Initial scope**
-- Show net balances per person
-- Show who owes whom
-- Summarize outstanding deficits from transactions
-- Allow marking a debt as settled
-
-**Dependencies**
-- Debts API endpoints (backend)
-- Debt aggregation/calculation logic
-- `useDebts` hook
-- Transaction API data
-
-### 2. Dashboard / overview page
+### 1. Dashboard / overview page
 **Why next:** improves the landing experience and gives users a useful summary immediately after login.
 
 **Initial scope**
@@ -32,7 +16,7 @@ Prioritized backlog for **planned / shelved product work**.
 - Quick actions for creating persons or transactions
 - At-a-glance summary cards
 
-### 3. Reports / analytics page
+### 2. Reports / analytics page
 **Why next:** adds insight value using existing transaction data without introducing a completely new domain.
 
 **Initial scope**
@@ -43,44 +27,44 @@ Prioritized backlog for **planned / shelved product work**.
 
 ## Later / medium-term
 
-### 4. Groups / households page
+### 3. Groups / households page
 - Organize persons into a household, trip, or other shared-expense group
 - Scope transactions and debt views by group
 
-### 5. Activity / audit history page
+### 4. Activity / audit history page
 - Show who created, edited, deleted, or settled transactions
 - Especially useful for `ADMIN` / `MANAGER` roles
 
-### 6. Import / export tools
+### 5. Import / export tools
 - Export persons or transactions to CSV/JSON
 - Import migrated or seeded data
 
-### 7. Advanced search and filtering
+### 6. Advanced search and filtering
 - Filter by date range, category, amount, or involved person
 - Saved search presets for common views
 
 ## Nice-to-have / exploratory
 
-### 8. Transaction workflow enhancements
+### 7. Transaction workflow enhancements
 - Statuses such as `Pending`, `Settled`, and `Disputed`
 - Optional recurring transactions for rent, bills, or subscriptions
 
-### 9. Notifications / reminders
+### 8. Notifications / reminders
 - Remind users about unpaid balances or pending actions
 
-### 10. Admin settings page
+### 9. Admin settings page
 - Role-management utilities
 - App-level maintenance and configuration actions
 
 ## Suggested delivery direction
 
-A coherent product path for the app is:
+With `Persons`, `Transactions`, and the `Debts` / settlement MVP now in place, the next coherent product path is:
 
-1. `Persons`
-2. `Transactions`
-3. `Debts`
-4. `Settlement`
-5. `Reporting`
+1. `Dashboard`
+2. `Reporting`
+3. `Groups`
+4. `Activity`
+5. `Import / Export`
 
-This keeps the roadmap aligned with the app’s current shared-expense and person-management model.
+This keeps the roadmap aligned with the app’s current shared-expense model while reflecting the work already delivered.
 

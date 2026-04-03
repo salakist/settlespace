@@ -155,7 +155,7 @@ const DebtSettlementDrawer: React.FC<DebtSettlementDrawerProps> = ({
     setAmount(roundCurrency((normalizedPercentage / 100) * maxAmount));
   };
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.SyntheticEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!debt || amount <= 0) {
@@ -227,7 +227,7 @@ const DebtSettlementDrawer: React.FC<DebtSettlementDrawerProps> = ({
             type="number"
             value={amount}
             onChange={handleAmountChange}
-            inputProps={{ min: 0, max: maxAmount, step: 0.01 }}
+            slotProps={{ htmlInput: { min: 0, max: maxAmount, step: 0.01 } }}
             disabled={saving || maxAmount <= 0}
             fullWidth
           />
@@ -237,7 +237,7 @@ const DebtSettlementDrawer: React.FC<DebtSettlementDrawerProps> = ({
             type="number"
             value={percentage}
             onChange={handlePercentChange}
-            inputProps={{ min: 0, max: 100, step: 1 }}
+            slotProps={{ htmlInput: { min: 0, max: 100, step: 1 } }}
             disabled={saving || maxAmount <= 0}
             fullWidth
           />
@@ -271,11 +271,13 @@ const DebtSettlementDrawer: React.FC<DebtSettlementDrawerProps> = ({
       anchor="right"
       open={open}
       onClose={onClose}
-      PaperProps={{
-        sx: {
-          width: { xs: '100%', sm: 440 },
-          p: 3,
-          backgroundImage: 'none',
+      slotProps={{
+        paper: {
+          sx: {
+            width: { xs: '100%', sm: 440 },
+            p: 3,
+            backgroundImage: 'none',
+          },
         },
       }}
     >
