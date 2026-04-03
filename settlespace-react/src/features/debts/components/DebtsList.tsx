@@ -6,6 +6,7 @@ type DebtsListProps = {
   debts: DebtSummary[];
   persons: Person[];
   onSettle: (debt: DebtSummary) => void;
+  onViewDetails: (debt: DebtSummary) => void;
 };
 
 function formatCurrency(amount: number, currencyCode: string): string {
@@ -60,17 +61,14 @@ function getSummaryText(debt: DebtSummary, counterpartyName: string, balanceText
 }
 
 function getSettlementButtonLabel(direction: DebtSummary['direction']): string {
-  switch (direction) {
-    case 'TheyOweYou':
-      return 'Record settlement';
-    case 'Settled':
-      return 'Settled';
-    default:
-      return 'Settle now';
+  if (direction === 'Settled') {
+    return 'Settled';
   }
+
+  return 'Settle now';
 }
 
-const DebtsList: React.FC<DebtsListProps> = ({ debts, persons, onSettle }) => {
+const DebtsList: React.FC<DebtsListProps> = ({ debts, persons, onSettle, onViewDetails }) => {
   if (debts.length === 0) {
     return (
       <Alert severity="info">
@@ -118,6 +116,12 @@ const DebtsList: React.FC<DebtsListProps> = ({ debts, persons, onSettle }) => {
                     color={getDirectionColor(debt.direction)}
                     variant={debt.direction === 'Settled' ? 'outlined' : 'filled'}
                   />
+                  <Button
+                    variant="outlined"
+                    onClick={() => onViewDetails(debt)}
+                  >
+                    Details
+                  </Button>
                   <Button
                     variant="contained"
                     onClick={() => onSettle(debt)}

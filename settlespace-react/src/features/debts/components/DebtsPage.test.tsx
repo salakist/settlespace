@@ -3,6 +3,12 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { DebtSummary } from '../../../shared/types';
 import DebtsPage from './DebtsPage';
 
+const mockNavigate = jest.fn();
+
+jest.mock('react-router-dom', () => ({
+  useNavigate: () => mockNavigate,
+}));
+
 const sampleDebt: DebtSummary = {
   counterpartyPersonId: 'p2',
   currencyCode: 'EUR',
@@ -34,10 +40,11 @@ jest.mock('../hooks/useDebts', () => ({
 
 jest.mock('./DebtsList', () => ({
   __esModule: true,
-  default: ({ onSettle }: { onSettle: (debt: DebtSummary) => void }) => (
+  default: ({ onSettle, onViewDetails }: { onSettle: (debt: DebtSummary) => void; onViewDetails: (debt: DebtSummary) => void }) => (
     <div>
       <div>Debts List</div>
-      <button onClick={() => onSettle(sampleDebt)}>Open settlement</button>
+      <button onClick={() => onSettle(sampleDebt)}>Settle now</button>
+      <button onClick={() => onViewDetails(sampleDebt)}>Details</button>
     </div>
   ),
 }));
@@ -60,7 +67,7 @@ test('renders debt list and loads debts on mount', () => {
   expect(screen.getByText(/manage balances that still need settling/i)).toBeInTheDocument();
 });
 
-test('forwards settlement action and displays alerts', () => {
+test('forwards settlement and details actions and displays alerts', () => {
   mockHook.error = 'Load failed';
   mockHook.successMessage = 'Settlement recorded successfully.';
 
@@ -71,9 +78,11 @@ test('forwards settlement action and displays alerts', () => {
     />,
   );
 
-  fireEvent.click(screen.getByRole('button', { name: /open settlement/i }));
+  fireEvent.click(screen.getByRole('button', { name: /^settle now$/i }));
+  fireEvent.click(screen.getByRole('button', { name: /^details$/i }));
 
   expect(mockHook.openSettlementDrawer).toHaveBeenCalledWith(sampleDebt);
+  expect(mockNavigate).toHaveBeenCalledWith('/debts/p2/EUR');
   expect(screen.getByText('Load failed')).toBeInTheDocument();
   expect(screen.getByText(/settlement recorded successfully/i)).toBeInTheDocument();
 

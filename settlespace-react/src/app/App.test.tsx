@@ -237,6 +237,15 @@ test('renders non-home tabs and navigates correctly', () => {
   expect(__mockNavigate).toHaveBeenNthCalledWith(3, '/profile');
 });
 
+test('keeps debts tab selected on nested debt details routes', () => {
+  __setMockPathname('/debts/p2/EUR');
+  setAuthenticatedSession();
+
+  render(<App />);
+
+  expect(screen.getByRole('tab', { name: /debts/i })).toHaveAttribute(ARIA_SELECTED, 'true');
+});
+
 test('does not pass logged-in user to persons page list', () => {
   __setMockPathname('/persons');
   setAuthenticatedSession('1');

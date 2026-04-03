@@ -34,15 +34,16 @@ const debts: DebtSummary[] = [
 ];
 
 test('shows an empty-state alert when there are no debts', () => {
-  render(<DebtsList debts={[]} persons={persons} onSettle={jest.fn()} />);
+  render(<DebtsList debts={[]} persons={persons} onSettle={jest.fn()} onViewDetails={jest.fn()} />);
 
   expect(screen.getByRole('alert')).toHaveTextContent(/no outstanding debts right now/i);
 });
 
-test('renders debt summaries and settlement actions for each direction', () => {
+test('renders debt summaries, settlement actions, and details navigation', () => {
   const onSettle = jest.fn();
+  const onViewDetails = jest.fn();
 
-  render(<DebtsList debts={debts} persons={persons} onSettle={onSettle} />);
+  render(<DebtsList debts={debts} persons={persons} onSettle={onSettle} onViewDetails={onViewDetails} />);
 
   expect(screen.getByText('Bob Stone')).toBeInTheDocument();
   expect(screen.getByText(/you owe Bob Stone/i)).toBeInTheDocument();
@@ -52,10 +53,12 @@ test('renders debt summaries and settlement actions for each direction', () => {
   expect(screen.getAllByText(/Currency:/i)).toHaveLength(3);
   expect(screen.getAllByText(/Transactions:/i)).toHaveLength(3);
 
-  fireEvent.click(screen.getByRole('button', { name: /record settlement/i }));
-  fireEvent.click(screen.getByRole('button', { name: /^settle now$/i }));
+  fireEvent.click(screen.getAllByRole('button', { name: /^settle now$/i })[0]);
+  fireEvent.click(screen.getAllByRole('button', { name: /^settle now$/i })[1]);
+  fireEvent.click(screen.getAllByRole('button', { name: /^details$/i })[0]);
 
-  expect(onSettle).toHaveBeenNthCalledWith(1, debts[0]);
-  expect(onSettle).toHaveBeenNthCalledWith(2, debts[1]);
+  expect(onSettle).toHaveBeenNthCalledWith(1, debts[1]);
+  expect(onSettle).toHaveBeenNthCalledWith(2, debts[0]);
+  expect(onViewDetails).toHaveBeenCalledWith(debts[1]);
   expect(screen.getByRole('button', { name: /^settled$/i })).toBeDisabled();
 });

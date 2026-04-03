@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Alert, CircularProgress, Stack, Typography } from '@mui/material';
-import { Person } from '../../../shared/types';
+import { useNavigate } from 'react-router-dom';
+import { DebtSummary, Person } from '../../../shared/types';
 import { useDebts } from '../hooks/useDebts';
 import DebtsList from './DebtsList';
 import DebtSettlementDrawer from './DebtSettlementDrawer';
@@ -11,6 +12,7 @@ type DebtsPageProps = {
 };
 
 const DebtsPage: React.FC<DebtsPageProps> = ({ persons, expireSession }) => {
+  const navigate = useNavigate();
   const {
     clearSuccessMessage,
     closeSettlementDrawer,
@@ -34,6 +36,10 @@ const DebtsPage: React.FC<DebtsPageProps> = ({ persons, expireSession }) => {
     });
   }, [loadDebts]);
 
+  const handleViewDetails = (debt: DebtSummary) => {
+    navigate(`/debts/${encodeURIComponent(debt.counterpartyPersonId)}/${encodeURIComponent(debt.currencyCode)}`);
+  };
+
   return (
     <Stack spacing={2.5}>
       <div>
@@ -56,7 +62,12 @@ const DebtsPage: React.FC<DebtsPageProps> = ({ persons, expireSession }) => {
           <CircularProgress />
         </Stack>
       ) : (
-        <DebtsList debts={debts} persons={persons} onSettle={openSettlementDrawer} />
+        <DebtsList
+          debts={debts}
+          persons={persons}
+          onSettle={openSettlementDrawer}
+          onViewDetails={handleViewDetails}
+        />
       )}
 
       <DebtSettlementDrawer

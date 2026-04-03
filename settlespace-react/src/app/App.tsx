@@ -14,6 +14,7 @@ import HomePage from '../features/home/components/HomePage';
 import PersonsPage from '../features/persons/components/PersonsPage';
 import TransactionsPage from '../features/transactions/components/TransactionsPage';
 import DebtsPage from '../features/debts/components/DebtsPage';
+import DebtDetailsPage from '../features/debts/components/DebtDetailsPage';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { usePersons } from '../features/persons/hooks/usePersons';
 import { useProfile } from '../features/profile/hooks/useProfile';
@@ -33,6 +34,7 @@ const ROUTE_PERSONS = '/persons';
 const ROUTE_PROFILE = '/profile';
 const ROUTE_TRANSACTIONS = '/transactions';
 const ROUTE_DEBTS = '/debts';
+const ROUTE_DEBT_DETAILS = '/debts/:counterpartyPersonId/:currencyCode';
 
 const PRIMARY_TABS = [
   { label: 'Home', value: ROUTE_HOME, icon: HomeIcon },
@@ -44,6 +46,10 @@ const PRIMARY_TABS = [
 function getPrimaryTabValue(pathname: string, tabs: readonly { value: string }[]): string | false {
   if (pathname === ROUTE_PROFILE) {
     return false;
+  }
+
+  if (pathname.startsWith(`${ROUTE_DEBTS}/`)) {
+    return ROUTE_DEBTS;
   }
 
   if (tabs.some((tab) => tab.value === pathname)) {
@@ -358,6 +364,15 @@ function App() {
               path={ROUTE_DEBTS}
               element={(
                 <DebtsPage
+                  persons={persons}
+                  expireSession={expireSession}
+                />
+              )}
+            />
+            <Route
+              path={ROUTE_DEBT_DETAILS}
+              element={(
+                <DebtDetailsPage
                   persons={persons}
                   expireSession={expireSession}
                 />

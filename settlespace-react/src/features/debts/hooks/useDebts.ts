@@ -60,17 +60,16 @@ export function useDebts({ expireSession }: UseDebtsOptions) {
     }
   }, [handleUnauthorized]);
 
-  const openSettlementDrawer = useCallback(async (debt: DebtSummary) => {
-    setSelectedDebt(debt);
-    setSelectedDebtDetail(undefined);
-    setSettlementOpen(true);
-    setSuccessMessage(null);
-
+  const loadDebtDetails = useCallback(async (
+    counterpartyPersonId: string,
+    currencyCode: string,
+  ): Promise<DebtDetails | undefined> => {
     try {
       setDetailsLoading(true);
-      const response = await debtsApi.getCurrentUserDetails(debt.counterpartyPersonId);
-      setSelectedDebtDetail(findMatchingDetail(response.data, debt.currencyCode));
+      const response = await debtsApi.getCurrentUserDetails(counterpartyPersonId);
+      const detail = findMatchingDetail(response.data, currencyCode);
       setError(null);
+      return detail;
     } catch (err) {
       handleRequestError({
         error: err,
@@ -78,10 +77,21 @@ export function useDebts({ expireSession }: UseDebtsOptions) {
         setError,
         fallbackMessage: 'Failed to load debt details',
       });
+      return undefined;
     } finally {
       setDetailsLoading(false);
     }
   }, [handleUnauthorized]);
+
+  const openSettlementDrawer = useCallback(async (debt: DebtSummary) => {
+    setSelectedDebt(debt);
+    setSelectedDebtDetail(undefined);
+    setSettlementOpen(true);
+    setSuccessMessage(null);
+
+    const detail = await loadDebtDetails(debt.counterpartyPersonId, debt.currencyCode);
+    setSelectedDebtDetail(detail);
+  }, [loadDebtDetails]);
 
   const closeSettlementDrawer = useCallback(() => {
     setSettlementOpen(false);
@@ -121,6 +131,7 @@ export function useDebts({ expireSession }: UseDebtsOptions) {
     debts,
     detailsLoading,
     error,
+    loadDebtDetails,
     loadDebts,
     loading,
     openSettlementDrawer,
