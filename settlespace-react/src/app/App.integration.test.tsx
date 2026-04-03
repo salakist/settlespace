@@ -80,7 +80,23 @@ const {
   };
 };
 
+const { debtsApi: mockDebtsApi } = jest.requireMock('../shared/api/debtsApi') as {
+  debtsApi: {
+    getCurrentUser: jest.Mock;
+    getCurrentUserDetails: jest.Mock;
+    settle: jest.Mock;
+  };
+};
+
 const App = require('./App').default;
+
+jest.mock('../shared/api/debtsApi', () => ({
+  debtsApi: {
+    getCurrentUser: jest.fn(),
+    getCurrentUserDetails: jest.fn(),
+    settle: jest.fn(),
+  },
+}));
 
 jest.mock('../features/persons/components/SearchBar', () => ({
   __esModule: true,
@@ -216,6 +232,9 @@ beforeEach(() => {
   mockTransactionApi.create.mockResolvedValue({});
   mockTransactionApi.update.mockResolvedValue({});
   mockTransactionApi.delete.mockResolvedValue({});
+  mockDebtsApi.getCurrentUser.mockResolvedValue({ data: [] });
+  mockDebtsApi.getCurrentUserDetails.mockResolvedValue({ data: [] });
+  mockDebtsApi.settle.mockResolvedValue({});
 });
 
 test('handles unauthorized responses by clearing session and returning to login', async () => {

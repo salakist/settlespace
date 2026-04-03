@@ -356,7 +356,12 @@ function App() {
             />
             <Route
               path={ROUTE_DEBTS}
-              element={<DebtsPage />}
+              element={(
+                <DebtsPage
+                  persons={persons}
+                  expireSession={expireSession}
+                />
+              )}
             />
             <Route path="*" element={<Navigate to={ROUTE_HOME} replace />} />
           </Routes>
