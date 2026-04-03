@@ -2,6 +2,7 @@ import React from 'react';
 import { Button, IconButton, Paper, Stack, TextField, Typography } from '@mui/material';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { Address } from '../../../shared/types';
+import { insetSurfaceSx } from '../../../shared/theme/surfaceStyles';
 
 interface PersonAddressEditorProps {
 	addresses: Address[];
@@ -55,25 +56,48 @@ const PersonAddressEditor: React.FC<PersonAddressEditorProps> = ({ addresses, on
 
 	return (
 		<Stack spacing={2}>
-			<Stack direction="row" justifyContent="space-between" alignItems="center">
-				<Typography variant="h6">Addresses</Typography>
+			<Stack
+				direction={{ xs: 'column', sm: 'row' }}
+				justifyContent="space-between"
+				alignItems={{ xs: 'stretch', sm: 'center' }}
+				spacing={1.5}
+			>
+				<div>
+					<Typography variant="overline" color="primary.main">
+						Addresses
+					</Typography>
+					<Typography variant="subtitle1">Contact and location details</Typography>
+				</div>
 				<Button variant="outlined" onClick={handleAddAddress} disabled={disabled}>
 					Add Address
 				</Button>
 			</Stack>
 
 			{addresses.length === 0 ? (
-				<Typography color="text.secondary">No addresses added yet.</Typography>
+				<Paper elevation={0} sx={insetSurfaceSx}>
+					<Typography color="text.secondary">No addresses added yet.</Typography>
+				</Paper>
 			) : (
 				addresses.map((address, index) => (
-					<Paper key={getAddressKey(address)} variant="outlined" sx={{ p: 2.5 }}>
+					<Paper key={getAddressKey(address)} elevation={0} sx={insetSurfaceSx}>
 						<Stack spacing={2}>
-							<Stack direction="row" justifyContent="space-between" alignItems="center">
-								<Typography variant="subtitle1">Address {index + 1}</Typography>
+							<Stack
+								direction={{ xs: 'column', sm: 'row' }}
+								justifyContent="space-between"
+								alignItems={{ xs: 'flex-start', sm: 'center' }}
+								spacing={1}
+							>
+								<div>
+									<Typography variant="subtitle1">Address {index + 1}</Typography>
+									<Typography variant="body2" color="text.secondary">
+										Optional location details for this person.
+									</Typography>
+								</div>
 								<IconButton
 									aria-label={`remove address ${index + 1}`}
 									onClick={() => handleRemoveAddress(index)}
 									disabled={disabled}
+									color="secondary"
 								>
 									<DeleteOutlineIcon />
 								</IconButton>

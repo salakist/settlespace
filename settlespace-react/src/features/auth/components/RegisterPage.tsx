@@ -8,7 +8,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { authCardSurfaceSx } from '../../../shared/theme/surfaceStyles';
+import { authCardSurfaceSx, BRAND_HEADER_SRC } from '../../../shared/theme/surfaceStyles';
 import PersonAddressEditor from '../../persons/components/PersonAddressEditor';
 import { Address, RegisterRequest } from '../../../shared/types';
 
@@ -61,23 +61,22 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
   return (
     <Box className="auth-shell">
       <Paper elevation={0} sx={{ ...authCardSurfaceSx, maxWidth: 560 }}>
-        <Stack spacing={3}>
-          <Box>
-            <Typography variant="overline" className="eyebrow">
-              First-Time Access
-            </Typography>
-            <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
-              Register
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Create your account and get signed in automatically.
-            </Typography>
-          </Box>
+        <Stack spacing={3} alignItems="center">
+          <Box
+            component="img"
+            src={BRAND_HEADER_SRC}
+            alt="SettleSpace header"
+            sx={{ width: '100%', maxWidth: 420, height: 'auto' }}
+          />
 
-          {error && <Alert severity="error">{error}</Alert>}
-          {validationError && <Alert severity="error">{validationError}</Alert>}
+          <Typography variant="h4" sx={{ fontWeight: 700, textAlign: 'center' }}>
+            Register
+          </Typography>
 
-          <form onSubmit={handleSubmit}>
+          {error && <Alert severity="error" sx={{ width: '100%' }}>{error}</Alert>}
+          {validationError && <Alert severity="error" sx={{ width: '100%' }}>{validationError}</Alert>}
+
+          <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
             <Stack spacing={2.5}>
               <TextField
                 label="First Name"
@@ -145,7 +144,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
                 Back to Login
               </Button>
             </Stack>
-          </form>
+          </Box>
 
           <Alert severity="info">
             Password rules: at least 8 characters, including uppercase, lowercase, number, and special character.

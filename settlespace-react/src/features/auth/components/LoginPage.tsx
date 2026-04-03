@@ -8,7 +8,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { authCardSurfaceSx } from '../../../shared/theme/surfaceStyles';
+import { authCardSurfaceSx, BRAND_HEADER_SRC } from '../../../shared/theme/surfaceStyles';
 
 interface LoginPageProps {
   onLogin: (username: string, password: string) => Promise<void>;
@@ -29,22 +29,21 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowRegister, error, l
   return (
     <Box className="auth-shell">
       <Paper elevation={0} sx={{ ...authCardSurfaceSx, maxWidth: 460 }}>
-        <Stack spacing={3}>
-          <Box>
-            <Typography variant="overline" className="eyebrow">
-              Secure Access
-            </Typography>
-            <Typography variant="h3" sx={{ fontWeight: 700, mb: 1 }}>
-              Sign In
-            </Typography>
-            <Typography variant="body1" color="text.secondary">
-              Authenticate to access the person manager.
-            </Typography>
-          </Box>
+        <Stack spacing={3} alignItems="center">
+          <Box
+            component="img"
+            src={BRAND_HEADER_SRC}
+            alt="SettleSpace header"
+            sx={{ width: '100%', maxWidth: 360, height: 'auto' }}
+          />
 
-          {error && <Alert severity="error">{error}</Alert>}
+          <Typography variant="h4" sx={{ fontWeight: 700, textAlign: 'center' }}>
+            Sign In
+          </Typography>
 
-          <form onSubmit={handleSubmit}>
+          {error && <Alert severity="error" sx={{ width: '100%' }}>{error}</Alert>}
+
+          <Box component="form" onSubmit={handleSubmit} sx={{ width: '100%' }}>
             <Stack spacing={2.5}>
               <TextField
                 label="Username"
@@ -71,11 +70,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowRegister, error, l
                 Create Account
               </Button>
             </Stack>
-          </form>
-
-          <Alert severity="info">
-            Username format: <strong>firstName.lastName</strong> (for example <strong>john.doe</strong>). Use the person's password.
-          </Alert>
+          </Box>
         </Stack>
       </Paper>
     </Box>

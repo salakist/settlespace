@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { Button, Container, CssBaseline, Paper, Stack, Tab, Tabs, Typography, ThemeProvider, createTheme } from '@mui/material';
+import { Box, Button, Container, CssBaseline, Paper, Stack, Tab, Tabs, ThemeProvider, createTheme } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
 import GroupIcon from '@mui/icons-material/Group';
 import PersonIcon from '@mui/icons-material/Person';
@@ -26,6 +26,7 @@ import {
   canUpdatePerson,
 } from '../shared/auth/permissions';
 import { Person } from '../shared/types';
+import { BRAND_HEADER_SRC } from '../shared/theme/surfaceStyles';
 
 const ROUTE_LOGIN = '/login';
 const ROUTE_REGISTER = '/register';
@@ -259,12 +260,12 @@ function App() {
       <div className="App">
         <Container maxWidth="md">
           <Stack sx={{ pt: 4, mb: 3 }} spacing={1.5}>
-            <Typography variant="overline" className="eyebrow">
-              Authenticated Session
-            </Typography>
-            <Typography variant="h3">
-              SettleSpace Person Manager
-            </Typography>
+            <Box
+              component="img"
+              src={BRAND_HEADER_SRC}
+              alt="SettleSpace header"
+              sx={{ width: { xs: '100%', sm: 320 }, maxWidth: '100%', height: 'auto' }}
+            />
 
             <Paper
               variant="outlined"

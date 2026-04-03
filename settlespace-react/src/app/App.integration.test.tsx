@@ -255,7 +255,7 @@ test('supports login, directory actions, profile actions, and logout', async () 
 
   fireEvent.click(screen.getByRole('button', { name: /submit login/i }));
 
-  expect(await screen.findByText(/SettleSpace Person Manager/i)).toBeInTheDocument();
+  expect(await screen.findByAltText(/SettleSpace header/i)).toBeInTheDocument();
   await waitFor(() => expect(mockPersonApi.getAll).toHaveBeenCalled());
   await waitFor(() => expect(mockPersonApi.getCurrent).toHaveBeenCalled());
 

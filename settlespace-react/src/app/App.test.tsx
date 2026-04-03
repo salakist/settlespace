@@ -196,7 +196,7 @@ test('renders authenticated shell and calls handleLogout on logout click', () =>
 
   render(<App />);
 
-  expect(screen.getByText(/SettleSpace Person Manager/i)).toBeInTheDocument();
+  expect(screen.getByAltText(/SettleSpace header/i)).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: /log out/i }));
 
   expect(handleLogout).toHaveBeenCalled();

@@ -5,6 +5,8 @@ export const SURFACE_BORDER_STRONG = '1px solid rgba(255,255,255,0.1)';
 export const SURFACE_SUBTLE_BACKGROUND = 'rgba(255,255,255,0.03)';
 export const SURFACE_MUTED_BACKGROUND = 'rgba(255,255,255,0.02)';
 export const SURFACE_INSET_BACKGROUND = 'rgba(255,255,255,0.04)';
+export const BRAND_LOGO_SRC = `${process.env.PUBLIC_URL}/settlespace-logo.png`;
+export const BRAND_HEADER_SRC = `${process.env.PUBLIC_URL}/settlespace-header.png`;
 
 export const pageHeroSurfaceSx: SxProps<Theme> = {
   p: { xs: 3, sm: 4 },
