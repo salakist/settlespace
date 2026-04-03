@@ -35,5 +35,5 @@ Infrastructure layer router for persistence implementation and shared serializat
 - Reference to `FoTestApi.Domain`
 
 ## Source-of-truth note
-Global repo policy is in root `AGENTS.md`. Context behavior is in nearest child AGENTS file.
-Mandatory commit checklist acceptance rules are defined only in root `AGENTS.md`.
+Repo-wide workflow and checklist policy are authoritative in root `AGENTS.md`.
+Infrastructure-context behavior is documented in the nearest child AGENTS file.

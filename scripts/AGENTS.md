@@ -1,77 +1,43 @@
 # scripts AGENTS Metadata
 
 ## Role
-Own repository quality-gate and hook automation scripts.
+Own repository quality-gate, hook, cleanup, and setup automation scripts.
+
+## Responsibilities
+- Keep high-level routing for the `checks/`, `hooks/`, `cleanup/`, `setup/`, and `lib/` areas.
+- Keep this parent file concise and route detailed gate semantics to `checks/AGENTS.md` and hook behavior to `hooks/AGENTS.md`.
+- Default agent sessions to the debug wrappers for quality-gate validation and to the non-destructive cleanup path for routine cleanup.
+- Keep script documentation aligned when entry points, hook installation, or agent-identity setup behavior changes.
 
 ## Scope
-- `checks/` - gate scripts (`run-checks.ps1`, `run-checks-debug.ps1`, `run-full-checks.ps1`, `run-full-checks-debug.ps1`).
-- `cleanup/` - cleanup scripts (`cleanup.ps1`, `cleanup-full.ps1`).
-- `setup/` - setup scripts (`setup-hooks.ps1`, `set-agent-git-identity.ps1`, `seed-dev-data.ps1`).
-- `run-full-checks-debug.ps1` - full-base wrapper with mandatory log capture.
-- `cleanup.ps1` - default light cleanup for routine artifact cleanup.
-- `cleanup-full.ps1` - explicit full cleanup for destructive repository reset.
-- `setup-hooks.ps1` - local git hook installation and refresh.
-- `set-agent-git-identity.ps1` - configures or clears the repo-local Git identity used for agent-authored commits.
-- `seed-dev-data.ps1` - manual local seed script for persons and transactions API data.
-- `lib/` - shared PowerShell helper scripts used by root entry points, including cleanup mutualization in `lib/cleanup.ps1`.
-- `hooks/` - hook source templates copied to `.git/hooks`; `hooks/pre-commit` remains a minimal shell launcher for Git compatibility and invokes PowerShell, while `hooks/commit-msg` enforces local agent commit attribution.
-- `check-coverage.mjs` - shared coverage evaluator for changed/full modes.
-- `package.json` / `.eslintrc.json` - local repo-script lint configuration for Node JS/MJS files under `scripts/`.
+- `checks/` - quality gate entry points and debug wrappers (see `scripts/checks/AGENTS.md`)
+- `hooks/` - `pre-commit` and `commit-msg` source templates (see `scripts/hooks/AGENTS.md`)
+- `cleanup/` - cleanup scripts (`cleanup.ps1`, `cleanup-full.ps1`)
+- `setup/` - setup scripts (`setup-hooks.ps1`, `set-agent-git-identity.ps1`, `seed-dev-data.ps1`)
+- `lib/` - shared PowerShell helper scripts used by the root entry points
+- `check-coverage.mjs`, `package.json`, `.eslintrc.json` - repo-script lint and coverage support files
 
 ## Agent policy
 1. Quality gate execution is mandatory before commit/push unless Step 1 is validly `SKIPPED` under root `AGENTS.md` checklist rules.
-  1.1 Agents must run debug wrappers, not base gate scripts: `./scripts/checks/run-checks-debug.ps1`.
+  1.1 Agents should run `./scripts/checks/run-checks-debug.ps1` for normal commit validation.
   1.2 Use `./scripts/checks/run-full-checks-debug.ps1` only when full-base analysis is requested.
-  1.2.1 Optional SonarScanner parity analysis belongs only in the full-base gate flow, never in the changed-code pre-commit gate.
-  1.2.2 Enable optional SonarScanner parity analysis only when `SONAR_SCANNER_ENABLED=1` (or `true`) and `SONAR_TOKEN` is available.
-    - These values may be provided as environment variables in the calling shell or via a repo-root `.env` file loaded by `run-full-checks` scripts.
-  1.2.3 Optional SonarScanner parity analysis requires SonarCloud Automatic Analysis to be disabled for the bound project.
-  1.2.4 Optional SonarScanner parity analysis must wait for the remote quality gate result and fail the full-base gate when SonarCloud reports a failed analysis or failed quality gate.
-  1.2.5 On Sonar failure, scripts should print a compact issue or technical-error summary that is directly actionable in agent sessions.
-    - If the failed quality gate includes unreviewed security hotspots, print the most likely hotspot location returned by SonarCloud.
-    - If the failed quality gate includes a coverage condition, print the 10 lowest covered files returned by SonarCloud for the analyzed branch.
-    - If Sonar reports any duplication, print a warning summary with duplication metrics and top duplicated files.
-  1.2.6 On successful full-base Sonar parity runs, scripts should still print unresolved maintainability/code-smell issues for the analyzed branch so non-blocking debt remains visible in agent sessions.
-  1.3 Git hooks should continue invoking base scripts (do not rewrite hooks to call debug wrappers by default).
-  1.4 Never suggest bypassing hooks with `--no-verify`.
-  1.5 For cleanup tasks, agents must default to `./scripts/cleanup/cleanup.ps1`.
-  1.6 Agents may run `./scripts/cleanup/cleanup-full.ps1 -Force` only when the user explicitly requests full/destructive cleanup.
-  1.7 Agent-authored commits must use the repo-local agent identity configured via `./scripts/setup/set-agent-git-identity.ps1` rather than a contributor's personal identity.
-  1.8 Agent-authored commits must include `Agent: GitHub Copilot`; `Reviewed-by:` may also be enforced when `fotest.requireReviewedBy=true`.
-  1.9 `hooks/commit-msg` is the authoritative local enforcement point for the agent commit attribution policy and must remain lightweight and shell-compatible.
-2. After gates pass and before commit, documentation updates are mandatory for the same change set.
-  2.1 Update only documentation relevant to the actual changes.
-  2.2 Typical targets include module `AGENTS.md` files, route notes, behavior notes, and test guidance.
-3. Every commit attempt must include the mandatory 2-step checklist defined in root `AGENTS.md`.
-  3.1 Do not redefine checklist acceptance rules in this file.
-  3.2 If script behavior changes impact commit workflow, update root `AGENTS.md` checklist policy first.
-  3.3 Agents must display Step 1 and Step 2 states in chat immediately before any `git commit` command.
-    - Terminal output printed by the commit command itself does not satisfy this requirement.
-  3.4 If checklist output is missing or stale, agents must refresh and display it before committing.
-
-## Logging rules
-- Debug wrappers must write timestamped logs to `artifacts/logs/`.
-- Wrapper success/failure output must print the resolved log path.
-- Keep log naming stable (`run-checks-<timestamp>.log`, `run-full-checks-<timestamp>.log`).
-
-## Gate intent
-- Changed-code gate enforces quality only on changed production scope.
-- Full-base gate enforces quality across the full production codebase.
-- Optional Sonar parity in the full-base gate now surfaces unresolved maintainability/code-smell issues even when the Sonar step passes, while keeping failure diagnostics for gate-breaking conditions.
-- C# analyzer steps use solution rebuilds to avoid incremental-build false negatives.
-- JavaScript analysis is intentionally split between the React app lint track and the repo-script lint track so failures stay local to their runtime context.
-- Coverage threshold remains 80% unless explicitly changed by repository policy.
+  1.3 Never suggest bypassing hooks with `--no-verify`.
+  1.4 For cleanup tasks, default to `./scripts/cleanup/cleanup.ps1`; use `cleanup-full.ps1 -Force` only when the user explicitly requests destructive cleanup.
+  1.5 Agent-authored commits must use the repo-local agent identity configured via `./scripts/setup/set-agent-git-identity.ps1`.
+2. After gates pass and before commit, update only documentation relevant to the same change set.
+3. Do not redefine the root checklist acceptance rules in this file.
 
 ## Local prerequisites
-- Repo-script lint track depends on `scripts/package.json` dev dependencies.
-- Ensure `cd scripts && npm install` has been run on developer machines before running quality gates.
-- Optional Sonar parity can be configured in a repo-root `.env` file (`SONAR_SCANNER_ENABLED`, `SONAR_TOKEN`) to avoid setting variables manually each run.
+- Repo-script linting depends on the dev dependencies from `scripts/package.json`.
+- Ensure `cd scripts && npm install` has been run on developer machines before running script quality gates.
+- Install the local hooks with `./scripts/setup/setup-hooks.ps1`.
+- Optional Sonar parity environment configuration applies only to the full-base gate; see `scripts/checks/AGENTS.md`.
 
 ## Update checklist
 When editing any script in this folder:
-1. Keep the PowerShell entry points authoritative; only the minimal `hooks/pre-commit` launcher remains shell-based.
-2. Update related wrapper/help text if command behavior changes.
-3. Verify docs alignment in `AGENTS.md` and `README.md` if command usage changes.
+1. Keep the PowerShell entry points authoritative and the hook launchers minimal and shell-compatible.
+2. Update related docs/help text if behavior changes.
+3. Verify alignment in `AGENTS.md` and `README.md` when command usage changes.
 4. If `scripts/package.json` changes, refresh and commit `scripts/package-lock.json`.
 5. Run the changed-code debug wrapper before commit.
 
@@ -79,7 +45,6 @@ When editing any script in this folder:
 ```powershell
 .\scripts\checks\run-checks-debug.ps1
 .\scripts\checks\run-full-checks-debug.ps1
-.\scripts\checks\run-full-checks-debug.ps1   # optional Sonar parity: use shell env vars or repo-root .env
 .\scripts\cleanup\cleanup.ps1
 .\scripts\cleanup\cleanup.ps1 -DryRun
 .\scripts\cleanup\cleanup-full.ps1 -Force
@@ -90,5 +55,14 @@ When editing any script in this folder:
 .\scripts\setup\seed-dev-data.ps1
 cd scripts; npm install
 ```
+
+## Dependencies
+- PowerShell and Git for the local automation entry points and hook installation
+- .NET SDK for backend build/test and analyzer steps triggered by the gates
+- Node/npm for the repo-script lint track and coverage helpers
+
+## Source-of-truth note
+Repo-wide commit workflow, checklist rules, and agent commit attribution policy are authoritative in root `AGENTS.md`.
+Detailed quality-gate behavior lives in `scripts/checks/AGENTS.md`, and hook behavior lives in `scripts/hooks/AGENTS.md`.
 
 

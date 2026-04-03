@@ -35,6 +35,9 @@ FoTestApi.sln
 - `FoTestApi.Infrastructure/AGENTS.md`
 - `fotest-react/AGENTS.md`
 - `scripts/AGENTS.md`
+- `scripts/checks/AGENTS.md`
+- `scripts/hooks/AGENTS.md`
+- `Tests/AGENTS.md`
 - `Tests/FoTestApi.Application.Tests/AGENTS.md`
 - `Tests/FoTestApi.Domain.Tests/AGENTS.md`
 - `Tests/FoTestApi.Infrastructure.Tests/AGENTS.md`
@@ -89,8 +92,11 @@ Every new or substantially updated AGENTS file should contain:
 6. `Source-of-truth note`
 
 ## Documentation source of truth
-- Repository architecture and commit workflow policy: this file.
-- Gate script behavior and wrappers: `scripts/AGENTS.md`.
+- Repository architecture, commit workflow policy, and agent commit identity policy: this file.
+- Scripts routing, setup, and cleanup guidance: `scripts/AGENTS.md`.
+- Quality-gate behavior and debug-wrapper intent: `scripts/checks/AGENTS.md`.
+- Hook behavior and local attribution enforcement: `scripts/hooks/AGENTS.md`.
+- Shared test-project policy: `Tests/AGENTS.md`.
 - User-facing setup and API examples: `README.md`.
 - Module and context behavior: nearest module/context/feature `AGENTS.md`.
 

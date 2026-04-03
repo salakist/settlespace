@@ -1,20 +1,23 @@
 # FoTestApi.Domain.Tests AGENTS Metadata
 
 ## Role
-Unit test project for the Domain layer. Tests pure business logic with no mocking required.
+Unit test project for the Domain layer. Tests business invariants, value objects, and domain services with minimal infrastructure involvement.
+
+## Responsibilities
+- Keep pure-domain validation rules and service contracts tested close to the domain test project.
+- Prefer direct tests of real domain behavior over mocks whenever the type under test is pure.
+- Use mocks only at domain service boundaries that depend on repository contracts.
 
 ## Test coverage
-- `PersonTests` — `Validate()` (valid, empty/whitespace first/last name, optional field validations, future date rejection, invalid address rejection) and `MatchesByFullName()` (same, different case, different names)
-- `AddressTests` — address validation rules for required fields and postal-code formats
-- `PersonDomainServiceTests` — `EnsureUniqueAsync()` (no duplicate, duplicate throws, excludeId same person, excludeId different person)
-- `PasswordGeneratorTests` — generated passwords satisfy strength and randomness expectations
-- `PasswordValidatorTests` — password strength policy behavior and weak-password failures
-- `PasswordHashingServiceTests` — hashing never returns plaintext and verification succeeds/fails correctly
+- `PersonTests` / `AddressTests` — aggregate and value-object validation rules, optional field validation, and name/address matching behavior
+- `PersonDomainServiceTests` — `EnsureUniqueAsync()` duplicate and `excludeId` behavior
+- `PasswordGeneratorTests`, `PasswordValidatorTests`, `PasswordHashingServiceTests` — password generation, validation, hashing, and verification behavior
+- `TransactionTests`, `TransactionDomainServiceTests`, `TransactionExceptionsTests` — transaction invariants, service rules, and exception behavior
 
 ## Test strategy
-- `Person` is a plain object — tested directly, no mocks
-- `PersonDomainService` depends on `IPersonRepository`, which is mocked via Moq
-- `PasswordGeneratorTests` intentionally instantiate `PasswordValidator` directly to assert real generator/validator compatibility
+- Pure domain objects are tested directly without mocks.
+- Domain services use mocked repository contracts only where collaboration boundaries require them.
+- Password generator/validator compatibility is checked with real implementations where that provides stronger behavior coverage.
 
 ## Key files
 - `Persons/Entities/PersonTests.cs`
@@ -30,21 +33,10 @@ Unit test project for the Domain layer. Tests pure business logic with no mockin
 ## Commands
 - `dotnet test Tests/FoTestApi.Domain.Tests/FoTestApi.Domain.Tests.csproj`
 
-## Build/Test Artifact Inventory
-- Project-local test artifacts: `Tests/FoTestApi.Domain.Tests/artifacts/`.
-- Project-local build outputs: `Tests/FoTestApi.Domain.Tests/bin/` and `Tests/FoTestApi.Domain.Tests/obj/`.
-- Repository-level quality-gate logs and coverage aggregates: `artifacts/logs/` and `artifacts/coverage/`.
-
-## Gitignore ownership
-- Root `.gitignore` is authoritative for shared `bin/`, `obj/`, and `Tests/**/artifacts/` patterns.
-- For cleanup/read requests, inspect this test project folder plus repository `artifacts/` outputs.
-
 ## Dependencies
 - `xunit`, `Moq`
 - Project reference: `FoTestApi.Domain`
 
 ## Source-of-truth note
-Domain context behavior under test is documented in:
-- `FoTestApi.Domain/Auth/AGENTS.md`
-- `FoTestApi.Domain/Persons/AGENTS.md`
-- `FoTestApi.Domain/Transactions/AGENTS.md`
+Shared test artifact and gitignore policy are documented in `Tests/AGENTS.md`.
+Domain behavior under test is documented in the nearest `FoTestApi.Domain/*/AGENTS.md` files.

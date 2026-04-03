@@ -1,17 +1,22 @@
 # FoTestApi.Infrastructure.Tests AGENTS Metadata
 
 ## Role
-Unit test project for the Infrastructure layer. Tests `PersonRepository` without a live MongoDB instance.
+Unit test project for the Infrastructure layer. Tests persistence and serialization behavior without requiring a live MongoDB instance.
+
+## Responsibilities
+- Keep repository, serializer, and infrastructure-settings guidance local to the infrastructure test project.
+- Verify Mongo-backed repository behavior using isolated mocks instead of live database dependencies.
+- Keep serializer and configuration-model coverage close to the infrastructure layer.
 
 ## Test coverage
-- `PersonRepositoryTests` — all repository methods: `GetAllAsync`, `GetByIdAsync`, `SearchAsync` (empty and non-empty query), `FindByFullNameAsync`, `AddAsync`, `UpdateAsync`, `DeleteAsync`
-- `DateOnlyAsStringSerializerTests` — BSON string serialization/deserialization for `DateOnly` values and invalid BSON type rejection
+- `PersonRepositoryTests` / `TransactionRepositoryTests` — repository CRUD and query behavior using mocked Mongo collection/cursor abstractions
+- `DateOnlyAsStringSerializerTests` — BSON string serialization/deserialization for `DateOnly` and invalid-type rejection
 - `FoTestDatabaseSettingsTests` — configuration model property coverage
 
 ## Test strategy
-- Uses the `internal PersonRepository(IMongoCollection<Person>)` constructor to inject a mock collection
-- `IMongoCollection<T>` is mocked via Moq; `IAsyncCursor<T>` is mocked to simulate MongoDB query results
-- `InternalsVisibleTo` is declared in `FoTestApi.Infrastructure.csproj` to enable access to the internal constructor
+- Repository tests inject mocked `IMongoCollection<T>` and `IAsyncCursor<T>` instances through the internal test constructor.
+- `InternalsVisibleTo` in `FoTestApi.Infrastructure.csproj` enables direct testing of the repository constructor surface used for isolation.
+- Serializer and settings tests exercise the real implementation directly.
 
 ## Key files
 - `Persons/PersonRepositoryTests.cs`
@@ -22,20 +27,10 @@ Unit test project for the Infrastructure layer. Tests `PersonRepository` without
 ## Commands
 - `dotnet test Tests/FoTestApi.Infrastructure.Tests/FoTestApi.Infrastructure.Tests.csproj`
 
-## Build/Test Artifact Inventory
-- Project-local test artifacts: `Tests/FoTestApi.Infrastructure.Tests/artifacts/`.
-- Project-local build outputs: `Tests/FoTestApi.Infrastructure.Tests/bin/` and `Tests/FoTestApi.Infrastructure.Tests/obj/`.
-- Repository-level quality-gate logs and coverage aggregates: `artifacts/logs/` and `artifacts/coverage/`.
-
-## Gitignore ownership
-- Root `.gitignore` is authoritative for shared `bin/`, `obj/`, and `Tests/**/artifacts/` patterns.
-- For cleanup/read requests, inspect this test project folder plus repository `artifacts/` outputs.
-
 ## Dependencies
 - `xunit`, `Moq`, `MongoDB.Driver`
 - Project references: `FoTestApi.Domain`, `FoTestApi.Infrastructure`
 
 ## Source-of-truth note
-Infrastructure context behavior under test is documented in:
-- `FoTestApi.Infrastructure/Persons/AGENTS.md`
-- `FoTestApi.Infrastructure/Transactions/AGENTS.md`
+Shared test artifact and gitignore policy are documented in `Tests/AGENTS.md`.
+Infrastructure behavior under test is documented in the nearest `FoTestApi.Infrastructure/*/AGENTS.md` files.
