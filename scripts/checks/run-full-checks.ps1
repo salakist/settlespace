@@ -34,7 +34,7 @@ New-Item -ItemType Directory -Path (Join-Path $CSharpCoverageRoot "infrastructur
 New-Item -ItemType Directory -Path (Join-Path $CSharpCoverageRoot "application") -Force | Out-Null
 
 Write-Header "[1/5] C# full-base build + code-smell analysis"
-dotnet build FoTestApi.sln -t:Rebuild /p:TreatWarningsAsErrors=true
+dotnet build SettleSpace.sln -t:Rebuild /p:TreatWarningsAsErrors=true
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
     Write-Host "[FAIL] Full-base C# build has analyzer violations." -ForegroundColor Red
@@ -45,9 +45,9 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Header "[2/5] C# full-base coverage (threshold: 80%)"
 
-$DomainExit = Invoke-CSharpCoverage "Tests\FoTestApi.Domain.Tests\FoTestApi.Domain.Tests.csproj" (Join-Path $CSharpCoverageRoot "domain\coverage")
-$InfrastructureExit = Invoke-CSharpCoverage "Tests\FoTestApi.Infrastructure.Tests\FoTestApi.Infrastructure.Tests.csproj" (Join-Path $CSharpCoverageRoot "infrastructure\coverage")
-$ApplicationExit = Invoke-CSharpCoverage "Tests\FoTestApi.Application.Tests\FoTestApi.Application.Tests.csproj" (Join-Path $CSharpCoverageRoot "application\coverage")
+$DomainExit = Invoke-CSharpCoverage "Tests\SettleSpace.Domain.Tests\SettleSpace.Domain.Tests.csproj" (Join-Path $CSharpCoverageRoot "domain\coverage")
+$InfrastructureExit = Invoke-CSharpCoverage "Tests\SettleSpace.Infrastructure.Tests\SettleSpace.Infrastructure.Tests.csproj" (Join-Path $CSharpCoverageRoot "infrastructure\coverage")
+$ApplicationExit = Invoke-CSharpCoverage "Tests\SettleSpace.Application.Tests\SettleSpace.Application.Tests.csproj" (Join-Path $CSharpCoverageRoot "application\coverage")
 
 if ($DomainExit -ne 0 -or $InfrastructureExit -ne 0 -or $ApplicationExit -ne 0) {
     Write-Host ""
@@ -73,7 +73,7 @@ if ($DomainExit -ne 0 -or $InfrastructureExit -ne 0 -or $ApplicationExit -ne 0) 
 }
 
 Write-Header "[3/5] React/TS full-base ESLint"
-Set-Location "$RepoRoot\fotest-react"
+Set-Location "$RepoRoot\settlespace-react"
 npx eslint src --ext .ts,.tsx --max-warnings=0
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
@@ -95,7 +95,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 Write-Header "[5/5] React/TS full-base coverage (threshold: 80%)"
-Set-Location "$RepoRoot\fotest-react"
+Set-Location "$RepoRoot\settlespace-react"
 $env:CI = "true"
 npm test -- --coverage --coverageReporters=json-summary --coverageReporters=lcov --watchAll=false --runInBand
 if ($LASTEXITCODE -ne 0) {
@@ -108,7 +108,7 @@ if ($LASTEXITCODE -ne 0) {
         --scope full `
         --repo-root $RepoRoot `
         --threshold 80 `
-        --report (Join-Path $RepoRoot "fotest-react\coverage\coverage-summary.json")
+        --report (Join-Path $RepoRoot "settlespace-react\coverage\coverage-summary.json")
 
     if ($LASTEXITCODE -ne 0) {
         Write-Host ""

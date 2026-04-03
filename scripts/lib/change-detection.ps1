@@ -5,12 +5,14 @@ function Get-UniqueLines([string[]]$Lines) {
 function Get-ChangedContext {
     param()
 
-    $staged = Get-UniqueLines @(git diff --cached --name-only --diff-filter=ACMR)
+    # Exclude rename-only paths here. Large rename/rebrand work is validated with the full-base gate,
+    # while the changed-code gate should stay focused on net-new or modified content.
+    $staged = Get-UniqueLines @(git diff --cached --name-only --diff-filter=ACM)
     if ($staged.Count -gt 0) {
         return @{ Source = "staged changes"; Files = $staged }
     }
 
-    $workingTree = Get-UniqueLines @(git diff --name-only --diff-filter=ACMR HEAD 2>$null)
+    $workingTree = Get-UniqueLines @(git diff --name-only --diff-filter=ACM HEAD 2>$null)
     $untracked = Get-UniqueLines @(git ls-files --others --exclude-standard)
     $workingFiles = Get-UniqueLines @($workingTree + $untracked)
     if ($workingFiles.Count -gt 0) {
@@ -33,11 +35,11 @@ function Get-ChangedContext {
 }
 
 function Is-ProductionCSharpFile([string]$Path) {
-    return $Path -match '^FoTestApi\.(Application|Domain|Infrastructure)/.*\.cs$' -and $Path -notmatch '/Program\.cs$'
+    return $Path -match '^SettleSpace\.(Application|Domain|Infrastructure)/.*\.cs$' -and $Path -notmatch '/Program\.cs$'
 }
 
 function Is-ReactFile([string]$Path) {
-    return $Path -match '^fotest-react/src/.*\.(ts|tsx)$'
+    return $Path -match '^settlespace-react/src/.*\.(ts|tsx)$'
 }
 
 function Is-ProductionReactFile([string]$Path) {

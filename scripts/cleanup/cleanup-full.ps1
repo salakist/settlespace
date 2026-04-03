@@ -33,8 +33,8 @@ if ($DryRun) {
 Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'artifacts' -Result $result -DryRun $DryRun.IsPresent
 Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath '.scannerwork' -Result $result -DryRun $DryRun.IsPresent
 Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath '.vs' -Result $result -DryRun $DryRun.IsPresent
-Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'fotest-react\coverage' -Result $result -DryRun $DryRun.IsPresent
-Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'fotest-react\build' -Result $result -DryRun $DryRun.IsPresent
+Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'settlespace-react\coverage' -Result $result -DryRun $DryRun.IsPresent
+Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'settlespace-react\build' -Result $result -DryRun $DryRun.IsPresent
 Remove-StandardTestArtifacts -RepoRoot $RepoRoot -Result $result -DryRun $DryRun.IsPresent
 Remove-RepoDirectoriesByName -RepoRoot $RepoRoot -DirectoryNames @('bin', 'obj', 'node_modules') -Result $result -DryRun $DryRun.IsPresent
 

@@ -14,27 +14,27 @@ fi
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null)"
 if [ -z "$REPO_ROOT" ]; then
-  echo "ERROR: Unable to determine the fo-test repository root."
+  echo "ERROR: Unable to determine the settlespace repository root."
   exit 1
 fi
 
 cd "$REPO_ROOT" || exit 1
 
-AGENT_NAME="$(git config --get fotest.agentName 2>/dev/null)"
-AGENT_EMAIL="$(git config --get fotest.agentEmail 2>/dev/null)"
-AGENT_TRAILER_VALUE="$(git config --get fotest.agentTrailer 2>/dev/null)"
-REQUIRE_REVIEWED_BY="$(git config --bool --get fotest.requireReviewedBy 2>/dev/null)"
+AGENT_NAME="$(git config --get settlespace.agentName 2>/dev/null)"
+AGENT_EMAIL="$(git config --get settlespace.agentEmail 2>/dev/null)"
+AGENT_TRAILER_VALUE="$(git config --get settlespace.agentTrailer 2>/dev/null)"
+REQUIRE_REVIEWED_BY="$(git config --bool --get settlespace.requireReviewedBy 2>/dev/null)"
 AUTHOR_NAME="$(git config --get user.name 2>/dev/null)"
 AUTHOR_EMAIL="$(git config --get user.email 2>/dev/null)"
 COMMITLINT_PREFIX="$REPO_ROOT/scripts"
 COMMITLINT_CONFIG="$COMMITLINT_PREFIX/commitlint.config.cjs"
 
 if [ -z "$AGENT_NAME" ]; then
-  AGENT_NAME="fo-test-agent"
+  AGENT_NAME="settlespace-agent"
 fi
 
 if [ -z "$AGENT_EMAIL" ]; then
-  AGENT_EMAIL="fo-test-agent@local"
+  AGENT_EMAIL="settlespace-agent@local"
 fi
 
 if [ -z "$AGENT_TRAILER_VALUE" ]; then
@@ -104,7 +104,7 @@ if grep -Eqi '^Reviewed-by:[[:space:]].+' "$COMMIT_MSG_FILE"; then
 fi
 
 if [ "$IS_AGENT_AUTHOR" -eq 1 ] && [ "$HAS_EXPECTED_AGENT_TRAILER" -ne 1 ]; then
-  echo "ERROR: Agent-authored commits in fo-test must include the trailer '$EXPECTED_AGENT_LINE'."
+  echo "ERROR: Agent-authored commits in settlespace must include the trailer '$EXPECTED_AGENT_LINE'."
   echo ""
   echo "Current identity:"
   echo "  user.name  = ${AUTHOR_NAME:-<unset>}"

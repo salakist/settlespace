@@ -20,7 +20,7 @@ Make commits created by an agent in this repository clearly identifiable while k
 Before implementation, choose the following values:
 
 1. **Bot display name**
-   - Recommended: `fo-test-agent`
+   - Recommended: `settlespace-agent`
 
 2. **Bot email**
    - Option A: local placeholder email for a fast rollout

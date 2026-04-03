@@ -17,7 +17,7 @@ else
 fi
 
 if [ ! -f "scripts/checks/run-checks.ps1" ]; then
-  echo "ERROR: scripts/checks/run-checks.ps1 not found. Is this the fo-test repo root?"
+  echo "ERROR: scripts/checks/run-checks.ps1 not found. Is this the settlespace repo root?"
   exit 1
 fi
 

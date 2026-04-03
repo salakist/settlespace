@@ -33,7 +33,7 @@ function Test-HookInstalled {
 }
 
 if (-not (Test-Path $GitHooksDir)) {
-    Write-Error "ERROR: .git\hooks directory not found. Are you in the fo-test repository?"
+    Write-Error "ERROR: .git\hooks directory not found. Are you in the settlespace repository?"
     exit 1
 }
 

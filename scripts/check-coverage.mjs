@@ -229,7 +229,7 @@ function toRepoRelativePath(filePath, repoRoot) {
     return normalizedFilePath.slice(normalizedRepoRoot.length + 1);
   }
 
-  const match = normalizedFilePath.match(/(FoTestApi\.(?:Application|Domain|Infrastructure)\/.*\.cs|fotest-react\/src\/.*\.(?:ts|tsx))/i);
+  const match = normalizedFilePath.match(/(SettleSpace\.(?:Application|Domain|Infrastructure)\/.*\.cs|settlespace-react\/src\/.*\.(?:ts|tsx))/i);
   return match ? match[1] : normalizedFilePath;
 }
 
@@ -248,7 +248,7 @@ function readChangedFiles(changedListPath) {
 
 function isProductionCSharpFile(relativePath) {
   const normalized = normalizePath(relativePath);
-  return /^(FoTestApi\.(Application|Domain|Infrastructure))\/.*\.cs$/i.test(normalized)
+  return /^(SettleSpace\.(Application|Domain|Infrastructure))\/.*\.cs$/i.test(normalized)
     && !/\/Program\.cs$/i.test(normalized)
     && !/\/(bin|obj)\//i.test(normalized);
 }
@@ -265,7 +265,7 @@ function fileLikelyHasExecutableCSharp(filePath, repoRoot) {
 
 function isProductionReactFile(relativePath) {
   const normalized = normalizePath(relativePath);
-  return /^fotest-react\/src\/.*\.(ts|tsx)$/i.test(normalized)
+  return /^settlespace-react\/src\/.*\.(ts|tsx)$/i.test(normalized)
     && !/\.test\.(ts|tsx)$/i.test(normalized)
     && !/\/__mocks__\//i.test(normalized)
     && !/\/setupTests\.ts$/i.test(normalized)
@@ -470,7 +470,7 @@ function loadReactSummary(reportPath, repoRoot) {
 
     const normalizedKey = normalizePath(key);
     const relativePath = normalizedKey.toLowerCase().startsWith("src/")
-      ? `fotest-react/${normalizedKey}`
+      ? `settlespace-react/${normalizedKey}`
       : toRepoRelativePath(key, repoRoot);
 
     summary.set(relativePath, value.lines ?? { total: 0, covered: 0, pct: 0 });

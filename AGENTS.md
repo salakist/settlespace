@@ -5,12 +5,12 @@ This repository uses nested AGENTS files so agents can load the narrowest releva
 ## Solution structure
 
 ```
-FoTestApi.sln
-+-- FoTestApi.Domain/
-+-- FoTestApi.Infrastructure/
-+-- FoTestApi.Application/
+SettleSpace.sln
++-- SettleSpace.Domain/
++-- SettleSpace.Infrastructure/
++-- SettleSpace.Application/
 +-- Tests/
-+-- fotest-react/
++-- settlespace-react/
 ```
 
 ## Routing model
@@ -30,36 +30,36 @@ FoTestApi.sln
 
 ### Root and module routers
 - `AGENTS.md`
-- `FoTestApi.Application/AGENTS.md`
-- `FoTestApi.Domain/AGENTS.md`
-- `FoTestApi.Infrastructure/AGENTS.md`
-- `fotest-react/AGENTS.md`
+- `SettleSpace.Application/AGENTS.md`
+- `SettleSpace.Domain/AGENTS.md`
+- `SettleSpace.Infrastructure/AGENTS.md`
+- `settlespace-react/AGENTS.md`
 - `scripts/AGENTS.md`
 - `scripts/checks/AGENTS.md`
 - `scripts/hooks/AGENTS.md`
 - `Tests/AGENTS.md`
-- `Tests/FoTestApi.Application.Tests/AGENTS.md`
-- `Tests/FoTestApi.Domain.Tests/AGENTS.md`
-- `Tests/FoTestApi.Infrastructure.Tests/AGENTS.md`
+- `Tests/SettleSpace.Application.Tests/AGENTS.md`
+- `Tests/SettleSpace.Domain.Tests/AGENTS.md`
+- `Tests/SettleSpace.Infrastructure.Tests/AGENTS.md`
 
 ### Backend context AGENTS
-- `FoTestApi.Application/Authentication/AGENTS.md`
-- `FoTestApi.Application/Persons/AGENTS.md`
-- `FoTestApi.Application/Transactions/AGENTS.md`
-- `FoTestApi.Application/Middleware/AGENTS.md`
-- `FoTestApi.Domain/Auth/AGENTS.md`
-- `FoTestApi.Domain/Persons/AGENTS.md`
-- `FoTestApi.Domain/Transactions/AGENTS.md`
-- `FoTestApi.Infrastructure/Persons/AGENTS.md`
-- `FoTestApi.Infrastructure/Transactions/AGENTS.md`
+- `SettleSpace.Application/Authentication/AGENTS.md`
+- `SettleSpace.Application/Persons/AGENTS.md`
+- `SettleSpace.Application/Transactions/AGENTS.md`
+- `SettleSpace.Application/Middleware/AGENTS.md`
+- `SettleSpace.Domain/Auth/AGENTS.md`
+- `SettleSpace.Domain/Persons/AGENTS.md`
+- `SettleSpace.Domain/Transactions/AGENTS.md`
+- `SettleSpace.Infrastructure/Persons/AGENTS.md`
+- `SettleSpace.Infrastructure/Transactions/AGENTS.md`
 
 ### Frontend feature AGENTS
-- `fotest-react/src/features/auth/AGENTS.md`
-- `fotest-react/src/features/home/AGENTS.md`
-- `fotest-react/src/features/persons/AGENTS.md`
-- `fotest-react/src/features/profile/AGENTS.md`
-- `fotest-react/src/features/transactions/AGENTS.md`
-- `fotest-react/src/features/debts/AGENTS.md`
+- `settlespace-react/src/features/auth/AGENTS.md`
+- `settlespace-react/src/features/home/AGENTS.md`
+- `settlespace-react/src/features/persons/AGENTS.md`
+- `settlespace-react/src/features/profile/AGENTS.md`
+- `settlespace-react/src/features/transactions/AGENTS.md`
+- `settlespace-react/src/features/debts/AGENTS.md`
 
 ## Build/Test Artifact Inventory
 - Shared build outputs: `**/bin/`, `**/obj/`.
@@ -105,23 +105,23 @@ Checklist authority note:
 - Other AGENTS files may reference the checklist but must not redefine checklist acceptance rules.
 
 ## Testing
-- Run all tests: `dotnet test FoTestApi.sln`.
-- Frontend CI tests: `npm run test:ci` from `fotest-react/`.
+- Run all tests: `dotnet test SettleSpace.sln`.
+- Frontend CI tests: `npm run test:ci` from `settlespace-react/`.
 
 ## Running the API host
-- From repository root: `dotnet run --project .\\FoTestApi.Application\\FoTestApi.Application.csproj`.
-- If cwd is one level above repo: `dotnet run --project .\\fo-test\\FoTestApi.Application\\FoTestApi.Application.csproj`.
+- From repository root: `dotnet run --project .\\SettleSpace.Application\\SettleSpace.Application.csproj`.
+- If cwd is one level above repo: `dotnet run --project .\\settlespace\\SettleSpace.Application\\SettleSpace.Application.csproj`.
 
 ## Agent Commit Identity Policy
 When an agent creates a commit in this repository:
 1. Use the dedicated repo-local agent identity instead of a contributor's personal Git identity.
-  - Default local values: `fo-test-agent` / `fo-test-agent@local`.
+  - Default local values: `settlespace-agent` / `settlespace-agent@local`.
   - Configure it with `./scripts/setup/set-agent-git-identity.ps1`.
   - Return to the normal inherited Git identity with `./scripts/setup/set-agent-git-identity.ps1 -ClearLocalIdentity`.
 2. Use a Conventional Commit summary line in the form `<type>(<optional scope>)!: <description>`.
   - Supported local types are `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, and `ops`.
 3. Include the trailer `Agent: GitHub Copilot` in the commit message.
-  - `Reviewed-by:` remains optional unless local config explicitly enables `fotest.requireReviewedBy=true`.
+  - `Reviewed-by:` remains optional unless local config explicitly enables `settlespace.requireReviewedBy=true`.
 4. Local enforcement is authoritative through `scripts/hooks/commit-msg`, installed by `./scripts/setup/setup-hooks.ps1`.
 5. Human-authored commits must not include an `Agent:` trailer unless they are intentionally using the configured agent identity.
 
@@ -145,7 +145,7 @@ Checklist output (required before `git commit`):
 Checklist acceptance rules:
 1. If a step is `SKIPPED`, include a one-line reason.
 2. Step 1 may be `SKIPPED` only when there are no production code changes since the latest successful Step 1 run, and the latest log path is provided.
-  - Production code changes means staged or unstaged edits in implementation source files under `FoTestApi.Domain/`, `FoTestApi.Infrastructure/`, `FoTestApi.Application/`, `fotest-react/src/`, and runtime quality-gate script code/config under `scripts/` (for example `*.ps1`, `hooks/pre-commit`, `*.mjs`, `*.js`, `package.json`, `.eslintrc.json`), excluding test files and documentation-only changes.
+  - Production code changes means staged or unstaged edits in implementation source files under `SettleSpace.Domain/`, `SettleSpace.Infrastructure/`, `SettleSpace.Application/`, `settlespace-react/src/`, and runtime quality-gate script code/config under `scripts/` (for example `*.ps1`, `hooks/pre-commit`, `*.mjs`, `*.js`, `package.json`, `.eslintrc.json`), excluding test files and documentation-only changes.
   - The latest successful Step 1 log path must be shown directly in the checklist output.
 3. Step 2 must always be reviewed at commit-time for the current staged diff. You may mark Step 2 as `SKIPPED` only as `No documentation changes required` and include a short reason tied to the staged changes.
 4. If either step is neither `DONE` nor validly `SKIPPED`, do not commit.

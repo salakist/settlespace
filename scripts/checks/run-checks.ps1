@@ -57,7 +57,7 @@ if ($changedCSharpFiles.Count -eq 0) {
     Write-Host "[SKIP] No changed C# files." -ForegroundColor Yellow
 } else {
     # Use Rebuild so analyzer diagnostics are emitted even when incremental build would skip compilation.
-    $buildOutput = @(dotnet build FoTestApi.sln -t:Rebuild 2>&1)
+    $buildOutput = @(dotnet build SettleSpace.sln -t:Rebuild 2>&1)
     $buildExitCode = $LASTEXITCODE
     $diagnosticLines = @($buildOutput | ForEach-Object { $_.ToString() } | Where-Object { $_ -match ': (warning|error) [A-Za-z]{2,}\d+:' })
     $changedDiagnostics = @()
@@ -100,9 +100,9 @@ if ($changedProductionCSharpFiles.Count -eq 0) {
     $CSharpCoverageRoot = Join-Path $CoverageRoot "csharp"
     New-Item -ItemType Directory -Path $CSharpCoverageRoot -Force | Out-Null
 
-    $domainExit = Invoke-CSharpCoverage "Tests\FoTestApi.Domain.Tests\FoTestApi.Domain.Tests.csproj" (Join-Path $CSharpCoverageRoot "domain\coverage")
-    $infrastructureExit = Invoke-CSharpCoverage "Tests\FoTestApi.Infrastructure.Tests\FoTestApi.Infrastructure.Tests.csproj" (Join-Path $CSharpCoverageRoot "infrastructure\coverage")
-    $applicationExit = Invoke-CSharpCoverage "Tests\FoTestApi.Application.Tests\FoTestApi.Application.Tests.csproj" (Join-Path $CSharpCoverageRoot "application\coverage")
+    $domainExit = Invoke-CSharpCoverage "Tests\SettleSpace.Domain.Tests\SettleSpace.Domain.Tests.csproj" (Join-Path $CSharpCoverageRoot "domain\coverage")
+    $infrastructureExit = Invoke-CSharpCoverage "Tests\SettleSpace.Infrastructure.Tests\SettleSpace.Infrastructure.Tests.csproj" (Join-Path $CSharpCoverageRoot "infrastructure\coverage")
+    $applicationExit = Invoke-CSharpCoverage "Tests\SettleSpace.Application.Tests\SettleSpace.Application.Tests.csproj" (Join-Path $CSharpCoverageRoot "application\coverage")
 
     if ($domainExit -ne 0 -or $infrastructureExit -ne 0 -or $applicationExit -ne 0) {
         Write-Host "[FAIL] One or more C# test projects failed before coverage evaluation." -ForegroundColor Red
@@ -131,8 +131,8 @@ Write-Header "[3/5] React/TS changed-file ESLint gate"
 if ($changedReactFiles.Count -eq 0) {
     Write-Host "[SKIP] No changed React/TS files." -ForegroundColor Yellow
 } else {
-    $eslintTargets = @($changedReactFiles | ForEach-Object { $_ -replace '^fotest-react/', '' })
-    Set-Location "$RepoRoot\fotest-react"
+    $eslintTargets = @($changedReactFiles | ForEach-Object { $_ -replace '^settlespace-react/', '' })
+    Set-Location "$RepoRoot\settlespace-react"
     & npx eslint --max-warnings=0 $eslintTargets
     if ($LASTEXITCODE -ne 0) {
         Write-Host "[FAIL] ESLint found violations in changed React/TS files." -ForegroundColor Red
@@ -161,8 +161,8 @@ Write-Header "[5/5] React/TS changed-file coverage gate (threshold: 80%)"
 if ($changedProductionReactFiles.Count -eq 0) {
     Write-Host "[SKIP] No changed production React/TS files." -ForegroundColor Yellow
 } else {
-    Set-Location "$RepoRoot\fotest-react"
-    $reactCoverageTargets = @($changedProductionReactFiles | ForEach-Object { $_ -replace '^fotest-react/', '' })
+    Set-Location "$RepoRoot\settlespace-react"
+    $reactCoverageTargets = @($changedProductionReactFiles | ForEach-Object { $_ -replace '^settlespace-react/', '' })
     if (Test-Path ".\coverage") {
         Remove-Item ".\coverage" -Recurse -Force
     }
@@ -182,7 +182,7 @@ if ($changedProductionReactFiles.Count -eq 0) {
             --repo-root $RepoRoot `
             --threshold 80 `
             --changed-list $ChangedListPath `
-            --report (Join-Path $RepoRoot "fotest-react\coverage\coverage-summary.json")
+            --report (Join-Path $RepoRoot "settlespace-react\coverage\coverage-summary.json")
 
         if ($LASTEXITCODE -ne 0) {
             Write-Host "[FAIL] Changed production React/TS files are below 80% coverage." -ForegroundColor Red

@@ -29,7 +29,7 @@ Own the Git hook source templates that enforce commit-time checks in this reposi
 - Git with a working `.git/hooks` directory
 - A shell environment compatible with the minimal hook launchers
 - Node/npm with the local `scripts/package.json` dev dependencies installed for Conventional Commit validation
-- Repo-local Git config values used by the attribution policy (`fotest.agentName`, `fotest.agentEmail`, `fotest.agentTrailer`, `fotest.requireReviewedBy`)
+- Repo-local Git config values used by the attribution policy (`settlespace.agentName`, `settlespace.agentEmail`, `settlespace.agentTrailer`, `settlespace.requireReviewedBy`)
 
 ## Source-of-truth note
 Repo-level commit checklist and agent commit attribution policy are authoritative in root `AGENTS.md`.

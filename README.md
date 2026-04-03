@@ -1,4 +1,4 @@
-# fo-test
+# SettleSpace
 
 A full-stack demonstration project showcasing Domain-Driven Design (DDD) with a C# REST API and a React TypeScript frontend.
 
@@ -27,18 +27,18 @@ A full-stack demonstration project showcasing Domain-Driven Design (DDD) with a 
 ## Solution Structure
 
 ```
-fo-test/
-├── FoTestApi.sln
-├── FoTestApi.Domain/               # Domain layer — business rules and contracts
-├── FoTestApi.Infrastructure/       # Infrastructure layer — MongoDB persistence
-├── FoTestApi.Application/          # Application layer — API, controllers, commands
-├── Tests/
-│   ├── FoTestApi.Domain.Tests/         # Unit tests — Domain layer
-│   ├── FoTestApi.Infrastructure.Tests/ # Unit tests — Infrastructure layer
-│   └── FoTestApi.Application.Tests/    # Unit tests — Application layer
-├── fotest-react/                   # React SPA frontend
-├── AGENTS.md                       # Root agent index
-└── README.md
+settlespace/
+â”œâ”€â”€ SettleSpace.sln
+â”œâ”€â”€ SettleSpace.Domain/               # Domain layer â€” business rules and contracts
+â”œâ”€â”€ SettleSpace.Infrastructure/       # Infrastructure layer â€” MongoDB persistence
+â”œâ”€â”€ SettleSpace.Application/          # Application layer â€” API, controllers, commands
+â”œâ”€â”€ Tests/
+â”‚   â”œâ”€â”€ SettleSpace.Domain.Tests/         # Unit tests â€” Domain layer
+â”‚   â”œâ”€â”€ SettleSpace.Infrastructure.Tests/ # Unit tests â€” Infrastructure layer
+â”‚   â””â”€â”€ SettleSpace.Application.Tests/    # Unit tests â€” Application layer
+â”œâ”€â”€ settlespace-react/                   # React SPA frontend
+â”œâ”€â”€ AGENTS.md                       # Root agent index
+â””â”€â”€ README.md
 ```
 
 ### Folder architecture policy
@@ -57,8 +57,8 @@ Summary for contributors (authoritative policy lives in `AGENTS.md` under "Folde
 ### Dependency direction
 
 ```
-FoTestApi.Application  ──►  FoTestApi.Infrastructure  ──►  FoTestApi.Domain
-FoTestApi.Application  ──►  FoTestApi.Domain
+SettleSpace.Application  â”€â”€â–º  SettleSpace.Infrastructure  â”€â”€â–º  SettleSpace.Domain
+SettleSpace.Application  â”€â”€â–º  SettleSpace.Domain
 ```
 
 The Domain layer has **no external dependencies** by design.
@@ -67,43 +67,43 @@ The Domain layer has **no external dependencies** by design.
 
 ## Project Details
 
-### FoTestApi.Domain
+### SettleSpace.Domain
 
 Pure domain layer. No NuGet packages. No infrastructure coupling.
 
 ```
-FoTestApi.Domain/
-├── Auth/
-│   ├── IPasswordGenerator.cs
-│   ├── IPasswordHashingService.cs
-│   ├── IPasswordValidator.cs
-│   ├── PasswordGenerator.cs
-│   ├── PasswordHashingService.cs
-│   └── PasswordValidator.cs
-├── Persons/
-│   ├── IPersonRepository.cs
-│   ├── Entities/
-│   │   ├── Address.cs
-│   │   └── Person.cs
-│   ├── Services/
-│   │   ├── IPersonDomainService.cs
-│   │   └── PersonDomainService.cs
-│   └── Exceptions/
-│       ├── DuplicatePersonException.cs
-│       └── WeakPasswordException.cs
-├── Transactions/
-│   ├── ITransactionRepository.cs
-│   ├── Entities/
-│   │   ├── Transaction.cs
-│   │   └── TransactionStatus.cs
-│   ├── Services/
-│   │   ├── ITransactionDomainService.cs
-│   │   └── TransactionDomainService.cs
-│   └── Exceptions/
-│       ├── InvalidTransactionException.cs
-│       ├── TransactionNotFoundException.cs
-│       └── UnauthorizedTransactionAccessException.cs
-└── Exceptions/DomainException.cs
+SettleSpace.Domain/
+â”œâ”€â”€ Auth/
+â”‚   â”œâ”€â”€ IPasswordGenerator.cs
+â”‚   â”œâ”€â”€ IPasswordHashingService.cs
+â”‚   â”œâ”€â”€ IPasswordValidator.cs
+â”‚   â”œâ”€â”€ PasswordGenerator.cs
+â”‚   â”œâ”€â”€ PasswordHashingService.cs
+â”‚   â””â”€â”€ PasswordValidator.cs
+â”œâ”€â”€ Persons/
+â”‚   â”œâ”€â”€ IPersonRepository.cs
+â”‚   â”œâ”€â”€ Entities/
+â”‚   â”‚   â”œâ”€â”€ Address.cs
+â”‚   â”‚   â””â”€â”€ Person.cs
+â”‚   â”œâ”€â”€ Services/
+â”‚   â”‚   â”œâ”€â”€ IPersonDomainService.cs
+â”‚   â”‚   â””â”€â”€ PersonDomainService.cs
+â”‚   â””â”€â”€ Exceptions/
+â”‚       â”œâ”€â”€ DuplicatePersonException.cs
+â”‚       â””â”€â”€ WeakPasswordException.cs
+â”œâ”€â”€ Transactions/
+â”‚   â”œâ”€â”€ ITransactionRepository.cs
+â”‚   â”œâ”€â”€ Entities/
+â”‚   â”‚   â”œâ”€â”€ Transaction.cs
+â”‚   â”‚   â””â”€â”€ TransactionStatus.cs
+â”‚   â”œâ”€â”€ Services/
+â”‚   â”‚   â”œâ”€â”€ ITransactionDomainService.cs
+â”‚   â”‚   â””â”€â”€ TransactionDomainService.cs
+â”‚   â””â”€â”€ Exceptions/
+â”‚       â”œâ”€â”€ InvalidTransactionException.cs
+â”‚       â”œâ”€â”€ TransactionNotFoundException.cs
+â”‚       â””â”€â”€ UnauthorizedTransactionAccessException.cs
+â””â”€â”€ Exceptions/DomainException.cs
 ```
 
 #### Domain Rules
@@ -124,29 +124,29 @@ FoTestApi.Domain/
 | Default role | New persons default to `USER`; bootstrap rule: first registered account is `ADMIN` when no accounts exist |
 | No duplicate persons | Two persons are duplicates if `FirstName` and `LastName` match case-insensitively |
 | Duplicate check scope | Enforced on both **create** and **update** |
-| Duplicate violation | Raises `DuplicatePersonException` → translated to HTTP `409 Conflict` |
-| Weak password | Raises `WeakPasswordException` → translated to HTTP `400 Bad Request` |
+| Duplicate violation | Raises `DuplicatePersonException` â†’ translated to HTTP `409 Conflict` |
+| Weak password | Raises `WeakPasswordException` â†’ translated to HTTP `400 Bad Request` |
 | Persons management scope | `USER` cannot create/update/delete persons; `MANAGER` can create/update/delete only `USER` accounts and cannot change roles; `ADMIN` is unrestricted |
 | Self role mutation | A person cannot change their own role |
 | Transaction create scope | `USER` can create only when involved; `MANAGER` and `ADMIN` can create without involvement |
 | Transaction read scope | `USER`: involved transactions only; `MANAGER`: involved + created transactions; `ADMIN`: unrestricted |
 | Transaction update/delete scope | `USER` and `MANAGER`: creator-only; `ADMIN`: unrestricted |
-| Equality method | `Person.MatchesByFullName(other)` – OrdinalIgnoreCase full-name comparison |
+| Equality method | `Person.MatchesByFullName(other)` â€“ OrdinalIgnoreCase full-name comparison |
 
 `IPasswordGenerator`/`PasswordGenerator` produces 12+ character passwords that satisfy the same strength policy.
 
 ---
 
-### FoTestApi.Infrastructure
+### SettleSpace.Infrastructure
 
 Persistence layer. Implements repository interfaces from the Domain and owns all MongoDB concerns.
 
 ```
-FoTestApi.Infrastructure/
+SettleSpace.Infrastructure/
 +-- Persons/PersonRepository.cs         # IPersonRepository implementation
 +-- Transactions/TransactionRepository.cs # ITransactionRepository implementation
 +-- Serialization/DateOnlyAsStringSerializer.cs # DateOnly BSON serializer
-+-- FoTestDatabaseSettings.cs          # Connection/database config model
++-- SettleSpaceDatabaseSettings.cs          # Connection/database config model
 ```
 
 - MongoDB `BsonClassMap` is registered here, keeping `Person` free of Bson attributes
@@ -156,39 +156,39 @@ FoTestApi.Infrastructure/
 
 ---
 
-### FoTestApi.Application
+### SettleSpace.Application
 
 Application layer and API host.
 
 ```
-FoTestApi.Application/
-├── Authentication/
-│   ├── AuthController.cs
-│   ├── AuthSettings.cs
-│   ├── CustomClaimTypes.cs
-│   ├── LoginResponseDto.cs
-│   ├── Commands/
-│   └── Services/
-├── Persons/
-│   ├── PersonsController.cs
-│   ├── Commands/
-│   ├── DTOs/
-│   ├── Mapping/
-│   └── Services/
-├── Transactions/
-│   ├── TransactionsController.cs
-│   ├── TransactionDto.cs
-│   ├── Commands/
-│   ├── Mapping/
-│   └── Services/
-├── Middleware/ExceptionHandlingMiddleware.cs
-├── Program.cs
-└── appsettings.json
+SettleSpace.Application/
+â”œâ”€â”€ Authentication/
+â”‚   â”œâ”€â”€ AuthController.cs
+â”‚   â”œâ”€â”€ AuthSettings.cs
+â”‚   â”œâ”€â”€ CustomClaimTypes.cs
+â”‚   â”œâ”€â”€ LoginResponseDto.cs
+â”‚   â”œâ”€â”€ Commands/
+â”‚   â””â”€â”€ Services/
+â”œâ”€â”€ Persons/
+â”‚   â”œâ”€â”€ PersonsController.cs
+â”‚   â”œâ”€â”€ Commands/
+â”‚   â”œâ”€â”€ DTOs/
+â”‚   â”œâ”€â”€ Mapping/
+â”‚   â””â”€â”€ Services/
+â”œâ”€â”€ Transactions/
+â”‚   â”œâ”€â”€ TransactionsController.cs
+â”‚   â”œâ”€â”€ TransactionDto.cs
+â”‚   â”œâ”€â”€ Commands/
+â”‚   â”œâ”€â”€ Mapping/
+â”‚   â””â”€â”€ Services/
+â”œâ”€â”€ Middleware/ExceptionHandlingMiddleware.cs
+â”œâ”€â”€ Program.cs
+â””â”€â”€ appsettings.json
 ```
 
-`PersonMapper` isolates mapping responsibilities (command → domain and domain → DTO).
+`PersonMapper` isolates mapping responsibilities (command â†’ domain and domain â†’ DTO).
 
-`PersonApplicationService` orchestrates: map command → validate entity → delegate duplicate check to `IPersonDomainService` → persist via repository.
+`PersonApplicationService` orchestrates: map command â†’ validate entity â†’ delegate duplicate check to `IPersonDomainService` â†’ persist via repository.
 
 `AuthService` authenticates against the MongoDB `persons` collection via `IPersonRepository`, issues JWT tokens used by the React frontend, and stores a stable person id claim so profile and password operations keep working even after first/last name changes.
 
@@ -202,28 +202,28 @@ Each DDD layer has a dedicated xUnit + Moq test project.
 
 | Project | Scope |
 |---|---|
-| `FoTestApi.Domain.Tests` | `Person` rules, optional profile field validation, `PersonDomainService` uniqueness, password generation |
-| `FoTestApi.Infrastructure.Tests` | `PersonRepository` CRUD via mocked `IMongoCollection<T>` |
-| `FoTestApi.Application.Tests` | `PersonApplicationService` commands/queries, person-backed auth service/controller, `PersonsController` HTTP status codes and authenticated `me` endpoints |
+| `SettleSpace.Domain.Tests` | `Person` rules, optional profile field validation, `PersonDomainService` uniqueness, password generation |
+| `SettleSpace.Infrastructure.Tests` | `PersonRepository` CRUD via mocked `IMongoCollection<T>` |
+| `SettleSpace.Application.Tests` | `PersonApplicationService` commands/queries, person-backed auth service/controller, `PersonsController` HTTP status codes and authenticated `me` endpoints |
 
 ### Run all tests
 
 ```bash
-dotnet test FoTestApi.sln
+dotnet test SettleSpace.sln
 ```
 
 ### Run a single layer
 
 ```bash
-dotnet test Tests/FoTestApi.Domain.Tests/FoTestApi.Domain.Tests.csproj
-dotnet test Tests/FoTestApi.Infrastructure.Tests/FoTestApi.Infrastructure.Tests.csproj
-dotnet test Tests/FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj
+dotnet test Tests/SettleSpace.Domain.Tests/SettleSpace.Domain.Tests.csproj
+dotnet test Tests/SettleSpace.Infrastructure.Tests/SettleSpace.Infrastructure.Tests.csproj
+dotnet test Tests/SettleSpace.Application.Tests/SettleSpace.Application.Tests.csproj
 ```
 
 ### Test isolation strategy
-- **Domain tests** — no mocks; plain object instantiation
-- **Infrastructure tests** — mock `IMongoCollection<T>` injected via `internal` constructor; no live MongoDB needed
-- **Application tests** — mock `IPersonRepository` + `IPersonDomainService` + `IPasswordHashingService` for service tests; mock `IPersonApplicationService` for controller tests
+- **Domain tests** â€” no mocks; plain object instantiation
+- **Infrastructure tests** â€” mock `IMongoCollection<T>` injected via `internal` constructor; no live MongoDB needed
+- **Application tests** â€” mock `IPersonRepository` + `IPersonDomainService` + `IPasswordHashingService` for service tests; mock `IPersonApplicationService` for controller tests
 
 ---
 
@@ -277,12 +277,12 @@ Two repository-level analysis modes are available:
 ### Local analyzer tracks
 
 - Backend C# analysis runs during `dotnet build` via Roslyn analyzers configured in `Directory.Build.props`
-- Frontend React analysis runs through the existing `fotest-react` ESLint configuration
+- Frontend React analysis runs through the existing `settlespace-react` ESLint configuration
 - Repo-script JS/MJS analysis runs through a separate ESLint configuration under `scripts/`
 
 ### Gate prerequisites
 
-- Install frontend dependencies once: `cd fotest-react && npm install`
+- Install frontend dependencies once: `cd settlespace-react && npm install`
 - Install repo-script lint dependencies once: `cd scripts && npm install`
 
 ### Coverage policy
@@ -330,7 +330,7 @@ They capture output to timestamped log files under `artifacts/logs/`.
 
 - `pre-commit` calls the changed-code gate through a minimal shell launcher that invokes PowerShell
 - `commit-msg` enforces Conventional Commit headers for local commits and the local agent commit attribution policy whenever the configured repo-local agent identity is active
-- Use `./scripts/setup/set-agent-git-identity.ps1` to switch this repo to the default agent identity (`fo-test-agent` / `fo-test-agent@local`)
+- Use `./scripts/setup/set-agent-git-identity.ps1` to switch this repo to the default agent identity (`settlespace-agent` / `settlespace-agent@local`)
 - Use `./scripts/setup/set-agent-git-identity.ps1 -ClearLocalIdentity` to return to your normal inherited Git identity
 - Ensure `cd scripts; npm install` has been run so the local commit-message validator is available
 - Do not bypass the hooks with `--no-verify`
@@ -380,12 +380,12 @@ Reviewed-by: <your name>
 
 ---
 
-## fotest-react
+## settlespace-react
 
 React SPA with login-gated access, full CRUD, search, and Material UI dark theme.
 
 ```
-fotest-react/src/
+settlespace-react/src/
 +-- app/
 |   +-- App.tsx                     # App shell and route composition
 |   +-- App.test.tsx                # App composition tests (hook contracts + shell rendering)
@@ -423,7 +423,7 @@ fotest-react/src/
 ### Frontend commands
 
 ```bash
-cd fotest-react
+cd settlespace-react
 npm install
 npm start
 npm run test:ci
@@ -432,7 +432,7 @@ npx eslint src --ext .ts,.tsx --max-warnings=0
 
 ### Frontend coverage scope
 
-- Coverage targets production files under `fotest-react/src/`
+- Coverage targets production files under `settlespace-react/src/`
 - Excluded from frontend coverage scope: `*.test.tsx`, `setupTests.ts`, `reportWebVitals.ts`, `index.tsx`, `react-app-env.d.ts`
 - Repository gate scripts (`scripts/checks/run-checks.*`, `scripts/checks/run-full-checks.*`) are the source of truth for frontend quality validation
 - Changed-code pre-commit validation stays local and fast via ESLint in `scripts/checks/run-checks.*`; optional Sonar parity analysis belongs only to the full-base gate flow
@@ -461,8 +461,8 @@ npx eslint src --ext .ts,.tsx --max-warnings=0
 ### 1. Clone
 
 ```bash
-git clone https://github.com/salakist/fo-test.git
-cd fo-test
+git clone https://github.com/salakist/settlespace.git
+cd settlespace
 ```
 
 ### 2. Start MongoDB
@@ -473,22 +473,22 @@ mongod --dbpath "C:\data\db"
 
 ### 3. Run the API
 
-From the repository root (`fo-test`):
+From the repository root (`settlespace`):
 
 ```bash
-dotnet run --project FoTestApi.Application\FoTestApi.Application.csproj
+dotnet run --project SettleSpace.Application\SettleSpace.Application.csproj
 ```
 
 If your terminal is one level above the repository (for example the VS Code workspace root is `Repos/`), use the repository-prefixed path instead:
 
 ```bash
-dotnet run --project fo-test\FoTestApi.Application\FoTestApi.Application.csproj
+dotnet run --project settlespace\SettleSpace.Application\SettleSpace.Application.csproj
 ```
 
 Alternatively, change into the project directory first and run `dotnet run` there:
 
 ```bash
-cd fo-test\FoTestApi.Application
+cd settlespace\SettleSpace.Application
 dotnet run
 ```
 
@@ -502,7 +502,7 @@ API starts on `http://localhost:5279`.
 ### 4. Run the Frontend
 
 ```bash
-cd fotest-react
+cd settlespace-react
 npm install
 npm start
 ```
@@ -517,7 +517,7 @@ If you are introducing this role model on an existing local database, clear/recr
 
 Database reset note:
 - `./scripts/cleanup/cleanup.ps1` and `./scripts/cleanup/cleanup-full.ps1` only clean workspace artifacts; they do not reset MongoDB data.
-- Before reseeding this feature, drop the local `fo-test` database or clear the `persons` and `transactions` collections, then run the seed script below.
+- Before reseeding this feature, drop the local `settlespace` database or clear the `persons` and `transactions` collections, then run the seed script below.
 
 Seed expectations:
 - `john.doe` is seeded as `ADMIN` (bootstrap first-account rule on empty data).
@@ -716,19 +716,19 @@ Navigate to `http://localhost:5279/swagger` for interactive documentation.
 
 ## Configuration
 
-`FoTestApi.Application/appsettings.json`:
+`SettleSpace.Application/appsettings.json`:
 
 ```json
 {
-  "FoTestDatabase": {
+  "SettleSpaceDatabase": {
     "ConnectionString": "mongodb://localhost:27017",
-    "DatabaseName": "fo-test",
+    "DatabaseName": "settlespace",
     "PersonsCollectionName": "persons"
   },
   "Auth": {
-    "JwtKey": "fo-test-super-secret-jwt-key-2026-change-me",
-    "Issuer": "FoTestApi",
-    "Audience": "FoTestReact",
+    "JwtKey": "settlespace-super-secret-jwt-key-2026-change-me",
+    "Issuer": "SettleSpace",
+    "Audience": "SettleSpaceReact",
     "TokenExpirationMinutes": 60
   }
 }

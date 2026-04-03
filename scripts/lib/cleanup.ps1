@@ -97,9 +97,9 @@ function Remove-StandardTestArtifacts(
     [psobject]$Result,
     [bool]$DryRun = $false
 ) {
-    Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'Tests\FoTestApi.Application.Tests\artifacts' -Result $Result -DryRun $DryRun
-    Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'Tests\FoTestApi.Domain.Tests\artifacts' -Result $Result -DryRun $DryRun
-    Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'Tests\FoTestApi.Infrastructure.Tests\artifacts' -Result $Result -DryRun $DryRun
+    Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'Tests\SettleSpace.Application.Tests\artifacts' -Result $Result -DryRun $DryRun
+    Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'Tests\SettleSpace.Domain.Tests\artifacts' -Result $Result -DryRun $DryRun
+    Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'Tests\SettleSpace.Infrastructure.Tests\artifacts' -Result $Result -DryRun $DryRun
 }
 
 function Invoke-LightCleanupTargets(
@@ -109,8 +109,8 @@ function Invoke-LightCleanupTargets(
     [bool]$DryRun = $false
 ) {
     Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'artifacts\coverage' -Result $Result -DryRun $DryRun
-    Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'fotest-react\coverage' -Result $Result -DryRun $DryRun
-    Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'fotest-react\build' -Result $Result -DryRun $DryRun
+    Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'settlespace-react\coverage' -Result $Result -DryRun $DryRun
+    Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'settlespace-react\build' -Result $Result -DryRun $DryRun
     Remove-StandardTestArtifacts -RepoRoot $RepoRoot -Result $Result -DryRun $DryRun
     Prune-GateLogs -RepoRoot $RepoRoot -KeepCount $KeepLogs -Result $Result -DryRun $DryRun
 }

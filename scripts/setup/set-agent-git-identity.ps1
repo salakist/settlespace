@@ -3,14 +3,14 @@
 # Configures or clears the repo-local Git identity used for agent-authored commits.
 # Examples:
 #   .\scripts\setup\set-agent-git-identity.ps1
-#   .\scripts\setup\set-agent-git-identity.ps1 -Name "fo-test-agent" -Email "fo-test-agent@local"
+#   .\scripts\setup\set-agent-git-identity.ps1 -Name "settlespace-agent" -Email "settlespace-agent@local"
 #   .\scripts\setup\set-agent-git-identity.ps1 -RequireReviewedBy
 #   .\scripts\setup\set-agent-git-identity.ps1 -ClearLocalIdentity
 
 [CmdletBinding()]
 param(
-    [string]$Name = "fo-test-agent",
-    [string]$Email = "fo-test-agent@local",
+    [string]$Name = "settlespace-agent",
+    [string]$Email = "settlespace-agent@local",
     [string]$AgentLabel = "GitHub Copilot",
     [switch]$RequireReviewedBy,
     [switch]$ClearLocalIdentity
@@ -32,7 +32,7 @@ function Format-ConfigValue {
 }
 
 if (-not (Test-Path $GitDirectory)) {
-    Write-Error "ERROR: .git directory not found. Are you in the fo-test repository?"
+    Write-Error "ERROR: .git directory not found. Are you in the settlespace repository?"
     exit 1
 }
 
@@ -47,10 +47,10 @@ try {
         foreach ($key in @(
             "user.name",
             "user.email",
-            "fotest.agentName",
-            "fotest.agentEmail",
-            "fotest.agentTrailer",
-            "fotest.requireReviewedBy"
+            "settlespace.agentName",
+            "settlespace.agentEmail",
+            "settlespace.agentTrailer",
+            "settlespace.requireReviewedBy"
         )) {
             & git config --local --unset-all $key 2>$null | Out-Null
         }
@@ -65,18 +65,18 @@ try {
 
         & git config --local user.name $Name
         & git config --local user.email $Email
-        & git config --local fotest.agentName $Name
-        & git config --local fotest.agentEmail $Email
-        & git config --local fotest.agentTrailer $AgentLabel
-        & git config --local fotest.requireReviewedBy $requireReviewedByValue
+        & git config --local settlespace.agentName $Name
+        & git config --local settlespace.agentEmail $Email
+        & git config --local settlespace.agentTrailer $AgentLabel
+        & git config --local settlespace.requireReviewedBy $requireReviewedByValue
 
         Write-Host "Configured repo-local agent identity for this repository." -ForegroundColor Green
     }
 
     $currentName = & git config --get user.name 2>$null
     $currentEmail = & git config --get user.email 2>$null
-    $currentAgentLabel = & git config --get fotest.agentTrailer 2>$null
-    $currentRequireReviewedBy = & git config --bool --get fotest.requireReviewedBy 2>$null
+    $currentAgentLabel = & git config --get settlespace.agentTrailer 2>$null
+    $currentRequireReviewedBy = & git config --bool --get settlespace.requireReviewedBy 2>$null
 
     if ([string]::IsNullOrWhiteSpace($currentAgentLabel)) {
         $currentAgentLabel = "GitHub Copilot"

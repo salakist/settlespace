@@ -10,14 +10,14 @@ Shared router for the repository's test projects and common test-infrastructure 
 - Keep common test-running conventions in one place so child test AGENTS can stay focused on behavior.
 
 ## Test project AGENTS
-- `FoTestApi.Application.Tests/AGENTS.md`
-- `FoTestApi.Domain.Tests/AGENTS.md`
-- `FoTestApi.Infrastructure.Tests/AGENTS.md`
+- `SettleSpace.Application.Tests/AGENTS.md`
+- `SettleSpace.Domain.Tests/AGENTS.md`
+- `SettleSpace.Infrastructure.Tests/AGENTS.md`
 
 ## Key files
-- `FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj`
-- `FoTestApi.Domain.Tests/FoTestApi.Domain.Tests.csproj`
-- `FoTestApi.Infrastructure.Tests/FoTestApi.Infrastructure.Tests.csproj`
+- `SettleSpace.Application.Tests/SettleSpace.Application.Tests.csproj`
+- `SettleSpace.Domain.Tests/SettleSpace.Domain.Tests.csproj`
+- `SettleSpace.Infrastructure.Tests/SettleSpace.Infrastructure.Tests.csproj`
 
 ## Shared test infrastructure policy
 - Test projects mirror the structure of their associated production layer.
@@ -25,10 +25,10 @@ Shared router for the repository's test projects and common test-infrastructure 
 - Root `.gitignore` is authoritative for shared `bin/`, `obj/`, and `Tests/**/artifacts/` patterns.
 
 ## Commands
-- `dotnet test FoTestApi.sln`
-- `dotnet test Tests/FoTestApi.Application.Tests/FoTestApi.Application.Tests.csproj`
-- `dotnet test Tests/FoTestApi.Domain.Tests/FoTestApi.Domain.Tests.csproj`
-- `dotnet test Tests/FoTestApi.Infrastructure.Tests/FoTestApi.Infrastructure.Tests.csproj`
+- `dotnet test SettleSpace.sln`
+- `dotnet test Tests/SettleSpace.Application.Tests/SettleSpace.Application.Tests.csproj`
+- `dotnet test Tests/SettleSpace.Domain.Tests/SettleSpace.Domain.Tests.csproj`
+- `dotnet test Tests/SettleSpace.Infrastructure.Tests/SettleSpace.Infrastructure.Tests.csproj`
 
 ## Dependencies
 - `xunit`
