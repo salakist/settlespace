@@ -1,4 +1,5 @@
 using SettleSpace.Domain.Persons.Entities;
+using SettleSpace.Domain.Persons.Exceptions;
 
 namespace SettleSpace.Domain.Tests.Persons.Entities;
 
@@ -17,21 +18,21 @@ public class PersonTests
     [Theory]
     [InlineData("", "Doe")]
     [InlineData("   ", "Doe")]
-    public void ValidateEmptyOrWhitespaceFirstNameThrowsInvalidOperationException(string firstName, string lastName)
+    public void ValidateEmptyOrWhitespaceFirstNameThrowsInvalidPersonException(string firstName, string lastName)
     {
         var person = new Person { FirstName = firstName, LastName = lastName };
 
-        Assert.Throws<InvalidOperationException>(() => person.Validate());
+        Assert.Throws<InvalidPersonException>(() => person.Validate());
     }
 
     [Theory]
     [InlineData("John", "")]
     [InlineData("John", "   ")]
-    public void ValidateEmptyOrWhitespaceLastNameThrowsInvalidOperationException(string firstName, string lastName)
+    public void ValidateEmptyOrWhitespaceLastNameThrowsInvalidPersonException(string firstName, string lastName)
     {
         var person = new Person { FirstName = firstName, LastName = lastName };
 
-        Assert.Throws<InvalidOperationException>(() => person.Validate());
+        Assert.Throws<InvalidPersonException>(() => person.Validate());
     }
 
     [Fact]
@@ -117,25 +118,25 @@ public class PersonTests
     [Theory]
     [InlineData("bad-email")]
     [InlineData("john@")]
-    public void ValidateWithInvalidEmailThrowsInvalidOperationException(string email)
+    public void ValidateWithInvalidEmailThrowsInvalidPersonException(string email)
     {
         var person = new Person { FirstName = "John", LastName = "Doe", Email = email };
 
-        Assert.Throws<InvalidOperationException>(() => person.Validate());
+        Assert.Throws<InvalidPersonException>(() => person.Validate());
     }
 
     [Theory]
     [InlineData("12")]
     [InlineData("abc")]
-    public void ValidateWithInvalidPhoneNumberThrowsInvalidOperationException(string phoneNumber)
+    public void ValidateWithInvalidPhoneNumberThrowsInvalidPersonException(string phoneNumber)
     {
         var person = new Person { FirstName = "John", LastName = "Doe", PhoneNumber = phoneNumber };
 
-        Assert.Throws<InvalidOperationException>(() => person.Validate());
+        Assert.Throws<InvalidPersonException>(() => person.Validate());
     }
 
     [Fact]
-    public void ValidateWithFutureDateOfBirthThrowsInvalidOperationException()
+    public void ValidateWithFutureDateOfBirthThrowsInvalidPersonException()
     {
         var person = new Person
         {
@@ -144,11 +145,11 @@ public class PersonTests
             DateOfBirth = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(1)
         };
 
-        Assert.Throws<InvalidOperationException>(() => person.Validate());
+        Assert.Throws<InvalidPersonException>(() => person.Validate());
     }
 
     [Fact]
-    public void ValidateWithInvalidAddressThrowsInvalidOperationException()
+    public void ValidateWithInvalidAddressThrowsInvalidAddressException()
     {
         var person = new Person
         {
@@ -167,7 +168,7 @@ public class PersonTests
             ]
         };
 
-        Assert.Throws<InvalidOperationException>(() => person.Validate());
+        Assert.Throws<InvalidAddressException>(() => person.Validate());
     }
 
 }

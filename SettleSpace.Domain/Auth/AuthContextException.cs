@@ -2,7 +2,7 @@ using SettleSpace.Domain.Exceptions;
 
 namespace SettleSpace.Domain.Auth
 {
-    public class AuthContextException : DomainException
+    public class AuthContextException : UnauthorizedException
     {
         public AuthContextException()
             : base("Authentication context is missing or invalid.")

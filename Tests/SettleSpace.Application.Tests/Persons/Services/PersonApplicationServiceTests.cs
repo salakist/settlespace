@@ -205,12 +205,12 @@ public class PersonApplicationServiceTests
     [InlineData("", "Doe")]
     [InlineData("John", "")]
     [InlineData("   ", "Doe")]
-    public async Task CreatePersonAsyncInvalidNamesThrowsInvalidOperationException(
+    public async Task CreatePersonAsyncInvalidNamesThrowsInvalidPersonException(
         string firstName, string lastName)
     {
         var command = new CreatePersonCommand { FirstName = firstName, LastName = lastName };
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
+        await Assert.ThrowsAsync<InvalidPersonException>(
             () => _sut.CreatePersonAsync(command));
     }
 
@@ -370,25 +370,25 @@ public class PersonApplicationServiceTests
     }
 
     [Fact]
-    public async Task UpdatePersonAsyncPersonNotFoundThrowsInvalidOperationException()
+    public async Task UpdatePersonAsyncPersonNotFoundThrowsPersonNotFoundException()
     {
         var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
 
         _repositoryMock.Setup(r => r.GetByIdAsync("missing"))
                        .ReturnsAsync((Person?)null);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
+        await Assert.ThrowsAsync<PersonNotFoundException>(
             () => _sut.UpdatePersonAsync("missing", command));
     }
 
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public async Task UpdatePersonAsyncEmptyOrWhitespaceIdThrowsInvalidOperationException(string id)
+    public async Task UpdatePersonAsyncEmptyOrWhitespaceIdThrowsInvalidPersonException(string id)
     {
         var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
+        await Assert.ThrowsAsync<InvalidPersonException>(
             () => _sut.UpdatePersonAsync(id, command));
 
         _repositoryMock.Verify(repository => repository.GetByIdAsync(It.IsAny<string>()), Times.Never);
@@ -465,13 +465,13 @@ public class PersonApplicationServiceTests
     }
 
     [Fact]
-    public async Task DeletePersonAsyncManagedPersonNotFoundThrowsInvalidOperationException()
+    public async Task DeletePersonAsyncManagedPersonNotFoundThrowsPersonNotFoundException()
     {
         var command = new DeletePersonCommand { Id = "missing" };
 
         _repositoryMock.Setup(r => r.GetByIdAsync("missing")).ReturnsAsync((Person?)null);
 
-        await Assert.ThrowsAsync<InvalidOperationException>(
+        await Assert.ThrowsAsync<PersonNotFoundException>(
             () => _sut.DeletePersonAsync(command, "admin-1", PersonRole.ADMIN));
     }
 }

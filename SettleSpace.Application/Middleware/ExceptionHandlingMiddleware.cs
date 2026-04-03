@@ -1,6 +1,4 @@
-using SettleSpace.Domain.Auth;
-using SettleSpace.Domain.Persons.Exceptions;
-using SettleSpace.Domain.Transactions.Exceptions;
+using SettleSpace.Domain.Exceptions;
 
 namespace SettleSpace.Application.Middleware
 {
@@ -47,55 +45,27 @@ namespace SettleSpace.Application.Middleware
             UnhandledExceptionLog(_logger, context.Request.Path, exception);
             context.Response.ContentType = "application/json";
 
-            var response = new { error = exception.Message };
+            var statusCode = ResolveStatusCode(exception);
+            context.Response.StatusCode = statusCode;
 
-            switch (exception)
-            {
-                case AuthContextException:
-                    context.Response.StatusCode = StatusCodes.Status401Unauthorized;
-                    break;
-
-                case DuplicatePersonException:
-                    context.Response.StatusCode = StatusCodes.Status409Conflict;
-                    break;
-
-                case WeakPasswordException:
-                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
-                    break;
-
-                case UnauthorizedTransactionAccessException:
-                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                    break;
-
-                case UnauthorizedPersonAccessException:
-                    context.Response.StatusCode = StatusCodes.Status403Forbidden;
-                    break;
-
-                case TransactionNotFoundException:
-                    context.Response.StatusCode = StatusCodes.Status404NotFound;
-                    break;
-
-                case InvalidTransactionException:
-                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
-                    break;
-
-                case InvalidOperationException when exception.Message.Contains("not found"):
-                    context.Response.StatusCode = StatusCodes.Status404NotFound;
-                    break;
-
-                case InvalidOperationException:
-                    context.Response.StatusCode = StatusCodes.Status400BadRequest;
-                    break;
-
-                default:
-                    context.Response.StatusCode = StatusCodes.Status500InternalServerError;
-                    response = _environment.IsDevelopment()
-                        ? new { error = exception.Message }
-                        : new { error = "An unexpected error occurred." };
-                    break;
-            }
+            var response = statusCode == StatusCodes.Status500InternalServerError && !_environment.IsDevelopment()
+                ? new { error = "An unexpected error occurred." }
+                : new { error = exception.Message };
 
             return context.Response.WriteAsJsonAsync(response);
+        }
+
+        private static int ResolveStatusCode(Exception exception)
+        {
+            return exception switch
+            {
+                UnauthorizedException => StatusCodes.Status401Unauthorized,
+                ForbiddenException => StatusCodes.Status403Forbidden,
+                NotFoundException => StatusCodes.Status404NotFound,
+                ConflictException => StatusCodes.Status409Conflict,
+                BadRequestException => StatusCodes.Status400BadRequest,
+                _ => StatusCodes.Status500InternalServerError,
+            };
         }
     }
 }

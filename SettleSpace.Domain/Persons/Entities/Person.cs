@@ -1,3 +1,4 @@
+using SettleSpace.Domain.Persons.Exceptions;
 using System.Net.Mail;
 using System.Text.RegularExpressions;
 
@@ -64,14 +65,14 @@ namespace SettleSpace.Domain.Persons.Entities
         /// Password strength validation is handled at the application boundary
         /// before passwords are hashed for persistence.
         /// </summary>
-        /// <exception cref="InvalidOperationException">Thrown when names are null or empty.</exception>
+        /// <exception cref="InvalidPersonException">Thrown when person data is invalid.</exception>
         public void Validate()
         {
             if (string.IsNullOrWhiteSpace(FirstName))
-                throw new InvalidOperationException("FirstName cannot be empty.");
+                throw new InvalidPersonException("FirstName cannot be empty.");
 
             if (string.IsNullOrWhiteSpace(LastName))
-                throw new InvalidOperationException("LastName cannot be empty.");
+                throw new InvalidPersonException("LastName cannot be empty.");
 
             ValidatePhoneNumber();
             ValidateEmail();
@@ -98,7 +99,7 @@ namespace SettleSpace.Domain.Persons.Entities
 
             if (!PhoneNumberPattern().IsMatch(PhoneNumber.Trim()))
             {
-                throw new InvalidOperationException("PhoneNumber is invalid.");
+                throw new InvalidPersonException("PhoneNumber is invalid.");
             }
         }
 
@@ -114,12 +115,12 @@ namespace SettleSpace.Domain.Persons.Entities
                 var email = new MailAddress(Email.Trim());
                 if (!string.Equals(email.Address, Email.Trim(), StringComparison.OrdinalIgnoreCase))
                 {
-                    throw new InvalidOperationException("Email is invalid.");
+                    throw new InvalidPersonException("Email is invalid.");
                 }
             }
             catch (FormatException)
             {
-                throw new InvalidOperationException("Email is invalid.");
+                throw new InvalidPersonException("Email is invalid.");
             }
         }
 
@@ -132,7 +133,7 @@ namespace SettleSpace.Domain.Persons.Entities
 
             if (DateOfBirth.Value > DateOnly.FromDateTime(DateTime.UtcNow))
             {
-                throw new InvalidOperationException("DateOfBirth cannot be in the future.");
+                throw new InvalidPersonException("DateOfBirth cannot be in the future.");
             }
         }
 
@@ -148,7 +149,7 @@ namespace SettleSpace.Domain.Persons.Entities
         {
             if (!Enum.IsDefined(Role))
             {
-                throw new InvalidOperationException("Role is invalid.");
+                throw new InvalidPersonException("Role is invalid.");
             }
         }
     }

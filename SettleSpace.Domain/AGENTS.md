@@ -12,6 +12,7 @@ Pure domain layer router for business invariants and contracts.
 - `Auth/AGENTS.md` - password generation, validation, and hashing contracts/services.
 - `Persons/AGENTS.md` - person aggregate, repository contract, domain service, exceptions.
 - `Transactions/AGENTS.md` - transaction aggregate, repository contract, domain service, exceptions.
+- `Debts/AGENTS.md` - derived debt models, debt computation rules, and settlement validation.
 
 ## Key files
 - `SettleSpace.Domain.csproj`

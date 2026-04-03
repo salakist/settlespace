@@ -3,12 +3,15 @@ using SettleSpace.Application.Authentication;
 using SettleSpace.Application.Persons.Mapping;
 using SettleSpace.Application.Transactions.Mapping;
 using SettleSpace.Application.Authentication.Services;
+using SettleSpace.Application.Debts.Mapping;
+using SettleSpace.Application.Debts.Services;
 using SettleSpace.Application.Persons.Services;
 using SettleSpace.Application.Transactions.Services;
 using SettleSpace.Application.Middleware;
 using SettleSpace.Domain.Persons;
 using SettleSpace.Domain.Transactions;
 using SettleSpace.Domain.Auth;
+using SettleSpace.Domain.Debts.Services;
 using SettleSpace.Domain.Persons.Services;
 using SettleSpace.Domain.Transactions.Services;
 using SettleSpace.Infrastructure;
@@ -57,8 +60,11 @@ builder.Services.AddScoped<IPasswordGenerator, PasswordGenerator>();
 builder.Services.AddScoped<IPasswordHashingService, PasswordHashingService>();
 builder.Services.AddScoped<IPersonMapper, PersonMapper>();
 builder.Services.AddScoped<ITransactionMapper, TransactionMapper>();
+builder.Services.AddScoped<IDebtMapper, DebtMapper>();
 builder.Services.AddScoped<IPersonApplicationService, PersonApplicationService>();
 builder.Services.AddScoped<ITransactionApplicationService, TransactionApplicationService>();
+builder.Services.AddScoped<IDebtApplicationService, DebtApplicationService>();
+builder.Services.AddScoped<IDebtDomainService, DebtDomainService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddControllers()

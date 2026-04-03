@@ -1,3 +1,4 @@
+using SettleSpace.Domain.Persons.Exceptions;
 using System.Text.RegularExpressions;
 
 namespace SettleSpace.Domain.Persons.Entities
@@ -21,27 +22,27 @@ namespace SettleSpace.Domain.Persons.Entities
         {
             if (string.IsNullOrWhiteSpace(Label))
             {
-                throw new InvalidOperationException("Address label cannot be empty.");
+                throw new InvalidAddressException("Address label cannot be empty.");
             }
 
             if (string.IsNullOrWhiteSpace(StreetLine1))
             {
-                throw new InvalidOperationException("Address street line 1 cannot be empty.");
+                throw new InvalidAddressException("Address street line 1 cannot be empty.");
             }
 
             if (string.IsNullOrWhiteSpace(PostalCode) || !PostalCodePattern().IsMatch(PostalCode.Trim()))
             {
-                throw new InvalidOperationException("Address postal code is invalid.");
+                throw new InvalidAddressException("Address postal code is invalid.");
             }
 
             if (string.IsNullOrWhiteSpace(City))
             {
-                throw new InvalidOperationException("Address city cannot be empty.");
+                throw new InvalidAddressException("Address city cannot be empty.");
             }
 
             if (string.IsNullOrWhiteSpace(Country))
             {
-                throw new InvalidOperationException("Address country cannot be empty.");
+                throw new InvalidAddressException("Address country cannot be empty.");
             }
         }
     }

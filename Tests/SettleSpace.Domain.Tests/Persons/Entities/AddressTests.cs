@@ -1,4 +1,5 @@
 using SettleSpace.Domain.Persons.Entities;
+using SettleSpace.Domain.Persons.Exceptions;
 
 namespace SettleSpace.Domain.Tests.Persons.Entities;
 
@@ -17,23 +18,23 @@ public class AddressTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public void ValidateWithEmptyLabelThrowsInvalidOperationException(string label)
+    public void ValidateWithEmptyLabelThrowsInvalidAddressException(string label)
     {
         var address = BuildValidAddress();
         address.Label = label;
 
-        Assert.Throws<InvalidOperationException>(address.Validate);
+        Assert.Throws<InvalidAddressException>(address.Validate);
     }
 
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public void ValidateWithEmptyStreetLine1ThrowsInvalidOperationException(string streetLine1)
+    public void ValidateWithEmptyStreetLine1ThrowsInvalidAddressException(string streetLine1)
     {
         var address = BuildValidAddress();
         address.StreetLine1 = streetLine1;
 
-        Assert.Throws<InvalidOperationException>(address.Validate);
+        Assert.Throws<InvalidAddressException>(address.Validate);
     }
 
     [Theory]
@@ -42,12 +43,12 @@ public class AddressTests
     [InlineData("  ")]
     [InlineData("?")]
     [InlineData("12")]
-    public void ValidateWithInvalidPostalCodeThrowsInvalidOperationException(string? postalCode)
+    public void ValidateWithInvalidPostalCodeThrowsInvalidAddressException(string? postalCode)
     {
         var address = BuildValidAddress();
         address.PostalCode = postalCode!;
 
-        Assert.Throws<InvalidOperationException>(address.Validate);
+        Assert.Throws<InvalidAddressException>(address.Validate);
     }
 
     [Theory]
@@ -67,23 +68,23 @@ public class AddressTests
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public void ValidateWithEmptyCityThrowsInvalidOperationException(string city)
+    public void ValidateWithEmptyCityThrowsInvalidAddressException(string city)
     {
         var address = BuildValidAddress();
         address.City = city;
 
-        Assert.Throws<InvalidOperationException>(address.Validate);
+        Assert.Throws<InvalidAddressException>(address.Validate);
     }
 
     [Theory]
     [InlineData("")]
     [InlineData("   ")]
-    public void ValidateWithEmptyCountryThrowsInvalidOperationException(string country)
+    public void ValidateWithEmptyCountryThrowsInvalidAddressException(string country)
     {
         var address = BuildValidAddress();
         address.Country = country;
 
-        Assert.Throws<InvalidOperationException>(address.Validate);
+        Assert.Throws<InvalidAddressException>(address.Validate);
     }
 
     private static Address BuildValidAddress() =>

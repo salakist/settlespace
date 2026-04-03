@@ -2,7 +2,7 @@ using SettleSpace.Domain.Exceptions;
 
 namespace SettleSpace.Domain.Transactions.Exceptions
 {
-    public class UnauthorizedTransactionAccessException : DomainException
+    public class UnauthorizedTransactionAccessException : ForbiddenException
     {
         public UnauthorizedTransactionAccessException()
         {

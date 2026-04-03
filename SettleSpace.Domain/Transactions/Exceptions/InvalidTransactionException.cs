@@ -2,7 +2,7 @@ using SettleSpace.Domain.Exceptions;
 
 namespace SettleSpace.Domain.Transactions.Exceptions
 {
-    public class InvalidTransactionException : DomainException
+    public class InvalidTransactionException : BadRequestException
     {
         public InvalidTransactionException()
         {

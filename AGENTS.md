@@ -46,10 +46,12 @@ SettleSpace.sln
 - `SettleSpace.Application/Authentication/AGENTS.md`
 - `SettleSpace.Application/Persons/AGENTS.md`
 - `SettleSpace.Application/Transactions/AGENTS.md`
+- `SettleSpace.Application/Debts/AGENTS.md`
 - `SettleSpace.Application/Middleware/AGENTS.md`
 - `SettleSpace.Domain/Auth/AGENTS.md`
 - `SettleSpace.Domain/Persons/AGENTS.md`
 - `SettleSpace.Domain/Transactions/AGENTS.md`
+- `SettleSpace.Domain/Debts/AGENTS.md`
 - `SettleSpace.Infrastructure/Persons/AGENTS.md`
 - `SettleSpace.Infrastructure/Transactions/AGENTS.md`
 

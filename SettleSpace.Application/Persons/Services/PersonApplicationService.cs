@@ -2,6 +2,7 @@ using SettleSpace.Application.Persons.Commands;
 using SettleSpace.Application.Persons.Mapping;
 using SettleSpace.Domain.Auth;
 using SettleSpace.Domain.Persons.Entities;
+using SettleSpace.Domain.Persons.Exceptions;
 using SettleSpace.Domain.Persons;
 using SettleSpace.Domain.Persons.Services;
 
@@ -98,7 +99,7 @@ namespace SettleSpace.Application.Persons.Services
             var person = await _repository.GetByIdAsync(command.Id);
             if (person == null)
             {
-                throw new InvalidOperationException($"Person with ID '{command.Id}' not found.");
+                throw new PersonNotFoundException(command.Id);
             }
 
             _domainService.EnsureCanDeleteManagedPerson(loggedRole, person);
@@ -142,13 +143,13 @@ namespace SettleSpace.Application.Persons.Services
         {
             if (string.IsNullOrWhiteSpace(id))
             {
-                throw new InvalidOperationException("Person ID is required for update.");
+                throw new InvalidPersonException("Person ID is required for update.");
             }
 
             var existingPerson = await _repository.GetByIdAsync(id);
             if (existingPerson == null)
             {
-                throw new InvalidOperationException($"Person with ID '{id}' not found.");
+                throw new PersonNotFoundException(id);
             }
 
             var requestedRole = command.Role ?? existingPerson.Role;

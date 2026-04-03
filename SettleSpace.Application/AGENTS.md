@@ -12,6 +12,7 @@ Application layer and API host router for orchestration, HTTP endpoints, and dep
 - `Authentication/AGENTS.md` - auth controllers, commands, and services.
 - `Persons/AGENTS.md` - persons controllers, commands, DTOs, mapping, services.
 - `Transactions/AGENTS.md` - transactions controllers, commands, DTOs, mapping, services.
+- `Debts/AGENTS.md` - computed debt summaries, settlement commands, DTOs, mapping, services.
 - `Middleware/AGENTS.md` - exception middleware behavior and mappings.
 
 ## Key files

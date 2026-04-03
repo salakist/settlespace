@@ -1,4 +1,5 @@
 using SettleSpace.Application.Middleware;
+using SettleSpace.Domain.Auth;
 using SettleSpace.Domain.Persons.Exceptions;
 using SettleSpace.Domain.Transactions.Exceptions;
 using Microsoft.AspNetCore.Http;
@@ -11,6 +12,20 @@ public class ExceptionHandlingMiddlewareTests
 {
     private readonly HttpContext _context = new DefaultHttpContext();
     private readonly IHostEnvironment _environment = new MockHostEnvironment();
+
+    [Fact]
+    public async Task AuthContextExceptionReturns401Unauthorized()
+    {
+        var middleware = new ExceptionHandlingMiddleware(
+            _ => throw new AuthContextException(),
+            new MockLogger(),
+            _environment
+        );
+
+        await middleware.InvokeAsync(_context);
+
+        Assert.Equal(StatusCodes.Status401Unauthorized, _context.Response.StatusCode);
+    }
 
     [Fact]
     public async Task DuplicatePersonExceptionReturns409Conflict()
@@ -83,10 +98,10 @@ public class ExceptionHandlingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvalidOperationExceptionNotFoundReturns404NotFound()
+    public async Task PersonNotFoundExceptionReturns404NotFound()
     {
         var middleware = new ExceptionHandlingMiddleware(
-            _ => throw new InvalidOperationException("Person with ID 'x' not found."),
+            _ => throw new PersonNotFoundException("person-1"),
             new MockLogger(),
             _environment
         );
@@ -97,10 +112,10 @@ public class ExceptionHandlingMiddlewareTests
     }
 
     [Fact]
-    public async Task InvalidOperationExceptionOtherReturns400BadRequest()
+    public async Task InvalidPersonExceptionReturns400BadRequest()
     {
         var middleware = new ExceptionHandlingMiddleware(
-            _ => throw new InvalidOperationException("Some other operation failed."),
+            _ => throw new InvalidPersonException("Some person validation failed."),
             new MockLogger(),
             _environment
         );

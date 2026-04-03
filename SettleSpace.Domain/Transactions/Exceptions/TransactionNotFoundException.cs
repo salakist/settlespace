@@ -2,7 +2,7 @@ using SettleSpace.Domain.Exceptions;
 
 namespace SettleSpace.Domain.Transactions.Exceptions
 {
-    public class TransactionNotFoundException : DomainException
+    public class TransactionNotFoundException : NotFoundException
     {
         public TransactionNotFoundException()
         {

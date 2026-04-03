@@ -5,7 +5,7 @@ namespace SettleSpace.Domain.Persons.Exceptions
     /// <summary>
     /// Exception thrown when attempting to create or update a person with a duplicate full name.
     /// </summary>
-    public class DuplicatePersonException : DomainException
+    public class DuplicatePersonException : ConflictException
     {
         public DuplicatePersonException()
             : base("A person with the same full name already exists.")

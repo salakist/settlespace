@@ -26,19 +26,19 @@ A full-stack demonstration project showcasing Domain-Driven Design (DDD) with a 
 
 ## Solution Structure
 
-```
+```text
 settlespace/
-â”œâ”€â”€ SettleSpace.sln
-â”œâ”€â”€ SettleSpace.Domain/               # Domain layer â€” business rules and contracts
-â”œâ”€â”€ SettleSpace.Infrastructure/       # Infrastructure layer â€” MongoDB persistence
-â”œâ”€â”€ SettleSpace.Application/          # Application layer â€” API, controllers, commands
-â”œâ”€â”€ Tests/
-â”‚   â”œâ”€â”€ SettleSpace.Domain.Tests/         # Unit tests â€” Domain layer
-â”‚   â”œâ”€â”€ SettleSpace.Infrastructure.Tests/ # Unit tests â€” Infrastructure layer
-â”‚   â””â”€â”€ SettleSpace.Application.Tests/    # Unit tests â€” Application layer
-â”œâ”€â”€ settlespace-react/                   # React SPA frontend
-â”œâ”€â”€ AGENTS.md                       # Root agent index
-â””â”€â”€ README.md
+|-- SettleSpace.sln
+|-- SettleSpace.Domain/               # Domain layer - business rules and contracts
+|-- SettleSpace.Infrastructure/       # Infrastructure layer - MongoDB persistence
+|-- SettleSpace.Application/          # Application layer - API, controllers, commands
+|-- Tests/
+|   |-- SettleSpace.Domain.Tests/         # Unit tests - Domain layer
+|   |-- SettleSpace.Infrastructure.Tests/ # Unit tests - Infrastructure layer
+|   `-- SettleSpace.Application.Tests/    # Unit tests - Application layer
+|-- settlespace-react/                   # React SPA frontend
+|-- AGENTS.md                            # Root agent index
+`-- README.md
 ```
 
 ### Folder architecture policy
@@ -56,9 +56,9 @@ Summary for contributors (authoritative policy lives in `AGENTS.md` under "Folde
 
 ### Dependency direction
 
-```
-SettleSpace.Application  â”€â”€â–º  SettleSpace.Infrastructure  â”€â”€â–º  SettleSpace.Domain
-SettleSpace.Application  â”€â”€â–º  SettleSpace.Domain
+```text
+SettleSpace.Application  -->  SettleSpace.Infrastructure  -->  SettleSpace.Domain
+SettleSpace.Application  -->  SettleSpace.Domain
 ```
 
 The Domain layer has **no external dependencies** by design.
@@ -71,39 +71,39 @@ The Domain layer has **no external dependencies** by design.
 
 Pure domain layer. No NuGet packages. No infrastructure coupling.
 
-```
+```text
 SettleSpace.Domain/
-â”œâ”€â”€ Auth/
-â”‚   â”œâ”€â”€ IPasswordGenerator.cs
-â”‚   â”œâ”€â”€ IPasswordHashingService.cs
-â”‚   â”œâ”€â”€ IPasswordValidator.cs
-â”‚   â”œâ”€â”€ PasswordGenerator.cs
-â”‚   â”œâ”€â”€ PasswordHashingService.cs
-â”‚   â””â”€â”€ PasswordValidator.cs
-â”œâ”€â”€ Persons/
-â”‚   â”œâ”€â”€ IPersonRepository.cs
-â”‚   â”œâ”€â”€ Entities/
-â”‚   â”‚   â”œâ”€â”€ Address.cs
-â”‚   â”‚   â””â”€â”€ Person.cs
-â”‚   â”œâ”€â”€ Services/
-â”‚   â”‚   â”œâ”€â”€ IPersonDomainService.cs
-â”‚   â”‚   â””â”€â”€ PersonDomainService.cs
-â”‚   â””â”€â”€ Exceptions/
-â”‚       â”œâ”€â”€ DuplicatePersonException.cs
-â”‚       â””â”€â”€ WeakPasswordException.cs
-â”œâ”€â”€ Transactions/
-â”‚   â”œâ”€â”€ ITransactionRepository.cs
-â”‚   â”œâ”€â”€ Entities/
-â”‚   â”‚   â”œâ”€â”€ Transaction.cs
-â”‚   â”‚   â””â”€â”€ TransactionStatus.cs
-â”‚   â”œâ”€â”€ Services/
-â”‚   â”‚   â”œâ”€â”€ ITransactionDomainService.cs
-â”‚   â”‚   â””â”€â”€ TransactionDomainService.cs
-â”‚   â””â”€â”€ Exceptions/
-â”‚       â”œâ”€â”€ InvalidTransactionException.cs
-â”‚       â”œâ”€â”€ TransactionNotFoundException.cs
-â”‚       â””â”€â”€ UnauthorizedTransactionAccessException.cs
-â””â”€â”€ Exceptions/DomainException.cs
+|-- Auth/
+|   |-- IPasswordGenerator.cs
+|   |-- IPasswordHashingService.cs
+|   |-- IPasswordValidator.cs
+|   |-- PasswordGenerator.cs
+|   |-- PasswordHashingService.cs
+|   `-- PasswordValidator.cs
+|-- Persons/
+|   |-- IPersonRepository.cs
+|   |-- Entities/
+|   |   |-- Address.cs
+|   |   `-- Person.cs
+|   |-- Services/
+|   |   |-- IPersonDomainService.cs
+|   |   `-- PersonDomainService.cs
+|   `-- Exceptions/
+|       |-- DuplicatePersonException.cs
+|       `-- WeakPasswordException.cs
+|-- Transactions/
+|   |-- ITransactionRepository.cs
+|   |-- Entities/
+|   |   |-- Transaction.cs
+|   |   `-- TransactionStatus.cs
+|   |-- Services/
+|   |   |-- ITransactionDomainService.cs
+|   |   `-- TransactionDomainService.cs
+|   `-- Exceptions/
+|       |-- InvalidTransactionException.cs
+|       |-- TransactionNotFoundException.cs
+|       `-- UnauthorizedTransactionAccessException.cs
+`-- Exceptions/DomainException.cs
 ```
 
 #### Domain Rules
@@ -124,14 +124,26 @@ SettleSpace.Domain/
 | Default role | New persons default to `USER`; bootstrap rule: first registered account is `ADMIN` when no accounts exist |
 | No duplicate persons | Two persons are duplicates if `FirstName` and `LastName` match case-insensitively |
 | Duplicate check scope | Enforced on both **create** and **update** |
-| Duplicate violation | Raises `DuplicatePersonException` â†’ translated to HTTP `409 Conflict` |
-| Weak password | Raises `WeakPasswordException` â†’ translated to HTTP `400 Bad Request` |
+| Duplicate violation | Raises `DuplicatePersonException` -> translated to HTTP `409 Conflict` |
+| Weak password | Raises `WeakPasswordException` -> translated to HTTP `400 Bad Request` |
 | Persons management scope | `USER` cannot create/update/delete persons; `MANAGER` can create/update/delete only `USER` accounts and cannot change roles; `ADMIN` is unrestricted |
 | Self role mutation | A person cannot change their own role |
 | Transaction create scope | `USER` can create only when involved; `MANAGER` and `ADMIN` can create without involvement |
 | Transaction read scope | `USER`: involved transactions only; `MANAGER`: involved + created transactions; `ADMIN`: unrestricted |
 | Transaction update/delete scope | `USER` and `MANAGER`: creator-only; `ADMIN`: unrestricted |
-| Equality method | `Person.MatchesByFullName(other)` â€“ OrdinalIgnoreCase full-name comparison |
+| Debt computation source | Debts are derived from existing transactions; the MVP does not persist a separate debt record |
+| Debt status inclusion | Only `Completed` transactions count toward debt balances; `Pending` and `Cancelled` are excluded |
+| Debt currency handling | Net balances are computed per counterparty and per currency; different currencies are not merged |
+| Debt settlement model | Settling a debt creates a compensating `Completed` transaction, typically categorized as `Settlement` |
+| Equality method | `Person.MatchesByFullName(other)` - OrdinalIgnoreCase full-name comparison |
+
+#### Debt computation rules
+
+- Debt balances are a **net projection** of visible transactions between two persons.
+- If the authenticated user paid more for the counterparty than vice versa, the result is **`TheyOweYou`**.
+- If the counterparty paid more for the authenticated user, the result is **`YouOweThem`**.
+- A zero net balance is treated as **settled**.
+- Settlement requests are applied by writing a compensating transaction rather than mutating prior transaction history.
 
 `IPasswordGenerator`/`PasswordGenerator` produces 12+ character passwords that satisfy the same strength policy.
 
@@ -160,39 +172,44 @@ SettleSpace.Infrastructure/
 
 Application layer and API host.
 
-```
+```text
 SettleSpace.Application/
-â”œâ”€â”€ Authentication/
-â”‚   â”œâ”€â”€ AuthController.cs
-â”‚   â”œâ”€â”€ AuthSettings.cs
-â”‚   â”œâ”€â”€ CustomClaimTypes.cs
-â”‚   â”œâ”€â”€ LoginResponseDto.cs
-â”‚   â”œâ”€â”€ Commands/
-â”‚   â””â”€â”€ Services/
-â”œâ”€â”€ Persons/
-â”‚   â”œâ”€â”€ PersonsController.cs
-â”‚   â”œâ”€â”€ Commands/
-â”‚   â”œâ”€â”€ DTOs/
-â”‚   â”œâ”€â”€ Mapping/
-â”‚   â””â”€â”€ Services/
-â”œâ”€â”€ Transactions/
-â”‚   â”œâ”€â”€ TransactionsController.cs
-â”‚   â”œâ”€â”€ TransactionDto.cs
-â”‚   â”œâ”€â”€ Commands/
-â”‚   â”œâ”€â”€ Mapping/
-â”‚   â””â”€â”€ Services/
-â”œâ”€â”€ Middleware/ExceptionHandlingMiddleware.cs
-â”œâ”€â”€ Program.cs
-â””â”€â”€ appsettings.json
+|-- Authentication/
+|   |-- AuthController.cs
+|   |-- AuthSettings.cs
+|   |-- CustomClaimTypes.cs
+|   |-- LoginResponseDto.cs
+|   |-- Commands/
+|   `-- Services/
+|-- Persons/
+|   |-- PersonsController.cs
+|   |-- Commands/
+|   |-- DTOs/
+|   |-- Mapping/
+|   `-- Services/
+|-- Transactions/
+|   |-- TransactionsController.cs
+|   |-- TransactionDto.cs
+|   |-- Commands/
+|   |-- Mapping/
+|   `-- Services/
+|-- Middleware/ExceptionHandlingMiddleware.cs
+|-- Program.cs
+`-- appsettings.json
 ```
 
-`PersonMapper` isolates mapping responsibilities (command â†’ domain and domain â†’ DTO).
+`PersonMapper` isolates mapping responsibilities (command -> domain and domain -> DTO).
 
-`PersonApplicationService` orchestrates: map command â†’ validate entity â†’ delegate duplicate check to `IPersonDomainService` â†’ persist via repository.
+`PersonApplicationService` orchestrates: map command -> validate entity -> delegate duplicate check to `IPersonDomainService` -> persist via repository.
 
 `AuthService` authenticates against the MongoDB `persons` collection via `IPersonRepository`, issues JWT tokens used by the React frontend, and stores a stable person id claim so profile and password operations keep working even after first/last name changes.
 
 `TransactionsController` and `TransactionApplicationService` expose user-scoped transaction CRUD with a dedicated MongoDB `transactions` collection.
+
+`DebtsController` and `DebtApplicationService` expose authenticated debt summary and settlement endpoints derived from the existing `transactions` collection. The backend currently supports:
+- `GET /api/debts/me` - net balances for the current user by counterparty and currency
+- `GET /api/debts/me/{counterpartyPersonId}` - detailed pair summary plus contributing transactions
+- `POST /api/debts/settlements` - create a compensating settlement transaction to reduce an outstanding balance
 
 ---
 
@@ -202,9 +219,9 @@ Each DDD layer has a dedicated xUnit + Moq test project.
 
 | Project | Scope |
 |---|---|
-| `SettleSpace.Domain.Tests` | `Person` rules, optional profile field validation, `PersonDomainService` uniqueness, password generation |
+| `SettleSpace.Domain.Tests` | `Person` rules, optional profile field validation, `PersonDomainService` uniqueness, password generation, and `DebtDomainService` netting/settlement rules |
 | `SettleSpace.Infrastructure.Tests` | `PersonRepository` CRUD via mocked `IMongoCollection<T>` |
-| `SettleSpace.Application.Tests` | `PersonApplicationService` commands/queries, person-backed auth service/controller, `PersonsController` HTTP status codes and authenticated `me` endpoints |
+| `SettleSpace.Application.Tests` | `PersonApplicationService` commands/queries, person-backed auth service/controller, `PersonsController` HTTP status codes and authenticated `me` endpoints, plus `DebtApplicationService` / `DebtsController` behavior |
 
 ### Run all tests
 
@@ -221,9 +238,9 @@ dotnet test Tests/SettleSpace.Application.Tests/SettleSpace.Application.Tests.cs
 ```
 
 ### Test isolation strategy
-- **Domain tests** â€” no mocks; plain object instantiation
-- **Infrastructure tests** â€” mock `IMongoCollection<T>` injected via `internal` constructor; no live MongoDB needed
-- **Application tests** â€” mock `IPersonRepository` + `IPersonDomainService` + `IPasswordHashingService` for service tests; mock `IPersonApplicationService` for controller tests
+- **Domain tests** - no mocks; plain object instantiation
+- **Infrastructure tests** - mock `IMongoCollection<T>` injected via `internal` constructor; no live MongoDB needed
+- **Application tests** - mock `IPersonRepository` + `IPersonDomainService` + `IPasswordHashingService` for service tests; mock `IPersonApplicationService` for controller tests
 
 ---
 

@@ -12,8 +12,7 @@ Unit test project for the Domain layer. Tests business invariants, value objects
 - `PersonTests` / `AddressTests` â€” aggregate and value-object validation rules, optional field validation, and name/address matching behavior
 - `PersonDomainServiceTests` â€” `EnsureUniqueAsync()` duplicate and `excludeId` behavior
 - `PasswordGeneratorTests`, `PasswordValidatorTests`, `PasswordHashingServiceTests` â€” password generation, validation, hashing, and verification behavior
-- `TransactionTests`, `TransactionDomainServiceTests`, `TransactionExceptionsTests` â€” transaction invariants, service rules, and exception behavior
-
+- `TransactionTests`, `TransactionDomainServiceTests`, `TransactionExceptionsTests` â€” transaction invariants, service rules, and exception behavior- `DebtDomainServiceTests` — debt netting, status handling, and settlement validation rules
 ## Test strategy
 - Pure domain objects are tested directly without mocks.
 - Domain services use mocked repository contracts only where collaboration boundaries require them.

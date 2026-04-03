@@ -2,7 +2,7 @@ using SettleSpace.Domain.Exceptions;
 
 namespace SettleSpace.Domain.Persons.Exceptions
 {
-    public class UnauthorizedPersonAccessException : DomainException
+    public class UnauthorizedPersonAccessException : ForbiddenException
     {
         public UnauthorizedPersonAccessException()
         {
