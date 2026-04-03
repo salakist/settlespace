@@ -5,9 +5,9 @@ Own the Git hook source templates that enforce commit-time checks in this reposi
 
 ## Responsibilities
 - Keep `pre-commit` focused on launching the changed-code quality gate.
-- Keep `commit-msg` focused on local agent commit attribution and trailer enforcement.
+- Keep `commit-msg` focused on local agent commit attribution, trailer enforcement, and Conventional Commit validation.
 - Preserve lightweight shell compatibility for hooks copied into `.git/hooks`.
-- Keep hook documentation aligned with `scripts/setup/setup-hooks.ps1` and `scripts/setup/set-agent-git-identity.ps1`.
+- Keep hook documentation aligned with `scripts/setup/setup-hooks.ps1`, `scripts/setup/set-agent-git-identity.ps1`, and the local commit message rules.
 
 ## Key files
 - `pre-commit`
@@ -16,8 +16,8 @@ Own the Git hook source templates that enforce commit-time checks in this reposi
 - `../setup/set-agent-git-identity.ps1`
 
 ## Hook boundaries
-- `pre-commit` should launch the repository quality gate and should not absorb attribution policy logic.
-- `commit-msg` should validate agent identity/trailer expectations and should not duplicate the pre-commit quality gate.
+- `pre-commit` should launch the repository quality gate and should not absorb commit attribution or Conventional Commit parsing logic.
+- `commit-msg` should validate agent identity/trailer expectations and the Conventional Commit header, and should not duplicate the pre-commit quality gate.
 - Hook installation remains the responsibility of `setup-hooks.ps1`.
 
 ## Commands
@@ -28,6 +28,7 @@ Own the Git hook source templates that enforce commit-time checks in this reposi
 ## Dependencies
 - Git with a working `.git/hooks` directory
 - A shell environment compatible with the minimal hook launchers
+- Node/npm with the local `scripts/package.json` dev dependencies installed for Conventional Commit validation
 - Repo-local Git config values used by the attribution policy (`fotest.agentName`, `fotest.agentEmail`, `fotest.agentTrailer`, `fotest.requireReviewedBy`)
 
 ## Source-of-truth note

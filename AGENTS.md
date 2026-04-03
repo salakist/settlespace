@@ -118,10 +118,12 @@ When an agent creates a commit in this repository:
   - Default local values: `fo-test-agent` / `fo-test-agent@local`.
   - Configure it with `./scripts/setup/set-agent-git-identity.ps1`.
   - Return to the normal inherited Git identity with `./scripts/setup/set-agent-git-identity.ps1 -ClearLocalIdentity`.
-2. Include the trailer `Agent: GitHub Copilot` in the commit message.
+2. Use a Conventional Commit summary line in the form `<type>(<optional scope>)!: <description>`.
+  - Supported local types are `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, and `ops`.
+3. Include the trailer `Agent: GitHub Copilot` in the commit message.
   - `Reviewed-by:` remains optional unless local config explicitly enables `fotest.requireReviewedBy=true`.
-3. Local enforcement is authoritative through `scripts/hooks/commit-msg`, installed by `./scripts/setup/setup-hooks.ps1`.
-4. Human-authored commits must not include an `Agent:` trailer unless they are intentionally using the configured agent identity.
+4. Local enforcement is authoritative through `scripts/hooks/commit-msg`, installed by `./scripts/setup/setup-hooks.ps1`.
+5. Human-authored commits must not include an `Agent:` trailer unless they are intentionally using the configured agent identity.
 
 ## Pre-Commit Workflow and Checklist
 

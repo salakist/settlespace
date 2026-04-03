@@ -7,7 +7,7 @@ Own repository quality-gate, hook, cleanup, and setup automation scripts.
 - Keep high-level routing for the `checks/`, `hooks/`, `cleanup/`, `setup/`, and `lib/` areas.
 - Keep this parent file concise and route detailed gate semantics to `checks/AGENTS.md` and hook behavior to `hooks/AGENTS.md`.
 - Default agent sessions to the debug wrappers for quality-gate validation and to the non-destructive cleanup path for routine cleanup.
-- Keep script documentation aligned when entry points, hook installation, or agent-identity setup behavior changes.
+- Keep script documentation aligned when entry points, hook installation, agent-identity setup, or commit-message validation behavior changes.
 
 ## Scope
 - `checks/` - quality gate entry points and debug wrappers (see `scripts/checks/AGENTS.md`)
@@ -15,7 +15,7 @@ Own repository quality-gate, hook, cleanup, and setup automation scripts.
 - `cleanup/` - cleanup scripts (`cleanup.ps1`, `cleanup-full.ps1`)
 - `setup/` - setup scripts (`setup-hooks.ps1`, `set-agent-git-identity.ps1`, `seed-dev-data.ps1`)
 - `lib/` - shared PowerShell helper scripts used by the root entry points
-- `check-coverage.mjs`, `package.json`, `.eslintrc.json` - repo-script lint and coverage support files
+- `check-coverage.mjs`, `package.json`, `package-lock.json`, `.eslintrc.json`, `commitlint.config.cjs` - repo-script lint and commit validation support files
 
 ## Agent policy
 1. Quality gate execution is mandatory before commit/push unless Step 1 is validly `SKIPPED` under root `AGENTS.md` checklist rules.

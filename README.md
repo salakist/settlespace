@@ -329,9 +329,10 @@ They capture output to timestamped log files under `artifacts/logs/`.
 ### Git hooks
 
 - `pre-commit` calls the changed-code gate through a minimal shell launcher that invokes PowerShell
-- `commit-msg` enforces the local agent commit attribution policy whenever the configured repo-local agent identity is active
+- `commit-msg` enforces Conventional Commit headers for local commits and the local agent commit attribution policy whenever the configured repo-local agent identity is active
 - Use `./scripts/setup/set-agent-git-identity.ps1` to switch this repo to the default agent identity (`fo-test-agent` / `fo-test-agent@local`)
 - Use `./scripts/setup/set-agent-git-identity.ps1 -ClearLocalIdentity` to return to your normal inherited Git identity
+- Ensure `cd scripts; npm install` has been run so the local commit-message validator is available
 - Do not bypass the hooks with `--no-verify`
 
 ### Verify hook installation
@@ -342,12 +343,31 @@ Get-ChildItem .git\hooks\pre-commit, .git\hooks\commit-msg
 
 If a hook is missing or does not match `scripts/hooks/`, re-run `setup-hooks`.
 
-### Agent-authored commit messages
+### Conventional Commit messages
 
-When the repo-local agent identity is active, include the required trailer in the commit message:
+Use the summary line format:
 
 ```text
-chore(scripts): describe the change
+<type>(<optional scope>)!: <description>
+```
+
+Supported types for this repo include `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, and `ops`.
+
+Examples:
+
+```text
+feat(auth): add refresh-token rotation
+fix(persons): prevent duplicate email save
+chore(scripts): enforce conventional commit validation
+feat(api)!: remove legacy status endpoint
+```
+
+### Agent-authored commit messages
+
+When the repo-local agent identity is active, pair a Conventional Commit summary with the required trailer:
+
+```text
+chore(scripts): enforce conventional commit validation
 
 Agent: GitHub Copilot
 ```

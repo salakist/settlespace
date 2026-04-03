@@ -2,8 +2,8 @@
 # scripts/hooks/commit-msg
 #
 # Git commit-msg hook launcher.
-# Ensures agent-authored commits use the dedicated repo identity and include
-# the required agent attribution trailer.
+# Ensures agent-authored commits use the dedicated repo identity, include
+# the required agent attribution trailer, and follow Conventional Commits.
 
 COMMIT_MSG_FILE="$1"
 
@@ -26,6 +26,8 @@ AGENT_TRAILER_VALUE="$(git config --get fotest.agentTrailer 2>/dev/null)"
 REQUIRE_REVIEWED_BY="$(git config --bool --get fotest.requireReviewedBy 2>/dev/null)"
 AUTHOR_NAME="$(git config --get user.name 2>/dev/null)"
 AUTHOR_EMAIL="$(git config --get user.email 2>/dev/null)"
+COMMITLINT_PREFIX="$REPO_ROOT/scripts"
+COMMITLINT_CONFIG="$COMMITLINT_PREFIX/commitlint.config.cjs"
 
 if [ -z "$AGENT_NAME" ]; then
   AGENT_NAME="fo-test-agent"
@@ -42,6 +44,42 @@ fi
 if [ -z "$REQUIRE_REVIEWED_BY" ]; then
   REQUIRE_REVIEWED_BY="false"
 fi
+
+print_conventional_commit_examples() {
+  echo "Expected format: <type>(<optional scope>)!: <description>"
+  echo "Examples:"
+  echo "  feat(auth): add token refresh handling"
+  echo "  fix(persons): prevent duplicate email save"
+  echo "  chore(scripts): enforce conventional commits"
+  echo "  feat(api)!: remove legacy status endpoint"
+}
+
+validate_conventional_commit() {
+  if ! command -v npx >/dev/null 2>&1; then
+    echo "ERROR: Conventional Commit validation requires Node.js/npm (npx) on PATH."
+    echo "Run 'cd $COMMITLINT_PREFIX && npm install' after installing Node.js."
+    return 1
+  fi
+
+  if [ ! -f "$COMMITLINT_CONFIG" ]; then
+    echo "ERROR: Conventional Commit validation config was not found at '$COMMITLINT_CONFIG'."
+    return 1
+  fi
+
+  if [ ! -d "$COMMITLINT_PREFIX/node_modules/@commitlint" ]; then
+    echo "ERROR: Conventional Commit validation dependencies are not installed for this repository."
+    echo "Run 'cd $COMMITLINT_PREFIX && npm install'."
+    return 1
+  fi
+
+  if ! npx --no-install --prefix "$COMMITLINT_PREFIX" commitlint --config "$COMMITLINT_CONFIG" --edit "$COMMIT_MSG_FILE"; then
+    echo ""
+    print_conventional_commit_examples
+    return 1
+  fi
+
+  return 0
+}
 
 EXPECTED_AGENT_LINE="Agent: $AGENT_TRAILER_VALUE"
 IS_AGENT_AUTHOR=0
@@ -73,7 +111,7 @@ if [ "$IS_AGENT_AUTHOR" -eq 1 ] && [ "$HAS_EXPECTED_AGENT_TRAILER" -ne 1 ]; then
   echo "  user.email = ${AUTHOR_EMAIL:-<unset>}"
   echo ""
   echo "Example:"
-  echo "  <summary>"
+  echo "  chore(scope): describe the change"
   echo ""
   echo "  $EXPECTED_AGENT_LINE"
   if [ "$REQUIRE_REVIEWED_BY" = "true" ]; then
@@ -93,6 +131,10 @@ fi
 
 if [ "$IS_AGENT_AUTHOR" -eq 1 ] && [ "$REQUIRE_REVIEWED_BY" = "true" ] && [ "$HAS_REVIEWED_BY" -ne 1 ]; then
   echo "ERROR: Agent-authored commits currently require a 'Reviewed-by:' trailer as well."
+  exit 1
+fi
+
+if ! validate_conventional_commit; then
   exit 1
 fi
 

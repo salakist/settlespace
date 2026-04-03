@@ -98,7 +98,7 @@ try {
     if (-not $ClearLocalIdentity) {
         Write-Host ""
         Write-Host "Example agent commit message:"
-        Write-Host "  chore(scope): describe the change"
+        Write-Host "  chore(scripts): describe the change"
         Write-Host ""
         Write-Host "  Agent: $currentAgentLabel"
 
