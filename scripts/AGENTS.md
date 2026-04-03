@@ -30,6 +30,7 @@ Own repository quality-gate and hook automation scripts.
     - If the failed quality gate includes unreviewed security hotspots, print the most likely hotspot location returned by SonarCloud.
     - If the failed quality gate includes a coverage condition, print the 10 lowest covered files returned by SonarCloud for the analyzed branch.
     - If Sonar reports any duplication, print a warning summary with duplication metrics and top duplicated files.
+  1.2.6 On successful full-base Sonar parity runs, scripts should still print unresolved maintainability/code-smell issues for the analyzed branch so non-blocking debt remains visible in agent sessions.
   1.3 Git hooks should continue invoking base scripts (do not rewrite hooks to call debug wrappers by default).
   1.4 Never suggest bypassing hooks with `--no-verify`.
   1.5 For cleanup tasks, agents must default to `./scripts/cleanup/cleanup.ps1`.
@@ -52,6 +53,7 @@ Own repository quality-gate and hook automation scripts.
 ## Gate intent
 - Changed-code gate enforces quality only on changed production scope.
 - Full-base gate enforces quality across the full production codebase.
+- Optional Sonar parity in the full-base gate now surfaces unresolved maintainability/code-smell issues even when the Sonar step passes, while keeping failure diagnostics for gate-breaking conditions.
 - C# analyzer steps use solution rebuilds to avoid incremental-build false negatives.
 - JavaScript analysis is intentionally split between the React app lint track and the repo-script lint track so failures stay local to their runtime context.
 - Coverage threshold remains 80% unless explicitly changed by repository policy.

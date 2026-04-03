@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { authApi, personApi } from '../../../shared/api/api';
+import { logHandledError } from '../../../shared/api/requestHandling';
 import { Person, PersonRole } from '../../../shared/types';
 
 type UseProfileOptions = {
@@ -53,7 +54,7 @@ export function useProfile({ handleUnauthorized, setAuthUsername, setAuthRole, s
       }
 
       setProfileError('Failed to load your profile.');
-      console.error(err);
+      logHandledError(err);
     } finally {
       setProfileLoading(false);
     }
@@ -71,7 +72,7 @@ export function useProfile({ handleUnauthorized, setAuthUsername, setAuthRole, s
         return;
       }
       setProfileError('Failed to save your profile.');
-      console.error(err);
+      logHandledError(err);
     } finally {
       setProfileSaveLoading(false);
     }

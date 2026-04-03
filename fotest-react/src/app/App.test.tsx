@@ -268,8 +268,9 @@ test('does not pass logged-in user to persons page list', () => {
 
   expect(mockPersonsPage).toHaveBeenCalled();
 
-  const personsPageProps = mockPersonsPage.mock.calls[0]?.[0] as unknown as { persons: Array<{ id: string }> };
-  expect(personsPageProps.persons).toEqual([
+  const personsPageProps = mockPersonsPage.mock.calls[0]?.[0];
+  expect(personsPageProps).toBeDefined();
+  expect(personsPageProps?.persons).toEqual([
     { id: '2', firstName: 'Jane', lastName: 'Smith', addresses: [] },
   ]);
 });

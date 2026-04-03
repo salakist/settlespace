@@ -13,6 +13,14 @@ type RequestErrorOptions = {
   rethrow?: boolean;
 };
 
+export function logHandledError(error: unknown): void {
+  if (process.env.NODE_ENV === 'test') {
+    return;
+  }
+
+  console.error(error);
+}
+
 export function rejectUnauthorizedAction(
   isAllowed: boolean,
   setError: (message: string) => void,
@@ -47,7 +55,7 @@ export function handleRequestError({
   }
 
   setError(fallbackMessage);
-  console.error(error);
+  logHandledError(error);
 
   if (rethrow) {
     throw error;

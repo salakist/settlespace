@@ -26,11 +26,20 @@ const SESSION_EXPIRED_MESSAGE = 'Your session expired. Please log in again.';
 
 type PersonsHookResult = ReturnType<typeof usePersons>;
 
-function createPersonsHarness(expireSession = jest.fn()) {
+function createPersonsHarness(options: {
+  expireSession?: jest.Mock;
+  role?: 'ADMIN' | 'USER' | 'MANAGER' | null;
+  currentPersonId?: string;
+} = {}) {
+  const {
+    expireSession = jest.fn(),
+    role = 'ADMIN',
+    currentPersonId = 'p-admin',
+  } = options;
   let latest: PersonsHookResult;
 
   const Harness = () => {
-    latest = usePersons({ expireSession, role: 'ADMIN', currentPersonId: 'p-admin' });
+    latest = usePersons({ expireSession, role, currentPersonId });
     return null;
   };
 
@@ -338,4 +347,52 @@ test('showCreateForm shows form without an editing person', () => {
 
   expect(harness.getHook().showForm).toBe(true);
   expect(harness.getHook().editingPerson).toBeUndefined();
+});
+
+test('showCreateForm blocks unauthorized users before opening the form', () => {
+  const harness = createPersonsHarness({ role: 'USER' });
+
+  act(() => {
+    harness.getHook().showCreateForm();
+  });
+
+  expect(harness.getHook().showForm).toBe(false);
+  expect(harness.getHook().error).toBe('You are not allowed to create persons.');
+  expect(personApi.create).not.toHaveBeenCalled();
+});
+
+test('handleEdit blocks managers from editing admin profiles', () => {
+  const harness = createPersonsHarness({ role: 'MANAGER' });
+
+  act(() => {
+    harness.getHook().handleEdit({
+      id: 'admin-1',
+      firstName: 'Ada',
+      lastName: 'Admin',
+      role: 'ADMIN',
+      addresses: [],
+    });
+  });
+
+  expect(harness.getHook().showForm).toBe(false);
+  expect(harness.getHook().editingPerson).toBeUndefined();
+  expect(harness.getHook().error).toBe('You are not allowed to edit this person.');
+});
+
+test('handleDelete blocks managers from deleting admin profiles', async () => {
+  personApi.getAll.mockResolvedValueOnce({
+    data: [{ id: 'admin-1', firstName: 'Ada', lastName: 'Admin', role: 'ADMIN', addresses: [] }],
+  });
+  const harness = createPersonsHarness({ role: 'MANAGER' });
+
+  await act(async () => {
+    await harness.getHook().loadPersons();
+  });
+
+  await act(async () => {
+    await harness.getHook().handleDelete('admin-1');
+  });
+
+  expect(harness.getHook().error).toBe('You are not allowed to delete this person.');
+  expect(personApi.delete).not.toHaveBeenCalled();
 });

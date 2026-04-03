@@ -174,7 +174,13 @@ function Show-SonarLowestCoveredFiles([string]$ProjectKey, [string]$BranchName, 
     }
 }
 
-function Show-SonarIssueSummary([string]$ProjectKey, [string]$BranchName, [string]$Token) {
+function Show-SonarIssueSummary(
+    [string]$ProjectKey,
+    [string]$BranchName,
+    [string]$Token,
+    [string[]]$Types = @(),
+    [string]$SummaryLabel = "Sonar unresolved issues on analyzed branch"
+) {
     if ([string]::IsNullOrWhiteSpace($ProjectKey)) {
         return
     }
@@ -184,10 +190,14 @@ function Show-SonarIssueSummary([string]$ProjectKey, [string]$BranchName, [strin
         $uri += "&branch=$([Uri]::EscapeDataString($BranchName))"
     }
 
+    if (@($Types).Count -gt 0) {
+        $uri += "&types=$([Uri]::EscapeDataString(($Types -join ',')))"
+    }
+
     try {
         $response = Invoke-RestMethod -Method Get -Uri $uri -Headers (Get-SonarAuthHeader $Token)
         $issues = @($response.issues)
-        Write-Host ("[info] Sonar unresolved issues on analyzed branch: {0}" -f $response.total) -ForegroundColor Yellow
+        Write-Host ("[info] {0}: {1}" -f $SummaryLabel, $response.total) -ForegroundColor Yellow
 
         if ($issues.Count -eq 0) {
             Write-Host "[info] No unresolved issues were returned by the API." -ForegroundColor Yellow

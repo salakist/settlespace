@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi, authStorage } from '../../../shared/api/api';
+import { logHandledError } from '../../../shared/api/requestHandling';
 import { PersonRole, RegisterRequest } from '../../../shared/types';
 
 const ROUTE_LOGIN = '/login';
@@ -55,7 +56,7 @@ export function useAuth() {
       return true;
     } catch (err) {
       setAuthError('Invalid username or password.');
-      console.error(err);
+      logHandledError(err);
       return false;
     } finally {
       setAuthLoading(false);
@@ -76,7 +77,7 @@ export function useAuth() {
     } catch (err) {
       const axiosError = err as { response?: { data?: { error?: string } } };
       setAuthError(axiosError.response?.data?.error ?? 'Registration failed.');
-      console.error(err);
+      logHandledError(err);
       return false;
     } finally {
       setAuthLoading(false);

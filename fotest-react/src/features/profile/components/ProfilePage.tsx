@@ -94,7 +94,6 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
                 label="Role"
                 value={person?.role ?? ''}
                 fullWidth
-                InputProps={{ readOnly: true }}
                 disabled
               />
               <PersonDetailsFormFields

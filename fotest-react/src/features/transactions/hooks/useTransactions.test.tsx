@@ -26,11 +26,20 @@ type TransactionsHookResult = ReturnType<typeof useTransactions>;
 const SESSION_EXPIRED_MESSAGE = 'Your session expired. Please log in again.';
 const TX_DATE = '2026-03-29T00:00:00Z';
 
-function createHarness(expireSession = jest.fn()) {
+function createHarness(options: {
+  expireSession?: jest.Mock;
+  role?: 'ADMIN' | 'USER' | 'MANAGER' | null;
+  currentPersonId?: string;
+} = {}) {
+  const {
+    expireSession = jest.fn(),
+    role = 'ADMIN',
+    currentPersonId = 'p1',
+  } = options;
   let latest: TransactionsHookResult;
 
   const Harness = () => {
-    latest = useTransactions({ expireSession, role: 'ADMIN', currentPersonId: 'p1' });
+    latest = useTransactions({ expireSession, role, currentPersonId });
     return null;
   };
 
@@ -202,4 +211,53 @@ test('handleDelete failure sets error message', async () => {
 
   expect(harness.getHook().error).toBe('Failed to delete transaction');
   confirmSpy.mockRestore();
+});
+
+test('handleEdit blocks users from editing transactions they did not create', () => {
+  const harness = createHarness({ role: 'USER', currentPersonId: 'p1' });
+
+  act(() => {
+    harness.getHook().handleEdit({
+      id: 'tx-2',
+      payerPersonId: 'p3',
+      payeePersonId: 'p4',
+      createdByPersonId: 'p9',
+      amount: 15,
+      currencyCode: 'EUR',
+      transactionDateUtc: TX_DATE,
+      description: 'Blocked edit',
+      status: 'Pending',
+    });
+  });
+
+  expect(harness.getHook().showForm).toBe(false);
+  expect(harness.getHook().error).toBe('You are not allowed to edit this transaction.');
+});
+
+test('handleDelete blocks users from deleting transactions they did not create', async () => {
+  transactionApi.getCurrentUser.mockResolvedValueOnce({
+    data: [{
+      id: 'tx-2',
+      payerPersonId: 'p1',
+      payeePersonId: 'p2',
+      createdByPersonId: 'p9',
+      amount: 15,
+      currencyCode: 'EUR',
+      transactionDateUtc: TX_DATE,
+      description: 'Blocked delete',
+      status: 'Pending',
+    }],
+  });
+  const harness = createHarness({ role: 'USER', currentPersonId: 'p1' });
+
+  await act(async () => {
+    await harness.getHook().loadTransactions();
+  });
+
+  await act(async () => {
+    await harness.getHook().handleDelete('tx-2');
+  });
+
+  expect(harness.getHook().error).toBe('You are not allowed to delete this transaction.');
+  expect(transactionApi.delete).not.toHaveBeenCalled();
 });

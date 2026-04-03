@@ -145,21 +145,27 @@ if ($runSonarScanner) {
 
         $scannerLines = @(& sonar-scanner @sonarArgs 2>&1)
         $scannerExitCode = $LASTEXITCODE
+        $hasTechnicalFailure = $false
 
         if ($scannerExitCode -ne 0) {
             $scannerText = ($scannerLines -join "`n")
             if ($scannerText -match 'QUALITY GATE STATUS:\s*FAILED') {
                 Show-SonarQualityGateSummary -ProjectKey $projectKey -BranchName $branchName -Token $env:SONAR_TOKEN
-                Show-SonarIssueSummary -ProjectKey $projectKey -BranchName $branchName -Token $env:SONAR_TOKEN
-                Show-SonarDuplicationWarning -ProjectKey $projectKey -BranchName $branchName -Token $env:SONAR_TOKEN
             } else {
                 Show-SonarTechnicalErrors -ScannerLines $scannerLines
+                $hasTechnicalFailure = $true
             }
+        }
 
+        if (-not $hasTechnicalFailure) {
+            Show-SonarIssueSummary -ProjectKey $projectKey -BranchName $branchName -Token $env:SONAR_TOKEN -Types @('CODE_SMELL') -SummaryLabel 'Sonar unresolved maintainability issues on analyzed branch'
+            Show-SonarDuplicationWarning -ProjectKey $projectKey -BranchName $branchName -Token $env:SONAR_TOKEN
+        }
+
+        if ($scannerExitCode -ne 0) {
             Write-Host "[FAIL] Optional SonarScanner parity analysis failed." -ForegroundColor Red
             $Failed = $true
         } else {
-            Show-SonarDuplicationWarning -ProjectKey $projectKey -BranchName $branchName -Token $env:SONAR_TOKEN
             Write-Host "[PASS] Optional SonarScanner parity analysis passed." -ForegroundColor Green
         }
     }
