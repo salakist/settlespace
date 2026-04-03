@@ -17,7 +17,8 @@ Own the Git hook source templates that enforce commit-time checks in this reposi
 
 ## Hook boundaries
 - `pre-commit` should launch the repository quality gate and should not absorb commit attribution or Conventional Commit parsing logic.
-- `commit-msg` should validate agent identity/trailer expectations and the Conventional Commit header, and should not duplicate the pre-commit quality gate.
+- `commit-msg` should validate agent identity/trailer expectations, the Conventional Commit header, and commit body line length rules, and should not duplicate the pre-commit quality gate.
+- Agents should pre-wrap commit body lines to **100 characters or fewer** instead of relying on a failed hook run to discover formatting problems.
 - Hook installation remains the responsibility of `setup-hooks.ps1`.
 
 ## Commands

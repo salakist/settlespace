@@ -24,6 +24,10 @@ Own repository quality-gate, hook, cleanup, and setup automation scripts.
   1.3 Never suggest bypassing hooks with `--no-verify`.
   1.4 For cleanup tasks, default to `./scripts/cleanup/cleanup.ps1`; use `cleanup-full.ps1 -Force` only when the user explicitly requests destructive cleanup.
   1.5 Agent-authored commits must use the repo-local agent identity configured via `./scripts/setup/set-agent-git-identity.ps1`.
+1.6 Before running `git commit`, agents must preflight the message against local commitlint rules:
+  - use a valid Conventional Commit summary line
+  - keep each non-empty body/trailer line at **100 characters or fewer**
+  - wrap longer explanations across multiple short lines or paragraphs
 2. After gates pass and before commit, update only documentation relevant to the same change set.
 3. Do not redefine the root checklist acceptance rules in this file.
 

@@ -123,6 +123,8 @@ When an agent creates a commit in this repository:
   - Return to the normal inherited Git identity with `./scripts/setup/set-agent-git-identity.ps1 -ClearLocalIdentity`.
 2. Use a Conventional Commit summary line in the form `<type>(<optional scope>)!: <description>`.
   - Supported local types are `feat`, `fix`, `docs`, `style`, `refactor`, `perf`, `test`, `build`, `ci`, `chore`, and `ops`.
+  - Every additional non-empty commit-message line (body or trailer) must be **100 characters or fewer** to satisfy the local commitlint `body-max-line-length` rule.
+  - If more explanation is needed, wrap it across multiple short lines instead of one long paragraph.
 3. Include the trailer `Agent: GitHub Copilot` in the commit message.
   - `Reviewed-by:` remains optional unless local config explicitly enables `settlespace.requireReviewedBy=true`.
 4. Local enforcement is authoritative through `scripts/hooks/commit-msg`, installed by `./scripts/setup/setup-hooks.ps1`.
@@ -143,6 +145,7 @@ Checklist output (required before `git commit`):
 2. Step 2 status: `DONE` or `SKIPPED`.
 3. Agents must state the checklist output in chat immediately before running any `git commit` command.
   - Do not satisfy this requirement only by printing from inside the terminal command itself.
+  - In the same pre-commit review, agents should also preflight the commit message for Conventional Commit format and body/trailer lines wrapped to **<= 100 characters**.
 4. If the checklist output is missing from the session, do not run `git commit`.
 
 Checklist acceptance rules:
