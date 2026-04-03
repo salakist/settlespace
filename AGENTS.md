@@ -135,7 +135,8 @@ When an agent creates a commit in this repository:
 Workflow steps:
 1. Step 1 - Quality gate validation.
   - Run `./scripts/checks/run-checks-debug.ps1` and keep the log path.
-  - Use full-base debug wrappers only when explicitly requested.
+  - A successful `./scripts/checks/run-full-checks-debug.ps1` run also satisfies Step 1 because it is a superset validation.
+  - Use full-base debug wrappers when broader validation is requested or when Step 1 is being satisfied through the full-base gate.
   - Never bypass hooks with `--no-verify`.
 2. Step 2 - Documentation alignment for the same change set.
   - Update only docs relevant to actual changes in the commit.
@@ -150,14 +151,15 @@ Checklist output (required before `git commit`):
 
 Checklist acceptance rules:
 1. If a step is `SKIPPED`, include a one-line reason.
-2. Step 1 may be `SKIPPED` only when there are no production code changes since the latest successful Step 1 run, and the latest log path is provided.
+2. Step 1 may be `SKIPPED` only when there are no production code changes since the latest successful Step 1-equivalent gate run, and the latest log path is provided.
+  - A Step 1-equivalent gate run is either `./scripts/checks/run-checks-debug.ps1` or `./scripts/checks/run-full-checks-debug.ps1`.
   - Production code changes means staged or unstaged edits in implementation source files under `SettleSpace.Domain/`, `SettleSpace.Infrastructure/`, `SettleSpace.Application/`, `settlespace-react/src/`, and runtime quality-gate script code/config under `scripts/` (for example `*.ps1`, `hooks/pre-commit`, `*.mjs`, `*.js`, `package.json`, `.eslintrc.json`), excluding test files and documentation-only changes.
-  - The latest successful Step 1 log path must be shown directly in the checklist output.
+  - The latest successful Step 1-equivalent log path must be shown directly in the checklist output.
 3. Step 2 must always be reviewed at commit-time for the current staged diff. You may mark Step 2 as `SKIPPED` only as `No documentation changes required` and include a short reason tied to the staged changes.
 4. If either step is neither `DONE` nor validly `SKIPPED`, do not commit.
 5. If the checklist state changes after it is printed (for example new edits or a failed gate), print an updated checklist again before commit.
 6. A documentation-only commit may mark both steps as `SKIPPED` when all skip conditions above are met.
-  - Typical case: only `*.md` files are changed, there are no production code changes, a latest successful Step 1 log path is shown, and no additional documentation updates are required beyond the staged docs.
+  - Typical case: only `*.md` files are changed, there are no production code changes, a latest successful Step 1-equivalent log path is shown, and no additional documentation updates are required beyond the staged docs.
 
 ## Purpose
 Maintain clear, hierarchical AGENTS guidance with minimal context noise for AI-assisted development.
