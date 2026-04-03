@@ -39,13 +39,20 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
   }, [loadTransactions]);
 
   return (
-    <>
+    <Stack spacing={2.5}>
+      <div>
+        <Typography variant="h5">Transactions</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Track recent activity, search quickly, and update entries without leaving the flow.
+        </Typography>
+      </div>
+
       <SearchBar
         onSearch={handleSearch}
         placeholder="Search by description, category, or involved person's name"
       />
 
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+      <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} spacing={1.5}>
         <Typography variant="subtitle1">Manage your transactions</Typography>
         <Button variant="contained" onClick={showCreateForm} disabled={showForm}>
           Add Transaction
@@ -63,7 +70,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
         />
       )}
 
-      {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+      {error && <Alert severity="error">{error}</Alert>}
 
       {loading ? (
         <Stack alignItems="center" sx={{ mt: 4 }}>
@@ -78,7 +85,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
           onDelete={handleDelete}
         />
       )}
-    </>
+    </Stack>
   );
 };
 

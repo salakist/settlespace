@@ -8,6 +8,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { authCardSurfaceSx } from '../../../shared/theme/surfaceStyles';
 import PersonAddressEditor from '../../persons/components/PersonAddressEditor';
 import { Address, RegisterRequest } from '../../../shared/types';
 
@@ -59,7 +60,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
 
   return (
     <Box className="auth-shell">
-      <Paper className="auth-card" elevation={10}>
+      <Paper elevation={0} sx={{ ...authCardSurfaceSx, maxWidth: 560 }}>
         <Stack spacing={3}>
           <Box>
             <Typography variant="overline" className="eyebrow">

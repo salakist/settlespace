@@ -1,6 +1,7 @@
 import React from 'react';
-import { Button, Card, CardContent, Chip, Stack, Typography } from '@mui/material';
+import { Button, Chip, Paper, Stack, Typography } from '@mui/material';
 import { Person, Transaction } from '../../../shared/types';
+import { listItemSurfaceSx } from '../../../shared/theme/surfaceStyles';
 
 type TransactionListProps = {
   transactions: Transaction[];
@@ -30,10 +31,9 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, persons
         const transactionId = transaction.id;
 
         return (
-        <Card key={transactionId} variant="outlined">
-          <CardContent>
+          <Paper key={transactionId} elevation={0} sx={listItemSurfaceSx}>
             <Stack spacing={1.5}>
-              <Stack direction="row" justifyContent="space-between" alignItems="center">
+              <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={1}>
                 <Typography variant="h6">{transaction.description}</Typography>
                 <Chip label={transaction.status} size="small" />
               </Stack>
@@ -58,8 +58,7 @@ const TransactionList: React.FC<TransactionListProps> = ({ transactions, persons
                 )}
               </Stack>
             </Stack>
-          </CardContent>
-        </Card>
+          </Paper>
         );
       })}
     </Stack>

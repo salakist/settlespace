@@ -10,6 +10,7 @@ import {
   toPersonPayload,
   validatePersonDetails,
 } from '../../persons/hooks/personDetailsFormUtils';
+import { panelSurfaceSx } from '../../../shared/theme/surfaceStyles';
 
 interface ProfilePageProps {
   person: Person | null;
@@ -72,7 +73,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
 
   return (
     <Stack spacing={3}>
-      <Paper sx={{ p: 3 }} elevation={4}>
+      <Paper sx={panelSurfaceSx} elevation={0}>
         <Stack spacing={2.5}>
           <Box>
             <Typography variant="overline" className="eyebrow">

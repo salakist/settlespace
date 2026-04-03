@@ -1,6 +1,7 @@
 import React from 'react';
 import { Alert, Button, Chip, Paper, Stack, Typography } from '@mui/material';
 import { DebtSummary, Person } from '../../../shared/types';
+import { panelSurfaceSx } from '../../../shared/theme/surfaceStyles';
 
 type DebtsListProps = {
   debts: DebtSummary[];
@@ -90,12 +91,7 @@ const DebtsList: React.FC<DebtsListProps> = ({ debts, persons, onSettle, onViewD
           <Paper
             key={`${debt.counterpartyPersonId}-${debt.currencyCode}`}
             elevation={0}
-            sx={{
-              p: 2.5,
-              borderRadius: 2,
-              border: '1px solid rgba(255,255,255,0.08)',
-              backgroundColor: 'rgba(255,255,255,0.03)',
-            }}
+            sx={panelSurfaceSx}
           >
             <Stack spacing={1.5}>
               <Stack

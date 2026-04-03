@@ -1,6 +1,7 @@
 import React from 'react';
-import { Button, Card, CardContent, CardActions, Typography, Stack } from '@mui/material';
+import { Button, Paper, Stack, Typography } from '@mui/material';
 import { Person } from '../../../shared/types';
+import { listItemSurfaceSx } from '../../../shared/theme/surfaceStyles';
 
 interface PersonListProps {
   persons: Person[];
@@ -13,34 +14,51 @@ interface PersonListProps {
 const PersonList: React.FC<PersonListProps> = ({ persons, onEdit, onDelete, canEdit, canDelete }) => {
   return (
     <div>
-      <Typography variant="h5" gutterBottom>
-        Persons
-      </Typography>
       {persons.length === 0 ? (
-        <Typography>No persons found.</Typography>
+        <Typography color="text.secondary">No persons found.</Typography>
       ) : (
-        <Stack spacing={2}>
+        <Stack spacing={1.5}>
           {persons.map((person) => {
             const personId = person.id;
+            const secondaryDetails = [person.role, person.email, person.phoneNumber]
+              .filter(Boolean)
+              .join(' · ');
 
             return (
-            <Card key={personId ?? `${person.firstName}-${person.lastName}`}>
-              <CardContent>
-                <Typography variant="subtitle1">
-                  {person.firstName} {person.lastName}
-                </Typography>
-              </CardContent>
-              <CardActions>
-                <Button size="small" onClick={() => onEdit(person)} disabled={!canEdit(person)}>
-                  Edit
-                </Button>
-                {personId ? (
-                  <Button size="small" color="error" onClick={() => onDelete(personId)} disabled={!canDelete(person)}>
-                    Delete
-                  </Button>
-                ) : null}
-              </CardActions>
-            </Card>
+              <Paper
+                key={personId ?? `${person.firstName}-${person.lastName}`}
+                elevation={0}
+                sx={listItemSurfaceSx}
+              >
+                <Stack
+                  direction={{ xs: 'column', sm: 'row' }}
+                  justifyContent="space-between"
+                  alignItems={{ xs: 'flex-start', sm: 'center' }}
+                  spacing={1.5}
+                >
+                  <div>
+                    <Typography variant="subtitle1">
+                      {person.firstName} {person.lastName}
+                    </Typography>
+                    {secondaryDetails && (
+                      <Typography variant="body2" color="text.secondary">
+                        {secondaryDetails}
+                      </Typography>
+                    )}
+                  </div>
+
+                  <Stack direction="row" spacing={1}>
+                    <Button size="small" variant="outlined" onClick={() => onEdit(person)} disabled={!canEdit(person)}>
+                      Edit
+                    </Button>
+                    {personId ? (
+                      <Button size="small" variant="outlined" color="secondary" onClick={() => onDelete(personId)} disabled={!canDelete(person)}>
+                        Delete
+                      </Button>
+                    ) : null}
+                  </Stack>
+                </Stack>
+              </Paper>
             );
           })}
         </Stack>

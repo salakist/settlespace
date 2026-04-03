@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Alert, Button, Paper, Stack, TextField, Typography } from '@mui/material';
+import { panelSurfaceSx } from '../../../shared/theme/surfaceStyles';
 
 interface ChangePasswordFormProps {
   onSubmit: (currentPassword: string, newPassword: string) => Promise<void>;
@@ -36,12 +37,18 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onSubmit, loadi
   };
 
   return (
-    <Paper sx={{ p: 3, mb: 3 }} elevation={4}>
-      <Typography variant="h6" gutterBottom>
-        Change Password
-      </Typography>
-      <form onSubmit={handleSubmit}>
-        <Stack spacing={2}>
+    <Paper sx={{ ...panelSurfaceSx, mb: 3 }} elevation={0}>
+      <Stack spacing={2.5}>
+        <div>
+          <Typography variant="overline" color="primary.main">
+            Security
+          </Typography>
+          <Typography variant="h6">
+            Change Password
+          </Typography>
+        </div>
+        <form onSubmit={handleSubmit}>
+          <Stack spacing={2}>
           {error && <Alert severity="error">{error}</Alert>}
           {success && <Alert severity="success">{success}</Alert>}
           <TextField
@@ -77,8 +84,9 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onSubmit, loadi
           <Alert severity="info">
             Password rules: at least 8 characters, including uppercase, lowercase, number, and special character.
           </Alert>
-        </Stack>
-      </form>
+          </Stack>
+        </form>
+      </Stack>
     </Paper>
   );
 };

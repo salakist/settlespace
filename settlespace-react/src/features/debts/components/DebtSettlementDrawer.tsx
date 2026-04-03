@@ -12,6 +12,7 @@ import {
   Typography,
 } from '@mui/material';
 import { DebtDetails, DebtSummary, Person, SettleDebtRequest } from '../../../shared/types';
+import { insetSurfaceSx } from '../../../shared/theme/surfaceStyles';
 
 type DebtSettlementDrawerProps = {
   open: boolean;
@@ -100,7 +101,6 @@ function getAlertSeverity(direction?: DebtSummary['direction']): 'success' | 'in
   return direction === 'TheyOweYou' ? 'success' : 'info';
 }
 
-const SURFACE_BACKGROUND = 'rgba(255,255,255,0.04)';
 const SLIDER_MARKS = [0, 25, 50, 75, 100].map((value) => ({ value, label: `${value}%` }));
 
 const DebtSettlementDrawer: React.FC<DebtSettlementDrawerProps> = ({
@@ -181,7 +181,7 @@ const DebtSettlementDrawer: React.FC<DebtSettlementDrawerProps> = ({
   } else if (debt) {
     drawerContent = (
       <>
-        <Paper elevation={0} sx={{ p: 2, backgroundColor: SURFACE_BACKGROUND }}>
+        <Paper elevation={0} sx={insetSurfaceSx}>
           <Stack spacing={1}>
             <Typography variant="subtitle1">
               {getDirectionTitle(debt.direction)}

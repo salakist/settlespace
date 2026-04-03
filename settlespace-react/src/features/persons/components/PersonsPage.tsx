@@ -44,10 +44,17 @@ const PersonsPage: React.FC<PersonsPageProps> = ({
   onEdit,
   onDelete,
 }) => (
-  <>
+  <Stack spacing={2.5}>
+    <div>
+      <Typography variant="h5">Persons</Typography>
+      <Typography variant="body2" color="text.secondary">
+        Search the shared directory and manage people, roles, and contact details from one place.
+      </Typography>
+    </div>
+
     <SearchBar onSearch={onSearch} />
 
-    <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+    <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} spacing={1.5}>
       <Typography variant="subtitle1">Manage persons in the database</Typography>
       <Button variant="contained" onClick={onAdd} disabled={showForm || !canCreate}>
         Add New Person
@@ -65,7 +72,7 @@ const PersonsPage: React.FC<PersonsPageProps> = ({
       />
     )}
 
-    {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+    {error && <Alert severity="error">{error}</Alert>}
 
     {loading ? (
       <Stack alignItems="center" sx={{ mt: 4 }}>
@@ -74,7 +81,7 @@ const PersonsPage: React.FC<PersonsPageProps> = ({
     ) : (
       !showForm && <PersonList persons={persons} onEdit={onEdit} onDelete={onDelete} canEdit={canEdit} canDelete={canDelete} />
     )}
-  </>
+  </Stack>
 );
 
 export default PersonsPage;

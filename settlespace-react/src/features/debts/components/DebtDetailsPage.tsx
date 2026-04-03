@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { DebtDetails, DebtSummary, Person, Transaction } from '../../../shared/types';
+import { panelSurfaceSx, listItemSurfaceSx } from '../../../shared/theme/surfaceStyles';
 import { useDebts } from '../hooks/useDebts';
 import DebtSettlementDrawer from './DebtSettlementDrawer';
 
@@ -144,15 +145,7 @@ const DebtDetailsPage: React.FC<DebtDetailsPageProps> = ({ persons, expireSessio
   } else if (detail) {
     pageContent = (
       <>
-        <Paper
-          elevation={0}
-          sx={{
-            p: 2.5,
-            borderRadius: 2,
-            border: '1px solid rgba(255,255,255,0.08)',
-            backgroundColor: 'rgba(255,255,255,0.03)',
-          }}
-        >
+        <Paper elevation={0} sx={panelSurfaceSx}>
           <Stack spacing={1}>
             <Typography variant="overline" color="primary.main">
               {getDirectionSummary(detail.direction)}
@@ -183,12 +176,7 @@ const DebtDetailsPage: React.FC<DebtDetailsPageProps> = ({ persons, expireSessio
               <Paper
                 key={transaction.id ?? `${transaction.transactionDateUtc}-${transaction.amount}`}
                 elevation={0}
-                sx={{
-                  p: 2,
-                  borderRadius: 2,
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  backgroundColor: 'rgba(255,255,255,0.02)',
-                }}
+                sx={listItemSurfaceSx}
               >
                 <Stack spacing={0.75}>
                   <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1}>

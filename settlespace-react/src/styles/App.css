@@ -37,11 +37,8 @@ body {
 
 .auth-card {
   width: 100%;
-  max-width: 460px;
   padding: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(180deg, rgba(30, 30, 30, 0.94) 0%, rgba(18, 18, 18, 0.98) 100%);
-  backdrop-filter: blur(12px);
+  box-sizing: border-box;
 }
 
 .App-header {

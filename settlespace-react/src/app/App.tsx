@@ -73,6 +73,46 @@ const darkTheme = createTheme({
       secondary: '#bbbbbb',
     },
   },
+  shape: {
+    borderRadius: 12,
+  },
+  components: {
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+        },
+      },
+    },
+    MuiOutlinedInput: {
+      styleOverrides: {
+        root: {
+          backgroundColor: 'rgba(255,255,255,0.03)',
+          borderRadius: 12,
+          '&:hover .MuiOutlinedInput-notchedOutline': {
+            borderColor: 'rgba(144, 202, 249, 0.45)',
+          },
+          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+            borderColor: '#90caf9',
+          },
+        },
+      },
+    },
+  },
 });
 
 function App() {

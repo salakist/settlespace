@@ -8,6 +8,7 @@ import {
   toPersonPayload,
   validatePersonDetails,
 } from '../hooks/personDetailsFormUtils';
+import { panelSurfaceSx } from '../../../shared/theme/surfaceStyles';
 import PersonDetailsFormFields from './PersonDetailsFormFields';
 
 interface PersonFormProps {
@@ -68,13 +69,19 @@ const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel, saveL
   };
 
   return (
-    <Paper sx={{ p: 3, mb: 3 }} elevation={4}>
-      <Typography variant="h6" gutterBottom>
-        {person ? 'Edit Person' : 'Add New Person'}
-      </Typography>
-      {submitError && <Alert severity="error" sx={{ mb: 2 }}>{submitError}</Alert>}
-      <form onSubmit={handleSubmit}>
-        <Stack spacing={2.5}>
+    <Paper sx={{ ...panelSurfaceSx, mb: 3 }} elevation={0}>
+      <Stack spacing={2.5}>
+        <div>
+          <Typography variant="overline" color="primary.main">
+            {person ? 'Update directory entry' : 'Create directory entry'}
+          </Typography>
+          <Typography variant="h6">
+            {person ? 'Edit Person' : 'Add New Person'}
+          </Typography>
+        </div>
+        {submitError && <Alert severity="error">{submitError}</Alert>}
+        <form onSubmit={handleSubmit}>
+          <Stack spacing={2.5}>
           <PersonDetailsFormFields
             values={values}
             onChange={setValues}
@@ -102,7 +109,8 @@ const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel, saveL
             </Button>
           </Stack>
         </Stack>
-      </form>
+        </form>
+      </Stack>
     </Paper>
   );
 };

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Button, Paper, Stack, TextField } from '@mui/material';
+import { Button, Paper, Stack, TextField, Typography } from '@mui/material';
+import { insetSurfaceSx } from '../../../shared/theme/surfaceStyles';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
@@ -15,9 +16,16 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, placeholder = 'Search b
   };
 
   return (
-    <Paper sx={{ p: 2, mb: 3 }} elevation={3}>
-      <form onSubmit={handleSubmit}>
-        <Stack direction="row" spacing={2} alignItems="center">
+    <Paper elevation={0} sx={{ ...insetSurfaceSx, mb: 3 }}>
+      <Stack component="form" onSubmit={handleSubmit} spacing={1.5}>
+        <Typography variant="body2" color="text.secondary">
+          Find entries quickly by name or keyword.
+        </Typography>
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={2}
+          alignItems={{ xs: 'stretch', sm: 'center' }}
+        >
           <TextField
             fullWidth
             variant="outlined"
@@ -29,7 +37,7 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch, placeholder = 'Search b
             Search
           </Button>
         </Stack>
-      </form>
+      </Stack>
     </Paper>
   );
 };

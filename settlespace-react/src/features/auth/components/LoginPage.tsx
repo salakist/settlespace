@@ -8,6 +8,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { authCardSurfaceSx } from '../../../shared/theme/surfaceStyles';
 
 interface LoginPageProps {
   onLogin: (username: string, password: string) => Promise<void>;
@@ -27,7 +28,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowRegister, error, l
 
   return (
     <Box className="auth-shell">
-      <Paper className="auth-card" elevation={10}>
+      <Paper elevation={0} sx={{ ...authCardSurfaceSx, maxWidth: 460 }}>
         <Stack spacing={3}>
           <Box>
             <Typography variant="overline" className="eyebrow">

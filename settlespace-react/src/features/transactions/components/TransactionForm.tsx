@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Alert, Button, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
 import { canCreateTransaction } from '../../../shared/auth/permissions';
+import { panelSurfaceSx } from '../../../shared/theme/surfaceStyles';
 import { Person, PersonRole, Transaction, TransactionStatus } from '../../../shared/types';
 
 type TransactionFormProps = {
@@ -88,13 +89,19 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   };
 
   return (
-    <Paper sx={{ p: 3, mb: 3 }} elevation={4}>
-      <Typography variant="h6" gutterBottom>
-        {transaction ? 'Edit Transaction' : 'Create Transaction'}
-      </Typography>
-      {validationError && <Alert severity="error" sx={{ mb: 2 }}>{validationError}</Alert>}
-      <form onSubmit={handleSubmit}>
-        <Stack spacing={2}>
+    <Paper sx={{ ...panelSurfaceSx, mb: 3 }} elevation={0}>
+      <Stack spacing={2.5}>
+        <div>
+          <Typography variant="overline" color="primary.main">
+            {transaction ? 'Update activity' : 'Create activity'}
+          </Typography>
+          <Typography variant="h6">
+            {transaction ? 'Edit Transaction' : 'Create Transaction'}
+          </Typography>
+        </div>
+        {validationError && <Alert severity="error">{validationError}</Alert>}
+        <form onSubmit={handleSubmit}>
+          <Stack spacing={2.5}>
           <TextField
             select
             label="Payer"
@@ -195,7 +202,8 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             </Alert>
           )}
         </Stack>
-      </form>
+        </form>
+      </Stack>
     </Paper>
   );
 };
