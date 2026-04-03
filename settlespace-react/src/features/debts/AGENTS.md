@@ -13,7 +13,8 @@ Debts feature provides UI for managing transaction deficits between persons.
 - `src/features/debts/components/DebtsPage.tsx`
 
 ## Source-of-truth note
-Cross-cutting frontend policy and the shelved future-pages backlog are maintained in `settlespace-react/AGENTS.md`.
+Cross-cutting frontend policy is maintained in `settlespace-react/AGENTS.md`.
+Planned or shelved product ideas and future pages are tracked in repository-root `TODO.md`.
 This file should stay focused on debts feature-local scope and status.
 
 ## Commands

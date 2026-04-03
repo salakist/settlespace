@@ -20,7 +20,8 @@ Transactions feature provides UI and state management for user-scoped transactio
 - `src/features/transactions/hooks/useTransactions.ts`
 
 ## Source-of-truth note
-Cross-cutting frontend policy, quality-gate workflow, and shelved backlog items are defined in `settlespace-react/AGENTS.md`.
+Cross-cutting frontend policy and quality-gate workflow are defined in `settlespace-react/AGENTS.md`.
+Planned or shelved product ideas are tracked in repository-root `TODO.md`.
 This file should stay focused on transactions feature-specific behavior.
 
 ## Commands
