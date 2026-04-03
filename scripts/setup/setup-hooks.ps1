@@ -37,14 +37,23 @@ if (-not (Test-Path $GitHooksDir)) {
     exit 1
 }
 
+$hooksToInstall = @(
+    "pre-commit",
+    "commit-msg"
+)
+
 Write-Host "Installing git hooks..."
 
-Copy-Item -Path (Join-Path $RepoRoot "scripts\hooks\pre-commit") `
-          -Destination (Join-Path $GitHooksDir "pre-commit") `
-          -Force
+foreach ($hookName in $hooksToInstall) {
+    Copy-Item -Path (Join-Path $RepoRoot "scripts\hooks\$hookName") `
+              -Destination (Join-Path $GitHooksDir $hookName) `
+              -Force
+}
 
 $hooksVerified = $true
-if (-not (Test-HookInstalled "pre-commit")) { $hooksVerified = $false }
+foreach ($hookName in $hooksToInstall) {
+    if (-not (Test-HookInstalled $hookName)) { $hooksVerified = $false }
+}
 
 if (-not $hooksVerified) {
     Write-Host ""
@@ -53,7 +62,9 @@ if (-not $hooksVerified) {
 }
 
 Write-Host ""
-Write-Host "Changed-code quality gates will now run automatically before every commit."
+Write-Host "Changed-code quality gates and agent commit attribution checks will now run automatically before every commit."
 Write-Host "The installed pre-commit hook is a minimal shell launcher that invokes the PowerShell gate."
+Write-Host "The installed commit-msg hook enforces the repo's local agent identity policy when the agent identity is active."
 Write-Host "To run changed-code checks manually: .\scripts\checks\run-checks.ps1"
 Write-Host "To run full-base checks manually: .\scripts\checks\run-full-checks.ps1"
+Write-Host "To enable the repo-local agent identity: .\scripts\setup\set-agent-git-identity.ps1"

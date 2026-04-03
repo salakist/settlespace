@@ -329,15 +329,34 @@ They capture output to timestamped log files under `artifacts/logs/`.
 ### Git hooks
 
 - `pre-commit` calls the changed-code gate through a minimal shell launcher that invokes PowerShell
+- `commit-msg` enforces the local agent commit attribution policy whenever the configured repo-local agent identity is active
+- Use `./scripts/setup/set-agent-git-identity.ps1` to switch this repo to the default agent identity (`fo-test-agent` / `fo-test-agent@local`)
+- Use `./scripts/setup/set-agent-git-identity.ps1 -ClearLocalIdentity` to return to your normal inherited Git identity
 - Do not bypass the hooks with `--no-verify`
 
 ### Verify hook installation
 
 ```powershell
-Get-ChildItem .git\hooks\pre-commit
+Get-ChildItem .git\hooks\pre-commit, .git\hooks\commit-msg
 ```
 
 If a hook is missing or does not match `scripts/hooks/`, re-run `setup-hooks`.
+
+### Agent-authored commit messages
+
+When the repo-local agent identity is active, include the required trailer in the commit message:
+
+```text
+chore(scripts): describe the change
+
+Agent: GitHub Copilot
+```
+
+If you want an explicit human review marker as well, add:
+
+```text
+Reviewed-by: <your name>
+```
 
 ---
 

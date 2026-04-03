@@ -106,6 +106,17 @@ Checklist authority note:
 - From repository root: `dotnet run --project .\\FoTestApi.Application\\FoTestApi.Application.csproj`.
 - If cwd is one level above repo: `dotnet run --project .\\fo-test\\FoTestApi.Application\\FoTestApi.Application.csproj`.
 
+## Agent Commit Identity Policy
+When an agent creates a commit in this repository:
+1. Use the dedicated repo-local agent identity instead of a contributor's personal Git identity.
+  - Default local values: `fo-test-agent` / `fo-test-agent@local`.
+  - Configure it with `./scripts/setup/set-agent-git-identity.ps1`.
+  - Return to the normal inherited Git identity with `./scripts/setup/set-agent-git-identity.ps1 -ClearLocalIdentity`.
+2. Include the trailer `Agent: GitHub Copilot` in the commit message.
+  - `Reviewed-by:` remains optional unless local config explicitly enables `fotest.requireReviewedBy=true`.
+3. Local enforcement is authoritative through `scripts/hooks/commit-msg`, installed by `./scripts/setup/setup-hooks.ps1`.
+4. Human-authored commits must not include an `Agent:` trailer unless they are intentionally using the configured agent identity.
+
 ## Pre-Commit Workflow and Checklist
 
 Workflow steps:

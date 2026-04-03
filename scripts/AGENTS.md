@@ -6,14 +6,15 @@ Own repository quality-gate and hook automation scripts.
 ## Scope
 - `checks/` - gate scripts (`run-checks.ps1`, `run-checks-debug.ps1`, `run-full-checks.ps1`, `run-full-checks-debug.ps1`).
 - `cleanup/` - cleanup scripts (`cleanup.ps1`, `cleanup-full.ps1`).
-- `setup/` - setup scripts (`setup-hooks.ps1`, `seed-dev-data.ps1`).
+- `setup/` - setup scripts (`setup-hooks.ps1`, `set-agent-git-identity.ps1`, `seed-dev-data.ps1`).
 - `run-full-checks-debug.ps1` - full-base wrapper with mandatory log capture.
 - `cleanup.ps1` - default light cleanup for routine artifact cleanup.
 - `cleanup-full.ps1` - explicit full cleanup for destructive repository reset.
 - `setup-hooks.ps1` - local git hook installation and refresh.
+- `set-agent-git-identity.ps1` - configures or clears the repo-local Git identity used for agent-authored commits.
 - `seed-dev-data.ps1` - manual local seed script for persons and transactions API data.
 - `lib/` - shared PowerShell helper scripts used by root entry points, including cleanup mutualization in `lib/cleanup.ps1`.
-- `hooks/` - hook source templates copied to `.git/hooks`; `hooks/pre-commit` remains a minimal shell launcher for Git compatibility and invokes PowerShell.
+- `hooks/` - hook source templates copied to `.git/hooks`; `hooks/pre-commit` remains a minimal shell launcher for Git compatibility and invokes PowerShell, while `hooks/commit-msg` enforces local agent commit attribution.
 - `check-coverage.mjs` - shared coverage evaluator for changed/full modes.
 - `package.json` / `.eslintrc.json` - local repo-script lint configuration for Node JS/MJS files under `scripts/`.
 
@@ -35,6 +36,9 @@ Own repository quality-gate and hook automation scripts.
   1.4 Never suggest bypassing hooks with `--no-verify`.
   1.5 For cleanup tasks, agents must default to `./scripts/cleanup/cleanup.ps1`.
   1.6 Agents may run `./scripts/cleanup/cleanup-full.ps1 -Force` only when the user explicitly requests full/destructive cleanup.
+  1.7 Agent-authored commits must use the repo-local agent identity configured via `./scripts/setup/set-agent-git-identity.ps1` rather than a contributor's personal identity.
+  1.8 Agent-authored commits must include `Agent: GitHub Copilot`; `Reviewed-by:` may also be enforced when `fotest.requireReviewedBy=true`.
+  1.9 `hooks/commit-msg` is the authoritative local enforcement point for the agent commit attribution policy and must remain lightweight and shell-compatible.
 2. After gates pass and before commit, documentation updates are mandatory for the same change set.
   2.1 Update only documentation relevant to the actual changes.
   2.2 Typical targets include module `AGENTS.md` files, route notes, behavior notes, and test guidance.
@@ -81,6 +85,8 @@ When editing any script in this folder:
 .\scripts\cleanup\cleanup-full.ps1 -Force
 .\scripts\cleanup\cleanup-full.ps1 -Force -DryRun
 .\scripts\setup\setup-hooks.ps1
+.\scripts\setup\set-agent-git-identity.ps1
+.\scripts\setup\set-agent-git-identity.ps1 -ClearLocalIdentity
 .\scripts\setup\seed-dev-data.ps1
 cd scripts; npm install
 ```
