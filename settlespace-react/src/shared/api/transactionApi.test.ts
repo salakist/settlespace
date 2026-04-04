@@ -36,6 +36,7 @@ test('transaction api methods call expected routes', () => {
   loadedApi!.getCurrentUser();
   loadedApi!.getById(TX_ID);
   loadedApi!.searchCurrentUser('lunch');
+  loadedApi!.search({ freeText: 'lunch' });
   loadedApi!.create({
     payerPersonId: 'p1',
     payeePersonId: 'p2',
@@ -59,7 +60,8 @@ test('transaction api methods call expected routes', () => {
   expect(mockGet).toHaveBeenNthCalledWith(1, '/transactions/me');
   expect(mockGet).toHaveBeenNthCalledWith(2, TX_ROUTE);
   expect(mockGet).toHaveBeenNthCalledWith(3, '/transactions/me/search/lunch');
-  expect(mockPost).toHaveBeenCalledWith('/transactions', expect.any(Object));
+  expect(mockPost).toHaveBeenNthCalledWith(1, '/transactions/search', { freeText: 'lunch' });
+  expect(mockPost).toHaveBeenNthCalledWith(2, '/transactions', expect.any(Object));
   expect(mockPut).toHaveBeenCalledWith(TX_ROUTE, expect.any(Object));
   expect(mockDelete).toHaveBeenCalledWith(TX_ROUTE);
   expect((axios.create as jest.Mock).mock.calls[0][0]).toEqual({ baseURL: 'http://localhost:5279/api' });

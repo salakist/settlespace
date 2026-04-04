@@ -6,6 +6,7 @@ jest.mock('../../../shared/api/transactionApi', () => ({
   transactionApi: {
     getCurrentUser: jest.fn(),
     searchCurrentUser: jest.fn(),
+    search: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
@@ -16,6 +17,7 @@ const { transactionApi } = jest.requireMock('../../../shared/api/transactionApi'
   transactionApi: {
     getCurrentUser: jest.Mock;
     searchCurrentUser: jest.Mock;
+    search: jest.Mock;
     create: jest.Mock;
     update: jest.Mock;
     delete: jest.Mock;
@@ -55,6 +57,7 @@ beforeEach(() => {
   jest.clearAllMocks();
   transactionApi.getCurrentUser.mockResolvedValue({ data: [] });
   transactionApi.searchCurrentUser.mockResolvedValue({ data: [] });
+  transactionApi.search.mockResolvedValue({ data: [] });
   transactionApi.create.mockResolvedValue({});
   transactionApi.update.mockResolvedValue({});
   transactionApi.delete.mockResolvedValue({});
@@ -126,6 +129,32 @@ test('handleDelete deletes immediately once the UI has confirmed the action', as
   expect(transactionApi.delete).toHaveBeenCalledWith('tx-1');
 });
 
+test('handleSearch calls search endpoint with freeText', async () => {
+  transactionApi.search.mockResolvedValueOnce({
+    data: [
+      {
+        id: 'tx-1',
+        payerPersonId: 'p1',
+        payeePersonId: 'p2',
+        amount: 10,
+        currencyCode: 'EUR',
+        transactionDateUtc: TX_DATE,
+        description: 'Lunch',
+        status: 'Completed',
+      },
+    ],
+  });
+
+  const harness = createHarness();
+
+  await act(async () => {
+    await harness.getHook().handleSearch('lunch');
+  });
+
+  expect(transactionApi.search).toHaveBeenCalledWith({ freeText: 'lunch' });
+  expect(harness.getHook().transactions).toHaveLength(1);
+});
+
 test('handleSearch with empty query falls back to loadTransactions', async () => {
   const harness = createHarness();
 
@@ -163,7 +192,7 @@ test('showCreateForm and handleCancel toggle form state', () => {
 });
 
 test('handleSearch unauthorized triggers expireSession', async () => {
-  transactionApi.searchCurrentUser.mockRejectedValueOnce({ response: { status: 401 } });
+  transactionApi.search.mockRejectedValueOnce({ response: { status: 401 } });
   const harness = createHarness();
 
   await act(async () => {

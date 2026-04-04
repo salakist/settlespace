@@ -1,4 +1,5 @@
 using SettleSpace.Application.Transactions.Commands;
+using SettleSpace.Application.Transactions.Queries;
 using SettleSpace.Application.Transactions.Mapping;
 using SettleSpace.Domain.Persons;
 using SettleSpace.Domain.Persons.Entities;
@@ -37,6 +38,44 @@ namespace SettleSpace.Application.Transactions.Services
         public async Task<List<Transaction>> SearchCurrentUserTransactionsAsync(string loggedPersonId, PersonRole loggedRole, string query)
         {
             var transactions = await SearchTransactionsIncludingInvolvedPersonsAsync(query);
+            return _domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
+        }
+
+        public async Task<List<Transaction>> SearchTransactionsAsync(string loggedPersonId, PersonRole loggedRole, TransactionSearchQuery query)
+        {
+            var freeText = query.FreeText?.Trim();
+            var filter = new TransactionSearchFilter { FreeText = freeText };
+
+            var transactionSearchTask = _repository.SearchAsync(filter);
+
+            if (!string.IsNullOrWhiteSpace(freeText))
+            {
+                var personSearchTask = _personRepository.SearchAsync(freeText);
+                await Task.WhenAll(transactionSearchTask, personSearchTask);
+
+                var matchedTransactions = transactionSearchTask.Result;
+                var matchedPersonIds = personSearchTask.Result
+                    .Select(person => person.Id)
+                    .Where(id => !string.IsNullOrWhiteSpace(id))
+                    .Cast<string>()
+                    .ToHashSet(StringComparer.Ordinal);
+
+                if (matchedPersonIds.Count > 0)
+                {
+                    var allFilteredTransactions = await _repository.SearchAsync(filter with { FreeText = null });
+
+                    matchedTransactions = [.. matchedTransactions
+                        .Concat(allFilteredTransactions.Where(transaction =>
+                            matchedPersonIds.Contains(transaction.PayerPersonId) ||
+                            matchedPersonIds.Contains(transaction.PayeePersonId)))
+                        .DistinctBy(BuildSearchResultKey)
+                        .OrderByDescending(transaction => transaction.TransactionDateUtc)];
+                }
+
+                return _domainService.FilterReadableTransactions(matchedTransactions, loggedPersonId, loggedRole);
+            }
+
+            var transactions = await transactionSearchTask;
             return _domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
         }
 

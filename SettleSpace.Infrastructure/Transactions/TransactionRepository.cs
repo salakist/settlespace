@@ -84,6 +84,17 @@ namespace SettleSpace.Infrastructure.Transactions
                 .ToListAsync();
         }
 
+        public async Task<List<Transaction>> SearchAsync(TransactionSearchFilter filter)
+        {
+            var builder = Builders<Transaction>.Filter;
+            var composedFilter = BuildSearchFilter(filter, builder);
+
+            return await _transactionsCollection
+                .Find(composedFilter)
+                .SortByDescending(t => t.TransactionDateUtc)
+                .ToListAsync();
+        }
+
         public async Task<List<Transaction>> GetByInvolvedPersonIdAsync(string personId)
         {
             var filter = BuildInvolvementFilter(personId);
@@ -129,6 +140,24 @@ namespace SettleSpace.Infrastructure.Transactions
         {
             var builder = Builders<Transaction>.Filter;
             return builder.Eq(t => t.PayerPersonId, personId) | builder.Eq(t => t.PayeePersonId, personId);
+        }
+
+        private static FilterDefinition<Transaction> BuildSearchFilter(
+            TransactionSearchFilter filter,
+            FilterDefinitionBuilder<Transaction> builder)
+        {
+            var conditions = new List<FilterDefinition<Transaction>>();
+
+            if (!string.IsNullOrWhiteSpace(filter.FreeText))
+            {
+                var escapedText = Regex.Escape(filter.FreeText.Trim());
+                var regex = new BsonRegularExpression($".*{escapedText}.*", "i");
+                conditions.Add(builder.Regex(t => t.Description, regex) | builder.Regex(t => t.Category, regex));
+            }
+
+            return conditions.Count == 0
+                ? builder.Empty
+                : builder.And(conditions);
         }
     }
 }

@@ -1,4 +1,5 @@
 using SettleSpace.Application.Transactions.Commands;
+using SettleSpace.Application.Transactions.Queries;
 using SettleSpace.Domain.Persons.Entities;
 using SettleSpace.Domain.Transactions.Entities;
 
@@ -8,6 +9,7 @@ namespace SettleSpace.Application.Transactions.Services
     {
         Task<List<Transaction>> GetCurrentUserTransactionsAsync(string loggedPersonId, PersonRole loggedRole);
         Task<List<Transaction>> SearchCurrentUserTransactionsAsync(string loggedPersonId, PersonRole loggedRole, string query);
+        Task<List<Transaction>> SearchTransactionsAsync(string loggedPersonId, PersonRole loggedRole, TransactionSearchQuery query);
         Task<Transaction> GetTransactionByIdAsync(string id, string loggedPersonId, PersonRole loggedRole);
         Task<Transaction> CreateTransactionAsync(string loggedPersonId, PersonRole loggedRole, CreateTransactionCommand command);
         Task UpdateTransactionAsync(string id, string loggedPersonId, PersonRole loggedRole, UpdateTransactionCommand command);

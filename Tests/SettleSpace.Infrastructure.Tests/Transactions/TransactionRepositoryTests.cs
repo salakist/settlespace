@@ -1,3 +1,4 @@
+using SettleSpace.Domain.Transactions;
 using SettleSpace.Domain.Transactions.Entities;
 using SettleSpace.Infrastructure.Transactions;
 using Moq;
@@ -120,6 +121,28 @@ public class TransactionRepositoryTests
         var result = await repo.SearchAsync("taxi");
 
         Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task SearchAsyncFilterWithFreeTextReturnsMatchingTransactions()
+    {
+        var tx = BuildTransaction("tx-1");
+        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+
+        var result = await repo.SearchAsync(new TransactionSearchFilter { FreeText = "taxi" });
+
+        Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task SearchAsyncFilterWithNullFreeTextReturnsAllTransactions()
+    {
+        var transactions = new[] { BuildTransaction("tx-1"), BuildTransaction("tx-2") };
+        var repo = new TransactionRepository(BuildCollectionMock(transactions).Object);
+
+        var result = await repo.SearchAsync(new TransactionSearchFilter());
+
+        Assert.Equal(2, result.Count);
     }
 
     [Fact]

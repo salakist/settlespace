@@ -1,4 +1,5 @@
 using SettleSpace.Application.Transactions.Commands;
+using SettleSpace.Application.Transactions.Queries;
 using SettleSpace.Application.Transactions.Mapping;
 using SettleSpace.Application.Transactions.Services;
 using SettleSpace.Domain.Persons;
@@ -121,6 +122,67 @@ public class TransactionApplicationServiceTests
             .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
 
         var result = await _sut.SearchCurrentUserTransactionsAsync("user-1", PersonRole.USER, "john");
+
+        Assert.Single(result);
+        Assert.Equal("tx-1", result[0].Id);
+    }
+
+    [Fact]
+    public async Task SearchTransactionsAsyncWithFreeTextDelegatesToRepository()
+    {
+        var query = new TransactionSearchQuery { FreeText = "taxi" };
+        _personRepositoryMock.Setup(r => r.SearchAsync("taxi")).ReturnsAsync([]);
+        _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.FreeText == "taxi")))
+            .ReturnsAsync(new List<Transaction> { BuildTransaction("tx-1") });
+        _domainServiceMock
+            .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+
+        var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
+
+        Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task SearchTransactionsAsyncWithNullFreeTextReturnsAllReadable()
+    {
+        var query = new TransactionSearchQuery();
+        _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.FreeText == null)))
+            .ReturnsAsync(new List<Transaction> { BuildTransaction("tx-1") });
+        _domainServiceMock
+            .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+
+        var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
+
+        Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task SearchTransactionsAsyncWithFreeTextIncludesPersonNameMatches()
+    {
+        var query = new TransactionSearchQuery { FreeText = "john" };
+        var matchingTransaction = BuildTransaction("tx-1");
+
+        _personRepositoryMock.Setup(r => r.SearchAsync("john"))
+            .ReturnsAsync([
+                new Person
+                {
+                    Id = "user-1",
+                    FirstName = "John",
+                    LastName = "Doe",
+                    Password = "hashed"
+                }
+            ]);
+        _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.FreeText == "john")))
+            .ReturnsAsync([]);
+        _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.FreeText == null)))
+            .ReturnsAsync([matchingTransaction]);
+        _domainServiceMock
+            .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+
+        var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
 
         Assert.Single(result);
         Assert.Equal("tx-1", result[0].Id);

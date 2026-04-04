@@ -6,6 +6,7 @@ namespace SettleSpace.Domain.Transactions
     {
         Task<List<Transaction>> GetAllAsync();
         Task<List<Transaction>> SearchAsync(string query);
+        Task<List<Transaction>> SearchAsync(TransactionSearchFilter filter);
         Task<Transaction?> GetByIdAsync(string id);
         Task<List<Transaction>> GetByInvolvedPersonIdAsync(string personId);
         Task<List<Transaction>> SearchByInvolvedPersonIdAsync(string personId, string query);

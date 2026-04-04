@@ -2,6 +2,7 @@ using SettleSpace.Application.Authentication;
 using SettleSpace.Application.Authentication.Services;
 using SettleSpace.Domain.Auth;
 using SettleSpace.Application.Transactions.Commands;
+using SettleSpace.Application.Transactions.Queries;
 using SettleSpace.Application.Transactions;
 using SettleSpace.Application.Transactions.Mapping;
 using SettleSpace.Application.Transactions.Services;
@@ -95,6 +96,34 @@ public class TransactionsControllerTests
         SetUser("user-1", PersonRole.USER);
 
         var result = await _controller.SearchCurrentUserTransactions("taxi");
+
+        Assert.IsType<OkObjectResult>(result.Result);
+    }
+
+    [Fact]
+    public async Task SearchTransactionsReturnsOkWithDtos()
+    {
+        var query = new TransactionSearchQuery { FreeText = "dinner" };
+        _serviceMock.Setup(s => s.SearchTransactionsAsync("user-1", PersonRole.USER, query))
+            .ReturnsAsync(new List<Transaction> { BuildTransaction("tx-1") });
+        SetUser("user-1", PersonRole.USER);
+
+        var result = await _controller.SearchTransactions(query);
+
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        var dtos = Assert.IsAssignableFrom<List<TransactionDto>>(ok.Value);
+        Assert.Single(dtos);
+    }
+
+    [Fact]
+    public async Task SearchTransactionsWithNullFreeTextReturnsOk()
+    {
+        var query = new TransactionSearchQuery();
+        _serviceMock.Setup(s => s.SearchTransactionsAsync("user-1", PersonRole.USER, query))
+            .ReturnsAsync(new List<Transaction>());
+        SetUser("user-1", PersonRole.USER);
+
+        var result = await _controller.SearchTransactions(query);
 
         Assert.IsType<OkObjectResult>(result.Result);
     }

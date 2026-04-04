@@ -17,10 +17,15 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
+export interface TransactionSearchQuery {
+  freeText?: string;
+}
+
 export const transactionApi = {
   getCurrentUser: () => api.get<Transaction[]>('/transactions/me'),
   getById: (id: string) => api.get<Transaction>(`/transactions/${id}`),
   searchCurrentUser: (query: string) => api.get<Transaction[]>(`/transactions/me/search/${query}`),
+  search: (query: TransactionSearchQuery) => api.post<Transaction[]>('/transactions/search', query),
   create: (transaction: Omit<Transaction, 'id' | 'createdByPersonId' | 'createdAtUtc' | 'updatedAtUtc'>) =>
     api.post<Transaction>('/transactions', transaction),
   update: (id: string, transaction: Omit<Transaction, 'id' | 'createdByPersonId' | 'createdAtUtc' | 'updatedAtUtc'>) =>

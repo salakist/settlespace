@@ -1,5 +1,6 @@
 using SettleSpace.Application.Authentication.Services;
 using SettleSpace.Application.Transactions.Commands;
+using SettleSpace.Application.Transactions.Queries;
 using SettleSpace.Application.Transactions.Mapping;
 using SettleSpace.Application.Transactions.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -44,6 +45,19 @@ namespace SettleSpace.Application.Transactions
         {
             var (personId, personRole) = _authService.ResolveAuthContext(User);
             var transactions = await _applicationService.SearchCurrentUserTransactionsAsync(personId, personRole, query);
+
+            return Ok(transactions.Select(_transactionMapper.ToDto).ToList());
+        }
+
+        [HttpPost("search")]
+        [ProducesResponseType(typeof(List<TransactionDto>), 200)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(401)]
+        public async Task<ActionResult<List<TransactionDto>>> SearchTransactions([FromBody] TransactionSearchQuery query)
+        {
+            query.Validate();
+            var (personId, personRole) = _authService.ResolveAuthContext(User);
+            var transactions = await _applicationService.SearchTransactionsAsync(personId, personRole, query);
 
             return Ok(transactions.Select(_transactionMapper.ToDto).ToList());
         }

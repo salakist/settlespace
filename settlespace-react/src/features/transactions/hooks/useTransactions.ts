@@ -3,7 +3,7 @@ import {
   handleRequestError,
   rejectUnauthorizedAction,
 } from '../../../shared/api/requestHandling';
-import { transactionApi } from '../../../shared/api/transactionApi';
+import { transactionApi, TransactionSearchQuery } from '../../../shared/api/transactionApi';
 import { canUpdateOrDeleteTransaction } from '../../../shared/auth/permissions';
 import { PersonRole, Transaction } from '../../../shared/types';
 
@@ -56,9 +56,11 @@ export function useTransactions({ expireSession, currentPersonId, role }: UseTra
       return;
     }
 
+    const searchQuery: TransactionSearchQuery = { freeText: query.trim() };
+
     try {
       setLoading(true);
-      const response = await transactionApi.searchCurrentUser(query);
+      const response = await transactionApi.search(searchQuery);
       setTransactions(response.data);
       setError(null);
     } catch (err) {
