@@ -12,6 +12,8 @@ function Invoke-CSharpCoverage(
         $ProjectPath
         '--nologo'
         '/nr:false'
+        '--blame-hang-timeout'
+        '30s'
         '/p:CollectCoverage=true'
         '/p:CoverletOutputFormat=json'
         "/p:CoverletOutput=$resolvedOutputPrefix"
