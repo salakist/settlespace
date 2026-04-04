@@ -7,6 +7,14 @@ Prioritized backlog for **planned / shelved product work**.
 
 ## MVP / next up
 
+### 0. Technical debt 
+**Why next:** improves the landing experience and gives users a useful summary immediately after login.
+
+**Initial scope**
+
+- introduce real TypeScript enums rather than the current string-union / as const style
+- run full code sonar analysis and fix all passing issues
+
 ### 1. Dashboard / overview page
 **Why next:** improves the landing experience and gives users a useful summary immediately after login.
 
