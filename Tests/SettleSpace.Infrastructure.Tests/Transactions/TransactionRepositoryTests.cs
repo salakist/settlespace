@@ -146,6 +146,35 @@ public class TransactionRepositoryTests
     }
 
     [Fact]
+    public async Task SearchAsyncFilterWithStatusReturnsMatchingTransactions()
+    {
+        var tx = BuildTransaction("tx-1");
+        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+
+        var result = await repo.SearchAsync(new TransactionSearchFilter
+        {
+            Status = [TransactionStatus.Completed]
+        });
+
+        Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task SearchAsyncFilterWithStatusAndFreeTextCombinesBothFilters()
+    {
+        var tx = BuildTransaction("tx-1");
+        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+
+        var result = await repo.SearchAsync(new TransactionSearchFilter
+        {
+            FreeText = "taxi",
+            Status = [TransactionStatus.Completed, TransactionStatus.Pending]
+        });
+
+        Assert.Single(result);
+    }
+
+    [Fact]
     public async Task UpdateAsyncCallsReplaceOne()
     {
         var tx = BuildTransaction("tx-1");

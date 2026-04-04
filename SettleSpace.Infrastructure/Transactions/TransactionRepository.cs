@@ -155,6 +155,11 @@ namespace SettleSpace.Infrastructure.Transactions
                 conditions.Add(builder.Regex(t => t.Description, regex) | builder.Regex(t => t.Category, regex));
             }
 
+            if (filter.Status is { Count: > 0 })
+            {
+                conditions.Add(builder.In(t => t.Status, filter.Status));
+            }
+
             return conditions.Count == 0
                 ? builder.Empty
                 : builder.And(conditions);

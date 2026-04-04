@@ -44,7 +44,7 @@ namespace SettleSpace.Application.Transactions.Services
         public async Task<List<Transaction>> SearchTransactionsAsync(string loggedPersonId, PersonRole loggedRole, TransactionSearchQuery query)
         {
             var freeText = query.FreeText?.Trim();
-            var filter = new TransactionSearchFilter { FreeText = freeText };
+            var filter = new TransactionSearchFilter { FreeText = freeText, Status = query.Status };
 
             var transactionSearchTask = _repository.SearchAsync(filter);
 
