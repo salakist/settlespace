@@ -526,6 +526,21 @@ npm start
 
 Frontend starts on `http://localhost:3000`.
 
+### 4.1 Convenience full-stack helpers
+
+From the repository root, you can launch or stop both app ends with the repo scripts:
+
+```powershell
+.\scripts\start-stack.ps1
+.\scripts\stop-stack.ps1
+```
+
+Notes:
+- `start-stack.ps1` checks whether the backend and frontend are already running and reports what it started vs. what was already up.
+- If one or both are already running, it asks once whether you want to restart the detected component(s).
+- `stop-stack.ps1` asks once for confirmation before stopping the detected component(s).
+- Use `.\scripts\stop-stack.ps1 -Force` to skip the confirmation prompt.
+
 ### 5. Seed demo data manually
 
 With the API running, you can populate persons and transactions with repeatable sample data.

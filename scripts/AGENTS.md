@@ -47,6 +47,10 @@ When editing any script in this folder:
 
 ## Commands
 ```powershell
+.\scripts\start-stack.ps1
+.\scripts\start-stack.ps1 -RestartRunning
+.\scripts\stop-stack.ps1
+.\scripts\stop-stack.ps1 -Force
 .\scripts\checks\run-checks-debug.ps1
 .\scripts\checks\run-full-checks-debug.ps1
 .\scripts\cleanup\cleanup.ps1
