@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authApi, authStorage } from '../../../shared/api/api';
 import { logHandledError } from '../../../shared/api/requestHandling';
+import { clearPersonDirectoryCache } from '../../../shared/hooks/usePersonDirectory';
 import { PersonRole, RegisterRequest } from '../../../shared/types';
 
 const ROUTE_LOGIN = '/login';
@@ -14,6 +15,8 @@ export function useAuth() {
     : null;
   const [isAuthenticated, setIsAuthenticated] = useState(authStorage.isAuthenticated());
   const [username, setUsername] = useState(authStorage.getUsername() ?? '');
+  const [personId, setPersonId] = useState(authStorage.getPersonId() ?? '');
+  const [displayName, setDisplayName] = useState(authStorage.getDisplayName() ?? authStorage.getUsername() ?? '');
   const [role, setRole] = useState<PersonRole | null>(initialRole);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authLoading, setAuthLoading] = useState(false);
@@ -21,6 +24,20 @@ export function useAuth() {
   const setAuthUsername = useCallback((nextUsername: string) => {
     setUsername(nextUsername);
     authStorage.setUsername(nextUsername);
+  }, []);
+
+  const setAuthPersonId = useCallback((nextPersonId: string) => {
+    setPersonId(nextPersonId);
+    if (typeof authStorage.setPersonId === 'function') {
+      authStorage.setPersonId(nextPersonId);
+    }
+  }, []);
+
+  const setAuthDisplayName = useCallback((nextDisplayName: string) => {
+    setDisplayName(nextDisplayName);
+    if (typeof authStorage.setDisplayName === 'function') {
+      authStorage.setDisplayName(nextDisplayName);
+    }
   }, []);
 
   const setAuthRole = useCallback((nextRole: PersonRole) => {
@@ -36,8 +53,11 @@ export function useAuth() {
 
   const expireSession = useCallback((message = 'Your session expired. Please log in again.') => {
     authStorage.clearSession();
+    clearPersonDirectoryCache();
     setIsAuthenticated(false);
     setUsername('');
+    setPersonId('');
+    setDisplayName('');
     setRole(null);
     setAuthError(message);
     navigate(ROUTE_LOGIN);
@@ -49,6 +69,8 @@ export function useAuth() {
       const response = await authApi.login({ username: loginUsername, password: loginPassword });
       authStorage.saveSession(response.data);
       setUsername(response.data.username);
+      setPersonId(response.data.personId);
+      setDisplayName(response.data.displayName);
       setRole(response.data.role);
       setIsAuthenticated(true);
       setAuthError(null);
@@ -69,6 +91,8 @@ export function useAuth() {
       const response = await authApi.register(request);
       authStorage.saveSession(response.data);
       setUsername(response.data.username);
+      setPersonId(response.data.personId);
+      setDisplayName(response.data.displayName);
       setRole(response.data.role);
       setIsAuthenticated(true);
       setAuthError(null);
@@ -86,8 +110,11 @@ export function useAuth() {
 
   const logout = useCallback(() => {
     authStorage.clearSession();
+    clearPersonDirectoryCache();
     setIsAuthenticated(false);
     setUsername('');
+    setPersonId('');
+    setDisplayName('');
     setRole(null);
     setAuthError(null);
     navigate(ROUTE_LOGIN);
@@ -97,12 +124,16 @@ export function useAuth() {
     authError,
     authLoading,
     clearAuthError,
+    displayName,
     expireSession,
     isAuthenticated,
     login,
     logout,
+    personId,
     register,
     role,
+    setAuthDisplayName,
+    setAuthPersonId,
     setAuthRole,
     setAuthUsername,
     username,

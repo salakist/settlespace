@@ -1,16 +1,24 @@
 import { useCallback, useState } from 'react';
 import { authApi, personApi } from '../../../shared/api/api';
 import { logHandledError } from '../../../shared/api/requestHandling';
+import { primePersonDirectory } from '../../../shared/hooks/usePersonDirectory';
 import { Person, PersonRole } from '../../../shared/types';
 
 type UseProfileOptions = {
   handleUnauthorized: () => void;
   setAuthUsername: (nextUsername: string) => void;
+  setAuthDisplayName: (nextDisplayName: string) => void;
   setAuthRole: (nextRole: PersonRole) => void;
-  setPersonInList: (person: Person) => void;
+  setAuthPersonId: (nextPersonId: string) => void;
 };
 
-export function useProfile({ handleUnauthorized, setAuthUsername, setAuthRole, setPersonInList }: UseProfileOptions) {
+export function useProfile({
+  handleUnauthorized,
+  setAuthUsername,
+  setAuthDisplayName,
+  setAuthRole,
+  setAuthPersonId,
+}: UseProfileOptions) {
   const [currentPerson, setCurrentPerson] = useState<Person | null>(null);
   const [profileLoading, setProfileLoading] = useState(false);
   const [profileSaveLoading, setProfileSaveLoading] = useState(false);
@@ -39,9 +47,14 @@ export function useProfile({ handleUnauthorized, setAuthUsername, setAuthRole, s
         addresses: response.data.addresses ?? [],
       };
       setCurrentPerson(person);
-      setPersonInList(person);
+      primePersonDirectory([person]);
       const nextUsername = `${person.firstName}.${person.lastName}`;
+      const nextDisplayName = `${person.firstName} ${person.lastName}`.trim();
       setAuthUsername(nextUsername);
+      setAuthDisplayName(nextDisplayName);
+      if (person.id) {
+        setAuthPersonId(person.id);
+      }
       if (person.role) {
         setAuthRole(person.role);
       }
@@ -58,7 +71,14 @@ export function useProfile({ handleUnauthorized, setAuthUsername, setAuthRole, s
     } finally {
       setProfileLoading(false);
     }
-  }, [clearProfileState, handleUnauthorized, setAuthRole, setAuthUsername, setPersonInList]);
+  }, [
+    clearProfileState,
+    handleUnauthorized,
+    setAuthDisplayName,
+    setAuthPersonId,
+    setAuthRole,
+    setAuthUsername,
+  ]);
 
   const handleProfileSave = useCallback(async (personData: Omit<Person, 'id'>) => {
     setProfileSaveLoading(true);

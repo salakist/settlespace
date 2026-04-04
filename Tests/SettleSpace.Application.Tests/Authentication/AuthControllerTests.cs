@@ -26,6 +26,8 @@ public class AuthControllerTests
         {
             Token = "token",
             Username = "John.Doe",
+            PersonId = "person-1",
+            DisplayName = "John Doe",
             ExpiresAtUtc = DateTime.UtcNow.AddHours(1)
         };
 
@@ -36,6 +38,8 @@ public class AuthControllerTests
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         var payload = Assert.IsType<LoginResponseDto>(ok.Value);
         Assert.Equal("John.Doe", payload.Username);
+        Assert.Equal("person-1", payload.PersonId);
+        Assert.Equal("John Doe", payload.DisplayName);
     }
 
     [Fact]
@@ -66,6 +70,8 @@ public class AuthControllerTests
             {
                 Token = "token",
                 Username = "John.Doe",
+                PersonId = "person-1",
+                DisplayName = "John Doe",
                 ExpiresAtUtc = DateTime.UtcNow.AddHours(1)
             });
 
@@ -74,6 +80,8 @@ public class AuthControllerTests
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         var payload = Assert.IsType<LoginResponseDto>(ok.Value);
         Assert.Equal("John.Doe", payload.Username);
+        Assert.Equal("person-1", payload.PersonId);
+        Assert.Equal("John Doe", payload.DisplayName);
     }
 
     [Fact]

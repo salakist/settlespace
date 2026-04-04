@@ -93,6 +93,8 @@ export interface ChangePasswordRequest {
 export interface LoginResponse {
   token: string;
   username: string;
+  personId: string;
+  displayName: string;
   role: PersonRole;
   expiresAtUtc: string;
 }

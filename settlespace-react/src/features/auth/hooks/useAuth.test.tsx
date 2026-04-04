@@ -16,10 +16,14 @@ jest.mock('../../../shared/api/api', () => ({
   authStorage: {
     isAuthenticated: jest.fn(),
     getUsername: jest.fn(),
+    getPersonId: jest.fn(),
+    getDisplayName: jest.fn(),
     getRole: jest.fn(),
     saveSession: jest.fn(),
     clearSession: jest.fn(),
     setUsername: jest.fn(),
+    setPersonId: jest.fn(),
+    setDisplayName: jest.fn(),
     setRole: jest.fn(),
   },
 }));
@@ -32,10 +36,14 @@ const { authApi, authStorage } = jest.requireMock('../../../shared/api/api') as 
   authStorage: {
     isAuthenticated: jest.Mock;
     getUsername: jest.Mock;
+    getPersonId: jest.Mock;
+    getDisplayName: jest.Mock;
     getRole: jest.Mock;
     saveSession: jest.Mock;
     clearSession: jest.Mock;
     setUsername: jest.Mock;
+    setPersonId: jest.Mock;
+    setDisplayName: jest.Mock;
     setRole: jest.Mock;
   };
 };
@@ -61,9 +69,15 @@ beforeEach(() => {
   jest.clearAllMocks();
   authStorage.isAuthenticated.mockReturnValue(false);
   authStorage.getUsername.mockReturnValue('');
+  authStorage.getPersonId.mockReturnValue('');
+  authStorage.getDisplayName.mockReturnValue('');
   authStorage.getRole.mockReturnValue(null);
-  authApi.login.mockResolvedValue({ data: { token: 't1', username: 'john.doe', role: 'USER' } });
-  authApi.register.mockResolvedValue({ data: { token: 't2', username: 'jane.doe', role: 'USER' } });
+  authApi.login.mockResolvedValue({
+    data: { token: 't1', username: 'john.doe', personId: 'p1', displayName: 'John Doe', role: 'USER' },
+  });
+  authApi.register.mockResolvedValue({
+    data: { token: 't2', username: 'jane.doe', personId: 'p2', displayName: 'Jane Doe', role: 'USER' },
+  });
 });
 
 test('login saves session, updates auth state, and navigates to home', async () => {
@@ -75,11 +89,19 @@ test('login saves session, updates auth state, and navigates to home', async () 
   });
 
   await waitFor(() => {
-    expect(authStorage.saveSession).toHaveBeenCalledWith({ token: 't1', username: 'john.doe', role: 'USER' });
+    expect(authStorage.saveSession).toHaveBeenCalledWith({
+      token: 't1',
+      username: 'john.doe',
+      personId: 'p1',
+      displayName: 'John Doe',
+      role: 'USER',
+    });
   });
 
   expect(harness.getHook().isAuthenticated).toBe(true);
   expect(harness.getHook().username).toBe('john.doe');
+  expect(harness.getHook().personId).toBe('p1');
+  expect(harness.getHook().displayName).toBe('John Doe');
   expect(harness.getHook().authError).toBeNull();
   expect(mockNavigate).toHaveBeenCalledWith('/home');
 });

@@ -4,6 +4,7 @@ import { useLocation, useNavigate, useParams, useSearchParams } from 'react-rout
 import { TransactionSearchQuery } from '../../../shared/api/transactionApi';
 import { canUpdateOrDeleteTransaction } from '../../../shared/auth/permissions';
 import ConfirmationDialog from '../../../shared/components/ConfirmationDialog';
+import { usePersonDirectory } from '../../../shared/hooks/usePersonDirectory';
 import { Person, PersonRole, Transaction } from '../../../shared/types';
 import TransactionSearchBar from './TransactionSearchBar';
 import TransactionForm from './TransactionForm';
@@ -11,7 +12,7 @@ import TransactionList from './TransactionList';
 import { useTransactions } from '../hooks/useTransactions';
 
 type TransactionsPageProps = {
-  persons: Person[];
+  persons?: Person[];
   currentPersonId?: string;
   role: PersonRole | null;
   expireSession: (message?: string) => void;
@@ -19,6 +20,11 @@ type TransactionsPageProps = {
 
 const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPersonId, role, expireSession }) => {
   const navigate = useNavigate();
+  const {
+    error: personsError,
+    loading: personsLoading,
+    persons: loadedPersons,
+  } = usePersonDirectory({ expireSession, initialPersons: persons });
   const location = useLocation();
   const { transactionId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -78,6 +84,8 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
   }, [decodedTransactionId, isCreateRoute]);
   const lastSyncedRouteKey = useRef<string>('');
   const [pendingDeleteTransaction, setPendingDeleteTransaction] = useState<{ id: string; label: string } | null>(null);
+
+  const availablePersons = loadedPersons;
 
   const {
     editingTransaction,
@@ -249,7 +257,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
         <TransactionSearchBar
           onSearch={handleSearchChange}
           initialQuery={searchQueryFromUrl}
-          persons={persons}
+          persons={availablePersons}
           action={(
             <Button variant="contained" onClick={handleAddClick} sx={{ whiteSpace: 'nowrap', px: 3.5 }}>
               Create Transaction
@@ -259,16 +267,23 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
       )}
 
       {displayForm && (
-        <TransactionForm
-          transaction={currentEditingTransaction}
-          persons={persons}
-          currentPersonId={currentPersonId}
-          role={role}
-          onSave={handleSaveAndClose}
-          onCancel={handleCancelAndClose}
-        />
+        personsLoading && availablePersons.length === 0 ? (
+          <Stack alignItems="center" sx={{ mt: 4 }}>
+            <CircularProgress />
+          </Stack>
+        ) : (
+          <TransactionForm
+            transaction={currentEditingTransaction}
+            persons={availablePersons}
+            currentPersonId={currentPersonId}
+            role={role}
+            onSave={handleSaveAndClose}
+            onCancel={handleCancelAndClose}
+          />
+        )
       )}
 
+      {personsError && <Alert severity="error">{personsError}</Alert>}
       {error && <Alert severity="error">{error}</Alert>}
 
       {!displayForm && (
@@ -283,7 +298,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
             )}
             <TransactionList
               transactions={transactions}
-              persons={persons}
+              persons={availablePersons}
               currentPersonId={currentPersonId}
               canManage={canManageTransaction}
               onEdit={handleEditNavigate}

@@ -31,10 +31,14 @@ jest.mock('../shared/api/api', () => ({
   authStorage: {
     isAuthenticated: jest.fn(),
     getUsername: jest.fn(),
+    getPersonId: jest.fn(),
+    getDisplayName: jest.fn(),
     getRole: jest.fn(),
     saveSession: jest.fn(),
     clearSession: jest.fn(),
     setUsername: jest.fn(),
+    setPersonId: jest.fn(),
+    setDisplayName: jest.fn(),
     setRole: jest.fn(),
   },
 }));
@@ -70,10 +74,14 @@ const {
   authStorage: {
     isAuthenticated: jest.Mock;
     getUsername: jest.Mock;
+    getPersonId: jest.Mock;
+    getDisplayName: jest.Mock;
     getRole: jest.Mock;
     saveSession: jest.Mock;
     clearSession: jest.Mock;
     setUsername: jest.Mock;
+    setPersonId: jest.Mock;
+    setDisplayName: jest.Mock;
     setRole: jest.Mock;
   };
 };
@@ -192,10 +200,16 @@ beforeEach(() => {
 
   mockAuthStorage.isAuthenticated.mockReturnValue(false);
   mockAuthStorage.getUsername.mockReturnValue(null);
+  mockAuthStorage.getPersonId.mockReturnValue(null);
+  mockAuthStorage.getDisplayName.mockReturnValue(null);
   mockAuthStorage.getRole.mockReturnValue(null);
 
-  mockAuthApi.login.mockResolvedValue({ data: { token: 'token', username: 'john.doe', role: 'ADMIN' } });
-  mockAuthApi.register.mockResolvedValue({ data: { token: 'token2', username: 'jane.doe', role: 'USER' } });
+  mockAuthApi.login.mockResolvedValue({
+    data: { token: 'token', username: 'john.doe', personId: 'p1', displayName: 'John Doe', role: 'ADMIN' },
+  });
+  mockAuthApi.register.mockResolvedValue({
+    data: { token: 'token2', username: 'jane.doe', personId: 'p2', displayName: 'Jane Doe', role: 'USER' },
+  });
   mockAuthApi.changePassword.mockResolvedValue({});
 
   mockPersonApi.getAll.mockResolvedValue({
@@ -252,7 +266,7 @@ test('supports login, directory actions, profile actions, and logout', async () 
 
   expect(await screen.findByAltText(/SettleSpace header/i)).toBeInTheDocument();
   await waitFor(() => expect(mockPersonApi.getAll).toHaveBeenCalled());
-  await waitFor(() => expect(mockPersonApi.getCurrent).toHaveBeenCalled());
+  expect(mockPersonApi.getCurrent).not.toHaveBeenCalled();
 
   fireEvent.click(screen.getAllByRole('button', { name: /Search John/i })[0]);
   await waitFor(() => expect(mockPersonApi.search).toHaveBeenCalledWith('john'));

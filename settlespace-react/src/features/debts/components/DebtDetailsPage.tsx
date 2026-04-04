@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
+import { usePersonDirectory } from '../../../shared/hooks/usePersonDirectory';
 import { DebtDetails, DebtSummary, Person, Transaction } from '../../../shared/types';
 import { panelSurfaceSx, listItemSurfaceSx } from '../../../shared/theme/surfaceStyles';
 import { formatDateDDMMYYYY } from '../../../shared/utils/dateFormatting';
@@ -8,7 +9,7 @@ import { useDebts } from '../hooks/useDebts';
 import DebtSettlementDrawer from './DebtSettlementDrawer';
 
 type DebtDetailsPageProps = {
-  persons: Person[];
+  persons?: Person[];
   expireSession: (message?: string) => void;
 };
 
@@ -59,6 +60,10 @@ function toDebtSummary(detail: DebtDetails): DebtSummary {
 
 const DebtDetailsPage: React.FC<DebtDetailsPageProps> = ({ persons, expireSession }) => {
   const navigate = useNavigate();
+  const {
+    error: personsError,
+    persons: loadedPersons,
+  } = usePersonDirectory({ expireSession, initialPersons: persons });
   const { counterpartyPersonId, currencyCode } = useParams();
   const decodedCurrencyCode = currencyCode ? decodeURIComponent(currencyCode) : undefined;
   const [detail, setDetail] = useState<DebtDetails | undefined>();
@@ -145,7 +150,7 @@ const DebtDetailsPage: React.FC<DebtDetailsPageProps> = ({ persons, expireSessio
                   {getDirectionSummary(detail.direction)}
                 </Typography>
                 <Typography variant="h6">
-                  {getPersonDisplayName(persons, detail.counterpartyPersonId)} · {formatCurrency(detail.netAmount, detail.currencyCode)}
+                  {getPersonDisplayName(loadedPersons, detail.counterpartyPersonId)} · {formatCurrency(detail.netAmount, detail.currencyCode)}
                 </Typography>
               </div>
               <Stack direction="row" spacing={1} justifyContent="flex-end">
@@ -170,7 +175,7 @@ const DebtDetailsPage: React.FC<DebtDetailsPageProps> = ({ persons, expireSessio
                 <strong>Paid by you:</strong> {formatCurrency(detail.paidByCurrentPerson, detail.currencyCode)}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                <strong>Paid by {getPersonDisplayName(persons, detail.counterpartyPersonId)}:</strong>{' '}
+                <strong>Paid by {getPersonDisplayName(loadedPersons, detail.counterpartyPersonId)}:</strong>{' '}
                 {formatCurrency(detail.paidByCounterparty, detail.currencyCode)}
               </Typography>
               <Typography variant="body2" color="text.secondary">
@@ -195,7 +200,7 @@ const DebtDetailsPage: React.FC<DebtDetailsPageProps> = ({ persons, expireSessio
                     <div>
                       <Typography variant="subtitle1">{transaction.description}</Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {getTransactionNarrative(transaction, persons)}
+                        {getTransactionNarrative(transaction, loadedPersons)}
                       </Typography>
                     </div>
                     <Typography variant="subtitle2">
@@ -225,6 +230,7 @@ const DebtDetailsPage: React.FC<DebtDetailsPageProps> = ({ persons, expireSessio
         </Alert>
       )}
 
+      {personsError && <Alert severity="error">{personsError}</Alert>}
       {error && <Alert severity="error">{error}</Alert>}
 
       {pageContent}
@@ -233,7 +239,7 @@ const DebtDetailsPage: React.FC<DebtDetailsPageProps> = ({ persons, expireSessio
         open={settlementOpen}
         debt={displayedSummary}
         details={displayedDetail}
-        persons={persons}
+        persons={loadedPersons}
         loading={detailsLoading}
         saving={settlementSaving}
         error={error}

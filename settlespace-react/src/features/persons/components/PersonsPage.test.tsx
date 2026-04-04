@@ -73,6 +73,7 @@ const defaultProps = {
   canEditRole: true,
   defaultCreateRole: 'USER' as const,
   onAdd: jest.fn(),
+  onLoad: jest.fn().mockResolvedValue(undefined),
   onSearch: jest.fn(),
   onSave: jest.fn().mockResolvedValue(undefined),
   onCancel: jest.fn(),

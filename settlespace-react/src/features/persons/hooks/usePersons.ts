@@ -10,6 +10,7 @@ import {
   canUpdatePerson,
 } from '../../../shared/auth/permissions';
 import { Person, PersonRole } from '../../../shared/types';
+import { primePersonDirectory } from '../../../shared/hooks/usePersonDirectory';
 
 type UsePersonsOptions = {
   expireSession: (message?: string) => void;
@@ -63,7 +64,9 @@ export function usePersons({ expireSession, currentPersonId, role }: UsePersonsO
     try {
       setLoading(true);
       const response = await personApi.getAll();
-      setPersons(response.data.map(normalizePerson));
+      const normalizedPersons = response.data.map(normalizePerson);
+      setPersons(normalizedPersons);
+      primePersonDirectory(normalizedPersons);
       setError(null);
     } catch (err) {
       handleRequestError({
@@ -86,7 +89,9 @@ export function usePersons({ expireSession, currentPersonId, role }: UsePersonsO
     try {
       setLoading(true);
       const response = await personApi.search(query);
-      setPersons(response.data.map(normalizePerson));
+      const normalizedPersons = response.data.map(normalizePerson);
+      setPersons(normalizedPersons);
+      primePersonDirectory(normalizedPersons);
       setError(null);
     } catch (err) {
       handleRequestError({

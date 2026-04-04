@@ -89,21 +89,38 @@ test('authStorage reads and writes to localStorage', () => {
 
   expect(authStorage.getToken()).toBeNull();
   expect(authStorage.getUsername()).toBeNull();
+  expect(authStorage.getPersonId()).toBeNull();
+  expect(authStorage.getDisplayName()).toBeNull();
   expect(authStorage.getRole()).toBeNull();
   expect(authStorage.isAuthenticated()).toBe(false);
 
-  authStorage.saveSession({ token: 'tok', username: 'john', role: 'USER', expiresAtUtc: '2026-01-01T00:00:00Z' });
+  authStorage.saveSession({
+    token: 'tok',
+    username: 'john',
+    personId: 'person-1',
+    displayName: 'John Doe',
+    role: 'USER',
+    expiresAtUtc: '2026-01-01T00:00:00Z',
+  });
   expect(authStorage.getToken()).toBe('tok');
   expect(authStorage.getUsername()).toBe('john');
+  expect(authStorage.getPersonId()).toBe('person-1');
+  expect(authStorage.getDisplayName()).toBe('John Doe');
   expect(authStorage.getRole()).toBe('USER');
   expect(authStorage.isAuthenticated()).toBe(true);
 
   authStorage.setUsername('jane');
+  authStorage.setPersonId('person-2');
+  authStorage.setDisplayName('Jane Doe');
   expect(authStorage.getUsername()).toBe('jane');
+  expect(authStorage.getPersonId()).toBe('person-2');
+  expect(authStorage.getDisplayName()).toBe('Jane Doe');
 
   authStorage.clearSession();
   expect(authStorage.getToken()).toBeNull();
   expect(authStorage.getUsername()).toBeNull();
+  expect(authStorage.getPersonId()).toBeNull();
+  expect(authStorage.getDisplayName()).toBeNull();
   expect(authStorage.getRole()).toBeNull();
   expect(authStorage.isAuthenticated()).toBe(false);
 });

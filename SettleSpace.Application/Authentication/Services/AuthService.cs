@@ -65,6 +65,7 @@ namespace SettleSpace.Application.Authentication.Services
             }
 
             var resolvedUsername = $"{person.FirstName}.{person.LastName}";
+            var displayName = $"{person.FirstName} {person.LastName}".Trim();
 
             var expiresAtUtc = DateTime.UtcNow.AddMinutes(_authSettings.TokenExpirationMinutes);
             var claims = new[]
@@ -92,6 +93,8 @@ namespace SettleSpace.Application.Authentication.Services
             {
                 Token = new JwtSecurityTokenHandler().WriteToken(token),
                 Username = resolvedUsername,
+                PersonId = person.Id ?? string.Empty,
+                DisplayName = displayName,
                 Role = person.Role,
                 ExpiresAtUtc = expiresAtUtc
             };

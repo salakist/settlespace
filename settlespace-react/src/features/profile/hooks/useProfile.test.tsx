@@ -27,8 +27,9 @@ type ProfileHookResult = ReturnType<typeof useProfile>;
 function createProfileHarness(options: {
   handleUnauthorized: jest.Mock;
   setAuthUsername: jest.Mock;
+  setAuthDisplayName: jest.Mock;
+  setAuthPersonId: jest.Mock;
   setAuthRole: jest.Mock;
-  setPersonInList: jest.Mock;
 }) {
   let latest: ProfileHookResult;
 
@@ -64,13 +65,15 @@ beforeEach(() => {
 test('loads current person and normalizes profile data', async () => {
   const handleUnauthorized = jest.fn();
   const setAuthUsername = jest.fn();
+  const setAuthDisplayName = jest.fn();
+  const setAuthPersonId = jest.fn();
   const setAuthRole = jest.fn();
-  const setPersonInList = jest.fn();
   const harness = createProfileHarness({
     handleUnauthorized,
     setAuthUsername,
+    setAuthDisplayName,
+    setAuthPersonId,
     setAuthRole,
-    setPersonInList,
   });
 
   await act(async () => {
@@ -80,9 +83,12 @@ test('loads current person and normalizes profile data', async () => {
   await waitFor(() => {
     expect(setAuthUsername).toHaveBeenCalledWith('John.Doe');
   });
+  expect(setAuthDisplayName).toHaveBeenCalledWith('John Doe');
+  expect(setAuthPersonId).toHaveBeenCalledWith('p1');
 
-  expect(setPersonInList).toHaveBeenCalledWith(
+  expect(harness.getHook().currentPerson).toEqual(
     expect.objectContaining({
+      id: 'p1',
       dateOfBirth: '1990-01-01',
       addresses: [],
     }),
@@ -99,8 +105,9 @@ test('handles unauthorized profile load by clearing state and delegating session
   const harness = createProfileHarness({
     handleUnauthorized,
     setAuthUsername: jest.fn(),
+    setAuthDisplayName: jest.fn(),
+    setAuthPersonId: jest.fn(),
     setAuthRole: jest.fn(),
-    setPersonInList: jest.fn(),
   });
 
   await act(async () => {
@@ -118,8 +125,9 @@ test('sets profile error when profile save fails with non-401 response', async (
   const harness = createProfileHarness({
     handleUnauthorized: jest.fn(),
     setAuthUsername: jest.fn(),
+    setAuthDisplayName: jest.fn(),
+    setAuthPersonId: jest.fn(),
     setAuthRole: jest.fn(),
-    setPersonInList: jest.fn(),
   });
 
   await act(async () => {
@@ -141,8 +149,9 @@ test('delegates unauthorized password-change failures and keeps state safe', asy
   const harness = createProfileHarness({
     handleUnauthorized,
     setAuthUsername: jest.fn(),
+    setAuthDisplayName: jest.fn(),
+    setAuthPersonId: jest.fn(),
     setAuthRole: jest.fn(),
-    setPersonInList: jest.fn(),
   });
 
   await act(async () => {

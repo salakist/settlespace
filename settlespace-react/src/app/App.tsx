@@ -124,12 +124,16 @@ function App() {
     authError,
     authLoading,
     clearAuthError,
+    displayName,
     expireSession,
     isAuthenticated,
     login,
     logout,
+    personId,
     role,
     register,
+    setAuthDisplayName,
+    setAuthPersonId,
     setAuthRole,
     setAuthUsername,
     username,
@@ -149,10 +153,9 @@ function App() {
     persons,
     saveLoading,
     setDirectoryIdle,
-    setPersonInList,
     showCreateForm,
     showForm,
-  } = usePersons({ expireSession, role });
+  } = usePersons({ expireSession, currentPersonId: personId || undefined, role });
   const handleUnauthorized = useCallback(() => {
     clearPersonsState();
     expireSession('Your session expired. Please log in again.');
@@ -171,9 +174,10 @@ function App() {
     setProfileIdle,
   } = useProfile({
     handleUnauthorized,
+    setAuthDisplayName,
+    setAuthPersonId,
     setAuthRole,
     setAuthUsername,
-    setPersonInList,
   });
 
   const { handleLogin, handleLogout, handleRegister } = useAppAuth({
@@ -185,22 +189,29 @@ function App() {
     clearProfileState,
   });
 
-  useEffect(() => {
-    if (isAuthenticated) {
-      const loadInitialData = async () => {
-        await loadPersons();
-        await loadCurrentPerson();
-      };
+  const isProfileRoute = location.pathname === ROUTE_PROFILE;
+  const isPersonsRoute = location.pathname === ROUTE_PERSONS || location.pathname.startsWith('/persons/');
 
-      loadInitialData().catch((error) => {
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setDirectoryIdle();
+      setProfileIdle();
+      return;
+    }
+
+    if (!isPersonsRoute) {
+      setDirectoryIdle();
+    }
+
+    if (!personId || isProfileRoute) {
+      Promise.resolve(loadCurrentPerson()).catch((error) => {
         console.error(error);
       });
       return;
     }
 
-    setDirectoryIdle();
     setProfileIdle();
-  }, [isAuthenticated, loadCurrentPerson, loadPersons, setDirectoryIdle, setProfileIdle]);
+  }, [isAuthenticated, isPersonsRoute, isProfileRoute, loadCurrentPerson, personId, setDirectoryIdle, setProfileIdle]);
 
   if (!isAuthenticated) {
     return (
@@ -244,14 +255,14 @@ function App() {
   const canAccessPersons = canAccessPersonsPage(role);
   const primaryTabs = PRIMARY_TABS.filter((tab) => tab.value !== ROUTE_PERSONS || canAccessPersons);
   const primaryTabValue = getPrimaryTabValue(location.pathname, primaryTabs);
-  const isProfileRoute = location.pathname === ROUTE_PROFILE;
-  const visiblePersons = currentPerson?.id
-    ? persons.filter((person) => person.id !== currentPerson.id)
+  const currentDisplayName = displayName || (currentPerson ? `${currentPerson.firstName} ${currentPerson.lastName}` : username);
+  const visiblePersons = personId
+    ? persons.filter((person) => person.id !== personId)
     : persons;
   const canCreateManagedPerson = role === 'ADMIN' || role === 'MANAGER';
 
   const canEditManagedPerson = (person: Person) =>
-    canUpdatePerson(role, currentPerson?.id, person, person.role ?? 'USER');
+    canUpdatePerson(role, personId || currentPerson?.id, person, person.role ?? 'USER');
 
   const canDeleteManagedPerson = (person: Person) => canDeletePerson(role, person);
 
@@ -275,14 +286,14 @@ function App() {
         onCancel={handleCancel}
         onEdit={handleEdit}
         onDelete={handleDelete}
+        onLoad={loadPersons}
       />
       )
     : <Navigate to={ROUTE_HOME} replace />;
 
   const transactionsPageElement = (
     <TransactionsPage
-      persons={persons}
-      currentPersonId={currentPerson?.id}
+      currentPersonId={personId || currentPerson?.id}
       role={role}
       expireSession={expireSession}
     />
@@ -358,7 +369,7 @@ function App() {
                       borderRadius: 1,
                     }}
                   >
-                    {currentPerson ? `${currentPerson.firstName} ${currentPerson.lastName}` : username}
+                    {currentDisplayName}
                   </Button>
                   <Button
                     variant="outlined"
@@ -378,7 +389,7 @@ function App() {
               path={ROUTE_HOME}
               element={
                 <HomePage
-                  displayName={currentPerson ? `${currentPerson.firstName} ${currentPerson.lastName}` : username}
+                  displayName={currentDisplayName}
                 />
               }
             />
@@ -406,7 +417,6 @@ function App() {
               path={ROUTE_DEBTS}
               element={(
                 <DebtsPage
-                  persons={persons}
                   expireSession={expireSession}
                 />
               )}
@@ -415,7 +425,6 @@ function App() {
               path={ROUTE_DEBT_DETAILS}
               element={(
                 <DebtDetailsPage
-                  persons={persons}
                   expireSession={expireSession}
                 />
               )}
