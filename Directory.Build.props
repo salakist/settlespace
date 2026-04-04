@@ -1,6 +1,15 @@
 <Project>
 
   <!--
+    Exclude generated repository artifacts from SDK default globs so temp
+    output files (for example under artifacts/tmp-test-obj) are never treated
+    as source inputs during normal builds.
+  -->
+  <PropertyGroup>
+    <DefaultItemExcludes>$(DefaultItemExcludes);**/artifacts/**</DefaultItemExcludes>
+  </PropertyGroup>
+
+  <!--
     Applied to all C# production projects in this solution.
     Test projects (IsTestProject=true) are excluded so test-pattern code
     (e.g. many assertions in a row, magic strings) does not trip the rules.
