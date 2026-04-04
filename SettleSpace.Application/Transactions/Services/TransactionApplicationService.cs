@@ -35,12 +35,6 @@ namespace SettleSpace.Application.Transactions.Services
             return _domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
         }
 
-        public async Task<List<Transaction>> SearchCurrentUserTransactionsAsync(string loggedPersonId, PersonRole loggedRole, string query)
-        {
-            var transactions = await SearchTransactionsIncludingInvolvedPersonsAsync(query);
-            return _domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
-        }
-
         public async Task<List<Transaction>> SearchTransactionsAsync(string loggedPersonId, PersonRole loggedRole, TransactionSearchQuery query)
         {
             var freeText = query.FreeText?.Trim();
@@ -143,40 +137,6 @@ namespace SettleSpace.Application.Transactions.Services
 
             _domainService.EnsureCanDelete(existing, loggedPersonId, loggedRole);
             await _repository.DeleteAsync(id);
-        }
-
-        private async Task<List<Transaction>> SearchTransactionsIncludingInvolvedPersonsAsync(string query)
-        {
-            if (string.IsNullOrWhiteSpace(query))
-            {
-                return await _repository.GetAllAsync();
-            }
-
-            var transactionSearchTask = _repository.SearchAsync(query);
-            var personSearchTask = _personRepository.SearchAsync(query);
-
-            await Task.WhenAll(transactionSearchTask, personSearchTask);
-
-            var matchedTransactions = transactionSearchTask.Result;
-            var matchedPersonIds = personSearchTask.Result
-                .Select(person => person.Id)
-                .Where(id => !string.IsNullOrWhiteSpace(id))
-                .Cast<string>()
-                .ToHashSet(StringComparer.Ordinal);
-
-            if (matchedPersonIds.Count == 0)
-            {
-                return matchedTransactions;
-            }
-
-            var allTransactions = await _repository.GetAllAsync();
-
-            return [.. matchedTransactions
-                .Concat(allTransactions.Where(transaction =>
-                    matchedPersonIds.Contains(transaction.PayerPersonId) ||
-                    matchedPersonIds.Contains(transaction.PayeePersonId)))
-                .DistinctBy(BuildSearchResultKey)
-                .OrderByDescending(transaction => transaction.TransactionDateUtc)];
         }
 
         private static string BuildSearchResultKey(Transaction transaction)

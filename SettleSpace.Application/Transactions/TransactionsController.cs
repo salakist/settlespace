@@ -38,17 +38,6 @@ namespace SettleSpace.Application.Transactions
             return Ok(transactions.Select(_transactionMapper.ToDto).ToList());
         }
 
-        [HttpGet("me/search/{query}")]
-        [ProducesResponseType(typeof(List<TransactionDto>), 200)]
-        [ProducesResponseType(401)]
-        public async Task<ActionResult<List<TransactionDto>>> SearchCurrentUserTransactions(string query)
-        {
-            var (personId, personRole) = _authService.ResolveAuthContext(User);
-            var transactions = await _applicationService.SearchCurrentUserTransactionsAsync(personId, personRole, query);
-
-            return Ok(transactions.Select(_transactionMapper.ToDto).ToList());
-        }
-
         [HttpPost("search")]
         [ProducesResponseType(typeof(List<TransactionDto>), 200)]
         [ProducesResponseType(400)]

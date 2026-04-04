@@ -591,7 +591,7 @@ Base URL: `http://localhost:5279/api`
 | PUT | `/persons/{id}` | Update person (role rules apply) | `UpdatePersonCommand` | `204`, `404`, `409` Conflict, `400`, `401`, `403` |
 | DELETE | `/persons/{id}` | Delete person (role rules apply) | none | `204`, `404`, `401`, `403` |
 | GET | `/transactions/me` | Get transactions in role-based scope | none | `200` Array of TransactionDto, `401` |
-| GET | `/transactions/me/search/{query}` | Search current-user transactions by description/category | none | `200` Array, `401` |
+| POST | `/transactions/search` | Search transactions with composable filters | `TransactionSearchQuery` | `200` Array, `400`, `401` |
 | GET | `/transactions/{id}` | Get transaction by ID (role rules apply) | none | `200` TransactionDto, `401`, `403`, `404` |
 | POST | `/transactions` | Create transaction (role rules apply) | `CreateTransactionCommand` | `201` TransactionDto, `400`, `401`, `403` |
 | PUT | `/transactions/{id}` | Update transaction (role rules apply) | `UpdateTransactionCommand` | `204`, `400`, `401`, `403`, `404` |

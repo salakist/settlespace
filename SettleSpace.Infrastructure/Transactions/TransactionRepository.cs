@@ -66,24 +66,6 @@ namespace SettleSpace.Infrastructure.Transactions
                 .ToListAsync();
         }
 
-        public async Task<List<Transaction>> SearchAsync(string query)
-        {
-            if (string.IsNullOrWhiteSpace(query))
-            {
-                return await GetAllAsync();
-            }
-
-            var escapedQuery = Regex.Escape(query.Trim());
-            var regex = new BsonRegularExpression($".*{escapedQuery}.*", "i");
-            var builder = Builders<Transaction>.Filter;
-            var searchFilter = builder.Regex(t => t.Description, regex) | builder.Regex(t => t.Category, regex);
-
-            return await _transactionsCollection
-                .Find(searchFilter)
-                .SortByDescending(t => t.TransactionDateUtc)
-                .ToListAsync();
-        }
-
         public async Task<List<Transaction>> SearchAsync(TransactionSearchFilter filter)
         {
             var builder = Builders<Transaction>.Filter;

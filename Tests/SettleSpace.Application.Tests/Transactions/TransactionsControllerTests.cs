@@ -89,18 +89,6 @@ public class TransactionsControllerTests
     }
 
     [Fact]
-    public async Task SearchCurrentUserTransactionsReturnsOk()
-    {
-        _serviceMock.Setup(s => s.SearchCurrentUserTransactionsAsync("user-1", PersonRole.USER, "taxi"))
-            .ReturnsAsync(new List<Transaction> { BuildTransaction("tx-1") });
-        SetUser("user-1", PersonRole.USER);
-
-        var result = await _controller.SearchCurrentUserTransactions("taxi");
-
-        Assert.IsType<OkObjectResult>(result.Result);
-    }
-
-    [Fact]
     public async Task SearchTransactionsReturnsOkWithDtos()
     {
         var query = new TransactionSearchQuery { FreeText = "dinner" };

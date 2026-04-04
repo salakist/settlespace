@@ -83,51 +83,6 @@ public class TransactionApplicationServiceTests
     }
 
     [Fact]
-    public async Task SearchCurrentUserTransactionsAsyncDelegatesToRepository()
-    {
-        _personRepositoryMock.Setup(r => r.SearchAsync("taxi")).ReturnsAsync([]);
-        _repositoryMock.Setup(r => r.SearchAsync("taxi"))
-            .ReturnsAsync(new List<Transaction> { BuildTransaction("tx-1") });
-        _domainServiceMock
-            .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
-            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
-
-        var result = await _sut.SearchCurrentUserTransactionsAsync("user-1", PersonRole.USER, "taxi");
-
-        Assert.Single(result);
-    }
-
-    [Fact]
-    public async Task SearchCurrentUserTransactionsAsyncIncludesTransactionsMatchingInvolvedPersonNames()
-    {
-        var matchingTransaction = BuildTransaction("tx-1");
-        var nonMatchingTransaction = BuildTransaction("tx-2");
-        nonMatchingTransaction.PayerPersonId = "user-3";
-        nonMatchingTransaction.PayeePersonId = "user-4";
-
-        _personRepositoryMock.Setup(r => r.SearchAsync("john"))
-            .ReturnsAsync([
-                new Person
-                {
-                    Id = "user-1",
-                    FirstName = "John",
-                    LastName = "Doe",
-                    Password = "hashed"
-                }
-            ]);
-        _repositoryMock.Setup(r => r.SearchAsync("john")).ReturnsAsync([]);
-        _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync([matchingTransaction, nonMatchingTransaction]);
-        _domainServiceMock
-            .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
-            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
-
-        var result = await _sut.SearchCurrentUserTransactionsAsync("user-1", PersonRole.USER, "john");
-
-        Assert.Single(result);
-        Assert.Equal("tx-1", result[0].Id);
-    }
-
-    [Fact]
     public async Task SearchTransactionsAsyncWithFreeTextDelegatesToRepository()
     {
         var query = new TransactionSearchQuery { FreeText = "taxi" };

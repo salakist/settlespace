@@ -102,28 +102,6 @@ public class TransactionRepositoryTests
     }
 
     [Fact]
-    public async Task SearchAsyncEmptyQueryReturnsAllTransactions()
-    {
-        var transactions = new[] { BuildTransaction("tx-1"), BuildTransaction("tx-2") };
-        var repo = new TransactionRepository(BuildCollectionMock(transactions).Object);
-
-        var result = await repo.SearchAsync(string.Empty);
-
-        Assert.Equal(2, result.Count);
-    }
-
-    [Fact]
-    public async Task SearchAsyncWithQueryReturnsMatchingTransactions()
-    {
-        var tx = BuildTransaction("tx-1");
-        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
-
-        var result = await repo.SearchAsync("taxi");
-
-        Assert.Single(result);
-    }
-
-    [Fact]
     public async Task SearchAsyncFilterWithFreeTextReturnsMatchingTransactions()
     {
         var tx = BuildTransaction("tx-1");
