@@ -123,8 +123,19 @@ const PersonsPage: React.FC<PersonsPageProps> = ({
   };
 
   const handleViewTransactions = (person: Person) => {
-    const searchQuery = buildPersonSearchQuery(person);
-    navigate(searchQuery ? `/transactions?search=${encodeURIComponent(searchQuery)}` : '/transactions');
+    const nextParams = new URLSearchParams();
+
+    if (person.id) {
+      nextParams.append('involved', person.id);
+    } else {
+      const searchQuery = buildPersonSearchQuery(person);
+      if (searchQuery) {
+        nextParams.set('freeText', searchQuery);
+      }
+    }
+
+    const params = nextParams.toString();
+    navigate(params ? `/transactions?${params}` : '/transactions');
   };
 
   const handleViewDebts = (person: Person) => {
