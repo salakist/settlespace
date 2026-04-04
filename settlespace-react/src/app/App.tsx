@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Box, Button, Container, CssBaseline, Paper, Stack, Tab, Tabs, ThemeProvider, createTheme } from '@mui/material';
 import HomeIcon from '@mui/icons-material/Home';
@@ -9,23 +9,17 @@ import ErrorIcon from '@mui/icons-material/Error';
 import '../styles/App.css';
 import LoginPage from '../features/auth/components/LoginPage';
 import RegisterPage from '../features/auth/components/RegisterPage';
-import ProfilePage from '../features/profile/components/ProfilePage';
 import HomePage from '../features/home/components/HomePage';
-import PersonsPage from '../features/persons/components/PersonsPage';
+import PersonsRoutePage from '../features/persons/components/PersonsRoutePage';
+import ProfileRoutePage from '../features/profile/components/ProfileRoutePage';
 import TransactionsPage from '../features/transactions/components/TransactionsPage';
 import DebtsPage from '../features/debts/components/DebtsPage';
 import DebtDetailsPage from '../features/debts/components/DebtDetailsPage';
 import { useAuth } from '../features/auth/hooks/useAuth';
-import { usePersons } from '../features/persons/hooks/usePersons';
-import { useProfile } from '../features/profile/hooks/useProfile';
 import { useAppAuth } from './hooks/useAppAuth';
-import {
-  canAccessPersonsPage,
-  canDeletePerson,
-  canEditRole,
-  canUpdatePerson,
-} from '../shared/auth/permissions';
-import { Person } from '../shared/types';
+import { personApi } from '../shared/api/api';
+import { logHandledError } from '../shared/api/requestHandling';
+import { canAccessPersonsPage } from '../shared/auth/permissions';
 import { BRAND_HEADER_SRC } from '../shared/theme/surfaceStyles';
 
 const ROUTE_LOGIN = '/login';
@@ -138,80 +132,66 @@ function App() {
     setAuthUsername,
     username,
   } = useAuth();
-  const {
-    clearPersonsError,
-    clearPersonsState,
-    editingPerson,
-    error,
-    handleCancel,
-    handleDelete,
-    handleEdit,
-    handleSave,
-    handleSearch,
-    loadPersons,
-    loading,
-    persons,
-    saveLoading,
-    setDirectoryIdle,
-    showCreateForm,
-    showForm,
-  } = usePersons({ expireSession, currentPersonId: personId || undefined, role });
-  const handleUnauthorized = useCallback(() => {
-    clearPersonsState();
-    expireSession('Your session expired. Please log in again.');
-  }, [clearPersonsState, expireSession]);
-
-  const {
-    clearProfileState,
-    currentPerson,
-    handlePasswordChange,
-    handleProfileSave,
-    loadCurrentPerson,
-    passwordLoading,
-    profileError,
-    profileLoading,
-    profileSaveLoading,
-    setProfileIdle,
-  } = useProfile({
-    handleUnauthorized,
-    setAuthDisplayName,
-    setAuthPersonId,
-    setAuthRole,
-    setAuthUsername,
-  });
-
   const { handleLogin, handleLogout, handleRegister } = useAppAuth({
     login,
     register,
     logout,
-    clearPersonsError,
-    clearPersonsState,
-    clearProfileState,
   });
 
   const isProfileRoute = location.pathname === ROUTE_PROFILE;
-  const isPersonsRoute = location.pathname === ROUTE_PERSONS || location.pathname.startsWith('/persons/');
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      setDirectoryIdle();
-      setProfileIdle();
+    if (!isAuthenticated || (personId && displayName && role)) {
       return;
     }
 
-    if (!isPersonsRoute) {
-      setDirectoryIdle();
-    }
+    let ignore = false;
 
-    if (!personId || isProfileRoute) {
-      Promise.resolve(loadCurrentPerson()).catch((error) => {
-        console.error(error);
-      });
-      return;
-    }
+    const hydrateIdentity = async () => {
+      try {
+        const response = await personApi.getCurrent();
+        if (ignore) {
+          return;
+        }
 
-    setProfileIdle();
-  }, [isAuthenticated, isPersonsRoute, isProfileRoute, loadCurrentPerson, personId, setDirectoryIdle, setProfileIdle]);
+        const person = response.data;
+        const nextUsername = `${person.firstName}.${person.lastName}`;
+        const nextDisplayName = `${person.firstName} ${person.lastName}`.trim();
+
+        setAuthUsername(nextUsername);
+        setAuthDisplayName(nextDisplayName);
+        if (person.id) {
+          setAuthPersonId(person.id);
+        }
+        if (person.role) {
+          setAuthRole(person.role);
+        }
+      } catch (error) {
+        if (typeof error === 'object' && error && 'response' in error && (error as { response?: { status?: number } }).response?.status === 401) {
+          expireSession('Your session expired. Please log in again.');
+          return;
+        }
+
+        logHandledError(error);
+      }
+    };
+
+    void hydrateIdentity();
+
+    return () => {
+      ignore = true;
+    };
+  }, [
+    displayName,
+    expireSession,
+    isAuthenticated,
+    personId,
+    role,
+    setAuthDisplayName,
+    setAuthPersonId,
+    setAuthRole,
+    setAuthUsername,
+  ]);
 
   if (!isAuthenticated) {
     return (
@@ -255,45 +235,11 @@ function App() {
   const canAccessPersons = canAccessPersonsPage(role);
   const primaryTabs = PRIMARY_TABS.filter((tab) => tab.value !== ROUTE_PERSONS || canAccessPersons);
   const primaryTabValue = getPrimaryTabValue(location.pathname, primaryTabs);
-  const currentDisplayName = displayName || (currentPerson ? `${currentPerson.firstName} ${currentPerson.lastName}` : username);
-  const visiblePersons = personId
-    ? persons.filter((person) => person.id !== personId)
-    : persons;
-  const canCreateManagedPerson = role === 'ADMIN' || role === 'MANAGER';
-
-  const canEditManagedPerson = (person: Person) =>
-    canUpdatePerson(role, personId || currentPerson?.id, person, person.role ?? 'USER');
-
-  const canDeleteManagedPerson = (person: Person) => canDeletePerson(role, person);
-
-  const personsPageElement = canAccessPersons
-    ? (
-      <PersonsPage
-        persons={visiblePersons}
-        loading={loading}
-        saveLoading={saveLoading}
-        error={error}
-        showForm={showForm}
-        editingPerson={editingPerson}
-        canCreate={canCreateManagedPerson}
-        canEdit={canEditManagedPerson}
-        canDelete={canDeleteManagedPerson}
-        canEditRole={canEditRole(role)}
-        defaultCreateRole="USER"
-        onAdd={showCreateForm}
-        onSearch={handleSearch}
-        onSave={handleSave}
-        onCancel={handleCancel}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-        onLoad={loadPersons}
-      />
-      )
-    : <Navigate to={ROUTE_HOME} replace />;
+  const currentDisplayName = displayName || username;
 
   const transactionsPageElement = (
     <TransactionsPage
-      currentPersonId={personId || currentPerson?.id}
+      currentPersonId={personId || undefined}
       role={role}
       expireSession={expireSession}
     />
@@ -395,21 +341,46 @@ function App() {
             />
             <Route
               path={ROUTE_PROFILE}
-              element={
-                <ProfilePage
-                  person={currentPerson}
-                  loading={profileLoading}
-                  error={profileError}
-                  saveLoading={profileSaveLoading}
-                  passwordLoading={passwordLoading}
-                  onSave={handleProfileSave}
-                  onChangePassword={handlePasswordChange}
+              element={(
+                <ProfileRoutePage
+                  expireSession={expireSession}
+                  setAuthUsername={setAuthUsername}
+                  setAuthDisplayName={setAuthDisplayName}
+                  setAuthRole={setAuthRole}
+                  setAuthPersonId={setAuthPersonId}
                 />
-              }
+              )}
             />
-            <Route path={ROUTE_PERSONS} element={personsPageElement} />
-            <Route path={ROUTE_PERSON_CREATE} element={personsPageElement} />
-            <Route path={ROUTE_PERSON_EDIT} element={personsPageElement} />
+            <Route
+              path={ROUTE_PERSONS}
+              element={(
+                <PersonsRoutePage
+                  expireSession={expireSession}
+                  currentPersonId={personId || undefined}
+                  role={role}
+                />
+              )}
+            />
+            <Route
+              path={ROUTE_PERSON_CREATE}
+              element={(
+                <PersonsRoutePage
+                  expireSession={expireSession}
+                  currentPersonId={personId || undefined}
+                  role={role}
+                />
+              )}
+            />
+            <Route
+              path={ROUTE_PERSON_EDIT}
+              element={(
+                <PersonsRoutePage
+                  expireSession={expireSession}
+                  currentPersonId={personId || undefined}
+                  role={role}
+                />
+              )}
+            />
             <Route path={ROUTE_TRANSACTIONS} element={transactionsPageElement} />
             <Route path={ROUTE_TRANSACTION_CREATE} element={transactionsPageElement} />
             <Route path={ROUTE_TRANSACTION_EDIT} element={transactionsPageElement} />

@@ -96,7 +96,7 @@ const setAuthenticatedSession = (currentPersonId?: string, role: 'ADMIN' | 'MANA
     isAuthenticated: true,
     login: jest.fn(),
     logout: jest.fn(),
-    personId: currentPersonId ?? '',
+    personId: currentPersonId ?? 'p1',
     role,
     register: jest.fn(),
     setAuthDisplayName: jest.fn(),

@@ -5,6 +5,14 @@ const MOCK_DOB = '1990-01-01';
 
 jest.mock('react-router-dom');
 
+const {
+  __resetRouterMocks,
+  __setMockPathname,
+} = jest.requireMock('react-router-dom') as {
+  __resetRouterMocks: () => void;
+  __setMockPathname: (pathname: string) => void;
+};
+
 jest.mock('../shared/api/api', () => ({
   authApi: {
     login: jest.fn(),
@@ -197,6 +205,7 @@ jest.mock('../features/profile/components/ProfilePage', () => ({
 
 beforeEach(() => {
   jest.clearAllMocks();
+  __resetRouterMocks();
 
   mockAuthStorage.isAuthenticated.mockReturnValue(false);
   mockAuthStorage.getUsername.mockReturnValue(null);
@@ -250,6 +259,7 @@ beforeEach(() => {
 
 test('handles unauthorized responses by clearing session and returning to login', async () => {
   mockPersonApi.getAll.mockRejectedValueOnce({ response: { status: 401 } });
+  __setMockPathname('/persons');
 
   render(<App />);
   fireEvent.click(screen.getByRole('button', { name: /submit login/i }));
@@ -259,8 +269,43 @@ test('handles unauthorized responses by clearing session and returning to login'
   expect(screen.getByRole('heading', { name: /sign in/i })).toBeInTheDocument();
 });
 
-test('supports login, directory actions, profile actions, and logout', async () => {
+test('hydrates auth identity for authenticated legacy sessions missing person metadata', async () => {
+  mockAuthStorage.isAuthenticated.mockReturnValue(true);
+  mockAuthStorage.getUsername.mockReturnValue('legacy.user');
+  mockAuthStorage.getPersonId.mockReturnValue(null);
+  mockAuthStorage.getDisplayName.mockReturnValue(null);
+  mockAuthStorage.getRole.mockReturnValue(null);
+  __setMockPathname('/home');
+
   render(<App />);
+
+  expect(await screen.findByAltText(/SettleSpace header/i)).toBeInTheDocument();
+  await waitFor(() => expect(mockPersonApi.getCurrent).toHaveBeenCalledTimes(1));
+  expect(mockAuthStorage.setUsername).toHaveBeenCalledWith('John.Doe');
+  expect(mockAuthStorage.setDisplayName).toHaveBeenCalledWith('John Doe');
+  expect(mockAuthStorage.setPersonId).toHaveBeenCalledWith('p1');
+  expect(mockAuthStorage.setRole).toHaveBeenCalledWith('ADMIN');
+});
+
+test('expires the session when identity hydration is unauthorized', async () => {
+  mockAuthStorage.isAuthenticated.mockReturnValue(true);
+  mockAuthStorage.getUsername.mockReturnValue('legacy.user');
+  mockAuthStorage.getPersonId.mockReturnValue(null);
+  mockAuthStorage.getDisplayName.mockReturnValue(null);
+  mockAuthStorage.getRole.mockReturnValue(null);
+  mockPersonApi.getCurrent.mockRejectedValueOnce({ response: { status: 401 } });
+  __setMockPathname('/home');
+
+  render(<App />);
+
+  await waitFor(() => expect(mockAuthStorage.clearSession).toHaveBeenCalled());
+  expect(await screen.findByText(/session expired/i)).toBeInTheDocument();
+  expect(screen.getByRole('heading', { name: /sign in/i })).toBeInTheDocument();
+});
+
+test('supports login, directory actions, profile actions, and logout', async () => {
+  __setMockPathname('/persons');
+  const { rerender } = render(<App />);
 
   fireEvent.click(screen.getByRole('button', { name: /submit login/i }));
 
@@ -289,7 +334,11 @@ test('supports login, directory actions, profile actions, and logout', async () 
   await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
 
   fireEvent.click(screen.getByRole('button', { name: /john doe/i }));
+  __setMockPathname('/profile');
+  rerender(<App />);
+
   expect(screen.getByRole('heading', { name: /Profile Page/i })).toBeInTheDocument();
+  await waitFor(() => expect(mockPersonApi.getCurrent).toHaveBeenCalled());
 
   fireEvent.click(screen.getByRole('button', { name: /Save Profile/i }));
   await waitFor(() => expect(mockPersonApi.updateCurrent).toHaveBeenCalled());

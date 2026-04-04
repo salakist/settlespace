@@ -20,7 +20,6 @@ type PersonsPageProps = {
   canEditRole: boolean;
   defaultCreateRole: PersonRole;
   onAdd: () => void;
-  onLoad: () => Promise<void>;
   onSearch: (query: string) => void;
   onSave: (person: Omit<Person, 'id'>) => Promise<void>;
   onCancel: () => void;
@@ -45,7 +44,6 @@ const PersonsPage: React.FC<PersonsPageProps> = ({
   canEditRole,
   defaultCreateRole,
   onAdd,
-  onLoad,
   onSearch,
   onSave,
   onCancel,
@@ -75,12 +73,6 @@ const PersonsPage: React.FC<PersonsPageProps> = ({
     () => persons.find((person) => person.id === decodedPersonId),
     [decodedPersonId, persons],
   );
-
-  useEffect(() => {
-    Promise.resolve(onLoad()).catch((loadError) => {
-      console.error(loadError);
-    });
-  }, [onLoad]);
 
   useEffect(() => {
     if (lastSyncedRouteKey.current === currentRouteKey) {
