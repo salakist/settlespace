@@ -9,7 +9,7 @@ Unit test project for the Infrastructure layer. Tests persistence and serializat
 - Keep serializer and configuration-model coverage close to the infrastructure layer.
 
 ## Test coverage
-- `PersonRepositoryTests` / `TransactionRepositoryTests` â€” repository CRUD and query behavior using mocked Mongo collection/cursor abstractions
+- `PersonRepositoryTests` / `TransactionRepositoryTests` — repository CRUD, query, and multi-parameter search filter behavior using mocked Mongo collection/cursor abstractions
 - `DateOnlyAsStringSerializerTests` â€” BSON string serialization/deserialization for `DateOnly` and invalid-type rejection
 - `SettleSpaceDatabaseSettingsTests` â€” configuration model property coverage
 

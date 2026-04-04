@@ -1,0 +1,33 @@
+meta {
+  name: Search
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/transactions/search
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "freeText": "{{query}}",
+    "status": ["Completed"],
+    "involvement": "Owned",
+    "category": "ManualTest",
+    "description": "Bruno",
+    "involved": ["{{personId}}"],
+    "managedBy": ["{{personId}}"],
+    "payer": "{{personId}}",
+    "payee": "{{counterpartyPersonId}}"
+  }
+}

@@ -9,10 +9,12 @@ Unit test project for the Application layer. Tests application services, control
 - Keep mock usage limited to the service and controller boundaries that the application layer owns.
 
 ## Test coverage
-- `PersonApplicationServiceTests` â€” query, create, update, delete, uniqueness, and password-preservation behavior
-- `AuthServiceTests` / `AuthControllerTests` â€” login, registration, password change, and legacy-password-upgrade cases
-- `PersonsControllerTests` / `PersonMapperTests` â€” HTTP status mapping and DTO/entity mapping behavior
-- `TransactionApplicationServiceTests`, `TransactionsControllerTests`, `TransactionMapperTests`, `DeleteTransactionCommandTests` â€” transaction orchestration, controller mapping, mapper behavior, and delete-command validation- `DebtApplicationServiceTests`, `DebtsControllerTests` — debt-summary orchestration, settlement behavior, and controller DTO mapping- `ExceptionHandlingMiddlewareTests` â€” exception-to-HTTP translation behavior
+- `PersonApplicationServiceTests` — query, create, update, delete, uniqueness, and password-preservation behavior
+- `AuthServiceTests` / `AuthControllerTests` — login, registration, password change, and legacy-password-upgrade cases
+- `PersonsControllerTests` / `PersonMapperTests` — HTTP status mapping and DTO/entity mapping behavior
+- `TransactionApplicationServiceTests`, `TransactionsControllerTests`, `TransactionMapperTests`, `DeleteTransactionCommandTests`, `TransactionSearchQueryTests` — transaction orchestration, controller mapping, mapper behavior, delete-command validation, and search query validation
+- `DebtApplicationServiceTests`, `DebtsControllerTests` — debt-summary orchestration, settlement behavior, and controller DTO mapping
+- `ExceptionHandlingMiddlewareTests` — exception-to-HTTP translation behavior
 
 ## Test strategy
 - Application services use mocked repositories, domain services, and auth/password dependencies to stay isolated from infrastructure.
@@ -29,6 +31,7 @@ Unit test project for the Application layer. Tests application services, control
 - `Transactions/TransactionsControllerTests.cs`
 - `Transactions/Mapping/TransactionMapperTests.cs`
 - `Transactions/Commands/DeleteTransactionCommandTests.cs`
+- `Transactions/Queries/TransactionSearchQueryTests.cs`
 - `Middleware/ExceptionHandlingMiddlewareTests.cs`
 
 ## Commands

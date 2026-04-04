@@ -6,6 +6,7 @@ Domain transactions context for transaction invariants, access rules, and reposi
 ## Responsibilities
 - Define transaction aggregate and status model.
 - Define transaction repository interface.
+- Define transaction search filter domain model.
 - Define and implement transaction authorization/involvement domain rules.
 - Define transaction-specific domain exceptions.
 
@@ -13,6 +14,7 @@ Domain transactions context for transaction invariants, access rules, and reposi
 - `Entities/Transaction.cs`
 - `Entities/TransactionStatus.cs`
 - `ITransactionRepository.cs`
+- `TransactionSearchFilter.cs`
 - `Services/ITransactionDomainService.cs`
 - `Services/TransactionDomainService.cs`
 - `Exceptions/`

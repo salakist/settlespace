@@ -5,6 +5,7 @@ Infrastructure transactions persistence context for MongoDB transaction reposito
 
 ## Responsibilities
 - Implement transaction repository CRUD and user-scoped query behavior.
+- Implement multi-parameter search filter construction from `TransactionSearchFilter`.
 - Keep persistence mapping concerns out of domain models.
 - Keep collection semantics and filters aligned with application authorization expectations.
 

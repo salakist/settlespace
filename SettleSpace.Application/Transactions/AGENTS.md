@@ -5,14 +5,17 @@ Transactions API context for authenticated, user-scoped transaction CRUD.
 
 ## Responsibilities
 - Own `TransactionsController` endpoint behavior and claim-based user scoping.
-- Own transaction commands and transaction response DTOs.
+- Own transaction commands, search query model, and transaction response DTOs.
 - Own transaction mapping between commands, domain models, and DTO responses.
 - Own application-service orchestration and authorization checks for transactions.
+- Own search query validation and search-to-filter orchestration via `POST /transactions/search`.
 
 ## Key files
 - `TransactionsController.cs`
 - `TransactionDto.cs`
 - `Commands/`
+- `Queries/TransactionSearchQuery.cs`
+- `Queries/InvolvementType.cs`
 - `Mapping/`
 - `Services/`
 

@@ -8,13 +8,15 @@ Transactions feature provides UI and state management for user-scoped transactio
 
 ## Responsibilities
 - `src/features/transactions/components/TransactionsPage.tsx` â€” page composition and orchestration.
-- `src/features/transactions/components/TransactionList.tsx` â€” transaction list rendering.
-- `src/features/transactions/components/TransactionForm.tsx` â€” create/update transaction form.
-- `src/features/transactions/hooks/useTransactions.ts` â€” feature state, validation, and API interaction.
-- `src/features/transactions/components/*.test.tsx` and `src/features/transactions/hooks/useTransactions.test.tsx` â€” component and hook tests.
+- `src/features/transactions/components/TransactionSearchBar.tsx` — multi-parameter search with chip-based filters and person autocomplete.
+- `src/features/transactions/components/TransactionList.tsx` — transaction list rendering.
+- `src/features/transactions/components/TransactionForm.tsx` — create/update transaction form.
+- `src/features/transactions/hooks/useTransactions.ts` — feature state, validation, and API interaction.
+- `src/features/transactions/components/*.test.tsx` and `src/features/transactions/hooks/useTransactions.test.tsx` — component and hook tests.
 
 ## Key files
 - `src/features/transactions/components/TransactionsPage.tsx`
+- `src/features/transactions/components/TransactionSearchBar.tsx`
 - `src/features/transactions/components/TransactionList.tsx`
 - `src/features/transactions/components/TransactionForm.tsx`
 - `src/features/transactions/hooks/useTransactions.ts`
