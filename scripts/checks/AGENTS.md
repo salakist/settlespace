@@ -19,6 +19,7 @@ Own repository quality-gate execution behavior for changed-code and full-base va
 ## Quality-gate model
 - `run-checks*` validates changed production scope for the pre-commit workflow.
 - `run-full-checks*` validates the full production codebase and is used when broader analysis is requested.
+- The C# gate uses isolated .NET artifacts under `artifacts/tmp-dotnet/` so it can run without stopping the local stack.
 - Optional Sonar parity belongs only in the full-base flow and requires the expected environment configuration.
 - Debug wrappers must print the resolved timestamped log path for agent sessions.
 

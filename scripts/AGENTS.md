@@ -27,6 +27,7 @@ Within the `scripts/` area:
 3. Never suggest bypassing hooks with `--no-verify`.
 4. For cleanup tasks, default to `./scripts/cleanup/cleanup.ps1`; use
    `cleanup-full.ps1 -Force` only when the user explicitly requests destructive cleanup.
+   Cleanup now also covers isolated gate artifacts under `artifacts/tmp-dotnet/`.
 5. Keep script documentation aligned when entry points, hook installation, agent-identity setup,
    or commit-message validation behavior changes.
 6. Do not redefine the central checklist acceptance rules in this file.

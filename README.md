@@ -322,11 +322,15 @@ Two repository-level analysis modes are available:
 .\scripts\setup\setup-hooks.ps1
 ```
 
+Notes:
+- The C# quality-gate steps now use isolated temporary .NET artifacts under `artifacts/tmp-dotnet/`.
+- You generally do not need to stop the running local stack before running these gate scripts.
+
 ### Cleanup workspace artifacts
 
 - `./scripts/cleanup/cleanup.ps1`
   - default light cleanup for routine use (including agent sessions)
-  - removes lightweight generated outputs (coverage/build/test-artifacts)
+  - removes lightweight generated outputs (coverage/build/test-artifacts and `artifacts/tmp-dotnet/`)
   - preserves heavy dependency folders such as `node_modules/`
   - retains only the newest 2 gate logs in `artifacts/logs/`
   - use `./scripts/cleanup/cleanup.ps1 -DryRun` to preview planned removals without deleting anything

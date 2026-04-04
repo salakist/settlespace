@@ -109,6 +109,7 @@ function Invoke-LightCleanupTargets(
     [bool]$DryRun = $false
 ) {
     Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'artifacts\coverage' -Result $Result -DryRun $DryRun
+    Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'artifacts\tmp-dotnet' -Result $Result -DryRun $DryRun
     Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'settlespace-react\coverage' -Result $Result -DryRun $DryRun
     Remove-RepoRelativeDirectory -RepoRoot $RepoRoot -RelativePath 'settlespace-react\build' -Result $Result -DryRun $DryRun
     Remove-StandardTestArtifacts -RepoRoot $RepoRoot -Result $Result -DryRun $DryRun

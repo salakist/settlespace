@@ -23,18 +23,21 @@ Import-RepoDotEnv -RepoRoot $RepoRoot
 $CoverageRoot = Join-Path $RepoRoot "artifacts\coverage\full"
 $CSharpCoverageRoot = Join-Path $CoverageRoot "csharp"
 $ReactCoverageRoot = Join-Path $CoverageRoot "react"
+$DotNetArtifactsRoot = Join-Path $RepoRoot "artifacts\tmp-dotnet\full\$(Get-Date -Format 'yyyyMMdd-HHmmss')"
 
 if (Test-Path $CoverageRoot) {
     Remove-Item $CoverageRoot -Recurse -Force
 }
 New-Item -ItemType Directory -Path $CSharpCoverageRoot -Force | Out-Null
 New-Item -ItemType Directory -Path $ReactCoverageRoot -Force | Out-Null
+New-Item -ItemType Directory -Path $DotNetArtifactsRoot -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $CSharpCoverageRoot "domain") -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $CSharpCoverageRoot "infrastructure") -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $CSharpCoverageRoot "application") -Force | Out-Null
 
 Write-Header "[1/5] C# full-base build + code-smell analysis"
-dotnet build SettleSpace.sln -t:Rebuild /p:TreatWarningsAsErrors=true
+Write-Host "Isolated .NET artifacts: $DotNetArtifactsRoot" -ForegroundColor DarkGray
+dotnet build SettleSpace.sln -t:Rebuild --artifacts-path $DotNetArtifactsRoot /p:TreatWarningsAsErrors=true /nr:false
 if ($LASTEXITCODE -ne 0) {
     Write-Host ""
     Write-Host "[FAIL] Full-base C# build has analyzer violations." -ForegroundColor Red
@@ -45,9 +48,9 @@ if ($LASTEXITCODE -ne 0) {
 
 Write-Header "[2/5] C# full-base coverage (threshold: 80%)"
 
-$DomainExit = Invoke-CSharpCoverage "Tests\SettleSpace.Domain.Tests\SettleSpace.Domain.Tests.csproj" (Join-Path $CSharpCoverageRoot "domain\coverage")
-$InfrastructureExit = Invoke-CSharpCoverage "Tests\SettleSpace.Infrastructure.Tests\SettleSpace.Infrastructure.Tests.csproj" (Join-Path $CSharpCoverageRoot "infrastructure\coverage")
-$ApplicationExit = Invoke-CSharpCoverage "Tests\SettleSpace.Application.Tests\SettleSpace.Application.Tests.csproj" (Join-Path $CSharpCoverageRoot "application\coverage")
+$DomainExit = Invoke-CSharpCoverage "Tests\SettleSpace.Domain.Tests\SettleSpace.Domain.Tests.csproj" (Join-Path $CSharpCoverageRoot "domain\coverage") $DotNetArtifactsRoot
+$InfrastructureExit = Invoke-CSharpCoverage "Tests\SettleSpace.Infrastructure.Tests\SettleSpace.Infrastructure.Tests.csproj" (Join-Path $CSharpCoverageRoot "infrastructure\coverage") $DotNetArtifactsRoot
+$ApplicationExit = Invoke-CSharpCoverage "Tests\SettleSpace.Application.Tests\SettleSpace.Application.Tests.csproj" (Join-Path $CSharpCoverageRoot "application\coverage") $DotNetArtifactsRoot
 
 if ($DomainExit -ne 0 -or $InfrastructureExit -ne 0 -or $ApplicationExit -ne 0) {
     Write-Host ""

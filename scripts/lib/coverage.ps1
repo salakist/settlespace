@@ -1,10 +1,26 @@
-function Invoke-CSharpCoverage([string]$ProjectPath, [string]$OutputPrefix) {
-    $outputDirectory = Split-Path -Parent $OutputPrefix
+function Invoke-CSharpCoverage(
+    [string]$ProjectPath,
+    [string]$OutputPrefix,
+    [string]$ArtifactsPath = ""
+) {
+    $resolvedOutputPrefix = [System.IO.Path]::GetFullPath($OutputPrefix)
+    $outputDirectory = Split-Path -Parent $resolvedOutputPrefix
     New-Item -ItemType Directory -Path $outputDirectory -Force | Out-Null
 
-    dotnet test $ProjectPath `
-        /p:CollectCoverage=true `
-        /p:CoverletOutputFormat=json `
-        /p:CoverletOutput=$OutputPrefix | Out-Host
+    $dotnetArgs = @(
+        'test'
+        $ProjectPath
+        '--nologo'
+        '/nr:false'
+        '/p:CollectCoverage=true'
+        '/p:CoverletOutputFormat=json'
+        "/p:CoverletOutput=$resolvedOutputPrefix"
+    )
+
+    if (-not [string]::IsNullOrWhiteSpace($ArtifactsPath)) {
+        $dotnetArgs += @('--artifacts-path', $ArtifactsPath)
+    }
+
+    & dotnet @dotnetArgs | Out-Host
     return $LASTEXITCODE
 }

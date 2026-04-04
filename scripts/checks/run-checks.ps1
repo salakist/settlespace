@@ -21,6 +21,7 @@ $Failed = $false
 $ArtifactsRoot = Join-Path $RepoRoot "artifacts"
 $CoverageRoot = Join-Path $ArtifactsRoot "coverage\changed"
 $ChangedListPath = Join-Path $ArtifactsRoot "changed-files.txt"
+$DotNetArtifactsRoot = Join-Path $ArtifactsRoot "tmp-dotnet\changed\$(Get-Date -Format 'yyyyMMdd-HHmmss')"
 
 $changedContext = Get-ChangedContext
 $changedFiles = @($changedContext.Files | ForEach-Object { $_.Replace('\\', '/') })
@@ -44,7 +45,9 @@ if ($changedFiles.Count -gt 20) {
 if (-not (Test-Path $ArtifactsRoot)) {
     New-Item -ItemType Directory -Path $ArtifactsRoot -Force | Out-Null
 }
+New-Item -ItemType Directory -Path $DotNetArtifactsRoot -Force | Out-Null
 Set-Content -Path $ChangedListPath -Value $changedFiles
+Write-Host "Isolated .NET artifacts: $DotNetArtifactsRoot" -ForegroundColor DarkGray
 
 $changedCSharpFiles = @($changedFiles | Where-Object { $_ -match '\.cs$' })
 $changedProductionCSharpFiles = @($changedFiles | Where-Object { Is-ProductionCSharpFile $_ })
@@ -57,7 +60,8 @@ if ($changedCSharpFiles.Count -eq 0) {
     Write-Host "[SKIP] No changed C# files." -ForegroundColor Yellow
 } else {
     # Use Rebuild so analyzer diagnostics are emitted even when incremental build would skip compilation.
-    $buildOutput = @(dotnet build SettleSpace.sln -t:Rebuild 2>&1)
+    # Route build outputs to an isolated artifacts folder so the gate can run while the app stack is up.
+    $buildOutput = @(dotnet build SettleSpace.sln -t:Rebuild --artifacts-path $DotNetArtifactsRoot /nr:false 2>&1)
     $buildExitCode = $LASTEXITCODE
     $diagnosticLines = @($buildOutput | ForEach-Object { $_.ToString() } | Where-Object { $_ -match ': (warning|error) [A-Za-z]{2,}\d+:' })
     $changedDiagnostics = @()
@@ -100,9 +104,9 @@ if ($changedProductionCSharpFiles.Count -eq 0) {
     $CSharpCoverageRoot = Join-Path $CoverageRoot "csharp"
     New-Item -ItemType Directory -Path $CSharpCoverageRoot -Force | Out-Null
 
-    $domainExit = Invoke-CSharpCoverage "Tests\SettleSpace.Domain.Tests\SettleSpace.Domain.Tests.csproj" (Join-Path $CSharpCoverageRoot "domain\coverage")
-    $infrastructureExit = Invoke-CSharpCoverage "Tests\SettleSpace.Infrastructure.Tests\SettleSpace.Infrastructure.Tests.csproj" (Join-Path $CSharpCoverageRoot "infrastructure\coverage")
-    $applicationExit = Invoke-CSharpCoverage "Tests\SettleSpace.Application.Tests\SettleSpace.Application.Tests.csproj" (Join-Path $CSharpCoverageRoot "application\coverage")
+    $domainExit = Invoke-CSharpCoverage "Tests\SettleSpace.Domain.Tests\SettleSpace.Domain.Tests.csproj" (Join-Path $CSharpCoverageRoot "domain\coverage") $DotNetArtifactsRoot
+    $infrastructureExit = Invoke-CSharpCoverage "Tests\SettleSpace.Infrastructure.Tests\SettleSpace.Infrastructure.Tests.csproj" (Join-Path $CSharpCoverageRoot "infrastructure\coverage") $DotNetArtifactsRoot
+    $applicationExit = Invoke-CSharpCoverage "Tests\SettleSpace.Application.Tests\SettleSpace.Application.Tests.csproj" (Join-Path $CSharpCoverageRoot "application\coverage") $DotNetArtifactsRoot
 
     if ($domainExit -ne 0 -or $infrastructureExit -ne 0 -or $applicationExit -ne 0) {
         Write-Host "[FAIL] One or more C# test projects failed before coverage evaluation." -ForegroundColor Red

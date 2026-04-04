@@ -1,7 +1,7 @@
 # scripts/cleanup/cleanup-full.ps1
 #
 # Full cleanup for explicit destructive reset requests.
-# Removes light artifacts plus heavy caches and dependency directories.
+# Removes light artifacts, isolated gate artifacts, plus heavy caches and dependency directories.
 
 param(
     [switch]$Force,
