@@ -100,14 +100,14 @@ jest.mock('../shared/api/debtsApi', () => ({
 
 jest.mock('../features/persons/components/SearchBar', () => ({
   __esModule: true,
-  default: ({ onSearch }: { onSearch: (query: string) => void }) => (
+  default: ({ onSearch, action }: { onSearch: (query: string) => void; action?: React.ReactNode }) => (
     <div>
       <button onClick={() => onSearch('john')}>Search John</button>
       <button onClick={() => onSearch('')}>Search Empty</button>
+      {action}
     </div>
   ),
 }));
-
 jest.mock('../features/transactions/components/TransactionsPage', () => ({
   __esModule: true,
   default: () => <div>Transactions Page</div>,
@@ -259,21 +259,21 @@ test('supports login, directory actions, profile actions, and logout', async () 
   await waitFor(() => expect(mockPersonApi.getAll).toHaveBeenCalled());
   await waitFor(() => expect(mockPersonApi.getCurrent).toHaveBeenCalled());
 
-  fireEvent.click(screen.getByRole('button', { name: /Search John/i }));
+  fireEvent.click(screen.getAllByRole('button', { name: /Search John/i })[0]);
   await waitFor(() => expect(mockPersonApi.search).toHaveBeenCalledWith('john'));
 
-  fireEvent.click(screen.getByRole('button', { name: /Search Empty/i }));
+  fireEvent.click(screen.getAllByRole('button', { name: /Search Empty/i })[0]);
   await waitFor(() => expect(mockPersonApi.getAll).toHaveBeenCalled());
 
-  fireEvent.click(screen.getByRole('button', { name: /Add New Person/i }));
-  fireEvent.click(screen.getByRole('button', { name: /Save Person/i }));
+  fireEvent.click(screen.getAllByRole('button', { name: /Create Person/i })[0]);
+  fireEvent.click(screen.getAllByRole('button', { name: /Save Person/i })[0]);
   await waitFor(() => expect(mockPersonApi.create).toHaveBeenCalled());
 
-  fireEvent.click(screen.getByRole('button', { name: /Edit Person/i }));
-  fireEvent.click(screen.getByRole('button', { name: /Save Person/i }));
+  fireEvent.click(screen.getAllByRole('button', { name: /Edit Person/i })[0]);
+  fireEvent.click(screen.getAllByRole('button', { name: /Save Person/i })[0]);
   await waitFor(() => expect(mockPersonApi.update).toHaveBeenCalled());
 
-  fireEvent.click(screen.getByRole('button', { name: /Delete Person/i }));
+  fireEvent.click(screen.getAllByRole('button', { name: /Delete Person/i })[0]);
   await waitFor(() => expect(mockPersonApi.delete).toHaveBeenCalledWith('p1'));
 
   fireEvent.click(screen.getByRole('button', { name: /john doe/i }));

@@ -6,6 +6,8 @@ test('shows validation error when confirmation does not match', async () => {
   const onSubmit = jest.fn();
   render(<ChangePasswordForm onSubmit={onSubmit} loading={false} />);
 
+  expect(screen.queryByText(/^security$/i)).not.toBeInTheDocument();
+
   fireEvent.change(screen.getByLabelText(/Current Password/i), { target: { value: 'old' } });
   fireEvent.change(screen.getAllByLabelText(/New Password/i)[0], { target: { value: 'new1' } });
   fireEvent.change(screen.getByLabelText(/Confirm New Password/i), { target: { value: 'new2' } });

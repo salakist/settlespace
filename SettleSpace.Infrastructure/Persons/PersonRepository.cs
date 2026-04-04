@@ -7,6 +7,7 @@ using MongoDB.Bson.Serialization;
 using MongoDB.Bson.Serialization.IdGenerators;
 using MongoDB.Bson.Serialization.Serializers;
 using MongoDB.Driver;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace SettleSpace.Infrastructure.Persons
@@ -94,11 +95,21 @@ namespace SettleSpace.Infrastructure.Persons
                 return await GetAllAsync();
             }
 
-            var escapedQuery = Regex.Escape(query.Trim());
-            var regex = new BsonRegularExpression($".*{escapedQuery}.*", "i");
+            var searchTerms = query.Trim()
+                .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
             var builder = Builders<Person>.Filter;
-            var filter = builder.Regex(p => p.FirstName, regex) | builder.Regex(p => p.LastName, regex);
+            var perTermFilters = searchTerms.Select(term =>
+            {
+                var escapedTerm = Regex.Escape(term);
+                var regex = new BsonRegularExpression($".*{escapedTerm}.*", "i");
+
+                return builder.Regex(p => p.FirstName, regex) | builder.Regex(p => p.LastName, regex);
+            }).ToList();
+
+            var filter = perTermFilters.Count == 1
+                ? perTermFilters[0]
+                : builder.And(perTermFilters);
 
             return await _personsCollection.Find(filter).ToListAsync();
         }

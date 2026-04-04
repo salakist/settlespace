@@ -76,13 +76,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({
       <Paper sx={panelSurfaceSx} elevation={0}>
         <Stack spacing={2.5}>
           <Box>
-            <Typography variant="overline" className="eyebrow">
-              Personal Settings
-            </Typography>
             <Typography variant="h5">Profile</Typography>
-            <Typography color="text.secondary">
-              Update your account information and contact details.
-            </Typography>
           </Box>
 
           {error && <Alert severity="error">{error}</Alert>}

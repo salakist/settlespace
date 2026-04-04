@@ -32,8 +32,12 @@ const ROUTE_LOGIN = '/login';
 const ROUTE_REGISTER = '/register';
 const ROUTE_HOME = '/home';
 const ROUTE_PERSONS = '/persons';
+const ROUTE_PERSON_CREATE = '/persons/new';
+const ROUTE_PERSON_EDIT = '/persons/:personId/edit';
 const ROUTE_PROFILE = '/profile';
 const ROUTE_TRANSACTIONS = '/transactions';
+const ROUTE_TRANSACTION_CREATE = '/transactions/new';
+const ROUTE_TRANSACTION_EDIT = '/transactions/:transactionId/edit';
 const ROUTE_DEBTS = '/debts';
 const ROUTE_DEBT_DETAILS = '/debts/:counterpartyPersonId/:currencyCode';
 
@@ -49,12 +53,9 @@ function getPrimaryTabValue(pathname: string, tabs: readonly { value: string }[]
     return false;
   }
 
-  if (pathname.startsWith(`${ROUTE_DEBTS}/`)) {
-    return ROUTE_DEBTS;
-  }
-
-  if (tabs.some((tab) => tab.value === pathname)) {
-    return pathname;
+  const matchingTab = tabs.find((tab) => pathname === tab.value || pathname.startsWith(`${tab.value}/`));
+  if (matchingTab) {
+    return matchingTab.value;
   }
 
   return ROUTE_HOME;
@@ -254,6 +255,39 @@ function App() {
 
   const canDeleteManagedPerson = (person: Person) => canDeletePerson(role, person);
 
+  const personsPageElement = canAccessPersons
+    ? (
+      <PersonsPage
+        persons={visiblePersons}
+        loading={loading}
+        saveLoading={saveLoading}
+        error={error}
+        showForm={showForm}
+        editingPerson={editingPerson}
+        canCreate={canCreateManagedPerson}
+        canEdit={canEditManagedPerson}
+        canDelete={canDeleteManagedPerson}
+        canEditRole={canEditRole(role)}
+        defaultCreateRole="USER"
+        onAdd={showCreateForm}
+        onSearch={handleSearch}
+        onSave={handleSave}
+        onCancel={handleCancel}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+      />
+      )
+    : <Navigate to={ROUTE_HOME} replace />;
+
+  const transactionsPageElement = (
+    <TransactionsPage
+      persons={persons}
+      currentPersonId={currentPerson?.id}
+      role={role}
+      expireSession={expireSession}
+    />
+  );
+
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
@@ -362,45 +396,12 @@ function App() {
                 />
               }
             />
-            <Route
-              path={ROUTE_PERSONS}
-              element={
-                canAccessPersons
-                  ? (
-                    <PersonsPage
-                      persons={visiblePersons}
-                      loading={loading}
-                      saveLoading={saveLoading}
-                      error={error}
-                      showForm={showForm}
-                      editingPerson={editingPerson}
-                      canCreate={canCreateManagedPerson}
-                      canEdit={canEditManagedPerson}
-                      canDelete={canDeleteManagedPerson}
-                      canEditRole={canEditRole(role)}
-                      defaultCreateRole="USER"
-                      onAdd={showCreateForm}
-                      onSearch={handleSearch}
-                      onSave={handleSave}
-                      onCancel={handleCancel}
-                      onEdit={handleEdit}
-                      onDelete={handleDelete}
-                    />
-                    )
-                  : <Navigate to={ROUTE_HOME} replace />
-              }
-            />
-            <Route
-              path={ROUTE_TRANSACTIONS}
-              element={(
-                <TransactionsPage
-                  persons={persons}
-                  currentPersonId={currentPerson?.id}
-                  role={role}
-                  expireSession={expireSession}
-                />
-              )}
-            />
+            <Route path={ROUTE_PERSONS} element={personsPageElement} />
+            <Route path={ROUTE_PERSON_CREATE} element={personsPageElement} />
+            <Route path={ROUTE_PERSON_EDIT} element={personsPageElement} />
+            <Route path={ROUTE_TRANSACTIONS} element={transactionsPageElement} />
+            <Route path={ROUTE_TRANSACTION_CREATE} element={transactionsPageElement} />
+            <Route path={ROUTE_TRANSACTION_EDIT} element={transactionsPageElement} />
             <Route
               path={ROUTE_DEBTS}
               element={(

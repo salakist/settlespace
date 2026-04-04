@@ -1,5 +1,6 @@
-import React from 'react';
-import { Button, Paper, Stack, Typography } from '@mui/material';
+import React, { useState } from 'react';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { Alert, Chip, IconButton, Menu, MenuItem, Paper, Stack, Typography } from '@mui/material';
 import { Person } from '../../../shared/types';
 import { listItemSurfaceSx } from '../../../shared/theme/surfaceStyles';
 
@@ -7,61 +8,141 @@ interface PersonListProps {
   persons: Person[];
   onEdit: (person: Person) => void;
   onDelete: (id: string) => void;
+  onViewTransactions: (person: Person) => void;
+  onViewDebts: (person: Person) => void;
   canEdit: (person: Person) => boolean;
   canDelete: (person: Person) => boolean;
 }
 
-const PersonList: React.FC<PersonListProps> = ({ persons, onEdit, onDelete, canEdit, canDelete }) => {
+function getRoleColor(role?: Person['role']): 'error' | 'warning' | 'info' | 'default' {
+  switch (role) {
+    case 'ADMIN':
+      return 'error';
+    case 'MANAGER':
+      return 'warning';
+    case 'USER':
+      return 'info';
+    default:
+      return 'default';
+  }
+}
+
+const PersonList: React.FC<PersonListProps> = ({
+  persons,
+  onEdit,
+  onDelete,
+  onViewTransactions,
+  onViewDebts,
+  canEdit,
+  canDelete,
+}) => {
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+  const [activePerson, setActivePerson] = useState<Person | null>(null);
+
+  const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, person: Person) => {
+    setMenuAnchor(event.currentTarget);
+    setActivePerson(person);
+  };
+
+  const handleCloseMenu = () => {
+    setMenuAnchor(null);
+    setActivePerson(null);
+  };
+
+  const handleEditAction = () => {
+    if (activePerson) {
+      onEdit(activePerson);
+    }
+    handleCloseMenu();
+  };
+
+  const handleDeleteAction = () => {
+    if (activePerson?.id) {
+      onDelete(activePerson.id);
+    }
+    handleCloseMenu();
+  };
+
+  const handleViewTransactionsAction = () => {
+    if (activePerson) {
+      onViewTransactions(activePerson);
+    }
+    handleCloseMenu();
+  };
+
+  const handleViewDebtsAction = () => {
+    if (activePerson) {
+      onViewDebts(activePerson);
+    }
+    handleCloseMenu();
+  };
+
   return (
     <div>
       {persons.length === 0 ? (
-        <Typography color="text.secondary">No persons found.</Typography>
+        <Alert severity="info">No persons found.</Alert>
       ) : (
-        <Stack spacing={1.5}>
-          {persons.map((person) => {
-            const personId = person.id;
-            const secondaryDetails = [person.role, person.email, person.phoneNumber]
-              .filter(Boolean)
-              .join(' · ');
+        <>
+          <Stack spacing={1.5}>
+            {persons.map((person) => {
+              const personId = person.id;
+              const secondaryDetails = [person.email, person.phoneNumber]
+                .filter(Boolean)
+                .join(' · ');
+              const displayName = `${person.firstName} ${person.lastName}`.trim();
 
-            return (
-              <Paper
-                key={personId ?? `${person.firstName}-${person.lastName}`}
-                elevation={0}
-                sx={listItemSurfaceSx}
-              >
-                <Stack
-                  direction={{ xs: 'column', sm: 'row' }}
-                  justifyContent="space-between"
-                  alignItems={{ xs: 'flex-start', sm: 'center' }}
-                  spacing={1.5}
+              return (
+                <Paper
+                  key={personId ?? `${person.firstName}-${person.lastName}`}
+                  elevation={0}
+                  sx={listItemSurfaceSx}
                 >
-                  <div>
-                    <Typography variant="subtitle1">
-                      {person.firstName} {person.lastName}
-                    </Typography>
-                    {secondaryDetails && (
-                      <Typography variant="body2" color="text.secondary">
-                        {secondaryDetails}
-                      </Typography>
-                    )}
-                  </div>
+                  <Stack
+                    direction={{ xs: 'column', sm: 'row' }}
+                    justifyContent="space-between"
+                    alignItems={{ xs: 'flex-start', sm: 'center' }}
+                    spacing={1.5}
+                  >
+                    <Stack spacing={0.5}>
+                      <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
+                        <Typography variant="subtitle1">{displayName}</Typography>
+                        {person.role && (
+                          <Chip label={person.role} size="small" color={getRoleColor(person.role)} />
+                        )}
+                      </Stack>
+                      {secondaryDetails && (
+                        <Typography variant="body2" color="text.secondary">
+                          {secondaryDetails}
+                        </Typography>
+                      )}
+                    </Stack>
 
-                  <Stack direction="row" spacing={1}>
-                    <Button size="small" variant="outlined" onClick={() => onEdit(person)} disabled={!canEdit(person)}>
-                      Edit
-                    </Button>
-                    {personId ? (
-                      <Button size="small" variant="outlined" color="secondary" onClick={() => onDelete(personId)} disabled={!canDelete(person)}>
-                        Delete
-                      </Button>
-                    ) : null}
+                    <IconButton
+                      aria-label={`Open actions for ${displayName}`}
+                      onClick={(event) => handleOpenMenu(event, person)}
+                    >
+                      <MoreVertIcon />
+                    </IconButton>
                   </Stack>
-                </Stack>
-              </Paper>
-            );
-          })}
-        </Stack>
+                </Paper>
+              );
+            })}
+          </Stack>
+
+          <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleCloseMenu}>
+            <MenuItem onClick={handleViewTransactionsAction}>View transactions</MenuItem>
+            <MenuItem onClick={handleViewDebtsAction}>View debts</MenuItem>
+            <MenuItem onClick={handleEditAction} disabled={!activePerson || !canEdit(activePerson)}>
+              Edit
+            </MenuItem>
+            <MenuItem
+              onClick={handleDeleteAction}
+              disabled={!activePerson?.id || !activePerson || !canDelete(activePerson)}
+            >
+              Delete
+            </MenuItem>
+          </Menu>
+        </>
       )}
     </div>
   );

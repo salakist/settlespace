@@ -27,9 +27,9 @@ const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel, saveL
   const [role, setRole] = useState<PersonRole>(person?.role ?? defaultRole);
   const [validationErrors, setValidationErrors] = useState<PersonDetailsValidationErrors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
-  let submitLabel = 'Add';
+  let submitLabel = 'Create';
   if (saveLoading) {
-    submitLabel = 'Saving...';
+    submitLabel = person ? 'Saving...' : 'Creating...';
   } else if (person) {
     submitLabel = 'Update';
   }
@@ -70,18 +70,27 @@ const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel, saveL
 
   return (
     <Paper sx={{ ...panelSurfaceSx, mb: 3 }} elevation={0}>
-      <Stack spacing={2.5}>
-        <div>
-          <Typography variant="overline" color="primary.main">
-            {person ? 'Update directory entry' : 'Create directory entry'}
-          </Typography>
-          <Typography variant="h6">
-            {person ? 'Edit Person' : 'Add New Person'}
-          </Typography>
-        </div>
-        {submitError && <Alert severity="error">{submitError}</Alert>}
-        <form onSubmit={handleSubmit}>
-          <Stack spacing={2.5}>
+      <form onSubmit={handleSubmit}>
+        <Stack spacing={2.5}>
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            justifyContent="space-between"
+            alignItems={{ xs: 'stretch', md: 'flex-start' }}
+            spacing={1.5}
+          >
+            <Typography variant="h6">
+              {person ? 'Edit Person' : 'Create New Person'}
+            </Typography>
+            <Stack direction="row" spacing={1} justifyContent="flex-end">
+              <Button type="submit" variant="contained" color="primary" disabled={saveLoading}>
+                {submitLabel}
+              </Button>
+              <Button variant="outlined" onClick={onCancel} disabled={saveLoading}>
+                Cancel
+              </Button>
+            </Stack>
+          </Stack>
+          {submitError && <Alert severity="error">{submitError}</Alert>}
           <PersonDetailsFormFields
             values={values}
             onChange={setValues}
@@ -100,17 +109,8 @@ const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel, saveL
               <MenuItem key={value} value={value}>{value}</MenuItem>
             ))}
           </TextField>
-          <Stack direction="row" spacing={2}>
-            <Button type="submit" variant="contained" color="primary" disabled={saveLoading}>
-              {submitLabel}
-            </Button>
-            <Button variant="outlined" onClick={onCancel} disabled={saveLoading}>
-              Cancel
-            </Button>
-          </Stack>
         </Stack>
-        </form>
-      </Stack>
+      </form>
     </Paper>
   );
 };

@@ -1,5 +1,6 @@
-import React from 'react';
-import { Alert, Button, CircularProgress, Stack, Typography } from '@mui/material';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { Alert, Button, CircularProgress, Stack } from '@mui/material';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Person, PersonRole } from '../../../shared/types';
 import SearchBar from './SearchBar';
 import PersonForm from './PersonForm';
@@ -25,6 +26,10 @@ type PersonsPageProps = {
   onDelete: (id: string) => void;
 };
 
+function buildPersonSearchQuery(person: Person): string {
+  return [person.firstName, person.lastName].filter(Boolean).join(' ').trim();
+}
+
 const PersonsPage: React.FC<PersonsPageProps> = ({
   persons,
   loading,
@@ -43,45 +48,148 @@ const PersonsPage: React.FC<PersonsPageProps> = ({
   onCancel,
   onEdit,
   onDelete,
-}) => (
-  <Stack spacing={2.5}>
-    <div>
-      <Typography variant="h5">Persons</Typography>
-      <Typography variant="body2" color="text.secondary">
-        Search the shared directory and manage people, roles, and contact details from one place.
-      </Typography>
-    </div>
+}) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { personId } = useParams();
+  const decodedPersonId = personId ? decodeURIComponent(personId) : undefined;
+  const isCreateRoute = location.pathname.endsWith('/new');
+  const currentRouteKey = useMemo(() => {
+    if (isCreateRoute) {
+      return 'create';
+    }
 
-    <SearchBar onSearch={onSearch} />
+    if (decodedPersonId) {
+      return `edit:${decodedPersonId}`;
+    }
 
-    <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} spacing={1.5}>
-      <Typography variant="subtitle1">Manage persons in the database</Typography>
-      <Button variant="contained" onClick={onAdd} disabled={showForm || !canCreate}>
-        Add New Person
-      </Button>
+    return 'list';
+  }, [decodedPersonId, isCreateRoute]);
+  const lastSyncedRouteKey = useRef<string>('');
+
+  const routedPerson = useMemo(
+    () => persons.find((person) => person.id === decodedPersonId),
+    [decodedPersonId, persons],
+  );
+
+  useEffect(() => {
+    if (lastSyncedRouteKey.current === currentRouteKey) {
+      return;
+    }
+
+    if (currentRouteKey === 'create') {
+      onAdd();
+      lastSyncedRouteKey.current = currentRouteKey;
+      return;
+    }
+
+    if (decodedPersonId) {
+      if (!routedPerson) {
+        return;
+      }
+
+      onEdit(routedPerson);
+      lastSyncedRouteKey.current = currentRouteKey;
+      return;
+    }
+
+    onCancel();
+    lastSyncedRouteKey.current = currentRouteKey;
+  }, [currentRouteKey, decodedPersonId, onAdd, onCancel, onEdit, routedPerson]);
+
+  const displayForm = showForm || currentRouteKey !== 'list';
+  const currentEditingPerson = editingPerson ?? routedPerson;
+
+  const handleAddClick = () => {
+    if (!canCreate) {
+      return;
+    }
+
+    lastSyncedRouteKey.current = 'create';
+    onAdd();
+    navigate('/persons/new');
+  };
+
+  const handleEditNavigate = (person: Person) => {
+    if (!person.id) {
+      return;
+    }
+
+    lastSyncedRouteKey.current = `edit:${person.id}`;
+    onEdit(person);
+    navigate(`/persons/${encodeURIComponent(person.id)}/edit`);
+  };
+
+  const handleViewTransactions = (person: Person) => {
+    const searchQuery = buildPersonSearchQuery(person);
+    navigate(searchQuery ? `/transactions?search=${encodeURIComponent(searchQuery)}` : '/transactions');
+  };
+
+  const handleViewDebts = (person: Person) => {
+    const searchQuery = buildPersonSearchQuery(person);
+    navigate(searchQuery ? `/debts?search=${encodeURIComponent(searchQuery)}` : '/debts');
+  };
+
+  const handleCancelAndClose = () => {
+    onCancel();
+    navigate('/persons');
+  };
+
+  const handleSaveAndClose = async (person: Omit<Person, 'id'>) => {
+    await onSave(person);
+    navigate('/persons');
+  };
+
+  return (
+    <Stack spacing={2.5}>
+      {!displayForm && (
+        <SearchBar
+          onSearch={onSearch}
+          action={(
+            <Button
+              variant="contained"
+              onClick={handleAddClick}
+              disabled={!canCreate}
+              sx={{ whiteSpace: 'nowrap', px: 3.5 }}
+            >
+              Create Person
+            </Button>
+          )}
+        />
+      )}
+
+      {displayForm && (
+        <PersonForm
+          person={currentEditingPerson}
+          onSave={handleSaveAndClose}
+          onCancel={handleCancelAndClose}
+          saveLoading={saveLoading}
+          canEditRole={canEditRole}
+          defaultRole={defaultCreateRole}
+        />
+      )}
+
+      {error && <Alert severity="error">{error}</Alert>}
+
+      {loading ? (
+        <Stack alignItems="center" sx={{ mt: 4 }}>
+          <CircularProgress />
+        </Stack>
+      ) : (
+        !displayForm && (
+          <PersonList
+            persons={persons}
+            onEdit={handleEditNavigate}
+            onDelete={onDelete}
+            onViewTransactions={handleViewTransactions}
+            onViewDebts={handleViewDebts}
+            canEdit={canEdit}
+            canDelete={canDelete}
+          />
+        )
+      )}
     </Stack>
-
-    {showForm && (
-      <PersonForm
-        person={editingPerson}
-        onSave={onSave}
-        onCancel={onCancel}
-        saveLoading={saveLoading}
-        canEditRole={canEditRole}
-        defaultRole={defaultCreateRole}
-      />
-    )}
-
-    {error && <Alert severity="error">{error}</Alert>}
-
-    {loading ? (
-      <Stack alignItems="center" sx={{ mt: 4 }}>
-        <CircularProgress />
-      </Stack>
-    ) : (
-      !showForm && <PersonList persons={persons} onEdit={onEdit} onDelete={onDelete} canEdit={canEdit} canDelete={canDelete} />
-    )}
-  </Stack>
-);
+  );
+};
 
 export default PersonsPage;

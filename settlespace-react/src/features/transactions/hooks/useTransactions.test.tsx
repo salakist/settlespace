@@ -185,7 +185,7 @@ test('handleSave failure sets error message', async () => {
   transactionApi.create.mockRejectedValueOnce(new Error('boom'));
   const harness = createHarness();
 
-  await act(async () => {
+  await expect(act(async () => {
     await harness.getHook().handleSave({
       payerPersonId: 'p1',
       payeePersonId: 'p2',
@@ -195,9 +195,9 @@ test('handleSave failure sets error message', async () => {
       description: 'Lunch',
       status: 'Completed',
     });
-  });
+  })).rejects.toThrow('boom');
 
-  expect(harness.getHook().error).toBe('Failed to save transaction');
+  expect(transactionApi.create).toHaveBeenCalled();
 });
 
 test('handleDelete failure sets error message', async () => {

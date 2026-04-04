@@ -1,6 +1,7 @@
 using SettleSpace.Domain.Persons.Entities;
 using SettleSpace.Infrastructure.Persons;
 using Moq;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 
 namespace SettleSpace.Infrastructure.Tests.Persons;
@@ -133,6 +134,38 @@ public class PersonRepositoryTests
 
         Assert.Single(result);
         Assert.Equal("John", result[0].FirstName);
+    }
+
+    /// <summary>Searches with a full name query match each name part.</summary>
+    [Fact]
+    public async Task SearchAsyncFullNameQueryBuildsMultiTermFilter()
+    {
+        FilterDefinition<Person>? capturedFilter = null;
+        var matching = new List<Person>
+        {
+            new() { Id = "1", FirstName = "John", LastName = "Doe" }
+        };
+        var mock = new Mock<IMongoCollection<Person>>();
+        mock.Setup(c => c.FindAsync(
+                It.IsAny<FilterDefinition<Person>>(),
+                It.IsAny<FindOptions<Person, Person>>(),
+                It.IsAny<CancellationToken>()))
+            .Callback((FilterDefinition<Person> filter, FindOptions<Person, Person>? _, CancellationToken _) => capturedFilter = filter)
+            .ReturnsAsync(BuildCursor(matching));
+
+        var repo = CreateRepo(mock.Object);
+
+        var result = await repo.SearchAsync("John Doe");
+
+        Assert.Single(result);
+        Assert.NotNull(capturedFilter);
+
+        var serializer = BsonSerializer.SerializerRegistry.GetSerializer<Person>();
+        var rendered = capturedFilter!.Render(new RenderArgs<Person>(serializer, BsonSerializer.SerializerRegistry)).ToString();
+
+        Assert.Contains("$and", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("John", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Doe", rendered, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>Finds person by full name with existing person returns the person.</summary>

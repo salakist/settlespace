@@ -13,7 +13,7 @@ test('creates person and clears fields', async () => {
   fireEvent.change(screen.getByLabelText(/Phone Number/i), { target: { value: ' +15551234567 ' } });
   fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: ' john@doe.com ' } });
   fireEvent.change(screen.getByLabelText(/Date of Birth/i), { target: { value: '1990-01-01' } });
-  fireEvent.click(screen.getByRole('button', { name: /^Add$/i }));
+  fireEvent.click(screen.getByRole('button', { name: /^Create$/i }));
 
   await waitFor(() => {
     expect(onSave).toHaveBeenCalledWith({
@@ -75,7 +75,7 @@ test('shows validation errors and blocks submit when data is invalid', async () 
 
   fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: 'invalid-email' } });
   fireEvent.change(screen.getByLabelText(/Phone Number/i), { target: { value: '12' } });
-  fireEvent.click(screen.getByRole('button', { name: /^Add$/i }));
+  fireEvent.click(screen.getByRole('button', { name: /^Create$/i }));
 
   expect(await screen.findByText(/First name is required/i)).toBeInTheDocument();
   expect(screen.getByText(/Last name is required/i)).toBeInTheDocument();

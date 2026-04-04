@@ -94,15 +94,29 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
                 fullWidth
                 required
               />
-              <TextField
-                label="Password"
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                autoComplete="new-password"
-                fullWidth
-                required
-              />
+              <Stack spacing={1.5}>
+                <TextField
+                  label="Password"
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  autoComplete="new-password"
+                  fullWidth
+                  required
+                />
+                <TextField
+                  label="Confirm Password"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(event) => setConfirmPassword(event.target.value)}
+                  autoComplete="new-password"
+                  fullWidth
+                  required
+                />
+                <Alert severity="info">
+                  Password rules: at least 8 characters, including uppercase, lowercase, number, and special character.
+                </Alert>
+              </Stack>
               <TextField
                 label="Phone Number"
                 type="tel"
@@ -128,15 +142,6 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
                 fullWidth
               />
               <PersonAddressEditor addresses={addresses} onChange={setAddresses} disabled={loading} />
-              <TextField
-                label="Confirm Password"
-                type="password"
-                value={confirmPassword}
-                onChange={(event) => setConfirmPassword(event.target.value)}
-                autoComplete="new-password"
-                fullWidth
-                required
-              />
               <Button type="submit" variant="contained" size="large" disabled={loading}>
                 {loading ? 'Creating Account...' : 'Register & Sign In'}
               </Button>
@@ -146,9 +151,6 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
             </Stack>
           </Box>
 
-          <Alert severity="info">
-            Password rules: at least 8 characters, including uppercase, lowercase, number, and special character.
-          </Alert>
         </Stack>
       </Paper>
     </Box>

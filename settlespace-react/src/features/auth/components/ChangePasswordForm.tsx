@@ -39,14 +39,9 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onSubmit, loadi
   return (
     <Paper sx={{ ...panelSurfaceSx, mb: 3 }} elevation={0}>
       <Stack spacing={2.5}>
-        <div>
-          <Typography variant="overline" color="primary.main">
-            Security
-          </Typography>
-          <Typography variant="h6">
-            Change Password
-          </Typography>
-        </div>
+        <Typography variant="h6">
+          Change Password
+        </Typography>
         <form onSubmit={handleSubmit}>
           <Stack spacing={2}>
           {error && <Alert severity="error">{error}</Alert>}
@@ -78,12 +73,12 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onSubmit, loadi
             required
             fullWidth
           />
-          <Button type="submit" variant="contained" disabled={loading}>
-            {loading ? 'Updating Password...' : 'Update Password'}
-          </Button>
           <Alert severity="info">
             Password rules: at least 8 characters, including uppercase, lowercase, number, and special character.
           </Alert>
+          <Button type="submit" variant="contained" disabled={loading}>
+            {loading ? 'Updating Password...' : 'Update Password'}
+          </Button>
           </Stack>
         </form>
       </Stack>

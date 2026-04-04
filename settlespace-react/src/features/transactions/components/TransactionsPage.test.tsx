@@ -2,6 +2,16 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import TransactionsPage from './TransactionsPage';
 
+const mockNavigate = jest.fn();
+const mockSetSearchParams = jest.fn();
+
+jest.mock('react-router-dom', () => ({
+  useNavigate: () => mockNavigate,
+  useLocation: () => ({ pathname: '/transactions' }),
+  useParams: () => ({}),
+  useSearchParams: () => [new URLSearchParams(''), mockSetSearchParams],
+}));
+
 const mockHook = {
   editingTransaction: undefined,
   error: null as string | null,
@@ -23,10 +33,11 @@ jest.mock('../hooks/useTransactions', () => ({
 
 jest.mock('../../persons/components/SearchBar', () => ({
   __esModule: true,
-  default: ({ onSearch, placeholder }: { onSearch: (query: string) => void; placeholder?: string }) => (
+  default: ({ onSearch, placeholder, action }: { onSearch: (query: string) => void; placeholder?: string; action?: React.ReactNode }) => (
     <>
       <input placeholder={placeholder} readOnly />
       <button onClick={() => onSearch('test')}>Search</button>
+      {action}
     </>
   ),
 }));
@@ -67,10 +78,11 @@ test('forwards search and create actions', () => {
 
   expect(screen.getByPlaceholderText(/description, category, or involved person's name/i)).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: /search/i }));
-  fireEvent.click(screen.getByRole('button', { name: /add transaction/i }));
+  fireEvent.click(screen.getByRole('button', { name: /create transaction/i }));
 
-  expect(mockHook.handleSearch).toHaveBeenCalledWith('test');
+  expect(mockSetSearchParams).toHaveBeenCalled();
   expect(mockHook.showCreateForm).toHaveBeenCalled();
+  expect(mockNavigate).toHaveBeenCalledWith('/transactions/new');
 });
 
 test('shows loading spinner when loading is true', () => {
@@ -106,7 +118,7 @@ test('shows error alert when error is set', () => {
   mockHook.error = null;
 });
 
-test('renders transaction form when showForm is true', () => {
+test('renders only the transaction form when showForm is true', () => {
   mockHook.showForm = true;
 
   render(
@@ -119,6 +131,8 @@ test('renders transaction form when showForm is true', () => {
   );
 
   expect(screen.getByText('Transaction Form')).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /add transaction/i })).toBeDisabled();
+  expect(screen.queryByRole('button', { name: /search/i })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /add transaction/i })).not.toBeInTheDocument();
+  expect(screen.queryByText('Transaction List')).not.toBeInTheDocument();
   mockHook.showForm = false;
 });

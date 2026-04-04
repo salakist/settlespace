@@ -82,11 +82,10 @@ test('loads and renders debt details with underlying transactions', async () => 
   );
 
   await waitFor(() => expect(mockHook.loadDebtDetails).toHaveBeenCalledWith('p2', 'EUR'));
-
-  expect(screen.getByText(/debt details/i)).toBeInTheDocument();
   expect(await screen.findByText(/Dinner/i)).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /^back$/i })).toBeInTheDocument();
   expect(await screen.findByText(/Taxi/i)).toBeInTheDocument();
-  expect(screen.getByText(/completed transactions contributing to this balance/i)).toBeInTheDocument();
+  expect(screen.getByText(/completed transactions:/i)).toBeInTheDocument();
 });
 
 test('supports opening settlement from the details page', async () => {

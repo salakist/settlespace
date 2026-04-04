@@ -146,13 +146,38 @@ const DebtDetailsPage: React.FC<DebtDetailsPageProps> = ({ persons, expireSessio
     pageContent = (
       <>
         <Paper elevation={0} sx={panelSurfaceSx}>
-          <Stack spacing={1}>
-            <Typography variant="overline" color="primary.main">
-              {getDirectionSummary(detail.direction)}
-            </Typography>
-            <Typography variant="h6">
-              {getPersonDisplayName(persons, detail.counterpartyPersonId)} · {formatCurrency(detail.netAmount, detail.currencyCode)}
-            </Typography>
+          <Stack spacing={1.5}>
+            <Stack
+              direction={{ xs: 'column', md: 'row' }}
+              justifyContent="space-between"
+              alignItems={{ xs: 'stretch', md: 'flex-start' }}
+              spacing={1.5}
+            >
+              <div>
+                <Typography variant="overline" color="primary.main">
+                  {getDirectionSummary(detail.direction)}
+                </Typography>
+                <Typography variant="h6">
+                  {getPersonDisplayName(persons, detail.counterpartyPersonId)} · {formatCurrency(detail.netAmount, detail.currencyCode)}
+                </Typography>
+              </div>
+              <Stack direction="row" spacing={1} justifyContent="flex-end">
+                <Button variant="outlined" onClick={() => navigate('/debts')}>
+                  Back
+                </Button>
+                <Button
+                  variant="contained"
+                  onClick={() => {
+                    if (debtSummary) {
+                      void openSettlementDrawer(debtSummary);
+                    }
+                  }}
+                  disabled={!debtSummary || debtSummary.direction === 'Settled' || debtSummary.netAmount <= 0}
+                >
+                  Settle now
+                </Button>
+              </Stack>
+            </Stack>
             <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2} useFlexGap flexWrap="wrap">
               <Typography variant="body2" color="text.secondary">
                 <strong>Paid by you:</strong> {formatCurrency(detail.paidByCurrentPerson, detail.currencyCode)}
@@ -207,32 +232,6 @@ const DebtDetailsPage: React.FC<DebtDetailsPageProps> = ({ persons, expireSessio
 
   return (
     <Stack spacing={2.5}>
-      <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" spacing={1.5}>
-        <div>
-          <Typography variant="h5">Debt details</Typography>
-          <Typography variant="body2" color="text.secondary">
-            Review the completed transactions contributing to this balance, then settle from here if needed.
-          </Typography>
-        </div>
-
-        <Stack direction="row" spacing={1}>
-          <Button variant="outlined" onClick={() => navigate('/debts')}>
-            Back
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => {
-              if (debtSummary) {
-                void openSettlementDrawer(debtSummary);
-              }
-            }}
-            disabled={!debtSummary || debtSummary.direction === 'Settled' || debtSummary.netAmount <= 0}
-          >
-            Settle now
-          </Button>
-        </Stack>
-      </Stack>
-
       {successMessage && (
         <Alert severity="success" onClose={clearSuccessMessage}>
           {successMessage}

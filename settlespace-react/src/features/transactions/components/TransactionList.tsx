@@ -1,6 +1,7 @@
-import React from 'react';
-import { Button, Chip, Paper, Stack, Typography } from '@mui/material';
-import { Person, Transaction } from '../../../shared/types';
+import React, { useState } from 'react';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { Alert, Chip, IconButton, Menu, MenuItem, Paper, Stack, Typography } from '@mui/material';
+import { Person, Transaction, TransactionStatus } from '../../../shared/types';
 import { listItemSurfaceSx } from '../../../shared/theme/surfaceStyles';
 
 type TransactionListProps = {
@@ -20,48 +21,126 @@ function resolvePersonName(persons: Person[], personId: string): string {
   return `${person.firstName} ${person.lastName}`;
 }
 
+function formatCurrency(amount: number, currencyCode: string): string {
+  try {
+    return new Intl.NumberFormat(undefined, {
+      style: 'currency',
+      currency: currencyCode,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(amount);
+  } catch {
+    return `${currencyCode} ${amount.toFixed(2)}`;
+  }
+}
+
+function getStatusColor(status: TransactionStatus): 'success' | 'warning' | 'error' | 'default' {
+  switch (status) {
+    case 'Completed':
+      return 'success';
+    case 'Pending':
+      return 'warning';
+    case 'Cancelled':
+      return 'error';
+    default:
+      return 'default';
+  }
+}
+
+const SECONDARY_TEXT_COLOR = 'text.secondary';
+const FLEX_START = 'flex-start';
+
 const TransactionList: React.FC<TransactionListProps> = ({ transactions, persons, canManage, onEdit, onDelete }) => {
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+  const [activeTransaction, setActiveTransaction] = useState<Transaction | null>(null);
+
+  const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, transaction: Transaction) => {
+    setMenuAnchor(event.currentTarget);
+    setActiveTransaction(transaction);
+  };
+
+  const handleCloseMenu = () => {
+    setMenuAnchor(null);
+    setActiveTransaction(null);
+  };
+
+  const handleEditAction = () => {
+    if (activeTransaction) {
+      onEdit(activeTransaction);
+    }
+
+    handleCloseMenu();
+  };
+
+  const handleDeleteAction = () => {
+    if (activeTransaction?.id) {
+      onDelete(activeTransaction.id);
+    }
+
+    handleCloseMenu();
+  };
   if (transactions.length === 0) {
-    return <Typography color="text.secondary">No transactions found for your account.</Typography>;
+    return <Alert severity="info">No transactions found for your account.</Alert>;
   }
 
   return (
-    <Stack spacing={2}>
-      {transactions.map((transaction) => {
-        const transactionId = transaction.id;
+    <>
+      <Stack spacing={1.5}>
+        {transactions.map((transaction) => {
+          const transactionId = transaction.id;
 
-        return (
-          <Paper key={transactionId} elevation={0} sx={listItemSurfaceSx}>
-            <Stack spacing={1.5}>
-              <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'flex-start', sm: 'center' }} spacing={1}>
-                <Typography variant="h6">{transaction.description}</Typography>
-                <Chip label={transaction.status} size="small" />
+          return (
+            <Paper key={transactionId} elevation={0} sx={listItemSurfaceSx}>
+              <Stack
+                direction={{ xs: 'column', md: 'row' }}
+                justifyContent="space-between"
+                alignItems={{ xs: FLEX_START, md: 'center' }}
+                spacing={1.25}
+                useFlexGap
+              >
+                <Stack spacing={0.5} sx={{ minWidth: 0 }}>
+                  <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
+                    <Typography variant="subtitle1">{transaction.description}</Typography>
+                    <Chip label={transaction.status} size="small" color={getStatusColor(transaction.status)} />
+                  </Stack>
+                  <Typography variant="body2" color={SECONDARY_TEXT_COLOR}>
+                    {resolvePersonName(persons, transaction.payerPersonId)} paid {resolvePersonName(persons, transaction.payeePersonId)}
+                  </Typography>
+                  <Typography variant="caption" color={SECONDARY_TEXT_COLOR}>
+                    {new Date(transaction.transactionDateUtc).toLocaleDateString()}
+                    {transaction.category ? ` • ${transaction.category}` : ''}
+                  </Typography>
+                </Stack>
+
+                <Stack direction="row" spacing={1} alignItems="center" sx={{ alignSelf: { xs: 'stretch', md: 'center' } }}>
+                  <Typography variant="subtitle2" sx={{ fontWeight: 600, ml: 'auto' }}>
+                    {formatCurrency(transaction.amount, transaction.currencyCode)}
+                  </Typography>
+                  <IconButton
+                    aria-label={`Open actions for ${transaction.description}`}
+                    onClick={(event) => handleOpenMenu(event, transaction)}
+                  >
+                    <MoreVertIcon />
+                  </IconButton>
+                </Stack>
               </Stack>
+            </Paper>
+          );
+        })}
+      </Stack>
 
-              <Typography variant="body2" color="text.secondary">
-                {resolvePersonName(persons, transaction.payerPersonId)} paid {resolvePersonName(persons, transaction.payeePersonId)}
-              </Typography>
-
-              <Typography variant="body1">
-                {transaction.amount.toFixed(2)} {transaction.currencyCode}
-              </Typography>
-
-              <Typography variant="body2" color="text.secondary">
-                {new Date(transaction.transactionDateUtc).toLocaleDateString()}
-                {transaction.category ? ` • ${transaction.category}` : ''}
-              </Typography>
-
-              <Stack direction="row" spacing={1}>
-                <Button size="small" variant="outlined" onClick={() => onEdit(transaction)} disabled={!canManage(transaction)}>Edit</Button>
-                {transactionId && (
-                  <Button size="small" variant="outlined" color="secondary" onClick={() => onDelete(transactionId)} disabled={!canManage(transaction)}>Delete</Button>
-                )}
-              </Stack>
-            </Stack>
-          </Paper>
-        );
-      })}
-    </Stack>
+      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleCloseMenu}>
+        <MenuItem onClick={handleEditAction} disabled={!activeTransaction || !canManage(activeTransaction)}>
+          Edit
+        </MenuItem>
+        <MenuItem
+          onClick={handleDeleteAction}
+          disabled={!activeTransaction?.id || !activeTransaction || !canManage(activeTransaction)}
+        >
+          Delete
+        </MenuItem>
+      </Menu>
+    </>
   );
 };
 

@@ -10,31 +10,49 @@ test('renders empty state', () => {
       canDelete={() => true}
       onEdit={jest.fn()}
       onDelete={jest.fn()}
+      onViewTransactions={jest.fn()}
+      onViewDebts={jest.fn()}
     />,
   );
-  expect(screen.getByText(/No persons found/i)).toBeInTheDocument();
+  expect(screen.getByRole('alert')).toHaveTextContent(/no persons found/i);
 });
 
-test('renders persons and edit/delete actions', () => {
+test('renders person actions from a single menu', () => {
   const onEdit = jest.fn();
   const onDelete = jest.fn();
+  const onViewTransactions = jest.fn();
+  const onViewDebts = jest.fn();
+  const person = { id: '1', firstName: 'John', lastName: 'Doe' };
 
   render(
     <PersonList
       persons={[
-        { id: '1', firstName: 'John', lastName: 'Doe' },
+        person,
         { firstName: 'No', lastName: 'Id' },
       ]}
       canEdit={() => true}
       canDelete={() => true}
       onEdit={onEdit}
       onDelete={onDelete}
-    />
+      onViewTransactions={onViewTransactions}
+      onViewDebts={onViewDebts}
+    />,
   );
 
-  fireEvent.click(screen.getAllByRole('button', { name: /Edit/i })[0]);
-  expect(onEdit).toHaveBeenCalledWith({ id: '1', firstName: 'John', lastName: 'Doe' });
+  fireEvent.click(screen.getByRole('button', { name: /open actions for john doe/i }));
 
-  fireEvent.click(screen.getByRole('button', { name: /Delete/i }));
+  fireEvent.click(screen.getByRole('menuitem', { name: /view transactions/i }));
+  expect(onViewTransactions).toHaveBeenCalledWith(person);
+
+  fireEvent.click(screen.getByRole('button', { name: /open actions for john doe/i }));
+  fireEvent.click(screen.getByRole('menuitem', { name: /^edit$/i }));
+  expect(onEdit).toHaveBeenCalledWith(person);
+
+  fireEvent.click(screen.getByRole('button', { name: /open actions for john doe/i }));
+  fireEvent.click(screen.getByRole('menuitem', { name: /view debts/i }));
+  expect(onViewDebts).toHaveBeenCalledWith(person);
+
+  fireEvent.click(screen.getByRole('button', { name: /open actions for john doe/i }));
+  fireEvent.click(screen.getByRole('menuitem', { name: /^delete$/i }));
   expect(onDelete).toHaveBeenCalledWith('1');
 });

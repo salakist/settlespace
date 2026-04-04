@@ -91,6 +91,7 @@ export function useTransactions({ expireSession, currentPersonId, role }: UseTra
         setError,
         fallbackMessage: 'Failed to save transaction',
         forbiddenMessage: 'You are not allowed to save this transaction.',
+        rethrow: true,
       });
     }
   }, [editingTransaction, handleUnauthorized, loadTransactions]);

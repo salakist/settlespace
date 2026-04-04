@@ -1,44 +1,55 @@
-import React, { useState } from 'react';
-import { Button, Paper, Stack, TextField, Typography } from '@mui/material';
-import { insetSurfaceSx } from '../../../shared/theme/surfaceStyles';
+import React, { useEffect, useState } from 'react';
+import { Button, Stack, TextField } from '@mui/material';
 
 interface SearchBarProps {
   onSearch: (query: string) => void;
   placeholder?: string;
+  initialQuery?: string;
+  action?: React.ReactNode;
+  ariaLabel?: string;
 }
 
-const SearchBar: React.FC<SearchBarProps> = ({ onSearch, placeholder = 'Search by first or last name' }) => {
-  const [query, setQuery] = useState('');
+const SearchBar: React.FC<SearchBarProps> = ({
+  onSearch,
+  placeholder = 'Search by first or last name',
+  initialQuery = '',
+  action,
+  ariaLabel = 'Search',
+}) => {
+  const [query, setQuery] = useState(initialQuery);
 
-  const handleSubmit = (e: React.SyntheticEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    setQuery(initialQuery);
+  }, [initialQuery]);
+
+  const handleSubmit = (event: React.SyntheticEvent) => {
+    event.preventDefault();
     onSearch(query);
   };
 
   return (
-    <Paper elevation={0} sx={{ ...insetSurfaceSx, mb: 3 }}>
-      <Stack component="form" onSubmit={handleSubmit} spacing={1.5}>
-        <Typography variant="body2" color="text.secondary">
-          Find entries quickly by name or keyword.
-        </Typography>
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          spacing={2}
-          alignItems={{ xs: 'stretch', sm: 'center' }}
-        >
-          <TextField
-            fullWidth
-            variant="outlined"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={placeholder}
-          />
-          <Button variant="contained" type="submit">
-            Search
-          </Button>
-        </Stack>
-      </Stack>
-    </Paper>
+    <Stack
+      component="form"
+      onSubmit={handleSubmit}
+      direction={{ xs: 'column', md: 'row' }}
+      spacing={1.5}
+      alignItems={{ xs: 'stretch', md: 'center' }}
+      useFlexGap
+    >
+      <TextField
+        fullWidth
+        size="small"
+        variant="outlined"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        placeholder={placeholder}
+        inputProps={{ 'aria-label': ariaLabel }}
+      />
+      <Button variant="contained" type="submit" sx={{ minWidth: { md: 96 }, px: 1.5, whiteSpace: 'nowrap' }}>
+        Search
+      </Button>
+      {action}
+    </Stack>
   );
 };
 

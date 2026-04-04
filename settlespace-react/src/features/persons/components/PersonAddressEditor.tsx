@@ -62,12 +62,9 @@ const PersonAddressEditor: React.FC<PersonAddressEditorProps> = ({ addresses, on
 				alignItems={{ xs: 'stretch', sm: 'center' }}
 				spacing={1.5}
 			>
-				<div>
-					<Typography variant="overline" color="primary.main">
-						Addresses
-					</Typography>
-					<Typography variant="subtitle1">Contact and location details</Typography>
-				</div>
+				<Typography variant="overline" color="primary.main">
+					Addresses
+				</Typography>
 				<Button variant="outlined" onClick={handleAddAddress} disabled={disabled}>
 					Add Address
 				</Button>

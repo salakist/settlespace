@@ -18,10 +18,10 @@ test('renders empty state when there are no transactions', () => {
     />, 
   );
 
-  expect(screen.getByText(/no transactions found/i)).toBeInTheDocument();
+  expect(screen.getByRole('alert')).toHaveTextContent(/no transactions found/i);
 });
 
-test('renders transactions and calls edit/delete callbacks', () => {
+test('renders transactions and calls edit/delete callbacks from a single menu', () => {
   const onEdit = jest.fn();
   const onDelete = jest.fn();
 
@@ -46,8 +46,13 @@ test('renders transactions and calls edit/delete callbacks', () => {
     />,
   );
 
-  fireEvent.click(screen.getByRole('button', { name: /edit/i }));
-  fireEvent.click(screen.getByRole('button', { name: /delete/i }));
+  expect(screen.getByText(/completed/i)).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole('button', { name: /open actions for dinner/i }));
+  fireEvent.click(screen.getByRole('menuitem', { name: /^edit$/i }));
+
+  fireEvent.click(screen.getByRole('button', { name: /open actions for dinner/i }));
+  fireEvent.click(screen.getByRole('menuitem', { name: /^delete$/i }));
 
   expect(onEdit).toHaveBeenCalled();
   expect(onDelete).toHaveBeenCalledWith('t1');

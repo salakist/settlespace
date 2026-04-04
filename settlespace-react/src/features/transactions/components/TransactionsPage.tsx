@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
-import { Alert, Button, CircularProgress, Stack, Typography } from '@mui/material';
+import React, { useEffect, useMemo, useRef } from 'react';
+import { Alert, Button, CircularProgress, Stack } from '@mui/material';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { canUpdateOrDeleteTransaction } from '../../../shared/auth/permissions';
 import { Person, PersonRole, Transaction } from '../../../shared/types';
 import SearchBar from '../../persons/components/SearchBar';
@@ -15,6 +16,26 @@ type TransactionsPageProps = {
 };
 
 const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPersonId, role, expireSession }) => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { transactionId } = useParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const searchQuery = searchParams.get('search')?.trim() ?? '';
+  const decodedTransactionId = transactionId ? decodeURIComponent(transactionId) : undefined;
+  const isCreateRoute = location.pathname.endsWith('/new');
+  const currentRouteKey = useMemo(() => {
+    if (isCreateRoute) {
+      return 'create';
+    }
+
+    if (decodedTransactionId) {
+      return `edit:${decodedTransactionId}`;
+    }
+
+    return 'list';
+  }, [decodedTransactionId, isCreateRoute]);
+  const lastSyncedRouteKey = useRef<string>('');
+
   const {
     editingTransaction,
     error,
@@ -30,43 +51,124 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
     transactions,
   } = useTransactions({ expireSession, currentPersonId, role });
 
+  const routedTransaction = useMemo(
+    () => transactions.find((transaction) => transaction.id === decodedTransactionId),
+    [decodedTransactionId, transactions],
+  );
+
   const canManageTransaction = (transaction: Transaction) => canUpdateOrDeleteTransaction(role, currentPersonId, transaction);
 
   useEffect(() => {
-    Promise.resolve(loadTransactions()).catch((error) => {
-      console.error(error);
+    const loadPage = async () => {
+      if (searchQuery) {
+        await handleSearch(searchQuery);
+        return;
+      }
+
+      await loadTransactions();
+    };
+
+    Promise.resolve(loadPage()).catch((loadError) => {
+      console.error(loadError);
     });
-  }, [loadTransactions]);
+  }, [handleSearch, loadTransactions, searchQuery]);
+
+  useEffect(() => {
+    if (lastSyncedRouteKey.current === currentRouteKey) {
+      return;
+    }
+
+    if (currentRouteKey === 'create') {
+      showCreateForm();
+      lastSyncedRouteKey.current = currentRouteKey;
+      return;
+    }
+
+    if (decodedTransactionId) {
+      if (!routedTransaction) {
+        return;
+      }
+
+      handleEdit(routedTransaction);
+      lastSyncedRouteKey.current = currentRouteKey;
+      return;
+    }
+
+    handleCancel();
+    lastSyncedRouteKey.current = currentRouteKey;
+  }, [currentRouteKey, decodedTransactionId, handleCancel, handleEdit, routedTransaction, showCreateForm]);
+
+  const displayForm = showForm || currentRouteKey !== 'list';
+  const currentEditingTransaction = editingTransaction ?? routedTransaction;
+
+  const handleSearchChange = (query: string) => {
+    const nextSearchParams = new URLSearchParams(searchParams);
+    const trimmedQuery = query.trim();
+
+    if (trimmedQuery) {
+      nextSearchParams.set('search', trimmedQuery);
+    } else {
+      nextSearchParams.delete('search');
+    }
+
+    setSearchParams(nextSearchParams);
+  };
+
+  const navigateToList = () => {
+    navigate(searchQuery ? `/transactions?search=${encodeURIComponent(searchQuery)}` : '/transactions');
+  };
+
+  const handleAddClick = () => {
+    lastSyncedRouteKey.current = 'create';
+    showCreateForm();
+    navigate('/transactions/new');
+  };
+
+  const handleEditNavigate = (transaction: Transaction) => {
+    if (!transaction.id) {
+      return;
+    }
+
+    lastSyncedRouteKey.current = `edit:${transaction.id}`;
+    handleEdit(transaction);
+    navigate(`/transactions/${encodeURIComponent(transaction.id)}/edit`);
+  };
+
+  const handleSaveAndClose = async (
+    transaction: Omit<Transaction, 'id' | 'createdByPersonId' | 'createdAtUtc' | 'updatedAtUtc'>,
+  ) => {
+    await handleSave(transaction);
+    navigateToList();
+  };
+
+  const handleCancelAndClose = () => {
+    handleCancel();
+    navigateToList();
+  };
 
   return (
     <Stack spacing={2.5}>
-      <div>
-        <Typography variant="h5">Transactions</Typography>
-        <Typography variant="body2" color="text.secondary">
-          Track recent activity, search quickly, and update entries without leaving the flow.
-        </Typography>
-      </div>
+      {!displayForm && (
+        <SearchBar
+          onSearch={handleSearchChange}
+          placeholder="Search by description, category, or involved person's name"
+          initialQuery={searchQuery}
+          action={(
+            <Button variant="contained" onClick={handleAddClick} sx={{ whiteSpace: 'nowrap', px: 3.5 }}>
+              Create Transaction
+            </Button>
+          )}
+        />
+      )}
 
-      <SearchBar
-        onSearch={handleSearch}
-        placeholder="Search by description, category, or involved person's name"
-      />
-
-      <Stack direction={{ xs: 'column', sm: 'row' }} justifyContent="space-between" alignItems={{ xs: 'stretch', sm: 'center' }} spacing={1.5}>
-        <Typography variant="subtitle1">Manage your transactions</Typography>
-        <Button variant="contained" onClick={showCreateForm} disabled={showForm}>
-          Add Transaction
-        </Button>
-      </Stack>
-
-      {showForm && (
+      {displayForm && (
         <TransactionForm
-          transaction={editingTransaction}
+          transaction={currentEditingTransaction}
           persons={persons}
           currentPersonId={currentPersonId}
           role={role}
-          onSave={handleSave}
-          onCancel={handleCancel}
+          onSave={handleSaveAndClose}
+          onCancel={handleCancelAndClose}
         />
       )}
 
@@ -77,13 +179,15 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
           <CircularProgress />
         </Stack>
       ) : (
-        <TransactionList
-          transactions={transactions}
-          persons={persons}
-          canManage={canManageTransaction}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-        />
+        !displayForm && (
+          <TransactionList
+            transactions={transactions}
+            persons={persons}
+            canManage={canManageTransaction}
+            onEdit={handleEditNavigate}
+            onDelete={handleDelete}
+          />
+        )
       )}
     </Stack>
   );

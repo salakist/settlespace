@@ -37,7 +37,7 @@ test('submits valid transaction data', () => {
   fireEvent.change(screen.getByLabelText(/currency/i), { target: { value: 'eur' } });
   fireEvent.change(screen.getByLabelText(/transaction date/i), { target: { value: '2026-03-29' } });
   fireEvent.change(screen.getByLabelText(/description/i), { target: { value: 'Lunch' } });
-  fireEvent.click(screen.getByRole('button', { name: /save/i }));
+  fireEvent.click(screen.getByRole('button', { name: /update/i }));
 
   expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
     payerPersonId: 'p1',
@@ -68,7 +68,7 @@ test('shows validation error when payer and payee are equal', () => {
     />,
   );
 
-  fireEvent.click(screen.getByRole('button', { name: /save/i }));
+  fireEvent.click(screen.getByRole('button', { name: /update/i }));
 
   expect(screen.getByText(/must be different/i)).toBeInTheDocument();
 });
@@ -95,7 +95,7 @@ test('shows validation error when amount is invalid', () => {
   );
 
   fireEvent.change(screen.getByLabelText(/amount/i), { target: { value: '0' } });
-  fireEvent.click(screen.getByRole('button', { name: /save/i }));
+  fireEvent.click(screen.getByRole('button', { name: /update/i }));
 
   expect(screen.getByText(/greater than zero/i)).toBeInTheDocument();
   expect(onSave).not.toHaveBeenCalled();
@@ -122,7 +122,7 @@ test('shows validation error when currency code is invalid', () => {
     />,
   );
 
-  fireEvent.click(screen.getByRole('button', { name: /save/i }));
+  fireEvent.click(screen.getByRole('button', { name: /update/i }));
 
   expect(screen.getByText(/3-letter uppercase/i)).toBeInTheDocument();
   expect(onSave).not.toHaveBeenCalled();
@@ -160,6 +160,6 @@ test('disables save when creating and current user is not payer or payee', () =>
   fireEvent.mouseDown(screen.getByLabelText(/payee/i));
   fireEvent.click(screen.getByRole('option', { name: /alex taylor/i }));
 
-  expect(screen.getByRole('button', { name: /save/i })).toBeDisabled();
+  expect(screen.getByRole('button', { name: /create/i })).toBeDisabled();
   expect(screen.getByText(/must be either the payer or the payee/i)).toBeInTheDocument();
 });

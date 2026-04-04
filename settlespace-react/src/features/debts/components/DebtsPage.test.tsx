@@ -4,9 +4,21 @@ import { DebtSummary } from '../../../shared/types';
 import DebtsPage from './DebtsPage';
 
 const mockNavigate = jest.fn();
+const mockSetSearchParams = jest.fn();
 
 jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
+  useSearchParams: () => [new URLSearchParams(''), mockSetSearchParams],
+}));
+
+jest.mock('../../persons/components/SearchBar', () => ({
+  __esModule: true,
+  default: ({ onSearch, placeholder }: { onSearch: (query: string) => void; placeholder?: string }) => (
+    <div>
+      <input aria-label="Debt search" placeholder={placeholder} readOnly />
+      <button onClick={() => onSearch('Jane Doe')}>Search debts</button>
+    </div>
+  ),
 }));
 
 const sampleDebt: DebtSummary = {
@@ -64,10 +76,10 @@ test('renders debt list and loads debts on mount', () => {
 
   expect(mockHook.loadDebts).toHaveBeenCalled();
   expect(screen.getByText(/debts list/i)).toBeInTheDocument();
-  expect(screen.getByText(/manage balances that still need settling/i)).toBeInTheDocument();
+  expect(screen.getByPlaceholderText(/first or last name/i)).toBeInTheDocument();
 });
 
-test('forwards settlement and details actions and displays alerts', () => {
+test('forwards settlement, filtering, and details actions', () => {
   mockHook.error = 'Load failed';
   mockHook.successMessage = 'Settlement recorded successfully.';
 
@@ -78,9 +90,11 @@ test('forwards settlement and details actions and displays alerts', () => {
     />,
   );
 
+  fireEvent.click(screen.getByRole('button', { name: /search debts/i }));
   fireEvent.click(screen.getByRole('button', { name: /^settle now$/i }));
   fireEvent.click(screen.getByRole('button', { name: /^details$/i }));
 
+  expect(mockSetSearchParams).toHaveBeenCalled();
   expect(mockHook.openSettlementDrawer).toHaveBeenCalledWith(sampleDebt);
   expect(mockNavigate).toHaveBeenCalledWith('/debts/p2/EUR');
   expect(screen.getByText('Load failed')).toBeInTheDocument();

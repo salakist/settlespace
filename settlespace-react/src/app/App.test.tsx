@@ -246,6 +246,24 @@ test('keeps debts tab selected on nested debt details routes', () => {
   expect(screen.getByRole('tab', { name: /debts/i })).toHaveAttribute(ARIA_SELECTED, 'true');
 });
 
+test('keeps persons tab selected on nested person routes', () => {
+  __setMockPathname('/persons/2/edit');
+  setAuthenticatedSession();
+
+  render(<App />);
+
+  expect(screen.getByRole('tab', { name: /persons/i })).toHaveAttribute(ARIA_SELECTED, 'true');
+});
+
+test('keeps transactions tab selected on nested transaction routes', () => {
+  __setMockPathname('/transactions/new');
+  setAuthenticatedSession();
+
+  render(<App />);
+
+  expect(screen.getByRole('tab', { name: /transactions/i })).toHaveAttribute(ARIA_SELECTED, 'true');
+});
+
 test('does not pass logged-in user to persons page list', () => {
   __setMockPathname('/persons');
   setAuthenticatedSession('1');

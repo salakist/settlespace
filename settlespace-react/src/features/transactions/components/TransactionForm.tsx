@@ -90,18 +90,25 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
 
   return (
     <Paper sx={{ ...panelSurfaceSx, mb: 3 }} elevation={0}>
-      <Stack spacing={2.5}>
-        <div>
-          <Typography variant="overline" color="primary.main">
-            {transaction ? 'Update activity' : 'Create activity'}
-          </Typography>
-          <Typography variant="h6">
-            {transaction ? 'Edit Transaction' : 'Create Transaction'}
-          </Typography>
-        </div>
-        {validationError && <Alert severity="error">{validationError}</Alert>}
-        <form onSubmit={handleSubmit}>
-          <Stack spacing={2.5}>
+      <form onSubmit={handleSubmit}>
+        <Stack spacing={2.5}>
+          <Stack
+            direction={{ xs: 'column', md: 'row' }}
+            justifyContent="space-between"
+            alignItems={{ xs: 'stretch', md: 'flex-start' }}
+            spacing={1.5}
+          >
+            <Typography variant="h6">
+              {transaction ? 'Edit Transaction' : 'Create Transaction'}
+            </Typography>
+            <Stack direction="row" spacing={1} justifyContent="flex-end">
+              <Button type="submit" variant="contained" disabled={!canSubmit}>
+                {transaction ? 'Update' : 'Create'}
+              </Button>
+              <Button variant="outlined" color="secondary" onClick={onCancel}>Cancel</Button>
+            </Stack>
+          </Stack>
+          {validationError && <Alert severity="error">{validationError}</Alert>}
           <TextField
             select
             label="Payer"
@@ -191,19 +198,13 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             ))}
           </TextField>
 
-          <Stack direction="row" spacing={2}>
-            <Button type="submit" variant="contained" disabled={!canSubmit}>Save</Button>
-            <Button variant="outlined" color="secondary" onClick={onCancel}>Cancel</Button>
-          </Stack>
-
           {!transaction && !canCreateWithParticipants && (
             <Alert severity="warning">
               You must be either the payer or the payee for this transaction.
             </Alert>
           )}
         </Stack>
-        </form>
-      </Stack>
+      </form>
     </Paper>
   );
 };
