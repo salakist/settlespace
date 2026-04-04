@@ -175,6 +175,34 @@ public class TransactionRepositoryTests
     }
 
     [Fact]
+    public async Task SearchAsyncFilterWithCategoryReturnsMatchingTransactions()
+    {
+        var tx = BuildTransaction("tx-1");
+        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+
+        var result = await repo.SearchAsync(new TransactionSearchFilter
+        {
+            Category = "food"
+        });
+
+        Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task SearchAsyncFilterWithDescriptionReturnsMatchingTransactions()
+    {
+        var tx = BuildTransaction("tx-1");
+        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+
+        var result = await repo.SearchAsync(new TransactionSearchFilter
+        {
+            Description = "taxi"
+        });
+
+        Assert.Single(result);
+    }
+
+    [Fact]
     public async Task UpdateAsyncCallsReplaceOne()
     {
         var tx = BuildTransaction("tx-1");

@@ -47,4 +47,40 @@ public class TransactionSearchQueryTests
 
         Assert.Throws<InvalidTransactionSearchException>(() => query.Validate());
     }
+
+    [Fact]
+    public void ValidatePassesWhenCategoryHasContent()
+    {
+        var query = new TransactionSearchQuery { Category = "food" };
+
+        query.Validate();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ValidateThrowsWhenCategoryIsEmptyOrWhitespace(string category)
+    {
+        var query = new TransactionSearchQuery { Category = category };
+
+        Assert.Throws<InvalidTransactionSearchException>(() => query.Validate());
+    }
+
+    [Fact]
+    public void ValidatePassesWhenDescriptionHasContent()
+    {
+        var query = new TransactionSearchQuery { Description = "taxi ride" };
+
+        query.Validate();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ValidateThrowsWhenDescriptionIsEmptyOrWhitespace(string description)
+    {
+        var query = new TransactionSearchQuery { Description = description };
+
+        Assert.Throws<InvalidTransactionSearchException>(() => query.Validate());
+    }
 }

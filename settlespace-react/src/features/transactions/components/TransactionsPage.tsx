@@ -37,6 +37,14 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
     if (involvement) {
       query.involvement = involvement;
     }
+    const category = searchParams.get('category');
+    if (category) {
+      query.category = category;
+    }
+    const description = searchParams.get('description');
+    if (description) {
+      query.description = description;
+    }
     return query;
   }, [searchParams]);
   const decodedTransactionId = transactionId ? decodeURIComponent(transactionId) : undefined;
@@ -129,6 +137,14 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
 
     if (query.involvement) {
       nextParams.set('involvement', query.involvement);
+    }
+
+    if (query.category) {
+      nextParams.set('category', query.category);
+    }
+
+    if (query.description) {
+      nextParams.set('description', query.description);
     }
 
     setSearchParams(nextParams);

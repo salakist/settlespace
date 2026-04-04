@@ -1,11 +1,14 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Autocomplete, Chip, IconButton, Stack, TextField } from '@mui/material';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import { TransactionSearchQuery } from '../../../shared/api/transactionApi';
 import { TransactionStatus } from '../../../shared/types';
 
 const TRANSACTION_STATUSES: TransactionStatus[] = ['Pending', 'Completed', 'Cancelled'];
 const INVOLVEMENT_TYPES = ['Owned', 'Managed'] as const;
+const TEXT_INPUT_PARAMS = ['category', 'description'] as const;
 const EMPTY_QUERY: TransactionSearchQuery = {};
 
 export interface SearchFilterOption {
@@ -13,6 +16,7 @@ export interface SearchFilterOption {
   value: string;
   label: string;
   group: string;
+  isPrompt?: boolean;
 }
 
 interface TransactionSearchBarProps {
@@ -39,6 +43,16 @@ function buildInvolvementOptions(): SearchFilterOption[] {
   }));
 }
 
+function buildTextInputPrompts(): SearchFilterOption[] {
+  return TEXT_INPUT_PARAMS.map((param) => ({
+    param,
+    value: '',
+    label: param.charAt(0).toUpperCase() + param.slice(1),
+    group: param.charAt(0).toUpperCase() + param.slice(1),
+    isPrompt: true,
+  }));
+}
+
 function buildQueryFromFilters(
   filters: SearchFilterOption[],
   freeText: string,
@@ -60,6 +74,16 @@ function buildQueryFromFilters(
   const involvement = filters.find((f) => f.param === 'involvement');
   if (involvement) {
     query.involvement = involvement.value;
+  }
+
+  const category = filters.find((f) => f.param === 'category');
+  if (category) {
+    query.category = category.value;
+  }
+
+  const description = filters.find((f) => f.param === 'description');
+  if (description) {
+    query.description = description.value;
   }
 
   return query;
@@ -86,6 +110,24 @@ function buildFiltersFromQuery(query: TransactionSearchQuery): SearchFilterOptio
     }
   }
 
+  if (query.category) {
+    filters.push({
+      param: 'category',
+      value: query.category,
+      label: query.category,
+      group: 'Category',
+    });
+  }
+
+  if (query.description) {
+    filters.push({
+      param: 'description',
+      value: query.description,
+      label: query.description,
+      group: 'Description',
+    });
+  }
+
   return filters;
 }
 
@@ -98,26 +140,40 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
     buildFiltersFromQuery(initialQuery),
   );
   const [inputValue, setInputValue] = useState(initialQuery.freeText ?? '');
+  const [pendingParam, setPendingParam] = useState<string | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setActiveFilters(buildFiltersFromQuery(initialQuery));
     setInputValue(initialQuery.freeText ?? '');
+    setPendingParam(null);
   }, [initialQuery]);
 
   const availableOptions = useMemo(() => {
-    const allOptions = [...buildStatusOptions(), ...buildInvolvementOptions()];
+    const allOptions: SearchFilterOption[] = [
+      ...buildStatusOptions(),
+      ...buildInvolvementOptions(),
+      ...buildTextInputPrompts(),
+    ];
     const activeKeys = new Set(activeFilters.map((f) => `${f.param}:${f.value}`));
     const hasInvolvement = activeFilters.some((f) => f.param === 'involvement');
+    const activeParamNames = new Set(activeFilters.map((f) => f.param));
     return allOptions.filter(
       (o) =>
         !activeKeys.has(`${o.param}:${o.value}`) &&
-        !(o.param === 'involvement' && hasInvolvement),
+        !(o.param === 'involvement' && hasInvolvement) &&
+        !(o.isPrompt && activeParamNames.has(o.param)),
     );
   }, [activeFilters]);
 
   const handleSelectOption = useCallback(
     (_event: React.SyntheticEvent, option: SearchFilterOption | string | null) => {
       if (!option || typeof option === 'string') {
+        return;
+      }
+      if (option.isPrompt) {
+        setPendingParam(option.param);
+        setInputValue('');
         return;
       }
       const nextFilters = [...activeFilters, option];
@@ -136,12 +192,40 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
     onSearch(buildQueryFromFilters(nextFilters, inputValue));
   }, [activeFilters, inputValue, onSearch]);
 
+  const handleCancelPending = useCallback(() => {
+    setPendingParam(null);
+    setInputValue('');
+  }, []);
+
+  const handleConfirmPending = useCallback(() => {
+    const trimmed = inputValue.trim();
+    if (!pendingParam || !trimmed) {
+      return;
+    }
+    const paramLabel = pendingParam.charAt(0).toUpperCase() + pendingParam.slice(1);
+    const newFilter: SearchFilterOption = {
+      param: pendingParam,
+      value: trimmed,
+      label: trimmed,
+      group: paramLabel,
+    };
+    const nextFilters = [...activeFilters, newFilter];
+    setActiveFilters(nextFilters);
+    setInputValue('');
+    setPendingParam(null);
+    onSearch(buildQueryFromFilters(nextFilters, ''));
+  }, [activeFilters, inputValue, onSearch, pendingParam]);
+
   const handleSubmit = useCallback(
     (event: React.SyntheticEvent) => {
       event.preventDefault();
+      if (pendingParam) {
+        handleConfirmPending();
+        return;
+      }
       onSearch(buildQueryFromFilters(activeFilters, inputValue));
     },
-    [activeFilters, inputValue, onSearch],
+    [activeFilters, handleConfirmPending, inputValue, onSearch, pendingParam],
   );
 
   return (
@@ -171,7 +255,7 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
         >
         <Autocomplete
           freeSolo
-          options={availableOptions}
+          options={pendingParam ? [] : availableOptions}
           getOptionLabel={(option) =>
             typeof option === 'string' ? option : option.label
           }
@@ -197,15 +281,71 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
             <TextField
               {...params}
               size="small"
-              placeholder="Search or filter transactions..."
+              placeholder={pendingParam ? 'Type a value...' : 'Search or filter transactions...'}
+              inputRef={inputRef}
               inputProps={{
                 ...params.inputProps,
                 'aria-label': 'Transaction search',
+              }}
+              InputProps={{
+                ...params.InputProps,
+                ...(pendingParam ? {
+                  startAdornment: (
+                    <Chip
+                      label={pendingParam.charAt(0).toUpperCase() + pendingParam.slice(1)}
+                      size="small"
+                      sx={{ mr: 0.5 }}
+                      data-testid="pending-param-chip"
+                    />
+                  ),
+                  endAdornment: (
+                    <Stack
+                      direction="row"
+                      spacing={0}
+                      sx={{
+                        position: 'absolute',
+                        right: 8,
+                        top: '50%',
+                        transform: 'translateY(-50%)',
+                      }}
+                    >
+                      <IconButton
+                        size="small"
+                        aria-label="Cancel filter"
+                        onClick={handleCancelPending}
+                        tabIndex={-1}
+                      >
+                        <CloseIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
+                      <IconButton
+                        size="small"
+                        aria-label="Confirm filter"
+                        onClick={handleConfirmPending}
+                        disabled={!inputValue.trim()}
+                        tabIndex={-1}
+                      >
+                        <CheckIcon sx={{ fontSize: 16 }} />
+                      </IconButton>
+                    </Stack>
+                  ),
+                } : {}),
+              }}
+              onKeyDown={(event) => {
+                if (pendingParam) {
+                  if (event.key === 'Escape') {
+                    event.stopPropagation();
+                    handleCancelPending();
+                  } else if (event.key === 'Backspace' && !inputValue) {
+                    event.preventDefault();
+                    handleCancelPending();
+                  }
+                }
               }}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderTopRightRadius: 0,
                   borderBottomRightRadius: 0,
+                  ...(pendingParam ? { paddingRight: '72px' } : {}),
                 },
               }}
             />

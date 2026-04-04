@@ -160,6 +160,20 @@ namespace SettleSpace.Infrastructure.Transactions
                 conditions.Add(builder.In(t => t.Status, filter.Status));
             }
 
+            if (!string.IsNullOrWhiteSpace(filter.Category))
+            {
+                var escapedCategory = Regex.Escape(filter.Category.Trim());
+                var categoryRegex = new BsonRegularExpression($".*{escapedCategory}.*", "i");
+                conditions.Add(builder.Regex(t => t.Category, categoryRegex));
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter.Description))
+            {
+                var escapedDescription = Regex.Escape(filter.Description.Trim());
+                var descriptionRegex = new BsonRegularExpression($".*{escapedDescription}.*", "i");
+                conditions.Add(builder.Regex(t => t.Description, descriptionRegex));
+            }
+
             return conditions.Count == 0
                 ? builder.Empty
                 : builder.And(conditions);

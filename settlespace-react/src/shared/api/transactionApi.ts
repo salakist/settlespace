@@ -21,6 +21,8 @@ export interface TransactionSearchQuery {
   freeText?: string;
   status?: string[];
   involvement?: string;
+  category?: string;
+  description?: string;
 }
 
 export const transactionApi = {
