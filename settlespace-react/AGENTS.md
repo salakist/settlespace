@@ -15,11 +15,13 @@ Frontend module router for app-shell policy, shared frontend workflow, and featu
 - `src/features/profile/AGENTS.md`
 - `src/features/transactions/AGENTS.md`
 - `src/features/debts/AGENTS.md`
+- `src/features/search/AGENTS.md`
 
 ## Cross-cutting frontend policy
 - `src/app/` owns app shell and top-level orchestration.
 - `src/app/hooks/` owns app-level orchestration hooks, including `useAppAuth`.
 - Keep auth/session behavior in `src/features/auth/hooks/useAuth.ts`.
+- Keep reusable, domain-agnostic chip/filter search UI in `src/features/search/`; feature wrappers own query mapping and route integration.
 - Shared UX/UI and interaction conventions are defined in `UX-PRINCIPLES.md`.
 - If a requested UI change clearly conflicts with `UX-PRINCIPLES.md`, agents should explain the conflict briefly and ask for confirmation before proceeding.
 - Route composition should favor dedicated `*Page` components over inline route JSX, and major flows should remain URL-driven with React Router.

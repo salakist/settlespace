@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TransactionSearchBar from './TransactionSearchBar';
+import { personApi } from '../../../shared/api/api';
 import { Person } from '../../../shared/types';
 
 const SEARCH_LABEL = 'Transaction search';
@@ -17,6 +18,21 @@ const TEST_PERSONS: Person[] = [
   { id: 'p2', firstName: 'Jane', lastName: 'Smith' },
   { id: 'p3', firstName: 'Alice', lastName: 'Johnson' },
 ];
+
+jest.mock('../../../shared/api/api', () => ({
+  personApi: {
+    search: jest.fn(),
+  },
+}));
+
+const mockPersonSearch = personApi.search as jest.MockedFunction<typeof personApi.search>;
+
+beforeEach(() => {
+  mockPersonSearch.mockReset();
+  mockPersonSearch.mockImplementation(async (query: string) => ({
+    data: TEST_PERSONS.filter((person) => `${person.firstName} ${person.lastName}`.toLowerCase().includes(query.toLowerCase())),
+  }) as Awaited<ReturnType<typeof personApi.search>>);
+});
 
 test('renders search input and search button', () => {
   render(<TransactionSearchBar onSearch={jest.fn()} />);

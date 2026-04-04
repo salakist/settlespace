@@ -64,6 +64,7 @@ SettleSpace.sln
 - `settlespace-react/src/features/profile/AGENTS.md`
 - `settlespace-react/src/features/transactions/AGENTS.md`
 - `settlespace-react/src/features/debts/AGENTS.md`
+- `settlespace-react/src/features/search/AGENTS.md`
 
 ## Build/Test Artifact Inventory
 - Shared build outputs: `**/bin/`, `**/obj/`.
