@@ -23,4 +23,6 @@ Domain authentication services for password generation, validation, and hashing 
 - None outside .NET runtime cryptography APIs
 
 ## Source-of-truth note
-Domain-wide architecture rules and artifact ownership are defined in `SettleSpace.Domain/AGENTS.md` and root `AGENTS.md`.
+Domain-wide architecture rules and artifact ownership are defined in the parent
+`SettleSpace.Domain/AGENTS.md`. Agent commit workflow and checklist policy are authoritative in root
+`COMMIT-POLICY.md`.

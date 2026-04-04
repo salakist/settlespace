@@ -247,11 +247,14 @@ dotnet test Tests/SettleSpace.Application.Tests/SettleSpace.Application.Tests.cs
 ## Quality Gates
 
 Policy precedence note:
-- Commit workflow requirements and skip rules are authoritative in `AGENTS.md`.
+- Agent commit identity and workflow policy are authoritative in `COMMIT-POLICY.md`.
 - Script behavior, gate intent, and wrapper policy are authoritative in `scripts/AGENTS.md`.
 - This section is a user-facing runbook summary.
 
-Practical note: for a documentation-only commit, both workflow steps may be `SKIPPED` when `AGENTS.md` skip conditions are satisfied (including showing the latest successful Step 1 log path).
+Agent-specific note:
+- `COMMIT-POLICY.md` applies to AI or automation-authored commits and agent sessions.
+- It does not replace normal human contributor guidance unless you intentionally use the repo-local
+  agent identity.
 
 Two repository-level analysis modes are available:
 
@@ -381,13 +384,8 @@ feat(api)!: remove legacy status endpoint
 
 ### Agent-authored commit messages
 
-When the repo-local agent identity is active, pair a Conventional Commit summary with the required trailer:
-
-```text
-chore(scripts): enforce conventional commit validation
-
-Agent: GitHub Copilot
-```
+See `COMMIT-POLICY.md` for the full agent-specific workflow, including identity setup,
+checklist requirements, and required trailers.
 
 If you want an explicit human review marker as well, add:
 

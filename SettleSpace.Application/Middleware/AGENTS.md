@@ -18,4 +18,6 @@ Application middleware context for exception translation and pipeline behavior.
 - Domain exception types and ASP.NET Core middleware contracts
 
 ## Source-of-truth note
-Cross-context application policy (DI, host wiring, artifact ownership, gate workflow) is defined in `SettleSpace.Application/AGENTS.md` and root `AGENTS.md`.
+Cross-context application policy (DI, middleware, and artifact ownership) is defined in the parent
+`SettleSpace.Application/AGENTS.md`. Agent commit workflow and checklist policy are authoritative in
+root `COMMIT-POLICY.md`.

@@ -15,10 +15,16 @@ Own the Git hook source templates that enforce commit-time checks in this reposi
 - `../setup/setup-hooks.ps1`
 - `../setup/set-agent-git-identity.ps1`
 
-## Hook boundaries
-- `pre-commit` should launch the repository quality gate and should not absorb commit attribution or Conventional Commit parsing logic.
-- `commit-msg` should validate agent identity/trailer expectations, the Conventional Commit header, and commit body line length rules, and should not duplicate the pre-commit quality gate.
-- Agents should pre-wrap commit body lines to **100 characters or fewer** instead of relying on a failed hook run to discover formatting problems.
+## Hook enforcement scope
+These boundaries describe how the local hooks enforce parts of root `COMMIT-POLICY.md` without
+re-owning the full workflow.
+
+- `pre-commit` should launch the repository quality gate and should not absorb commit attribution
+  or Conventional Commit parsing logic.
+- `commit-msg` should validate agent identity/trailer expectations, the Conventional Commit header,
+  and commit body line length rules, and should not duplicate the pre-commit quality gate.
+- Agents should pre-wrap commit body lines to **100 characters or fewer** instead of relying on a
+  failed hook run to discover formatting problems.
 - Hook installation remains the responsibility of `setup-hooks.ps1`.
 
 ## Commands
@@ -33,5 +39,6 @@ Own the Git hook source templates that enforce commit-time checks in this reposi
 - Repo-local Git config values used by the attribution policy (`settlespace.agentName`, `settlespace.agentEmail`, `settlespace.agentTrailer`, `settlespace.requireReviewedBy`)
 
 ## Source-of-truth note
-Repo-level commit checklist and agent commit attribution policy are authoritative in root `AGENTS.md`.
+Repo-wide AGENTS routing is defined in root `AGENTS.md`. Agent commit workflow, checklist rules,
+and commit attribution policy are authoritative in root `COMMIT-POLICY.md`.
 The parent `scripts/AGENTS.md` routes broader scripts guidance, and detailed gate behavior lives in `scripts/checks/AGENTS.md`.

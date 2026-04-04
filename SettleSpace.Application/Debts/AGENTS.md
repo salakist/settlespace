@@ -24,4 +24,6 @@ Debts API context for authenticated, user-scoped debt summaries and settlement a
 - Domain transaction repository contract resolved through DI
 
 ## Source-of-truth note
-Cross-context application policy (DI, middleware, artifact ownership, gate workflow) is defined in `SettleSpace.Application/AGENTS.md` and root `AGENTS.md`.
+Cross-context application policy (DI, middleware, and artifact ownership) is defined in the parent
+`SettleSpace.Application/AGENTS.md`. Agent commit workflow and checklist policy are authoritative in
+root `COMMIT-POLICY.md`.

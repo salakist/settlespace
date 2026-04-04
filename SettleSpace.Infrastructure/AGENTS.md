@@ -35,5 +35,6 @@ Infrastructure layer router for persistence implementation and shared serializat
 - Reference to `SettleSpace.Domain`
 
 ## Source-of-truth note
-Repo-wide workflow and checklist policy are authoritative in root `AGENTS.md`.
-Infrastructure-context behavior is documented in the nearest child AGENTS file.
+Repo-wide AGENTS routing is defined in root `AGENTS.md`. Agent commit workflow and checklist policy
+are authoritative in root `COMMIT-POLICY.md`. Infrastructure-context behavior is documented in the
+nearest child AGENTS file.

@@ -22,4 +22,6 @@ Domain debts context for computed debt balances, settlement validation, and debt
 - No project references beyond the domain layer itself
 
 ## Source-of-truth note
-Domain-wide architecture rules and artifact ownership are defined in `SettleSpace.Domain/AGENTS.md` and root `AGENTS.md`.
+Domain-wide architecture rules and artifact ownership are defined in the parent
+`SettleSpace.Domain/AGENTS.md`. Agent commit workflow and checklist policy are authoritative in root
+`COMMIT-POLICY.md`.

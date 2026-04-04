@@ -39,5 +39,6 @@ Application layer and API host router for orchestration, HTTP endpoints, and dep
 - References: `SettleSpace.Domain`, `SettleSpace.Infrastructure`.
 
 ## Source-of-truth note
-Repo-wide workflow and checklist policy are authoritative in root `AGENTS.md`.
-Application-context behavior is documented in the nearest child AGENTS file.
+Repo-wide AGENTS routing is defined in root `AGENTS.md`. Agent commit workflow and checklist policy
+are authoritative in root `COMMIT-POLICY.md`. Application-context behavior is documented in the
+nearest child AGENTS file.

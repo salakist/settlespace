@@ -36,5 +36,6 @@ Shared router for the repository's test projects and common test-infrastructure 
 - Project references vary by test project and are documented in the nearest child AGENTS file
 
 ## Source-of-truth note
-Repository-wide workflow and documentation policy are defined in root `AGENTS.md`.
-Behavior under test is documented in the corresponding production-layer AGENTS files and the nearest test-project AGENTS file.
+Repo-wide AGENTS routing is defined in root `AGENTS.md`. Agent commit workflow and checklist policy
+are authoritative in root `COMMIT-POLICY.md`. Behavior under test is documented in the
+corresponding production-layer AGENTS files and the nearest test-project AGENTS file.

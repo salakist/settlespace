@@ -49,5 +49,6 @@ Frontend module router for app-shell policy, shared frontend workflow, and featu
 - Shared API clients and types under `src/shared/`
 
 ## Source-of-truth note
-Repo-wide workflow and checklist policy are authoritative in root `AGENTS.md`.
-Feature behavior is documented in the nearest feature AGENTS file.
+Repo-wide AGENTS routing is defined in root `AGENTS.md`. Agent commit workflow and checklist policy
+are authoritative in root `COMMIT-POLICY.md`. Feature behavior is documented in the nearest feature
+AGENTS file.

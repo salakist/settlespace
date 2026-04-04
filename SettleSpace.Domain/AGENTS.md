@@ -34,5 +34,6 @@ Pure domain layer router for business invariants and contracts.
 - None (no project references).
 
 ## Source-of-truth note
-Repo-wide workflow and checklist policy are authoritative in root `AGENTS.md`.
-Domain-context behavior is documented in the nearest child AGENTS file.
+Repo-wide AGENTS routing is defined in root `AGENTS.md`. Agent commit workflow and checklist policy
+are authoritative in root `COMMIT-POLICY.md`. Domain-context behavior is documented in the nearest
+child AGENTS file.

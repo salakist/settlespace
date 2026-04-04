@@ -17,19 +17,19 @@ Own repository quality-gate, hook, cleanup, and setup automation scripts.
 - `lib/` - shared PowerShell helper scripts used by the root entry points
 - `check-coverage.mjs`, `package.json`, `package-lock.json`, `.eslintrc.json`, `commitlint.config.cjs` - repo-script lint and commit validation support files
 
-## Agent policy
-1. Quality gate execution is mandatory before commit/push unless Step 1 is validly `SKIPPED` under root `AGENTS.md` checklist rules.
-  1.1 Agents should run `./scripts/checks/run-checks-debug.ps1` for normal commit validation.
-  1.2 Use `./scripts/checks/run-full-checks-debug.ps1` only when full-base analysis is requested.
-  1.3 Never suggest bypassing hooks with `--no-verify`.
-  1.4 For cleanup tasks, default to `./scripts/cleanup/cleanup.ps1`; use `cleanup-full.ps1 -Force` only when the user explicitly requests destructive cleanup.
-  1.5 Agent-authored commits must use the repo-local agent identity configured via `./scripts/setup/set-agent-git-identity.ps1`.
-1.6 Before running `git commit`, agents must preflight the message against local commitlint rules:
-  - use a valid Conventional Commit summary line
-  - keep each non-empty body/trailer line at **100 characters or fewer**
-  - wrap longer explanations across multiple short lines or paragraphs
-2. After gates pass and before commit, update only documentation relevant to the same change set.
-3. Do not redefine the root checklist acceptance rules in this file.
+## Policy alignment
+Repo-wide AGENTS routing is defined in root `AGENTS.md`. Agent commit workflow, checklist rules,
+and commit attribution policy are authoritative in root `COMMIT-POLICY.md`.
+
+Within the `scripts/` area:
+1. Use `./scripts/checks/run-checks-debug.ps1` for normal commit validation.
+2. Use `./scripts/checks/run-full-checks-debug.ps1` only when full-base analysis is requested.
+3. Never suggest bypassing hooks with `--no-verify`.
+4. For cleanup tasks, default to `./scripts/cleanup/cleanup.ps1`; use
+   `cleanup-full.ps1 -Force` only when the user explicitly requests destructive cleanup.
+5. Keep script documentation aligned when entry points, hook installation, agent-identity setup,
+   or commit-message validation behavior changes.
+6. Do not redefine the central checklist acceptance rules in this file.
 
 ## Local prerequisites
 - Repo-script linting depends on the dev dependencies from `scripts/package.json`.
@@ -70,7 +70,8 @@ cd scripts; npm install
 - Node/npm for the repo-script lint track and coverage helpers
 
 ## Source-of-truth note
-Repo-wide commit workflow, checklist rules, and agent commit attribution policy are authoritative in root `AGENTS.md`.
+Repo-wide AGENTS routing is defined in root `AGENTS.md`. Agent commit workflow, checklist rules,
+and commit attribution policy are authoritative in root `COMMIT-POLICY.md`.
 Detailed quality-gate behavior lives in `scripts/checks/AGENTS.md`, and hook behavior lives in `scripts/hooks/AGENTS.md`.
 
 

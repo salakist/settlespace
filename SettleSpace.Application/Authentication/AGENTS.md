@@ -25,4 +25,6 @@ Authentication API context for login, registration, and password-change flows.
 - JWT framework packages configured in application host
 
 ## Source-of-truth note
-Cross-context application policy (DI, middleware, artifact ownership, gate workflow) is defined in `SettleSpace.Application/AGENTS.md` and root `AGENTS.md`.
+Cross-context application policy (DI, middleware, and artifact ownership) is defined in the parent
+`SettleSpace.Application/AGENTS.md`. Agent commit workflow and checklist policy are authoritative in
+root `COMMIT-POLICY.md`.

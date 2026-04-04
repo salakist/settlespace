@@ -16,7 +16,7 @@ Own repository quality-gate execution behavior for changed-code and full-base va
 - `run-full-checks-debug.ps1`
 - `../check-coverage.mjs`
 
-## Gate model
+## Quality-gate model
 - `run-checks*` validates changed production scope for the pre-commit workflow.
 - `run-full-checks*` validates the full production codebase and is used when broader analysis is requested.
 - Optional Sonar parity belongs only in the full-base flow and requires the expected environment configuration.
@@ -34,5 +34,6 @@ Own repository quality-gate execution behavior for changed-code and full-base va
 - Optional Sonar environment configuration for parity analysis in the full-base flow
 
 ## Source-of-truth note
-Repo-wide commit checklist rules and agent commit attribution policy are defined in root `AGENTS.md`.
+Repo-wide AGENTS routing is defined in root `AGENTS.md`. Agent commit workflow, checklist rules,
+and commit attribution policy are authoritative in root `COMMIT-POLICY.md`.
 The `scripts/AGENTS.md` file remains the router for the broader `scripts/` area, while hook behavior is documented in `scripts/hooks/AGENTS.md`.

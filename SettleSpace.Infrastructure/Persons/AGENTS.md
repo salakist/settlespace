@@ -19,4 +19,6 @@ Infrastructure persons persistence context for MongoDB repository behavior.
 - Domain `IPersonRepository` contract
 
 ## Source-of-truth note
-Infrastructure-wide persistence conventions, artifact ownership, and shared serialization guidance are defined in `SettleSpace.Infrastructure/AGENTS.md` and root `AGENTS.md`.
+Infrastructure-wide persistence conventions, artifact ownership, and shared serialization guidance
+are defined in the parent `SettleSpace.Infrastructure/AGENTS.md`. Agent commit workflow and
+checklist policy are authoritative in root `COMMIT-POLICY.md`.
