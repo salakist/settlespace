@@ -1,5 +1,6 @@
 import React from 'react';
 import { Stack, TextField, Typography } from '@mui/material';
+import DateInputField from '../../../shared/components/DateInputField';
 import PersonAddressEditor from './PersonAddressEditor';
 import { PersonDetailsFormValues, PersonDetailsValidationErrors } from '../hooks/personDetailsFormUtils';
 
@@ -69,12 +70,10 @@ const PersonDetailsFormFields: React.FC<PersonDetailsFormFieldsProps> = ({
           helperText={errors?.email}
         />
       </Stack>
-      <TextField
+      <DateInputField
         label="Date of Birth"
-        type="date"
         value={values.dateOfBirth}
         onChange={(event) => setField('dateOfBirth', event.target.value)}
-        slotProps={{ inputLabel: { shrink: true } }}
         fullWidth
         disabled={disabled}
         error={Boolean(errors?.dateOfBirth)}

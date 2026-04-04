@@ -37,6 +37,9 @@ jest.mock('../../persons/components/PersonAddressEditor', () => ({
 test('shows validation error for mismatched passwords', async () => {
   render(<RegisterPage onRegister={jest.fn()} onShowLogin={jest.fn()} error={null} loading={false} />);
 
+  expect(screen.getByPlaceholderText('DD/MM/YYYY')).toBeInTheDocument();
+  expect(screen.queryByText('DD/MM/YYYY')).not.toBeInTheDocument();
+
   fireEvent.change(screen.getByLabelText(/First Name/i), { target: { value: 'Jane' } });
   fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { value: 'Doe' } });
   fireEvent.change(screen.getAllByLabelText(/Password/i)[0], { target: { value: 'Secret1!' } });
@@ -59,7 +62,7 @@ test('submits sanitized payload and can go back to login', async () => {
   fireEvent.change(screen.getAllByLabelText(/Password/i)[0], { target: { value: 'Secret1!' } });
   fireEvent.change(screen.getByLabelText(/Phone Number/i), { target: { value: '  555-1111  ' } });
   fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: '  jane@doe.com  ' } });
-  fireEvent.change(screen.getByLabelText(/Date of Birth/i), { target: { value: '2000-01-01' } });
+  fireEvent.change(screen.getByLabelText(/Date of Birth/i), { target: { value: '01/01/2000' } });
   fireEvent.click(screen.getByRole('button', { name: /Inject Addresses/i }));
   fireEvent.change(screen.getByLabelText(/Confirm Password/i), { target: { value: 'Secret1!' } });
 
@@ -86,6 +89,6 @@ test('submits sanitized payload and can go back to login', async () => {
     ],
   });
 
-  fireEvent.click(screen.getByRole('button', { name: /Back to Login/i }));
+  fireEvent.click(screen.getByRole('button', { name: /^Login$/i }));
   expect(onShowLogin).toHaveBeenCalled();
 });

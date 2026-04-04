@@ -39,26 +39,30 @@ test('shows an empty-state alert when there are no debts', () => {
   expect(screen.getByRole('alert')).toHaveTextContent(/no outstanding debts right now/i);
 });
 
-test('renders debt summaries, settlement actions, and details navigation', () => {
+test('renders concise debt summaries and exposes actions from a menu', () => {
   const onSettle = jest.fn();
   const onViewDetails = jest.fn();
 
   render(<DebtsList debts={debts} persons={persons} onSettle={onSettle} onViewDetails={onViewDetails} />);
 
   expect(screen.getByText('Bob Stone')).toBeInTheDocument();
-  expect(screen.getByText(/you owe Bob Stone/i)).toBeInTheDocument();
-  expect(screen.getByText(/Alice Walker owes you/i)).toBeInTheDocument();
-  expect(screen.getByText(/This balance with Cara Lane is settled/i)).toBeInTheDocument();
+  expect(screen.getByText(/you owe them/i)).toBeInTheDocument();
+  expect(screen.getByText(/they owe you/i)).toBeInTheDocument();
+  expect(screen.queryByText(/you owe Bob Stone/i)).not.toBeInTheDocument();
+  expect(screen.queryByText(/Alice Walker owes you/i)).not.toBeInTheDocument();
+  expect(screen.queryByText(/This balance with Cara Lane is settled/i)).not.toBeInTheDocument();
+  expect(screen.queryByText(/Currency:/i)).not.toBeInTheDocument();
+  expect(screen.getByText(/4 transactions/i)).toBeInTheDocument();
 
-  expect(screen.getAllByText(/Currency:/i)).toHaveLength(3);
-  expect(screen.getAllByText(/Transactions:/i)).toHaveLength(3);
+  fireEvent.click(screen.getByRole('button', { name: /open actions for bob stone/i }));
+  fireEvent.click(screen.getByRole('menuitem', { name: /^settle now$/i }));
 
-  fireEvent.click(screen.getAllByRole('button', { name: /^settle now$/i })[0]);
-  fireEvent.click(screen.getAllByRole('button', { name: /^settle now$/i })[1]);
-  fireEvent.click(screen.getAllByRole('button', { name: /^details$/i })[0]);
+  fireEvent.click(screen.getByRole('button', { name: /open actions for bob stone/i }));
+  fireEvent.click(screen.getByRole('menuitem', { name: /^details$/i }));
 
-  expect(onSettle).toHaveBeenNthCalledWith(1, debts[1]);
-  expect(onSettle).toHaveBeenNthCalledWith(2, debts[0]);
+  fireEvent.click(screen.getByRole('button', { name: /open actions for cara lane/i }));
+  expect(screen.getByRole('menuitem', { name: /^settled$/i })).toHaveAttribute('aria-disabled', 'true');
+
+  expect(onSettle).toHaveBeenCalledWith(debts[1]);
   expect(onViewDetails).toHaveBeenCalledWith(debts[1]);
-  expect(screen.getByRole('button', { name: /^settled$/i })).toBeDisabled();
 });

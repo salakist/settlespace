@@ -45,7 +45,7 @@ test('shows payment wording and supports manual percent input for debts you owe'
   expect(screen.getByLabelText(/amount \(eur\)/i)).toHaveDisplayValue('15.73');
 });
 
-test('adapts wording and submits settlement for debts they owe you', async () => {
+test('adapts wording, keeps affirmative action first, and submits settlement for debts they owe you', async () => {
   const onSubmit = jest.fn().mockResolvedValue(undefined);
 
   render(
@@ -67,6 +67,10 @@ test('adapts wording and submits settlement for debts they owe you', async () =>
 
   expect(screen.getByRole('alert')).toHaveTextContent(/you are recording/i);
   expect(screen.getByRole('alert')).toHaveTextContent(/50%/i);
+  expect(screen.getAllByRole('button').slice(-2).map((button) => button.textContent)).toEqual([
+    'Record received payment',
+    'Close',
+  ]);
 
   fireEvent.click(screen.getByRole('button', { name: /record received payment/i }));
 

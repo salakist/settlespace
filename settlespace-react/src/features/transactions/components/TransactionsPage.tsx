@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Button, CircularProgress, Stack } from '@mui/material';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { canUpdateOrDeleteTransaction } from '../../../shared/auth/permissions';
+import ConfirmationDialog from '../../../shared/components/ConfirmationDialog';
 import { Person, PersonRole, Transaction } from '../../../shared/types';
 import SearchBar from '../../persons/components/SearchBar';
 import TransactionForm from './TransactionForm';
@@ -35,6 +36,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
     return 'list';
   }, [decodedTransactionId, isCreateRoute]);
   const lastSyncedRouteKey = useRef<string>('');
+  const [pendingDeleteTransaction, setPendingDeleteTransaction] = useState<{ id: string; label: string } | null>(null);
 
   const {
     editingTransaction,
@@ -134,6 +136,26 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
     navigate(`/transactions/${encodeURIComponent(transaction.id)}/edit`);
   };
 
+  const handleDeleteRequest = (id: string) => {
+    const targetTransaction = transactions.find((transaction) => transaction.id === id);
+    const label = targetTransaction?.description ? `"${targetTransaction.description}"` : 'this transaction';
+
+    setPendingDeleteTransaction({ id, label });
+  };
+
+  const handleDeleteCancel = () => {
+    setPendingDeleteTransaction(null);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!pendingDeleteTransaction?.id) {
+      return;
+    }
+
+    void handleDelete(pendingDeleteTransaction.id);
+    setPendingDeleteTransaction(null);
+  };
+
   const handleSaveAndClose = async (
     transaction: Omit<Transaction, 'id' | 'createdByPersonId' | 'createdAtUtc' | 'updatedAtUtc'>,
   ) => {
@@ -183,12 +205,23 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
           <TransactionList
             transactions={transactions}
             persons={persons}
+            currentPersonId={currentPersonId}
             canManage={canManageTransaction}
             onEdit={handleEditNavigate}
-            onDelete={handleDelete}
+            onDelete={handleDeleteRequest}
           />
         )
       )}
+
+      <ConfirmationDialog
+        open={Boolean(pendingDeleteTransaction)}
+        title="Delete transaction?"
+        message={pendingDeleteTransaction
+          ? `Are you sure you want to delete ${pendingDeleteTransaction.label}? This action cannot be undone.`
+          : ''}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
     </Stack>
   );
 };

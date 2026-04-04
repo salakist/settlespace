@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Button, CircularProgress, Stack } from '@mui/material';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Person, PersonRole } from '../../../shared/types';
+import ConfirmationDialog from '../../../shared/components/ConfirmationDialog';
 import SearchBar from './SearchBar';
 import PersonForm from './PersonForm';
 import PersonList from './PersonList';
@@ -66,6 +67,7 @@ const PersonsPage: React.FC<PersonsPageProps> = ({
     return 'list';
   }, [decodedPersonId, isCreateRoute]);
   const lastSyncedRouteKey = useRef<string>('');
+  const [pendingDeletePerson, setPendingDeletePerson] = useState<{ id: string; label: string } | null>(null);
 
   const routedPerson = useMemo(
     () => persons.find((person) => person.id === decodedPersonId),
@@ -130,6 +132,28 @@ const PersonsPage: React.FC<PersonsPageProps> = ({
     navigate(searchQuery ? `/debts?search=${encodeURIComponent(searchQuery)}` : '/debts');
   };
 
+  const handleDeleteRequest = (id: string) => {
+    const targetPerson = persons.find((person) => person.id === id);
+    const label = targetPerson
+      ? `${targetPerson.firstName} ${targetPerson.lastName}`.trim()
+      : 'this person';
+
+    setPendingDeletePerson({ id, label });
+  };
+
+  const handleDeleteCancel = () => {
+    setPendingDeletePerson(null);
+  };
+
+  const handleDeleteConfirm = () => {
+    if (!pendingDeletePerson?.id) {
+      return;
+    }
+
+    onDelete(pendingDeletePerson.id);
+    setPendingDeletePerson(null);
+  };
+
   const handleCancelAndClose = () => {
     onCancel();
     navigate('/persons');
@@ -180,7 +204,7 @@ const PersonsPage: React.FC<PersonsPageProps> = ({
           <PersonList
             persons={persons}
             onEdit={handleEditNavigate}
-            onDelete={onDelete}
+            onDelete={handleDeleteRequest}
             onViewTransactions={handleViewTransactions}
             onViewDebts={handleViewDebts}
             canEdit={canEdit}
@@ -188,6 +212,16 @@ const PersonsPage: React.FC<PersonsPageProps> = ({
           />
         )
       )}
+
+      <ConfirmationDialog
+        open={Boolean(pendingDeletePerson)}
+        title="Delete person?"
+        message={pendingDeletePerson
+          ? `Are you sure you want to delete ${pendingDeletePerson.label}? This action cannot be undone.`
+          : ''}
+        onConfirm={handleDeleteConfirm}
+        onCancel={handleDeleteCancel}
+      />
     </Stack>
   );
 };

@@ -1,5 +1,6 @@
-import React from 'react';
-import { Alert, Button, Chip, Paper, Stack, Typography } from '@mui/material';
+import React, { useState } from 'react';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import { Alert, Chip, IconButton, Menu, MenuItem, Paper, Stack, Typography } from '@mui/material';
 import { DebtSummary, Person } from '../../../shared/types';
 import { panelSurfaceSx } from '../../../shared/theme/surfaceStyles';
 
@@ -50,15 +51,8 @@ function getDirectionColor(direction: DebtSummary['direction']): 'success' | 'wa
   }
 }
 
-function getSummaryText(debt: DebtSummary, counterpartyName: string, balanceText: string): string {
-  switch (debt.direction) {
-    case 'TheyOweYou':
-      return `${counterpartyName} owes you ${balanceText}.`;
-    case 'YouOweThem':
-      return `You owe ${counterpartyName} ${balanceText}.`;
-    default:
-      return `This balance with ${counterpartyName} is settled.`;
-  }
+function getTransactionCountLabel(count: number): string {
+  return count === 1 ? '1 transaction' : `${count} transactions`;
 }
 
 function getSettlementButtonLabel(direction: DebtSummary['direction']): string {
@@ -70,6 +64,35 @@ function getSettlementButtonLabel(direction: DebtSummary['direction']): string {
 }
 
 const DebtsList: React.FC<DebtsListProps> = ({ debts, persons, onSettle, onViewDetails }) => {
+  const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+  const [activeDebt, setActiveDebt] = useState<DebtSummary | null>(null);
+
+  const handleOpenMenu = (event: React.MouseEvent<HTMLElement>, debt: DebtSummary) => {
+    setMenuAnchor(event.currentTarget);
+    setActiveDebt(debt);
+  };
+
+  const handleCloseMenu = () => {
+    setMenuAnchor(null);
+    setActiveDebt(null);
+  };
+
+  const handleViewDetailsAction = () => {
+    if (activeDebt) {
+      onViewDetails(activeDebt);
+    }
+
+    handleCloseMenu();
+  };
+
+  const handleSettleAction = () => {
+    if (activeDebt && activeDebt.direction !== 'Settled' && activeDebt.netAmount > 0) {
+      onSettle(activeDebt);
+    }
+
+    handleCloseMenu();
+  };
+
   if (debts.length === 0) {
     return (
       <Alert severity="info">
@@ -81,11 +104,12 @@ const DebtsList: React.FC<DebtsListProps> = ({ debts, persons, onSettle, onViewD
   const sortedDebts = [...debts].sort((left, right) => right.netAmount - left.netAmount);
 
   return (
-    <Stack spacing={2}>
-      {sortedDebts.map((debt) => {
+    <>
+      <Stack spacing={2}>
+        {sortedDebts.map((debt) => {
         const counterpartyName = getPersonDisplayName(persons, debt.counterpartyPersonId);
         const balanceText = formatCurrency(debt.netAmount, debt.currencyCode);
-        const summaryText = getSummaryText(debt, counterpartyName, balanceText);
+        const transactionCountLabel = getTransactionCountLabel(debt.transactionCount);
 
         return (
           <Paper
@@ -93,57 +117,53 @@ const DebtsList: React.FC<DebtsListProps> = ({ debts, persons, onSettle, onViewD
             elevation={0}
             sx={panelSurfaceSx}
           >
-            <Stack spacing={1.5}>
-              <Stack
-                direction={{ xs: 'column', sm: 'row' }}
-                justifyContent="space-between"
-                alignItems={{ xs: 'flex-start', sm: 'center' }}
-                spacing={1.5}
-              >
-                <div>
+            <Stack
+              direction={{ xs: 'column', md: 'row' }}
+              justifyContent="space-between"
+              alignItems={{ xs: 'flex-start', md: 'center' }}
+              spacing={1.25}
+              useFlexGap
+            >
+              <Stack spacing={0.5} sx={{ minWidth: 0 }}>
+                <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
                   <Typography variant="h6">{counterpartyName}</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {summaryText}
-                  </Typography>
-                </div>
-                <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap">
                   <Chip
                     label={getDirectionLabel(debt.direction)}
                     color={getDirectionColor(debt.direction)}
                     variant={debt.direction === 'Settled' ? 'outlined' : 'filled'}
                   />
-                  <Button
-                    variant="outlined"
-                    onClick={() => onViewDetails(debt)}
-                  >
-                    Details
-                  </Button>
-                  <Button
-                    variant="contained"
-                    onClick={() => onSettle(debt)}
-                    disabled={debt.direction === 'Settled' || debt.netAmount <= 0}
-                  >
-                    {getSettlementButtonLabel(debt.direction)}
-                  </Button>
                 </Stack>
+
+                <Typography variant="body2" color="text.secondary">
+                  {balanceText} • {debt.currencyCode} • {transactionCountLabel}
+                </Typography>
               </Stack>
 
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                <Typography variant="body2" color="text.secondary">
-                  <strong>Balance:</strong> {balanceText}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  <strong>Currency:</strong> {debt.currencyCode}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  <strong>Transactions:</strong> {debt.transactionCount}
-                </Typography>
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ alignSelf: { xs: 'stretch', md: 'center' } }}>
+                <IconButton
+                  aria-label={`Open actions for ${counterpartyName}`}
+                  onClick={(event) => handleOpenMenu(event, debt)}
+                  sx={{ ml: { md: 'auto' } }}
+                >
+                  <MoreVertIcon />
+                </IconButton>
               </Stack>
             </Stack>
           </Paper>
         );
-      })}
-    </Stack>
+        })}
+      </Stack>
+
+      <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleCloseMenu}>
+        <MenuItem onClick={handleViewDetailsAction}>Details</MenuItem>
+        <MenuItem
+          onClick={handleSettleAction}
+          disabled={!activeDebt || activeDebt.direction === 'Settled' || activeDebt.netAmount <= 0}
+        >
+          {activeDebt ? getSettlementButtonLabel(activeDebt.direction) : 'Settle now'}
+        </MenuItem>
+      </Menu>
+    </>
   );
 };
 

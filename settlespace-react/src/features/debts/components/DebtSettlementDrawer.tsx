@@ -255,10 +255,10 @@ const DebtSettlementDrawer: React.FC<DebtSettlementDrawerProps> = ({
         <Divider />
 
         <Stack direction="row" justifyContent="flex-end" spacing={1.5}>
-          <Button onClick={onClose} disabled={saving}>Close</Button>
           <Button type="submit" variant="contained" disabled={saving || amount <= 0 || maxAmount <= 0}>
             {getSubmitLabel(debt.direction, saving)}
           </Button>
+          <Button onClick={onClose} disabled={saving}>Close</Button>
         </Stack>
       </>
     );

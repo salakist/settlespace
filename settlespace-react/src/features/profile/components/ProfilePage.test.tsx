@@ -92,7 +92,7 @@ test('renders profile, submits save, and forwards password change', async () => 
   fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { value: 'Smith' } });
   fireEvent.change(screen.getByLabelText(/Phone Number/i), { target: { value: ' +1 555 123 4567 ' } });
   fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: ' jane@smith.com ' } });
-  fireEvent.change(screen.getByLabelText(/Date of Birth/i), { target: { value: '2001-02-03' } });
+  fireEvent.change(screen.getByLabelText(/Date of Birth/i), { target: { value: '03/02/2001' } });
   fireEvent.click(screen.getByRole('button', { name: /Update Addresses/i }));
 
   fireEvent.click(screen.getByRole('button', { name: /Save Profile/i }));

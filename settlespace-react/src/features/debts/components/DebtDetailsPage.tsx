@@ -3,6 +3,7 @@ import { Alert, Button, CircularProgress, Paper, Stack, Typography } from '@mui/
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { DebtDetails, DebtSummary, Person, Transaction } from '../../../shared/types';
 import { panelSurfaceSx, listItemSurfaceSx } from '../../../shared/theme/surfaceStyles';
+import { formatDateDDMMYYYY } from '../../../shared/utils/dateFormatting';
 import { useDebts } from '../hooks/useDebts';
 import DebtSettlementDrawer from './DebtSettlementDrawer';
 
@@ -22,20 +23,6 @@ function formatCurrency(amount: number, currencyCode: string): string {
   } catch {
     return `${currencyCode} ${amount.toFixed(2)}`;
   }
-}
-
-function formatDate(dateUtc: string): string {
-  const parsed = new Date(dateUtc);
-
-  if (Number.isNaN(parsed.getTime())) {
-    return dateUtc;
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-  }).format(parsed);
 }
 
 function getPersonDisplayName(persons: Person[], personId: string): string {
@@ -162,9 +149,6 @@ const DebtDetailsPage: React.FC<DebtDetailsPageProps> = ({ persons, expireSessio
                 </Typography>
               </div>
               <Stack direction="row" spacing={1} justifyContent="flex-end">
-                <Button variant="outlined" onClick={() => navigate('/debts')}>
-                  Back
-                </Button>
                 <Button
                   variant="contained"
                   onClick={() => {
@@ -175,6 +159,9 @@ const DebtDetailsPage: React.FC<DebtDetailsPageProps> = ({ persons, expireSessio
                   disabled={!debtSummary || debtSummary.direction === 'Settled' || debtSummary.netAmount <= 0}
                 >
                   Settle now
+                </Button>
+                <Button variant="outlined" onClick={() => navigate('/debts')}>
+                  Back
                 </Button>
               </Stack>
             </Stack>
@@ -216,7 +203,7 @@ const DebtDetailsPage: React.FC<DebtDetailsPageProps> = ({ persons, expireSessio
                     </Typography>
                   </Stack>
                   <Typography variant="body2" color="text.secondary">
-                    {formatDate(transaction.transactionDateUtc)}
+                    {formatDateDDMMYYYY(transaction.transactionDateUtc)}
                     {transaction.category ? ` · ${transaction.category}` : ''}
                   </Typography>
                 </Stack>

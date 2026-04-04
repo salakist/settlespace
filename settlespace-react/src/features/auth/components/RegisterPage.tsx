@@ -9,6 +9,7 @@ import {
   Typography,
 } from '@mui/material';
 import { authCardSurfaceSx, BRAND_HEADER_SRC } from '../../../shared/theme/surfaceStyles';
+import DateInputField from '../../../shared/components/DateInputField';
 import PersonAddressEditor from '../../persons/components/PersonAddressEditor';
 import { Address, RegisterRequest } from '../../../shared/types';
 
@@ -133,12 +134,10 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
                 autoComplete="email"
                 fullWidth
               />
-              <TextField
+              <DateInputField
                 label="Date of Birth"
-                type="date"
                 value={dateOfBirth}
                 onChange={(event) => setDateOfBirth(event.target.value)}
-                slotProps={{ inputLabel: { shrink: true } }}
                 fullWidth
               />
               <PersonAddressEditor addresses={addresses} onChange={setAddresses} disabled={loading} />
@@ -146,7 +145,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
                 {loading ? 'Creating Account...' : 'Register & Sign In'}
               </Button>
               <Button variant="text" onClick={onShowLogin} disabled={loading}>
-                Back to Login
+                Login
               </Button>
             </Stack>
           </Box>

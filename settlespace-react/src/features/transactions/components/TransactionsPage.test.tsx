@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import TransactionsPage from './TransactionsPage';
 
 const mockNavigate = jest.fn();
@@ -24,7 +24,7 @@ const mockHook = {
   loading: false,
   showCreateForm: jest.fn(),
   showForm: false,
-  transactions: [],
+  transactions: [] as Array<Record<string, unknown>>,
 };
 
 jest.mock('../hooks/useTransactions', () => ({
@@ -44,7 +44,12 @@ jest.mock('../../persons/components/SearchBar', () => ({
 
 jest.mock('./TransactionList', () => ({
   __esModule: true,
-  default: () => <div>Transaction List</div>,
+  default: ({ onDelete }: { onDelete: (id: string) => void }) => (
+    <div>
+      <div>Transaction List</div>
+      <button onClick={() => onDelete('tx-1')}>Delete Transaction</button>
+    </div>
+  ),
 }));
 
 jest.mock('./TransactionForm', () => ({
@@ -135,4 +140,37 @@ test('renders only the transaction form when showForm is true', () => {
   expect(screen.queryByRole('button', { name: /add transaction/i })).not.toBeInTheDocument();
   expect(screen.queryByText('Transaction List')).not.toBeInTheDocument();
   mockHook.showForm = false;
+});
+
+test('confirms deletion in a modal before calling handleDelete', () => {
+  mockHook.transactions = [{
+    id: 'tx-1',
+    payerPersonId: 'p1',
+    payeePersonId: 'p2',
+    amount: 18,
+    currencyCode: 'EUR',
+    transactionDateUtc: '2026-03-29T00:00:00Z',
+    description: 'Dinner',
+    status: 'Completed',
+  }];
+
+  render(
+    <TransactionsPage
+      persons={[{ id: 'p1', firstName: 'John', lastName: 'Doe', addresses: [], role: 'USER' }]}
+      currentPersonId="p1"
+      role="USER"
+      expireSession={jest.fn()}
+    />,
+  );
+
+  fireEvent.click(screen.getByRole('button', { name: /delete transaction/i }));
+
+  const dialog = screen.getByRole('dialog');
+  expect(dialog).toBeInTheDocument();
+  expect(within(dialog).getAllByRole('button').map((button) => button.textContent)).toEqual(['Delete', 'Cancel']);
+
+  fireEvent.click(within(dialog).getByRole('button', { name: /^delete$/i }));
+  expect(mockHook.handleDelete).toHaveBeenCalledWith('tx-1');
+
+  mockHook.transactions = [];
 });

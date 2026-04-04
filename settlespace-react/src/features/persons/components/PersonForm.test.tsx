@@ -12,7 +12,7 @@ test('creates person and clears fields', async () => {
   fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { value: 'Doe' } });
   fireEvent.change(screen.getByLabelText(/Phone Number/i), { target: { value: ' +15551234567 ' } });
   fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: ' john@doe.com ' } });
-  fireEvent.change(screen.getByLabelText(/Date of Birth/i), { target: { value: '1990-01-01' } });
+  fireEvent.change(screen.getByLabelText(/Date of Birth/i), { target: { value: '01/01/1990' } });
   fireEvent.click(screen.getByRole('button', { name: /^Create$/i }));
 
   await waitFor(() => {

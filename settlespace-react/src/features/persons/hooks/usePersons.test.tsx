@@ -182,24 +182,14 @@ test('handleSave toggles saveLoading during save lifecycle', async () => {
   expect(harness.getHook().saveLoading).toBe(false);
 });
 
-test('handleDelete respects confirm dialog and calls delete when confirmed', async () => {
+test('handleDelete deletes immediately once the UI has confirmed the action', async () => {
   const harness = createPersonsHarness();
-  const confirmSpy = jest.spyOn(globalThis, 'confirm').mockReturnValue(false);
-
-  await act(async () => {
-    await harness.getHook().handleDelete('p1');
-  });
-
-  expect(personApi.delete).not.toHaveBeenCalled();
-
-  confirmSpy.mockReturnValue(true);
 
   await act(async () => {
     await harness.getHook().handleDelete('p1');
   });
 
   expect(personApi.delete).toHaveBeenCalledWith('p1');
-  confirmSpy.mockRestore();
 });
 
 test('loadPersons non-401 error sets error state', async () => {

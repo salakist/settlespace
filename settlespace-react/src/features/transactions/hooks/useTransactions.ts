@@ -119,10 +119,6 @@ export function useTransactions({ expireSession, currentPersonId, role }: UseTra
       return;
     }
 
-    if (!globalThis.confirm('Are you sure you want to delete this transaction?')) {
-      return;
-    }
-
     try {
       await transactionApi.delete(id);
       await loadTransactions();

@@ -116,22 +116,14 @@ test('handleSave calls create for new transaction and update for edited one', as
   expect(transactionApi.update).toHaveBeenCalledWith('tx-1', payload);
 });
 
-test('handleDelete respects confirm dialog and deletes when confirmed', async () => {
+test('handleDelete deletes immediately once the UI has confirmed the action', async () => {
   const harness = createHarness();
-  const confirmSpy = jest.spyOn(globalThis, 'confirm').mockReturnValue(false);
 
-  await act(async () => {
-    await harness.getHook().handleDelete('tx-1');
-  });
-  expect(transactionApi.delete).not.toHaveBeenCalled();
-
-  confirmSpy.mockReturnValue(true);
   await act(async () => {
     await harness.getHook().handleDelete('tx-1');
   });
 
   expect(transactionApi.delete).toHaveBeenCalledWith('tx-1');
-  confirmSpy.mockRestore();
 });
 
 test('handleSearch with empty query falls back to loadTransactions', async () => {
@@ -203,14 +195,12 @@ test('handleSave failure sets error message', async () => {
 test('handleDelete failure sets error message', async () => {
   transactionApi.delete.mockRejectedValueOnce(new Error('boom'));
   const harness = createHarness();
-  const confirmSpy = jest.spyOn(globalThis, 'confirm').mockReturnValue(true);
 
   await act(async () => {
     await harness.getHook().handleDelete('tx-1');
   });
 
   expect(harness.getHook().error).toBe('Failed to delete transaction');
-  confirmSpy.mockRestore();
 });
 
 test('handleEdit blocks users from editing transactions they did not create', () => {

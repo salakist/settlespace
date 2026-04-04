@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { Alert, Button, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
 import { canCreateTransaction } from '../../../shared/auth/permissions';
+import DateInputField from '../../../shared/components/DateInputField';
 import { panelSurfaceSx } from '../../../shared/theme/surfaceStyles';
 import { Person, PersonRole, Transaction, TransactionStatus } from '../../../shared/types';
 
@@ -105,7 +106,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
               <Button type="submit" variant="contained" disabled={!canSubmit}>
                 {transaction ? 'Update' : 'Create'}
               </Button>
-              <Button variant="outlined" color="secondary" onClick={onCancel}>Cancel</Button>
+              <Button variant="outlined" onClick={onCancel}>Cancel</Button>
             </Stack>
           </Stack>
           {validationError && <Alert severity="error">{validationError}</Alert>}
@@ -158,12 +159,10 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             required
           />
 
-          <TextField
+          <DateInputField
             label="Transaction Date"
-            type="date"
             value={transactionDateUtc}
             onChange={(event) => setTransactionDateUtc(event.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
             fullWidth
             required
           />

@@ -82,10 +82,16 @@ test('loads and renders debt details with underlying transactions', async () => 
   );
 
   await waitFor(() => expect(mockHook.loadDebtDetails).toHaveBeenCalledWith('p2', 'EUR'));
-  expect(await screen.findByText(/Dinner/i)).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /^back$/i })).toBeInTheDocument();
+  const dinnerRow = await screen.findByText(/Dinner/i);
+  expect(dinnerRow).toBeInTheDocument();
+  expect(screen.getByText('01/04/2026 · Food')).toBeInTheDocument();
   expect(await screen.findByText(/Taxi/i)).toBeInTheDocument();
   expect(screen.getByText(/completed transactions:/i)).toBeInTheDocument();
+
+  const buttonLabels = screen.getAllByRole('button')
+    .slice(0, 2)
+    .map((button) => button.textContent);
+  expect(buttonLabels).toEqual(['Settle now', 'Back']);
 });
 
 test('supports opening settlement from the details page', async () => {

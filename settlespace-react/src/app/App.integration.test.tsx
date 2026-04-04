@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 
 const MOCK_DOB = '1990-01-01';
 
@@ -249,8 +249,6 @@ test('handles unauthorized responses by clearing session and returning to login'
 });
 
 test('supports login, directory actions, profile actions, and logout', async () => {
-  const confirmSpy = jest.spyOn(globalThis, 'confirm').mockReturnValue(true);
-
   render(<App />);
 
   fireEvent.click(screen.getByRole('button', { name: /submit login/i }));
@@ -274,7 +272,10 @@ test('supports login, directory actions, profile actions, and logout', async () 
   await waitFor(() => expect(mockPersonApi.update).toHaveBeenCalled());
 
   fireEvent.click(screen.getAllByRole('button', { name: /Delete Person/i })[0]);
+  const deleteDialog = screen.getByRole('dialog');
+  fireEvent.click(within(deleteDialog).getByRole('button', { name: /^Delete$/i }));
   await waitFor(() => expect(mockPersonApi.delete).toHaveBeenCalledWith('p1'));
+  await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
 
   fireEvent.click(screen.getByRole('button', { name: /john doe/i }));
   expect(screen.getByRole('heading', { name: /Profile Page/i })).toBeInTheDocument();
@@ -289,6 +290,4 @@ test('supports login, directory actions, profile actions, and logout', async () 
 
   await waitFor(() => expect(mockAuthStorage.clearSession).toHaveBeenCalled());
   expect(screen.getByRole('heading', { name: /sign in/i })).toBeInTheDocument();
-
-  confirmSpy.mockRestore();
 });

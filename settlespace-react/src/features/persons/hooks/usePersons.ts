@@ -169,10 +169,6 @@ export function usePersons({ expireSession, currentPersonId, role }: UsePersonsO
       return;
     }
 
-    if (!globalThis.confirm('Are you sure you want to delete this person?')) {
-      return;
-    }
-
     try {
       await personApi.delete(id);
       await loadPersons();

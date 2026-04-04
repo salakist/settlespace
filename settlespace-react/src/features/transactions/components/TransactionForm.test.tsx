@@ -35,7 +35,7 @@ test('submits valid transaction data', () => {
 
   fireEvent.change(screen.getByLabelText(/amount/i), { target: { value: '10.5' } });
   fireEvent.change(screen.getByLabelText(/currency/i), { target: { value: 'eur' } });
-  fireEvent.change(screen.getByLabelText(/transaction date/i), { target: { value: '2026-03-29' } });
+  fireEvent.change(screen.getByLabelText(/transaction date/i), { target: { value: '29/03/2026' } });
   fireEvent.change(screen.getByLabelText(/description/i), { target: { value: 'Lunch' } });
   fireEvent.click(screen.getByRole('button', { name: /update/i }));
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
 import PersonsPage from './PersonsPage';
 
 const mockNavigate = jest.fn();
@@ -22,7 +22,12 @@ jest.mock('./SearchBar', () => ({
 
 jest.mock('./PersonList', () => ({
   __esModule: true,
-  default: () => <div>Person List</div>,
+  default: ({ onDelete }: { onDelete: (id: string) => void }) => (
+    <div>
+      <div>Person List</div>
+      <button onClick={() => onDelete('p1')}>Delete Person</button>
+    </div>
+  ),
 }));
 
 jest.mock('./PersonForm', () => ({
@@ -106,4 +111,24 @@ test('calls onAdd when create button is clicked', () => {
   fireEvent.click(screen.getByRole('button', { name: /create person/i }));
 
   expect(onAdd).toHaveBeenCalled();
+});
+
+test('confirms deletion in a modal before calling onDelete', () => {
+  const onDelete = jest.fn();
+  render(
+    <PersonsPage
+      {...defaultProps}
+      persons={[{ id: 'p1', firstName: 'John', lastName: 'Doe', addresses: [], role: 'USER' }]}
+      onDelete={onDelete}
+    />,
+  );
+
+  fireEvent.click(screen.getByRole('button', { name: /delete person/i }));
+
+  const dialog = screen.getByRole('dialog');
+  expect(dialog).toBeInTheDocument();
+  expect(within(dialog).getAllByRole('button').map((button) => button.textContent)).toEqual(['Delete', 'Cancel']);
+
+  fireEvent.click(within(dialog).getByRole('button', { name: /^delete$/i }));
+  expect(onDelete).toHaveBeenCalledWith('p1');
 });
