@@ -206,6 +206,16 @@ test('initializes from initialQuery with involvement', () => {
   expect(screen.getByText('Involvement: Managed')).toBeInTheDocument();
 });
 
+test('top-level transaction filter suggestions do not duplicate group headings', async () => {
+  render(<TransactionSearchBar onSearch={jest.fn()} />);
+
+  const input = screen.getByLabelText(SEARCH_LABEL);
+  await userEvent.type(input, 'Cat');
+
+  expect(await screen.findByRole('option', { name: 'Category' })).toBeInTheDocument();
+  expect(screen.getAllByText('Category')).toHaveLength(1);
+});
+
 test('selecting Category enters sub-input mode with chip and action buttons', async () => {
   render(<TransactionSearchBar onSearch={jest.fn()} />);
 

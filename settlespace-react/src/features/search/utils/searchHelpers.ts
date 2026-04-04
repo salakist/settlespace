@@ -17,6 +17,7 @@ const MULTIPLE_SELECTION = SEARCH_SELECTION_MODES.MULTIPLE;
 export interface AutocompleteSearchOption<TParam extends string = string>
   extends AppliedSearchFilter<TParam> {
   isPrompt?: boolean;
+  showGroupLabel?: boolean;
 }
 
 export function normalizeSearchValue<TParam extends string = string>(
@@ -57,11 +58,20 @@ export function buildAvailableOptions<TParam extends string = string>(
   const activeParams = new Set(activeFilters.map((filter) => filter.param));
 
   return parameters.flatMap((parameter) => {
+    const showGroupLabel = parameter.showGroupLabel ?? true;
+
     if (parameter.kind !== SEARCH_PARAMETER_KINDS.FIXED) {
       const showPrompt = getSelectionMode(parameter) === MULTIPLE_SELECTION
         || !activeParams.has(parameter.param);
       return showPrompt
-        ? [{ param: parameter.param, value: '', label: parameter.label, group: parameter.label, isPrompt: true }]
+        ? [{
+          param: parameter.param,
+          value: '',
+          label: parameter.label,
+          group: parameter.label,
+          isPrompt: true,
+          showGroupLabel: false,
+        }]
         : [];
     }
 
@@ -76,6 +86,7 @@ export function buildAvailableOptions<TParam extends string = string>(
         value: option.value,
         label: option.label,
         group: option.group ?? parameter.label,
+        showGroupLabel,
       }));
   });
 }
@@ -98,7 +109,14 @@ export function buildAsyncAutocompleteOptions<TParam extends string = string>(
       value: option.value,
       label: option.label,
       group: option.group ?? parameter.label,
+      showGroupLabel: false,
     }));
+}
+
+export function getAutocompleteGroupLabel<TParam extends string = string>(
+  option: AutocompleteSearchOption<TParam>,
+): string {
+  return option.showGroupLabel ? option.group : '';
 }
 
 export function applyFilterSelection<TParam extends string = string>(
@@ -106,11 +124,21 @@ export function applyFilterSelection<TParam extends string = string>(
   nextFilter: AppliedSearchFilter<TParam>,
   selectionMode: SearchSelectionMode,
 ): AppliedSearchFilter<TParam>[] {
+  const normalizedFilter: AppliedSearchFilter<TParam> = {
+    param: nextFilter.param,
+    value: nextFilter.value,
+    label: nextFilter.label,
+    group: nextFilter.group,
+  };
+
   if (selectionMode !== SINGLE_SELECTION) {
-    return [...activeFilters, nextFilter];
+    return [...activeFilters, normalizedFilter];
   }
 
-  return [...activeFilters.filter((filter) => filter.param !== nextFilter.param), nextFilter];
+  return [
+    ...activeFilters.filter((filter) => filter.param !== normalizedFilter.param),
+    normalizedFilter,
+  ];
 }
 
 export function getAutocompleteOptions<TParam extends string = string>(

@@ -11,6 +11,7 @@ const ASYNC_SUGGESTIONS_KIND = 'async-suggestions' as const;
 const PERSON_PLACEHOLDER = 'Type a person name...';
 const INVOLVED_LABEL = 'Involved';
 const JANE_SMITH = 'Jane Smith';
+const PEOPLE_GROUP = 'People';
 
 test('supports free-text-only mode when no parameters are provided', async () => {
   const onSearch = jest.fn();
@@ -59,7 +60,7 @@ test('async suggestion parameters load results and add selected chips', async ()
   const onSearch = jest.fn();
   const getSuggestions = jest.fn(async (input: string) => {
     if (input.toLowerCase().includes('jane')) {
-      return [{ value: 'p2', label: JANE_SMITH }];
+      return [{ value: 'p2', label: JANE_SMITH, group: PEOPLE_GROUP }];
     }
 
     return [];
@@ -92,8 +93,67 @@ test('async suggestion parameters load results and add selected chips', async ()
   await userEvent.click(await screen.findByRole('option', { name: JANE_SMITH }));
 
   expect(getSuggestions).toHaveBeenCalledWith('Jane');
-  expect(screen.getByText(`Involved: ${JANE_SMITH}`)).toBeInTheDocument();
+  expect(screen.getByText(`${PEOPLE_GROUP}: ${JANE_SMITH}`)).toBeInTheDocument();
   expect(onSearch).toHaveBeenCalledWith({
-    filters: [{ param: 'involved', value: 'p2', label: JANE_SMITH, group: INVOLVED_LABEL }],
+    filters: [{ param: 'involved', value: 'p2', label: JANE_SMITH, group: PEOPLE_GROUP }],
   });
+});
+
+test('supports hiding group headings in top-level filter autocomplete', async () => {
+  const onSearch = jest.fn();
+  const parameters: SearchParameterConfig[] = [
+    {
+      param: 'status',
+      label: STATUS_LABEL,
+      kind: 'fixed',
+      selectionMode: 'multiple',
+      showGroupLabel: false,
+      options: [{ value: PENDING_STATUS, label: PENDING_STATUS, group: STATUS_LABEL }],
+    },
+  ];
+
+  render(
+    <GenericSearchBar
+      onSearch={onSearch}
+      ariaLabel={GENERIC_SEARCH_LABEL}
+      parameters={parameters}
+    />,
+  );
+
+  const input = screen.getByLabelText(GENERIC_SEARCH_LABEL);
+  await userEvent.type(input, 'Pend');
+
+  expect(await screen.findByRole('option', { name: PENDING_STATUS })).toBeInTheDocument();
+  expect(screen.queryByText(STATUS_LABEL)).not.toBeInTheDocument();
+});
+
+test('does not show group headings while entering an async parameter value', async () => {
+  const getSuggestions = jest.fn(async () => [{ value: 'p2', label: JANE_SMITH, group: PEOPLE_GROUP }]);
+  const parameters: SearchParameterConfig[] = [
+    {
+      param: 'involved',
+      label: INVOLVED_LABEL,
+      kind: ASYNC_SUGGESTIONS_KIND,
+      selectionMode: 'multiple',
+      placeholder: PERSON_PLACEHOLDER,
+      getSuggestions,
+      debounceMs: 0,
+    },
+  ];
+
+  render(
+    <GenericSearchBar
+      onSearch={jest.fn()}
+      ariaLabel={GENERIC_SEARCH_LABEL}
+      parameters={parameters}
+    />,
+  );
+
+  const input = screen.getByLabelText(GENERIC_SEARCH_LABEL);
+  await userEvent.type(input, 'Inv');
+  await userEvent.click(await screen.findByRole('option', { name: INVOLVED_LABEL }));
+
+  await userEvent.type(input, 'Jane');
+  expect(await screen.findByRole('option', { name: JANE_SMITH })).toBeInTheDocument();
+  expect(screen.queryByText(PEOPLE_GROUP)).not.toBeInTheDocument();
 });

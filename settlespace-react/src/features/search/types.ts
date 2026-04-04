@@ -27,6 +27,7 @@ export interface BaseSearchParameterConfig<TParam extends string = string> {
   label: string;
   selectionMode?: SearchSelectionMode;
   placeholder?: string;
+  showGroupLabel?: boolean;
 }
 
 export interface FixedSearchParameterConfig<TParam extends string = string>

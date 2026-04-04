@@ -9,7 +9,10 @@ import {
 import { SEARCH_PLACEHOLDERS } from '../constants';
 import { useGenericSearchController } from '../hooks/useGenericSearchController';
 import { GenericSearchBarProps } from '../types';
-import { filterAutocompleteOptions } from '../utils/searchHelpers';
+import {
+  filterAutocompleteOptions,
+  getAutocompleteGroupLabel,
+} from '../utils/searchHelpers';
 
 const INPUT_PADDING_RIGHT = '72px';
 
@@ -74,7 +77,7 @@ const GenericSearchBar = <TParam extends string = string,>({
             loading={loadingSuggestions}
             loadingText="Loading..."
             getOptionLabel={(option) => (typeof option === 'string' ? option : option.label)}
-            groupBy={(option) => (typeof option === 'string' ? '' : option.group)}
+            groupBy={(option) => (typeof option === 'string' ? '' : getAutocompleteGroupLabel(option))}
             inputValue={inputValue}
             onInputChange={(_event, newValue, reason) => {
               if (reason !== 'reset') {

@@ -22,6 +22,7 @@ Search feature provides the shared, domain-agnostic frontend search UI and state
   - `text-input` — require manual text entry before applying the chip
   - `async-suggestions` — fetch suggestions via `getSuggestions(input)` with optional `minChars` and `debounceMs`
 - `selectionMode` controls whether the parameter is `single` or `multiple`.
+- `showGroupLabel` optionally controls whether the top-level filter autocomplete shows a non-clickable group header for that parameter; parameter-value entry autocompletes should suppress those headings.
 - `GenericSearchValue<TParam>` is the shared output shape: optional `freeText` plus `filters: AppliedSearchFilter<TParam>[]`.
 - Consuming features such as transactions should translate between this generic value and their domain query models in a thin wrapper or bridge module.
 

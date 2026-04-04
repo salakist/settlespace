@@ -73,6 +73,7 @@ function buildPersonParameter(
     kind: SEARCH_PARAMETER_KINDS.ASYNC_SUGGESTIONS,
     selectionMode,
     placeholder: PERSON_PLACEHOLDER,
+    showGroupLabel: false,
     getSuggestions: searchPeopleSuggestions,
   };
 }
@@ -84,6 +85,7 @@ export function buildTransactionParameters(): SearchParameterConfig<TransactionS
       label: 'Status',
       kind: SEARCH_PARAMETER_KINDS.FIXED,
       selectionMode: SEARCH_SELECTION_MODES.MULTIPLE,
+      showGroupLabel: false,
       options: buildStatusOptions(),
     },
     {
@@ -91,6 +93,7 @@ export function buildTransactionParameters(): SearchParameterConfig<TransactionS
       label: 'Involvement',
       kind: SEARCH_PARAMETER_KINDS.FIXED,
       selectionMode: SEARCH_SELECTION_MODES.SINGLE,
+      showGroupLabel: false,
       options: buildInvolvementOptions(),
     },
     {
@@ -99,6 +102,7 @@ export function buildTransactionParameters(): SearchParameterConfig<TransactionS
       kind: SEARCH_PARAMETER_KINDS.TEXT_INPUT,
       selectionMode: SEARCH_SELECTION_MODES.SINGLE,
       placeholder: TEXT_VALUE_PLACEHOLDER,
+      showGroupLabel: false,
     },
     {
       param: TRANSACTION_SEARCH_PARAMS.DESCRIPTION,
@@ -106,6 +110,7 @@ export function buildTransactionParameters(): SearchParameterConfig<TransactionS
       kind: SEARCH_PARAMETER_KINDS.TEXT_INPUT,
       selectionMode: SEARCH_SELECTION_MODES.SINGLE,
       placeholder: TEXT_VALUE_PLACEHOLDER,
+      showGroupLabel: false,
     },
     buildPersonParameter(
       TRANSACTION_SEARCH_PARAMS.INVOLVED,
