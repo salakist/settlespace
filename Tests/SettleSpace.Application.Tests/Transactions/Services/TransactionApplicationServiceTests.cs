@@ -189,6 +189,71 @@ public class TransactionApplicationServiceTests
     }
 
     [Fact]
+    public async Task SearchTransactionsAsyncWithOwnedInvolvementReturnsOnlyInvolvedTransactions()
+    {
+        var ownedTransaction = BuildTransaction("tx-owned");
+        var managedTransaction = BuildTransaction("tx-managed");
+        managedTransaction.PayerPersonId = "user-3";
+        managedTransaction.PayeePersonId = "user-4";
+        managedTransaction.CreatedByPersonId = "user-1";
+
+        var query = new TransactionSearchQuery { Involvement = InvolvementType.Owned };
+        _repositoryMock.Setup(r => r.SearchAsync(It.IsAny<TransactionSearchFilter>()))
+            .ReturnsAsync([ownedTransaction, managedTransaction]);
+        _domainServiceMock
+            .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+
+        var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
+
+        Assert.Single(result);
+        Assert.Equal("tx-owned", result[0].Id);
+    }
+
+    [Fact]
+    public async Task SearchTransactionsAsyncWithManagedInvolvementReturnsOnlyManagedTransactions()
+    {
+        var ownedTransaction = BuildTransaction("tx-owned");
+        var managedTransaction = BuildTransaction("tx-managed");
+        managedTransaction.PayerPersonId = "user-3";
+        managedTransaction.PayeePersonId = "user-4";
+        managedTransaction.CreatedByPersonId = "user-1";
+
+        var query = new TransactionSearchQuery { Involvement = InvolvementType.Managed };
+        _repositoryMock.Setup(r => r.SearchAsync(It.IsAny<TransactionSearchFilter>()))
+            .ReturnsAsync([ownedTransaction, managedTransaction]);
+        _domainServiceMock
+            .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+
+        var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
+
+        Assert.Single(result);
+        Assert.Equal("tx-managed", result[0].Id);
+    }
+
+    [Fact]
+    public async Task SearchTransactionsAsyncWithNoInvolvementReturnsAll()
+    {
+        var ownedTransaction = BuildTransaction("tx-owned");
+        var managedTransaction = BuildTransaction("tx-managed");
+        managedTransaction.PayerPersonId = "user-3";
+        managedTransaction.PayeePersonId = "user-4";
+        managedTransaction.CreatedByPersonId = "user-1";
+
+        var query = new TransactionSearchQuery();
+        _repositoryMock.Setup(r => r.SearchAsync(It.IsAny<TransactionSearchFilter>()))
+            .ReturnsAsync([ownedTransaction, managedTransaction]);
+        _domainServiceMock
+            .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+
+        var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
     public async Task UpdateTransactionAsyncValidRequestUpdates()
     {
         var existing = BuildTransaction("tx-1");

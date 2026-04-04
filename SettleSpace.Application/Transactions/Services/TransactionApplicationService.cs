@@ -48,6 +48,8 @@ namespace SettleSpace.Application.Transactions.Services
 
             var transactionSearchTask = _repository.SearchAsync(filter);
 
+            List<Transaction> readable;
+
             if (!string.IsNullOrWhiteSpace(freeText))
             {
                 var personSearchTask = _personRepository.SearchAsync(freeText);
@@ -72,11 +74,15 @@ namespace SettleSpace.Application.Transactions.Services
                         .OrderByDescending(transaction => transaction.TransactionDateUtc)];
                 }
 
-                return _domainService.FilterReadableTransactions(matchedTransactions, loggedPersonId, loggedRole);
+                readable = _domainService.FilterReadableTransactions(matchedTransactions, loggedPersonId, loggedRole);
+            }
+            else
+            {
+                var transactions = await transactionSearchTask;
+                readable = _domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
             }
 
-            var transactions = await transactionSearchTask;
-            return _domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
+            return ApplyInvolvementFilter(readable, loggedPersonId, query.Involvement);
         }
 
         public async Task<Transaction> GetTransactionByIdAsync(string id, string loggedPersonId, PersonRole loggedRole)
@@ -172,6 +178,23 @@ namespace SettleSpace.Application.Transactions.Services
                 transaction.TransactionDateUtc.ToString("O"),
                 transaction.Description,
                 transaction.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+
+        private static List<Transaction> ApplyInvolvementFilter(
+            List<Transaction> transactions,
+            string loggedPersonId,
+            InvolvementType? involvement)
+        {
+            return involvement switch
+            {
+                InvolvementType.Owned => transactions
+                    .Where(t => t.IsUserInvolved(loggedPersonId))
+                    .ToList(),
+                InvolvementType.Managed => transactions
+                    .Where(t => t.IsCreatedBy(loggedPersonId) && !t.IsUserInvolved(loggedPersonId))
+                    .ToList(),
+                _ => transactions,
+            };
         }
     }
 }

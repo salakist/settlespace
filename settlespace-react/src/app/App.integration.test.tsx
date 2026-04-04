@@ -22,9 +22,8 @@ jest.mock('../shared/api/api', () => ({
     search: jest.fn(),
   },
   transactionApi: {
-    getCurrentUser: jest.fn(),
     getById: jest.fn(),
-    searchCurrentUser: jest.fn(),
+    search: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
@@ -62,9 +61,8 @@ const {
     search: jest.Mock;
   };
   transactionApi: {
-    getCurrentUser: jest.Mock;
     getById: jest.Mock;
-    searchCurrentUser: jest.Mock;
+    search: jest.Mock;
     create: jest.Mock;
     update: jest.Mock;
     delete: jest.Mock;
@@ -227,8 +225,7 @@ beforeEach(() => {
   mockPersonApi.updateCurrent.mockResolvedValue({});
   mockPersonApi.delete.mockResolvedValue({});
   mockPersonApi.search.mockResolvedValue({ data: [] });
-  mockTransactionApi.getCurrentUser.mockResolvedValue({ data: [] });
-  mockTransactionApi.searchCurrentUser.mockResolvedValue({ data: [] });
+  mockTransactionApi.search.mockResolvedValue({ data: [] });
   mockTransactionApi.create.mockResolvedValue({});
   mockTransactionApi.update.mockResolvedValue({});
   mockTransactionApi.delete.mockResolvedValue({});

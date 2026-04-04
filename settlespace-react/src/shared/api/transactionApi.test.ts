@@ -33,9 +33,7 @@ test('transaction api methods call expected routes', () => {
     loadedApi = require('./transactionApi').transactionApi;
   });
 
-  loadedApi!.getCurrentUser();
   loadedApi!.getById(TX_ID);
-  loadedApi!.searchCurrentUser('lunch');
   loadedApi!.search({ freeText: 'lunch' });
   loadedApi!.create({
     payerPersonId: 'p1',
@@ -57,9 +55,7 @@ test('transaction api methods call expected routes', () => {
   });
   loadedApi!.delete(TX_ID);
 
-  expect(mockGet).toHaveBeenNthCalledWith(1, '/transactions/me');
-  expect(mockGet).toHaveBeenNthCalledWith(2, TX_ROUTE);
-  expect(mockGet).toHaveBeenNthCalledWith(3, '/transactions/me/search/lunch');
+  expect(mockGet).toHaveBeenNthCalledWith(1, TX_ROUTE);
   expect(mockPost).toHaveBeenNthCalledWith(1, '/transactions/search', { freeText: 'lunch' });
   expect(mockPost).toHaveBeenNthCalledWith(2, '/transactions', expect.any(Object));
   expect(mockPut).toHaveBeenCalledWith(TX_ROUTE, expect.any(Object));

@@ -7,6 +7,7 @@ namespace SettleSpace.Application.Transactions.Queries
     {
         public string? FreeText { get; set; }
         public List<TransactionStatus>? Status { get; set; }
+        public InvolvementType? Involvement { get; set; }
 
         public void Validate()
         {

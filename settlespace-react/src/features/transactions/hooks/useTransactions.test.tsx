@@ -4,8 +4,6 @@ import { useTransactions } from './useTransactions';
 
 jest.mock('../../../shared/api/transactionApi', () => ({
   transactionApi: {
-    getCurrentUser: jest.fn(),
-    searchCurrentUser: jest.fn(),
     search: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
@@ -15,8 +13,6 @@ jest.mock('../../../shared/api/transactionApi', () => ({
 
 const { transactionApi } = jest.requireMock('../../../shared/api/transactionApi') as {
   transactionApi: {
-    getCurrentUser: jest.Mock;
-    searchCurrentUser: jest.Mock;
     search: jest.Mock;
     create: jest.Mock;
     update: jest.Mock;
@@ -55,16 +51,14 @@ function createHarness(options: {
 
 beforeEach(() => {
   jest.clearAllMocks();
-  transactionApi.getCurrentUser.mockResolvedValue({ data: [] });
-  transactionApi.searchCurrentUser.mockResolvedValue({ data: [] });
   transactionApi.search.mockResolvedValue({ data: [] });
   transactionApi.create.mockResolvedValue({});
   transactionApi.update.mockResolvedValue({});
   transactionApi.delete.mockResolvedValue({});
 });
 
-test('loadTransactions populates list', async () => {
-  transactionApi.getCurrentUser.mockResolvedValueOnce({
+test('handleSearch with empty query loads all transactions', async () => {
+  transactionApi.search.mockResolvedValueOnce({
     data: [
       {
         id: 'tx-1',
@@ -81,9 +75,10 @@ test('loadTransactions populates list', async () => {
 
   const harness = createHarness();
   await act(async () => {
-    await harness.getHook().loadTransactions();
+    await harness.getHook().handleSearch();
   });
 
+  expect(transactionApi.search).toHaveBeenCalledWith({});
   expect(harness.getHook().transactions).toHaveLength(1);
 });
 
@@ -155,22 +150,33 @@ test('handleSearch calls search endpoint with freeText', async () => {
   expect(harness.getHook().transactions).toHaveLength(1);
 });
 
-test('handleSearch with empty query falls back to loadTransactions', async () => {
+test('handleSearch with empty query calls search with empty object', async () => {
   const harness = createHarness();
 
   await act(async () => {
     await harness.getHook().handleSearch({});
   });
 
-  expect(transactionApi.getCurrentUser).toHaveBeenCalled();
+  expect(transactionApi.search).toHaveBeenCalledWith({});
 });
 
-test('unauthorized load triggers session expiration and clears state', async () => {
-  transactionApi.getCurrentUser.mockRejectedValueOnce({ response: { status: 401 } });
+test('handleSearch with involvement only calls search endpoint', async () => {
+  transactionApi.search.mockResolvedValueOnce({ data: [] } as any);
   const harness = createHarness();
 
   await act(async () => {
-    await harness.getHook().loadTransactions();
+    await harness.getHook().handleSearch({ involvement: 'Owned' });
+  });
+
+  expect(transactionApi.search).toHaveBeenCalledWith({ involvement: 'Owned' });
+});
+
+test('unauthorized search triggers session expiration and clears state', async () => {
+  transactionApi.search.mockRejectedValueOnce({ response: { status: 401 } });
+  const harness = createHarness();
+
+  await act(async () => {
+    await harness.getHook().handleSearch();
   });
 
   expect(harness.expireSession).toHaveBeenCalledWith(SESSION_EXPIRED_MESSAGE);
@@ -254,7 +260,7 @@ test('handleEdit blocks users from editing transactions they did not create', ()
 });
 
 test('handleDelete blocks users from deleting transactions they did not create', async () => {
-  transactionApi.getCurrentUser.mockResolvedValueOnce({
+  transactionApi.search.mockResolvedValueOnce({
     data: [{
       id: 'tx-2',
       payerPersonId: 'p1',
@@ -270,7 +276,7 @@ test('handleDelete blocks users from deleting transactions they did not create',
   const harness = createHarness({ role: 'USER', currentPersonId: 'p1' });
 
   await act(async () => {
-    await harness.getHook().loadTransactions();
+    await harness.getHook().handleSearch();
   });
 
   await act(async () => {

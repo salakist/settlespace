@@ -2,6 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import TransactionsPage from './TransactionsPage';
 
+const TRANSACTION_LIST_TEXT = 'Transaction List';
 const mockNavigate = jest.fn();
 const mockSetSearchParams = jest.fn();
 
@@ -20,7 +21,6 @@ const mockHook = {
   handleEdit: jest.fn(),
   handleSave: jest.fn(),
   handleSearch: jest.fn(),
-  loadTransactions: jest.fn(),
   loading: false,
   showCreateForm: jest.fn(),
   showForm: false,
@@ -66,7 +66,7 @@ test('renders list and loads transactions on mount', () => {
     />,
   );
 
-  expect(mockHook.loadTransactions).toHaveBeenCalled();
+  expect(mockHook.handleSearch).toHaveBeenCalledWith({});
   expect(screen.getByText(/transaction list/i)).toBeInTheDocument();
 });
 
@@ -101,7 +101,27 @@ test('shows loading spinner when loading is true', () => {
   );
 
   expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  expect(screen.queryByText(TRANSACTION_LIST_TEXT)).not.toBeInTheDocument();
   mockHook.loading = false;
+});
+
+test('shows progress bar with list when re-searching with existing data', () => {
+  mockHook.loading = true;
+  mockHook.transactions = [{ id: 'tx-1' }];
+
+  render(
+    <TransactionsPage
+      persons={[]}
+      currentPersonId="p1"
+      role="USER"
+      expireSession={jest.fn()}
+    />,
+  );
+
+  expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  expect(screen.getByText(TRANSACTION_LIST_TEXT)).toBeInTheDocument();
+  mockHook.loading = false;
+  mockHook.transactions = [];
 });
 
 test('shows error alert when error is set', () => {
@@ -136,7 +156,7 @@ test('renders only the transaction form when showForm is true', () => {
   expect(screen.getByText('Transaction Form')).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /search/i })).not.toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /add transaction/i })).not.toBeInTheDocument();
-  expect(screen.queryByText('Transaction List')).not.toBeInTheDocument();
+  expect(screen.queryByText(TRANSACTION_LIST_TEXT)).not.toBeInTheDocument();
   mockHook.showForm = false;
 });
 

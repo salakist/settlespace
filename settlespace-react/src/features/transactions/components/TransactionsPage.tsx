@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Button, CircularProgress, Stack } from '@mui/material';
+import { Alert, Button, CircularProgress, LinearProgress, Stack } from '@mui/material';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { TransactionSearchQuery } from '../../../shared/api/transactionApi';
 import { canUpdateOrDeleteTransaction } from '../../../shared/auth/permissions';
@@ -33,6 +33,10 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
     if (statuses.length > 0) {
       query.status = statuses;
     }
+    const involvement = searchParams.get('involvement');
+    if (involvement) {
+      query.involvement = involvement;
+    }
     return query;
   }, [searchParams]);
   const decodedTransactionId = transactionId ? decodeURIComponent(transactionId) : undefined;
@@ -59,7 +63,6 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
     handleEdit,
     handleSave,
     handleSearch,
-    loadTransactions,
     loading,
     showCreateForm,
     showForm,
@@ -75,19 +78,13 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
 
   useEffect(() => {
     const loadPage = async () => {
-      const hasAnyFilter = searchQueryFromUrl.freeText || searchQueryFromUrl.status?.length;
-      if (hasAnyFilter) {
-        await handleSearch(searchQueryFromUrl);
-        return;
-      }
-
-      await loadTransactions();
+      await handleSearch(searchQueryFromUrl);
     };
 
     Promise.resolve(loadPage()).catch((loadError) => {
       console.error(loadError);
     });
-  }, [handleSearch, loadTransactions, searchQueryFromUrl]);
+  }, [handleSearch, searchQueryFromUrl]);
 
   useEffect(() => {
     if (lastSyncedRouteKey.current === currentRouteKey) {
@@ -128,6 +125,10 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
       for (const status of query.status) {
         nextParams.append('status', status);
       }
+    }
+
+    if (query.involvement) {
+      nextParams.set('involvement', query.involvement);
     }
 
     setSearchParams(nextParams);
@@ -217,20 +218,25 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
 
       {error && <Alert severity="error">{error}</Alert>}
 
-      {loading ? (
-        <Stack alignItems="center" sx={{ mt: 4 }}>
-          <CircularProgress />
-        </Stack>
-      ) : (
-        !displayForm && (
-          <TransactionList
-            transactions={transactions}
-            persons={persons}
-            currentPersonId={currentPersonId}
-            canManage={canManageTransaction}
-            onEdit={handleEditNavigate}
-            onDelete={handleDeleteRequest}
-          />
+      {!displayForm && (
+        loading && transactions.length === 0 ? (
+          <Stack alignItems="center" sx={{ mt: 4 }}>
+            <CircularProgress />
+          </Stack>
+        ) : (
+          <Stack sx={{ position: 'relative' }}>
+            {loading && (
+              <LinearProgress sx={{ position: 'absolute', top: 0, left: 0, right: 0, zIndex: 1 }} />
+            )}
+            <TransactionList
+              transactions={transactions}
+              persons={persons}
+              currentPersonId={currentPersonId}
+              canManage={canManageTransaction}
+              onEdit={handleEditNavigate}
+              onDelete={handleDeleteRequest}
+            />
+          </Stack>
         )
       )}
 

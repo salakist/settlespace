@@ -32,32 +32,7 @@ export function useTransactions({ expireSession, currentPersonId, role }: UseTra
     expireSession('Your session expired. Please log in again.');
   }, [clearTransactionsState, expireSession]);
 
-  const loadTransactions = useCallback(async () => {
-    try {
-      setLoading(true);
-      const response = await transactionApi.getCurrentUser();
-      setTransactions(response.data);
-      setError(null);
-    } catch (err) {
-      handleRequestError({
-        error: err,
-        onUnauthorized: handleUnauthorized,
-        setError,
-        fallbackMessage: 'Failed to load transactions',
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [handleUnauthorized]);
-
-  const handleSearch = useCallback(async (query: TransactionSearchQuery) => {
-    const hasAnyFilter = query.freeText?.trim() || query.status?.length;
-
-    if (!hasAnyFilter) {
-      await loadTransactions();
-      return;
-    }
-
+  const handleSearch = useCallback(async (query: TransactionSearchQuery = {}) => {
     const searchQuery: TransactionSearchQuery = { ...query };
     if (searchQuery.freeText) {
       searchQuery.freeText = searchQuery.freeText.trim();
@@ -73,12 +48,12 @@ export function useTransactions({ expireSession, currentPersonId, role }: UseTra
         error: err,
         onUnauthorized: handleUnauthorized,
         setError,
-        fallbackMessage: 'Search failed',
+        fallbackMessage: 'Failed to load transactions',
       });
     } finally {
       setLoading(false);
     }
-  }, [handleUnauthorized, loadTransactions]);
+  }, [handleUnauthorized]);
 
   const handleSave = useCallback(async (transactionData: Omit<Transaction, 'id' | 'createdByPersonId' | 'createdAtUtc' | 'updatedAtUtc'>) => {
     try {
@@ -90,7 +65,7 @@ export function useTransactions({ expireSession, currentPersonId, role }: UseTra
 
       setEditingTransaction(undefined);
       setShowForm(false);
-      await loadTransactions();
+      await handleSearch();
     } catch (err) {
       handleRequestError({
         error: err,
@@ -101,7 +76,7 @@ export function useTransactions({ expireSession, currentPersonId, role }: UseTra
         rethrow: true,
       });
     }
-  }, [editingTransaction, handleUnauthorized, loadTransactions]);
+  }, [editingTransaction, handleSearch, handleUnauthorized]);
 
   const handleEdit = useCallback((transaction: Transaction) => {
     if (rejectUnauthorizedAction(
@@ -128,7 +103,7 @@ export function useTransactions({ expireSession, currentPersonId, role }: UseTra
 
     try {
       await transactionApi.delete(id);
-      await loadTransactions();
+      await handleSearch();
     } catch (err) {
       handleRequestError({
         error: err,
@@ -138,7 +113,7 @@ export function useTransactions({ expireSession, currentPersonId, role }: UseTra
         forbiddenMessage: 'You are not allowed to delete this transaction.',
       });
     }
-  }, [currentPersonId, handleUnauthorized, loadTransactions, role, transactions]);
+  }, [currentPersonId, handleSearch, handleUnauthorized, role, transactions]);
 
   const handleCancel = useCallback(() => {
     setEditingTransaction(undefined);
@@ -159,7 +134,6 @@ export function useTransactions({ expireSession, currentPersonId, role }: UseTra
     handleEdit,
     handleSave,
     handleSearch,
-    loadTransactions,
     loading,
     showCreateForm,
     showForm,

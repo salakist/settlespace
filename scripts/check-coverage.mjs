@@ -260,7 +260,7 @@ function fileLikelyHasExecutableCSharp(filePath, repoRoot) {
   }
 
   const compact = stripComments(fs.readFileSync(absolutePath, "utf8"));
-  return !/\binterface\b/i.test(compact) && !isMarkerTypeWithoutExecutableSyntax(compact);
+  return !/\b(interface|enum)\b/i.test(compact) && !isMarkerTypeWithoutExecutableSyntax(compact);
 }
 
 function isProductionReactFile(relativePath) {

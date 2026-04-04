@@ -5,6 +5,7 @@ import { TransactionSearchQuery } from '../../../shared/api/transactionApi';
 import { TransactionStatus } from '../../../shared/types';
 
 const TRANSACTION_STATUSES: TransactionStatus[] = ['Pending', 'Completed', 'Cancelled'];
+const INVOLVEMENT_TYPES = ['Owned', 'Managed'] as const;
 const EMPTY_QUERY: TransactionSearchQuery = {};
 
 export interface SearchFilterOption {
@@ -29,6 +30,15 @@ function buildStatusOptions(): SearchFilterOption[] {
   }));
 }
 
+function buildInvolvementOptions(): SearchFilterOption[] {
+  return INVOLVEMENT_TYPES.map((type) => ({
+    param: 'involvement',
+    value: type,
+    label: type,
+    group: 'Involvement',
+  }));
+}
+
 function buildQueryFromFilters(
   filters: SearchFilterOption[],
   freeText: string,
@@ -47,12 +57,18 @@ function buildQueryFromFilters(
     query.status = statuses;
   }
 
+  const involvement = filters.find((f) => f.param === 'involvement');
+  if (involvement) {
+    query.involvement = involvement.value;
+  }
+
   return query;
 }
 
 function buildFiltersFromQuery(query: TransactionSearchQuery): SearchFilterOption[] {
   const filters: SearchFilterOption[] = [];
   const allStatusOptions = buildStatusOptions();
+  const allInvolvementOptions = buildInvolvementOptions();
 
   if (query.status) {
     for (const status of query.status) {
@@ -60,6 +76,13 @@ function buildFiltersFromQuery(query: TransactionSearchQuery): SearchFilterOptio
       if (option) {
         filters.push(option);
       }
+    }
+  }
+
+  if (query.involvement) {
+    const option = allInvolvementOptions.find((o) => o.value === query.involvement);
+    if (option) {
+      filters.push(option);
     }
   }
 
@@ -82,9 +105,14 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
   }, [initialQuery]);
 
   const availableOptions = useMemo(() => {
-    const allOptions = buildStatusOptions();
+    const allOptions = [...buildStatusOptions(), ...buildInvolvementOptions()];
     const activeKeys = new Set(activeFilters.map((f) => `${f.param}:${f.value}`));
-    return allOptions.filter((o) => !activeKeys.has(`${o.param}:${o.value}`));
+    const hasInvolvement = activeFilters.some((f) => f.param === 'involvement');
+    return allOptions.filter(
+      (o) =>
+        !activeKeys.has(`${o.param}:${o.value}`) &&
+        !(o.param === 'involvement' && hasInvolvement),
+    );
   }, [activeFilters]);
 
   const handleSelectOption = useCallback(
@@ -92,17 +120,21 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
       if (!option || typeof option === 'string') {
         return;
       }
-      setActiveFilters((prev) => [...prev, option]);
+      const nextFilters = [...activeFilters, option];
+      setActiveFilters(nextFilters);
       setInputValue('');
+      onSearch(buildQueryFromFilters(nextFilters, ''));
     },
-    [],
+    [activeFilters, onSearch],
   );
 
   const handleRemoveFilter = useCallback((filterToRemove: SearchFilterOption) => {
-    setActiveFilters((prev) =>
-      prev.filter((f) => !(f.param === filterToRemove.param && f.value === filterToRemove.value)),
+    const nextFilters = activeFilters.filter(
+      (f) => !(f.param === filterToRemove.param && f.value === filterToRemove.value),
     );
-  }, []);
+    setActiveFilters(nextFilters);
+    onSearch(buildQueryFromFilters(nextFilters, inputValue));
+  }, [activeFilters, inputValue, onSearch]);
 
   const handleSubmit = useCallback(
     (event: React.SyntheticEvent) => {
