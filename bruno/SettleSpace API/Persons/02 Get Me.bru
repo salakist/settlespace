@@ -1,0 +1,23 @@
+meta {
+  name: Get Me
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/persons/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+script:post-response {
+  const data = res.getBody();
+
+  if (res.getStatus() >= 200 && res.getStatus() < 300 && data?.id) {
+    bru.setEnvVar("personId", data.id, { persist: true });
+  }
+}

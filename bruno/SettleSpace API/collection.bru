@@ -1,0 +1,99 @@
+docs {
+  # SettleSpace Bruno Collection
+
+  Single source of truth for this Bruno setup.
+
+  ## Quick start
+  - Start the stack: `./scripts/start-stack.ps1`
+  - Open `bruno/SettleSpace API` in Bruno
+  - Select `John Doe`, `Jane Smith`, or `Jean Cule`
+  - Run any protected request
+
+  ## Auto-login
+  - Uses environment `username` and `password`
+  - Refreshes `token` automatically when missing or expired
+  - Persists the JWT back into the selected environment
+
+  ## Environments
+  - `John Doe` → `john.doe` / `Seed@Pass1`
+  - `Jane Smith` → `jane.smith` / `Seed@Pass2`
+  - `Jean Cule` → `jean.cule` / `test`
+
+  ## Useful variables
+  - `baseUrl` → `http://localhost:5279/api`
+  - `token`, `personId`, `transactionId`, `counterpartyPersonId`
+  - `query`, `newPassword`
+
+  ## Notes
+  - `Auth/01 Login` stores `token`, `resolvedUsername`, and `role`
+  - `Auth/02 Register` updates saved credentials for later auto-login
+  - `Auth/03 Change Password` persists `newPassword` into `password`
+  - Swagger: `http://localhost:5279/swagger`
+}
+
+script:pre-request {
+  const authMode = req.getAuthMode();
+
+  function decodeJwtPayload(token) {
+    try {
+      const parts = token.split('.');
+      if (parts.length < 2 || typeof Buffer === 'undefined') {
+        return null;
+      }
+
+      const normalized = parts[1].replace(/-/g, '+').replace(/_/g, '/');
+      const padded = normalized + '='.repeat((4 - (normalized.length % 4)) % 4);
+      const json = Buffer.from(padded, 'base64').toString('utf8');
+      return JSON.parse(json);
+    } catch {
+      return null;
+    }
+  }
+
+  if (authMode === 'bearer') {
+    const baseUrl = bru.getEnvVar('baseUrl');
+    const username = bru.getEnvVar('username');
+    const password = bru.getEnvVar('password');
+    let token = bru.getEnvVar('token');
+
+    const payload = token ? decodeJwtPayload(token) : null;
+    const now = Math.floor(Date.now() / 1000);
+    const needsLogin = !token || !payload?.exp || payload.exp <= now + 30;
+
+    if (needsLogin && baseUrl && username && password) {
+      try {
+        const response = await bru.sendRequest({
+          method: 'POST',
+          url: `${baseUrl}/auth/login`,
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          data: {
+            username,
+            password
+          }
+        });
+
+        const data = response?.data ?? response?.body;
+        if (data?.token) {
+          token = data.token;
+          bru.setEnvVar('token', data.token, { persist: true });
+
+          if (data.username) {
+            bru.setEnvVar('resolvedUsername', data.username, { persist: true });
+          }
+
+          if (data.role) {
+            bru.setEnvVar('role', data.role, { persist: true });
+          }
+        }
+      } catch (error) {
+        console.log(`Auto-login failed: ${error.message}`);
+      }
+    }
+
+    if (token) {
+      req.setHeader('Authorization', `Bearer ${token}`);
+    }
+  }
+}

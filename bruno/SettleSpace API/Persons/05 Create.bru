@@ -1,0 +1,40 @@
+meta {
+  name: Create
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/persons
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "firstName": "{{registerFirstName}}",
+    "lastName": "{{registerLastName}}",
+    "password": "{{registerPassword}}",
+    "phoneNumber": "{{registerPhoneNumber}}",
+    "email": "{{registerEmail}}",
+    "dateOfBirth": "{{registerDateOfBirth}}",
+    "role": "USER",
+    "addresses": []
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+
+  if (res.getStatus() >= 200 && res.getStatus() < 300 && data?.id) {
+    bru.setEnvVar("personId", data.id, { persist: true });
+  }
+}

@@ -1,0 +1,36 @@
+meta {
+  name: Settle
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/debts/settlements
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "counterpartyPersonId": "{{counterpartyPersonId}}",
+    "amount": 15.0,
+    "currencyCode": "EUR",
+    "description": "Bruno settlement"
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+
+  if (res.getStatus() >= 200 && res.getStatus() < 300 && data?.settlementTransactionId) {
+    bru.setEnvVar("transactionId", data.settlementTransactionId, { persist: true });
+  }
+}

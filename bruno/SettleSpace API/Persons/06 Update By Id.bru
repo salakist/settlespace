@@ -1,0 +1,31 @@
+meta {
+  name: Update By Id
+  type: http
+  seq: 6
+}
+
+put {
+  url: {{baseUrl}}/persons/{{personId}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "firstName": "{{registerFirstName}}",
+    "lastName": "{{registerLastName}} Updated",
+    "phoneNumber": "{{registerPhoneNumber}}",
+    "email": "{{registerEmail}}",
+    "dateOfBirth": "{{registerDateOfBirth}}",
+    "role": "USER",
+    "addresses": []
+  }
+}

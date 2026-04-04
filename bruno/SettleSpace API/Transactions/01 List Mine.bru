@@ -1,0 +1,15 @@
+meta {
+  name: List Mine
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/transactions/me
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}

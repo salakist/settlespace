@@ -1,0 +1,40 @@
+meta {
+  name: Create
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/transactions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "payerPersonId": "{{personId}}",
+    "payeePersonId": "{{counterpartyPersonId}}",
+    "amount": 10.5,
+    "currencyCode": "EUR",
+    "transactionDateUtc": "2026-03-30T12:00:00Z",
+    "description": "Bruno sample transaction",
+    "category": "ManualTest",
+    "status": "Completed"
+  }
+}
+
+script:post-response {
+  const data = res.getBody();
+
+  if (res.getStatus() >= 200 && res.getStatus() < 300 && data?.id) {
+    bru.setEnvVar("transactionId", data.id, { persist: true });
+  }
+}

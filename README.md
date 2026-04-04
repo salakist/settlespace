@@ -37,7 +37,8 @@ settlespace/
 |   |-- SettleSpace.Infrastructure.Tests/ # Unit tests - Infrastructure layer
 |   `-- SettleSpace.Application.Tests/    # Unit tests - Application layer
 |-- settlespace-react/                   # React SPA frontend
-|-- AGENTS.md                            # Root agent index
+|-- bruno/                              # Bruno collection(s) for manual API exploration
+|-- AGENTS.md                           # Root agent index
 `-- README.md
 ```
 
@@ -514,6 +515,14 @@ API starts on `http://localhost:5279`.
 
 - Username format: `firstName.lastName` (example: `john.doe`)
 - Password: the password stored for that person
+
+### 3.2 Bruno collection (optional)
+
+A repo-managed Bruno collection is available under `bruno/SettleSpace API/`.
+
+- Open that folder in Bruno and select one of the provided environments (`John Doe`, `Jane Smith`, or `Jean Cule`).
+- Protected requests auto-login with the environment `username` and `password` when `token` is missing or expired, then persist the refreshed token back into the environment.
+- The collection usage guide and environment conventions are documented directly in `bruno/SettleSpace API/collection.bru`.
 
 ### 4. Run the Frontend
 

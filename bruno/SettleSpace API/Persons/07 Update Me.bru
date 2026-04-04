@@ -1,0 +1,30 @@
+meta {
+  name: Update Me
+  type: http
+  seq: 7
+}
+
+put {
+  url: {{baseUrl}}/persons/me
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "firstName": "{{registerFirstName}}",
+    "lastName": "{{registerLastName}} Self",
+    "phoneNumber": "{{registerPhoneNumber}}",
+    "email": "{{registerEmail}}",
+    "dateOfBirth": "{{registerDateOfBirth}}",
+    "addresses": []
+  }
+}

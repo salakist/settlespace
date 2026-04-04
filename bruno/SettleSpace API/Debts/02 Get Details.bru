@@ -1,0 +1,15 @@
+meta {
+  name: Get Details
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/debts/me/{{counterpartyPersonId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{token}}
+}
