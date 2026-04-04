@@ -13,3 +13,4 @@ Tests/**/artifacts/
 .scannerwork/
 mongodump/
 review.md
+docs/
