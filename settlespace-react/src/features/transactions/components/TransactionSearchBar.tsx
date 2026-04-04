@@ -54,15 +54,19 @@ function buildTextInputPrompts(): SearchFilterOption[] {
   }));
 }
 
+const MANAGED_BY_LABEL = 'Managed By';
+
 function buildPersonSearchPrompts(): SearchFilterOption[] {
-  return [{
-    param: 'involved',
-    value: '',
-    label: 'Involved',
-    group: 'Involved',
-    isPrompt: true,
-  }];
+  return [
+    { param: 'involved', value: '', label: 'Involved', group: 'Involved', isPrompt: true },
+    { param: 'managedBy', value: '', label: MANAGED_BY_LABEL, group: MANAGED_BY_LABEL, isPrompt: true },
+    { param: 'payer', value: '', label: 'Payer', group: 'Payer', isPrompt: true },
+    { param: 'payee', value: '', label: 'Payee', group: 'Payee', isPrompt: true },
+  ];
 }
+
+const PERSON_SEARCH_PARAMS = new Set(['involved', 'managedBy', 'payer', 'payee']);
+const SINGLE_PERSON_PARAMS = new Set(['payer', 'payee']);
 
 function buildQueryFromFilters(
   filters: SearchFilterOption[],
@@ -102,6 +106,23 @@ function buildQueryFromFilters(
     .map((f) => f.value);
   if (involvedIds.length > 0) {
     query.involved = involvedIds;
+  }
+
+  const managedByIds = filters
+    .filter((f) => f.param === 'managedBy')
+    .map((f) => f.value);
+  if (managedByIds.length > 0) {
+    query.managedBy = managedByIds;
+  }
+
+  const payer = filters.find((f) => f.param === 'payer');
+  if (payer) {
+    query.payer = payer.value;
+  }
+
+  const payee = filters.find((f) => f.param === 'payee');
+  if (payee) {
+    query.payee = payee.value;
   }
 
   return query;
@@ -148,6 +169,35 @@ function buildFiltersFromQuery(query: TransactionSearchQuery, persons?: Person[]
     }
   }
 
+  if (query.managedBy) {
+    for (const personId of query.managedBy) {
+      filters.push({
+        param: 'managedBy',
+        value: personId,
+        label: resolvePersonName(personId, persons),
+        group: MANAGED_BY_LABEL,
+      });
+    }
+  }
+
+  if (query.payer) {
+    filters.push({
+      param: 'payer',
+      value: query.payer,
+      label: resolvePersonName(query.payer, persons),
+      group: 'Payer',
+    });
+  }
+
+  if (query.payee) {
+    filters.push({
+      param: 'payee',
+      value: query.payee,
+      label: resolvePersonName(query.payee, persons),
+      group: 'Payee',
+    });
+  }
+
   return filters;
 }
 
@@ -156,13 +206,13 @@ function getAutocompleteOptions(
   personOptions: SearchFilterOption[],
   availableOptions: SearchFilterOption[],
 ): SearchFilterOption[] {
-  if (pendingParam === 'involved') return personOptions;
+  if (pendingParam && PERSON_SEARCH_PARAMS.has(pendingParam)) return personOptions;
   if (pendingParam) return [];
   return availableOptions;
 }
 
 function getPlaceholder(pendingParam: string | null): string {
-  if (pendingParam === 'involved') return 'Type a person name...';
+  if (pendingParam && PERSON_SEARCH_PARAMS.has(pendingParam)) return 'Type a person name...';
   if (pendingParam) return 'Type a value...';
   return 'Search or filter transactions...';
 }
@@ -187,22 +237,24 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
   }, [initialQuery, persons]);
 
   const personOptions = useMemo(() => {
-    if (!persons) return [];
-    const existingInvolvedIds = new Set(
-      activeFilters.filter((f) => f.param === 'involved').map((f) => f.value),
+    if (!persons || !pendingParam || !PERSON_SEARCH_PARAMS.has(pendingParam)) return [];
+    const existingIds = new Set(
+      activeFilters.filter((f) => f.param === pendingParam).map((f) => f.value),
     );
+    const groupLabel = pendingParam === 'managedBy' ? MANAGED_BY_LABEL
+      : pendingParam.charAt(0).toUpperCase() + pendingParam.slice(1);
     return persons
       .filter((p): p is Person & { id: string } => {
         const personId = p.id;
-        return personId !== undefined && personId !== '' && !existingInvolvedIds.has(personId);
+        return personId !== undefined && personId !== '' && !existingIds.has(personId);
       })
       .map((p) => ({
-        param: 'involved',
+        param: pendingParam,
         value: p.id,
         label: `${p.firstName} ${p.lastName}`,
-        group: 'Involved',
+        group: groupLabel,
       }));
-  }, [persons, activeFilters]);
+  }, [persons, activeFilters, pendingParam]);
 
   const availableOptions = useMemo(() => {
     const allOptions: SearchFilterOption[] = [
@@ -214,11 +266,12 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
     const activeKeys = new Set(activeFilters.map((f) => `${f.param}:${f.value}`));
     const hasInvolvement = activeFilters.some((f) => f.param === 'involvement');
     const activeParamNames = new Set(activeFilters.map((f) => f.param));
+    const multiPersonParams = new Set(['involved', 'managedBy']);
     return allOptions.filter(
       (o) =>
         !activeKeys.has(`${o.param}:${o.value}`) &&
         !(o.param === 'involvement' && hasInvolvement) &&
-        !(o.isPrompt && activeParamNames.has(o.param) && o.param !== 'involved'),
+        !(o.isPrompt && activeParamNames.has(o.param) && !multiPersonParams.has(o.param)),
     );
   }, [activeFilters]);
 
@@ -235,7 +288,11 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
       if (pendingParam) {
         setPendingParam(null);
       }
-      const nextFilters = [...activeFilters, option];
+      let base = activeFilters;
+      if (SINGLE_PERSON_PARAMS.has(option.param)) {
+        base = base.filter((f) => f.param !== option.param);
+      }
+      const nextFilters = [...base, option];
       setActiveFilters(nextFilters);
       setInputValue('');
       onSearch(buildQueryFromFilters(nextFilters, ''));
@@ -278,7 +335,7 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
   const handleSubmit = useCallback(
     (event: React.SyntheticEvent) => {
       event.preventDefault();
-      if (pendingParam === 'involved') {
+      if (pendingParam && PERSON_SEARCH_PARAMS.has(pendingParam)) {
         return;
       }
       if (pendingParam) {
@@ -354,7 +411,7 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
                 ...(pendingParam ? {
                   startAdornment: (
                     <Chip
-                      label={pendingParam.charAt(0).toUpperCase() + pendingParam.slice(1)}
+                      label={pendingParam.replace(/([A-Z])/g, ' $1').replace(/^./, (c) => c.toUpperCase()).trim()}
                       size="small"
                       sx={{ mr: 0.5 }}
                       data-testid="pending-param-chip"
@@ -379,7 +436,7 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
                       >
                         <CloseIcon sx={{ fontSize: 16 }} />
                       </IconButton>
-                      {pendingParam !== 'involved' && (
+                      {pendingParam && !PERSON_SEARCH_PARAMS.has(pendingParam) && (
                       <IconButton
                         size="small"
                         aria-label="Confirm filter"

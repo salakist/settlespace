@@ -49,6 +49,18 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
     if (involved.length > 0) {
       query.involved = involved;
     }
+    const managedBy = searchParams.getAll('managedBy');
+    if (managedBy.length > 0) {
+      query.managedBy = managedBy;
+    }
+    const payer = searchParams.get('payer');
+    if (payer) {
+      query.payer = payer;
+    }
+    const payee = searchParams.get('payee');
+    if (payee) {
+      query.payee = payee;
+    }
     return query;
   }, [searchParams]);
   const decodedTransactionId = transactionId ? decodeURIComponent(transactionId) : undefined;
@@ -155,6 +167,20 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
       for (const personId of query.involved) {
         nextParams.append('involved', personId);
       }
+    }
+
+    if (query.managedBy) {
+      for (const personId of query.managedBy) {
+        nextParams.append('managedBy', personId);
+      }
+    }
+
+    if (query.payer) {
+      nextParams.set('payer', query.payer);
+    }
+
+    if (query.payee) {
+      nextParams.set('payee', query.payee);
     }
 
     setSearchParams(nextParams);

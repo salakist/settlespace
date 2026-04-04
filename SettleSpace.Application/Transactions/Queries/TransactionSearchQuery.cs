@@ -11,6 +11,9 @@ namespace SettleSpace.Application.Transactions.Queries
         public string? Category { get; set; }
         public string? Description { get; set; }
         public List<string>? Involved { get; set; }
+        public List<string>? ManagedBy { get; set; }
+        public string? Payer { get; set; }
+        public string? Payee { get; set; }
 
         public void Validate()
         {
@@ -45,6 +48,29 @@ namespace SettleSpace.Application.Transactions.Queries
                 {
                     throw new InvalidTransactionSearchException("Each involved person ID must not be empty or whitespace.");
                 }
+            }
+
+            if (ManagedBy is not null)
+            {
+                if (ManagedBy.Count == 0)
+                {
+                    throw new InvalidTransactionSearchException("ManagedBy list must not be empty when provided.");
+                }
+
+                if (ManagedBy.Any(string.IsNullOrWhiteSpace))
+                {
+                    throw new InvalidTransactionSearchException("Each ManagedBy person ID must not be empty or whitespace.");
+                }
+            }
+
+            if (Payer is not null && string.IsNullOrWhiteSpace(Payer))
+            {
+                throw new InvalidTransactionSearchException("Payer must not be empty or whitespace when provided.");
+            }
+
+            if (Payee is not null && string.IsNullOrWhiteSpace(Payee))
+            {
+                throw new InvalidTransactionSearchException("Payee must not be empty or whitespace when provided.");
             }
         }
     }

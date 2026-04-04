@@ -24,6 +24,9 @@ export interface TransactionSearchQuery {
   category?: string;
   description?: string;
   involved?: string[];
+  managedBy?: string[];
+  payer?: string;
+  payee?: string;
 }
 
 export const transactionApi = {

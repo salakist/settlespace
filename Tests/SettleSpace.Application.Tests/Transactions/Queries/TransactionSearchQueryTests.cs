@@ -109,4 +109,66 @@ public class TransactionSearchQueryTests
 
         Assert.Throws<InvalidTransactionSearchException>(() => query.Validate());
     }
+
+    [Fact]
+    public void ValidatePassesWhenManagedByHasValues()
+    {
+        var query = new TransactionSearchQuery { ManagedBy = ["person-1"] };
+
+        query.Validate();
+    }
+
+    [Fact]
+    public void ValidateThrowsWhenManagedByIsEmptyList()
+    {
+        var query = new TransactionSearchQuery { ManagedBy = [] };
+
+        Assert.Throws<InvalidTransactionSearchException>(() => query.Validate());
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ValidateThrowsWhenManagedByContainsEmptyOrWhitespaceId(string id)
+    {
+        var query = new TransactionSearchQuery { ManagedBy = [id] };
+
+        Assert.Throws<InvalidTransactionSearchException>(() => query.Validate());
+    }
+
+    [Fact]
+    public void ValidatePassesWhenPayerHasContent()
+    {
+        var query = new TransactionSearchQuery { Payer = "person-1" };
+
+        query.Validate();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ValidateThrowsWhenPayerIsEmptyOrWhitespace(string payer)
+    {
+        var query = new TransactionSearchQuery { Payer = payer };
+
+        Assert.Throws<InvalidTransactionSearchException>(() => query.Validate());
+    }
+
+    [Fact]
+    public void ValidatePassesWhenPayeeHasContent()
+    {
+        var query = new TransactionSearchQuery { Payee = "person-2" };
+
+        query.Validate();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ValidateThrowsWhenPayeeIsEmptyOrWhitespace(string payee)
+    {
+        var query = new TransactionSearchQuery { Payee = payee };
+
+        Assert.Throws<InvalidTransactionSearchException>(() => query.Validate());
+    }
 }

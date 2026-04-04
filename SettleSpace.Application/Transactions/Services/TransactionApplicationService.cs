@@ -51,6 +51,9 @@ namespace SettleSpace.Application.Transactions.Services
                 Category = query.Category,
                 Description = query.Description,
                 Involved = query.Involved,
+                ManagedBy = query.ManagedBy,
+                Payer = query.Payer,
+                Payee = query.Payee,
             };
 
             var transactionSearchTask = _repository.SearchAsync(filter);

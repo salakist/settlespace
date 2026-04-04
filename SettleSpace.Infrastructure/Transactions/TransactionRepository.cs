@@ -181,6 +181,21 @@ namespace SettleSpace.Infrastructure.Transactions
                     builder.In(t => t.PayeePersonId, filter.Involved));
             }
 
+            if (filter.ManagedBy is { Count: > 0 })
+            {
+                conditions.Add(builder.In(t => t.CreatedByPersonId, filter.ManagedBy));
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter.Payer))
+            {
+                conditions.Add(builder.Eq(t => t.PayerPersonId, filter.Payer));
+            }
+
+            if (!string.IsNullOrWhiteSpace(filter.Payee))
+            {
+                conditions.Add(builder.Eq(t => t.PayeePersonId, filter.Payee));
+            }
+
             return conditions.Count == 0
                 ? builder.Empty
                 : builder.And(conditions);

@@ -8,6 +8,9 @@ const SEARCH_LABEL = 'Transaction search';
 const STATUS_PENDING_CHIP = 'Status: Pending';
 const INVOLVEMENT_OWNED_CHIP = 'Involvement: Owned';
 const PENDING_PARAM_CHIP = 'pending-param-chip';
+const JANE_SMITH = 'Jane Smith';
+const MANAGED_BY_OPTION = 'Managed By';
+const MANAGED_BY_JOHN_DOE_CHIP = 'Managed By: John Doe';
 
 const TEST_PERSONS: Person[] = [
   { id: 'p1', firstName: 'John', lastName: 'Doe' },
@@ -336,7 +339,7 @@ test('typing a person name in Involved mode shows matching persons', async () =>
 
   await userEvent.type(input, 'John');
   expect(await screen.findByRole('option', { name: 'John Doe' })).toBeInTheDocument();
-  expect(screen.queryByRole('option', { name: 'Jane Smith' })).not.toBeInTheDocument();
+  expect(screen.queryByRole('option', { name: JANE_SMITH })).not.toBeInTheDocument();
 });
 
 test('selecting a person in Involved mode adds a chip and searches', async () => {
@@ -348,7 +351,7 @@ test('selecting a person in Involved mode adds a chip and searches', async () =>
   await userEvent.click(await screen.findByRole('option', { name: 'Involved' }));
 
   await userEvent.type(input, 'Jane');
-  await userEvent.click(await screen.findByRole('option', { name: 'Jane Smith' }));
+  await userEvent.click(await screen.findByRole('option', { name: JANE_SMITH }));
 
   expect(screen.getByText('Involved: Jane Smith')).toBeInTheDocument();
   expect(screen.queryByTestId(PENDING_PARAM_CHIP)).not.toBeInTheDocument();
@@ -426,4 +429,126 @@ test('initializes from initialQuery with involved falls back to ID without perso
   );
 
   expect(screen.getByText('Involved: p1')).toBeInTheDocument();
+});
+
+test('selecting Managed By enters sub-input mode and allows multiple persons', async () => {
+  const onSearch = jest.fn();
+  render(<TransactionSearchBar onSearch={onSearch} persons={TEST_PERSONS} />);
+
+  const input = screen.getByLabelText(SEARCH_LABEL);
+  await userEvent.type(input, 'Managed');
+  await userEvent.click(await screen.findByRole('option', { name: MANAGED_BY_OPTION }));
+
+  expect(screen.getByTestId(PENDING_PARAM_CHIP)).toHaveTextContent(MANAGED_BY_OPTION);
+
+  await userEvent.type(input, 'John');
+  await userEvent.click(await screen.findByRole('option', { name: 'John Doe' }));
+
+  expect(screen.getByText(MANAGED_BY_JOHN_DOE_CHIP)).toBeInTheDocument();
+  expect(onSearch).toHaveBeenCalledWith({ managedBy: ['p1'] });
+});
+
+test('Managed By option remains available after adding a chip', async () => {
+  const onSearch = jest.fn();
+  render(<TransactionSearchBar onSearch={onSearch} persons={TEST_PERSONS} />);
+
+  const input = screen.getByLabelText(SEARCH_LABEL);
+  await userEvent.type(input, 'Managed');
+  await userEvent.click(await screen.findByRole('option', { name: MANAGED_BY_OPTION }));
+
+  await userEvent.type(input, 'John');
+  await userEvent.click(await screen.findByRole('option', { name: 'John Doe' }));
+
+  expect(screen.getByText(MANAGED_BY_JOHN_DOE_CHIP)).toBeInTheDocument();
+
+  await userEvent.type(input, 'Managed');
+  expect(await screen.findByRole('option', { name: MANAGED_BY_OPTION })).toBeInTheDocument();
+});
+
+test('selecting Payer enters sub-input mode and adds a chip', async () => {
+  const onSearch = jest.fn();
+  render(<TransactionSearchBar onSearch={onSearch} persons={TEST_PERSONS} />);
+
+  const input = screen.getByLabelText(SEARCH_LABEL);
+  await userEvent.type(input, 'Payer');
+  await userEvent.click(await screen.findByRole('option', { name: 'Payer' }));
+
+  expect(screen.getByTestId(PENDING_PARAM_CHIP)).toHaveTextContent('Payer');
+
+  await userEvent.type(input, 'Jane');
+  await userEvent.click(await screen.findByRole('option', { name: JANE_SMITH }));
+
+  expect(screen.getByText('Payer: Jane Smith')).toBeInTheDocument();
+  expect(onSearch).toHaveBeenCalledWith({ payer: 'p2' });
+});
+
+test('Payer option hides after adding a chip', async () => {
+  const onSearch = jest.fn();
+  render(<TransactionSearchBar onSearch={onSearch} persons={TEST_PERSONS} />);
+
+  const input = screen.getByLabelText(SEARCH_LABEL);
+  await userEvent.type(input, 'Payer');
+  await userEvent.click(await screen.findByRole('option', { name: 'Payer' }));
+
+  await userEvent.type(input, 'John');
+  await userEvent.click(await screen.findByRole('option', { name: 'John Doe' }));
+
+  expect(screen.getByText('Payer: John Doe')).toBeInTheDocument();
+
+  await userEvent.type(input, 'Payer');
+  expect(screen.queryByRole('option', { name: 'Payer' })).not.toBeInTheDocument();
+});
+
+test('selecting Payee enters sub-input mode and adds a chip', async () => {
+  const onSearch = jest.fn();
+  render(<TransactionSearchBar onSearch={onSearch} persons={TEST_PERSONS} />);
+
+  const input = screen.getByLabelText(SEARCH_LABEL);
+  await userEvent.type(input, 'Payee');
+  await userEvent.click(await screen.findByRole('option', { name: 'Payee' }));
+
+  expect(screen.getByTestId(PENDING_PARAM_CHIP)).toHaveTextContent('Payee');
+
+  await userEvent.type(input, 'Alice');
+  await userEvent.click(await screen.findByRole('option', { name: 'Alice Johnson' }));
+
+  expect(screen.getByText('Payee: Alice Johnson')).toBeInTheDocument();
+  expect(onSearch).toHaveBeenCalledWith({ payee: 'p3' });
+});
+
+test('initializes from initialQuery with managedBy and resolves person names', () => {
+  render(
+    <TransactionSearchBar
+      onSearch={jest.fn()}
+      persons={TEST_PERSONS}
+      initialQuery={{ managedBy: ['p1', 'p2'] }}
+    />,
+  );
+
+  expect(screen.getByText(MANAGED_BY_JOHN_DOE_CHIP)).toBeInTheDocument();
+  expect(screen.getByText('Managed By: Jane Smith')).toBeInTheDocument();
+});
+
+test('initializes from initialQuery with payer and resolves person name', () => {
+  render(
+    <TransactionSearchBar
+      onSearch={jest.fn()}
+      persons={TEST_PERSONS}
+      initialQuery={{ payer: 'p1' }}
+    />,
+  );
+
+  expect(screen.getByText('Payer: John Doe')).toBeInTheDocument();
+});
+
+test('initializes from initialQuery with payee and resolves person name', () => {
+  render(
+    <TransactionSearchBar
+      onSearch={jest.fn()}
+      persons={TEST_PERSONS}
+      initialQuery={{ payee: 'p3' }}
+    />,
+  );
+
+  expect(screen.getByText('Payee: Alice Johnson')).toBeInTheDocument();
 });

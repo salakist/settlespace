@@ -217,6 +217,48 @@ public class TransactionRepositoryTests
     }
 
     [Fact]
+    public async Task SearchAsyncFilterWithManagedByReturnsMatchingTransactions()
+    {
+        var tx = BuildTransaction("tx-1");
+        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+
+        var result = await repo.SearchAsync(new TransactionSearchFilter
+        {
+            ManagedBy = ["user-1"]
+        });
+
+        Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task SearchAsyncFilterWithPayerReturnsMatchingTransactions()
+    {
+        var tx = BuildTransaction("tx-1");
+        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+
+        var result = await repo.SearchAsync(new TransactionSearchFilter
+        {
+            Payer = "user-1"
+        });
+
+        Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task SearchAsyncFilterWithPayeeReturnsMatchingTransactions()
+    {
+        var tx = BuildTransaction("tx-1");
+        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+
+        var result = await repo.SearchAsync(new TransactionSearchFilter
+        {
+            Payee = "user-2"
+        });
+
+        Assert.Single(result);
+    }
+
+    [Fact]
     public async Task UpdateAsyncCallsReplaceOne()
     {
         var tx = BuildTransaction("tx-1");

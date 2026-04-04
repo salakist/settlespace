@@ -303,6 +303,55 @@ public class TransactionApplicationServiceTests
     }
 
     [Fact]
+    public async Task SearchTransactionsAsyncPassesManagedByToFilter()
+    {
+        var managedBy = new List<string> { "person-1" };
+        var query = new TransactionSearchQuery { ManagedBy = managedBy };
+        _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.ManagedBy == managedBy)))
+            .ReturnsAsync([BuildTransaction("tx-1")]);
+        _domainServiceMock
+            .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+
+        var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
+
+        Assert.Single(result);
+        _repositoryMock.Verify(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.ManagedBy == managedBy)), Times.Once);
+    }
+
+    [Fact]
+    public async Task SearchTransactionsAsyncPassesPayerToFilter()
+    {
+        var query = new TransactionSearchQuery { Payer = "person-1" };
+        _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.Payer == "person-1")))
+            .ReturnsAsync([BuildTransaction("tx-1")]);
+        _domainServiceMock
+            .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+
+        var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
+
+        Assert.Single(result);
+        _repositoryMock.Verify(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.Payer == "person-1")), Times.Once);
+    }
+
+    [Fact]
+    public async Task SearchTransactionsAsyncPassesPayeeToFilter()
+    {
+        var query = new TransactionSearchQuery { Payee = "person-2" };
+        _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.Payee == "person-2")))
+            .ReturnsAsync([BuildTransaction("tx-1")]);
+        _domainServiceMock
+            .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+
+        var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
+
+        Assert.Single(result);
+        _repositoryMock.Verify(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.Payee == "person-2")), Times.Once);
+    }
+
+    [Fact]
     public async Task UpdateTransactionAsyncValidRequestUpdates()
     {
         var existing = BuildTransaction("tx-1");
