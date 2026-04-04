@@ -50,13 +50,18 @@ export function useTransactions({ expireSession, currentPersonId, role }: UseTra
     }
   }, [handleUnauthorized]);
 
-  const handleSearch = useCallback(async (query: string) => {
-    if (!query.trim()) {
+  const handleSearch = useCallback(async (query: TransactionSearchQuery) => {
+    const hasAnyFilter = query.freeText?.trim() || query.status?.length;
+
+    if (!hasAnyFilter) {
       await loadTransactions();
       return;
     }
 
-    const searchQuery: TransactionSearchQuery = { freeText: query.trim() };
+    const searchQuery: TransactionSearchQuery = { ...query };
+    if (searchQuery.freeText) {
+      searchQuery.freeText = searchQuery.freeText.trim();
+    }
 
     try {
       setLoading(true);

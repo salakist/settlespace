@@ -19,6 +19,7 @@ api.interceptors.request.use((config) => {
 
 export interface TransactionSearchQuery {
   freeText?: string;
+  status?: string[];
 }
 
 export const transactionApi = {

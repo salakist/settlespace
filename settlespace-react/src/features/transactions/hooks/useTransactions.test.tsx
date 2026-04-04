@@ -148,7 +148,7 @@ test('handleSearch calls search endpoint with freeText', async () => {
   const harness = createHarness();
 
   await act(async () => {
-    await harness.getHook().handleSearch('lunch');
+    await harness.getHook().handleSearch({ freeText: 'lunch' });
   });
 
   expect(transactionApi.search).toHaveBeenCalledWith({ freeText: 'lunch' });
@@ -159,7 +159,7 @@ test('handleSearch with empty query falls back to loadTransactions', async () =>
   const harness = createHarness();
 
   await act(async () => {
-    await harness.getHook().handleSearch('');
+    await harness.getHook().handleSearch({});
   });
 
   expect(transactionApi.getCurrentUser).toHaveBeenCalled();
@@ -196,7 +196,7 @@ test('handleSearch unauthorized triggers expireSession', async () => {
   const harness = createHarness();
 
   await act(async () => {
-    await harness.getHook().handleSearch('lunch');
+    await harness.getHook().handleSearch({ freeText: 'lunch' });
   });
 
   expect(harness.expireSession).toHaveBeenCalledWith(SESSION_EXPIRED_MESSAGE);

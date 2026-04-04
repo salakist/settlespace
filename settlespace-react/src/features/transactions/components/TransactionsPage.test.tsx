@@ -31,12 +31,11 @@ jest.mock('../hooks/useTransactions', () => ({
   useTransactions: () => mockHook,
 }));
 
-jest.mock('../../persons/components/SearchBar', () => ({
+jest.mock('./TransactionSearchBar', () => ({
   __esModule: true,
-  default: ({ onSearch, placeholder, action }: { onSearch: (query: string) => void; placeholder?: string; action?: React.ReactNode }) => (
+  default: ({ onSearch, action }: { onSearch: (query: Record<string, unknown>) => void; action?: React.ReactNode }) => (
     <>
-      <input placeholder={placeholder} readOnly />
-      <button onClick={() => onSearch('test')}>Search</button>
+      <button onClick={() => onSearch({ freeText: 'test' })}>Search</button>
       {action}
     </>
   ),
@@ -81,7 +80,6 @@ test('forwards search and create actions', () => {
     />,
   );
 
-  expect(screen.getByPlaceholderText(/description, category, or involved person's name/i)).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: /search/i }));
   fireEvent.click(screen.getByRole('button', { name: /create transaction/i }));
 

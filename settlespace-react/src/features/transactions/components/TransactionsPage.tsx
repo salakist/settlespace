@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Button, CircularProgress, Stack } from '@mui/material';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
+import { TransactionSearchQuery } from '../../../shared/api/transactionApi';
 import { canUpdateOrDeleteTransaction } from '../../../shared/auth/permissions';
 import ConfirmationDialog from '../../../shared/components/ConfirmationDialog';
 import { Person, PersonRole, Transaction } from '../../../shared/types';
-import SearchBar from '../../persons/components/SearchBar';
+import TransactionSearchBar from './TransactionSearchBar';
 import TransactionForm from './TransactionForm';
 import TransactionList from './TransactionList';
 import { useTransactions } from '../hooks/useTransactions';
@@ -21,7 +22,19 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
   const location = useLocation();
   const { transactionId } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
-  const searchQuery = searchParams.get('search')?.trim() ?? '';
+
+  const searchQueryFromUrl = useMemo<TransactionSearchQuery>(() => {
+    const query: TransactionSearchQuery = {};
+    const freeText = searchParams.get('freeText')?.trim();
+    if (freeText) {
+      query.freeText = freeText;
+    }
+    const statuses = searchParams.getAll('status');
+    if (statuses.length > 0) {
+      query.status = statuses;
+    }
+    return query;
+  }, [searchParams]);
   const decodedTransactionId = transactionId ? decodeURIComponent(transactionId) : undefined;
   const isCreateRoute = location.pathname.endsWith('/new');
   const currentRouteKey = useMemo(() => {
@@ -62,8 +75,9 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
 
   useEffect(() => {
     const loadPage = async () => {
-      if (searchQuery) {
-        await handleSearch(searchQuery);
+      const hasAnyFilter = searchQueryFromUrl.freeText || searchQueryFromUrl.status?.length;
+      if (hasAnyFilter) {
+        await handleSearch(searchQueryFromUrl);
         return;
       }
 
@@ -73,7 +87,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
     Promise.resolve(loadPage()).catch((loadError) => {
       console.error(loadError);
     });
-  }, [handleSearch, loadTransactions, searchQuery]);
+  }, [handleSearch, loadTransactions, searchQueryFromUrl]);
 
   useEffect(() => {
     if (lastSyncedRouteKey.current === currentRouteKey) {
@@ -103,21 +117,29 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
   const displayForm = showForm || currentRouteKey !== 'list';
   const currentEditingTransaction = editingTransaction ?? routedTransaction;
 
-  const handleSearchChange = (query: string) => {
-    const nextSearchParams = new URLSearchParams(searchParams);
-    const trimmedQuery = query.trim();
+  const handleSearchChange = useCallback((query: TransactionSearchQuery) => {
+    const nextParams = new URLSearchParams();
 
-    if (trimmedQuery) {
-      nextSearchParams.set('search', trimmedQuery);
-    } else {
-      nextSearchParams.delete('search');
+    if (query.freeText) {
+      nextParams.set('freeText', query.freeText);
     }
 
-    setSearchParams(nextSearchParams);
-  };
+    if (query.status) {
+      for (const status of query.status) {
+        nextParams.append('status', status);
+      }
+    }
+
+    setSearchParams(nextParams);
+  }, [setSearchParams]);
+
+  const buildSearchParamsString = useCallback(() => {
+    const params = searchParams.toString();
+    return params ? `?${params}` : '';
+  }, [searchParams]);
 
   const navigateToList = () => {
-    navigate(searchQuery ? `/transactions?search=${encodeURIComponent(searchQuery)}` : '/transactions');
+    navigate(`/transactions${buildSearchParamsString()}`);
   };
 
   const handleAddClick = () => {
@@ -171,10 +193,9 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
   return (
     <Stack spacing={2.5}>
       {!displayForm && (
-        <SearchBar
+        <TransactionSearchBar
           onSearch={handleSearchChange}
-          placeholder="Search by description, category, or involved person's name"
-          initialQuery={searchQuery}
+          initialQuery={searchQueryFromUrl}
           action={(
             <Button variant="contained" onClick={handleAddClick} sx={{ whiteSpace: 'nowrap', px: 3.5 }}>
               Create Transaction
