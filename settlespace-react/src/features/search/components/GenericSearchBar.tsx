@@ -1,15 +1,15 @@
 import React, { useRef } from 'react';
-import { Autocomplete, Chip, IconButton, Stack, TextField } from '@mui/material';
-import CheckIcon from '@mui/icons-material/Check';
-import CloseIcon from '@mui/icons-material/Close';
+import { Autocomplete, IconButton, Stack, TextField } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import ActiveFilterChips from './ActiveFilterChips';
+import {
+  PendingParameterActions,
+  PendingParameterChip,
+} from './PendingParameterAdornment';
 import { SEARCH_PLACEHOLDERS } from '../constants';
 import { useGenericSearchController } from '../hooks/useGenericSearchController';
 import { GenericSearchBarProps } from '../types';
-import {
-  filterAutocompleteOptions,
-  isAsyncSearchParameter,
-} from '../utils/searchHelpers';
+import { filterAutocompleteOptions } from '../utils/searchHelpers';
 
 const INPUT_PADDING_RIGHT = '72px';
 
@@ -97,45 +97,14 @@ const GenericSearchBar = <TParam extends string = string,>({
                 InputProps={{
                   ...params.InputProps,
                   ...(pendingParameter ? {
-                    startAdornment: (
-                      <Chip
-                        label={pendingParameter.label}
-                        size="small"
-                        sx={{ mr: 0.5 }}
-                        data-testid="pending-param-chip"
-                      />
-                    ),
+                    startAdornment: <PendingParameterChip pendingParameter={pendingParameter} />,
                     endAdornment: (
-                      <Stack
-                        direction="row"
-                        spacing={0}
-                        sx={{
-                          position: 'absolute',
-                          right: 8,
-                          top: '50%',
-                          transform: 'translateY(-50%)',
-                        }}
-                      >
-                        <IconButton
-                          size="small"
-                          aria-label="Cancel filter"
-                          onClick={handleCancelPending}
-                          tabIndex={-1}
-                        >
-                          <CloseIcon sx={{ fontSize: 16 }} />
-                        </IconButton>
-                        {!isAsyncSearchParameter(pendingParameter) && (
-                          <IconButton
-                            size="small"
-                            aria-label="Confirm filter"
-                            onClick={handleConfirmPending}
-                            disabled={!inputValue.trim()}
-                            tabIndex={-1}
-                          >
-                            <CheckIcon sx={{ fontSize: 16 }} />
-                          </IconButton>
-                        )}
-                      </Stack>
+                      <PendingParameterActions
+                        pendingParameter={pendingParameter}
+                        inputValue={inputValue}
+                        onCancel={handleCancelPending}
+                        onConfirm={handleConfirmPending}
+                      />
                     ),
                   } : {}),
                 }}
@@ -188,18 +157,7 @@ const GenericSearchBar = <TParam extends string = string,>({
         </Stack>
         {action}
       </Stack>
-      {activeFilters.length > 0 && (
-        <Stack direction="row" spacing={0.5} flexWrap="wrap" useFlexGap>
-          {activeFilters.map((filter) => (
-            <Chip
-              key={`${filter.param}:${filter.value}`}
-              label={`${filter.group}: ${filter.label}`}
-              onDelete={() => handleRemoveFilter(filter)}
-              size="small"
-            />
-          ))}
-        </Stack>
-      )}
+      <ActiveFilterChips filters={activeFilters} onRemove={handleRemoveFilter} />
     </Stack>
   );
 };
