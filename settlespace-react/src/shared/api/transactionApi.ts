@@ -23,6 +23,7 @@ export interface TransactionSearchQuery {
   involvement?: string;
   category?: string;
   description?: string;
+  involved?: string[];
 }
 
 export const transactionApi = {

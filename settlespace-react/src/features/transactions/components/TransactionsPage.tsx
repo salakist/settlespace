@@ -45,6 +45,10 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
     if (description) {
       query.description = description;
     }
+    const involved = searchParams.getAll('involved');
+    if (involved.length > 0) {
+      query.involved = involved;
+    }
     return query;
   }, [searchParams]);
   const decodedTransactionId = transactionId ? decodeURIComponent(transactionId) : undefined;
@@ -147,6 +151,12 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
       nextParams.set('description', query.description);
     }
 
+    if (query.involved) {
+      for (const personId of query.involved) {
+        nextParams.append('involved', personId);
+      }
+    }
+
     setSearchParams(nextParams);
   }, [setSearchParams]);
 
@@ -213,6 +223,7 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
         <TransactionSearchBar
           onSearch={handleSearchChange}
           initialQuery={searchQueryFromUrl}
+          persons={persons}
           action={(
             <Button variant="contained" onClick={handleAddClick} sx={{ whiteSpace: 'nowrap', px: 3.5 }}>
               Create Transaction

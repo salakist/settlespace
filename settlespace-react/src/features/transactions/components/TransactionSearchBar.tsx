@@ -4,7 +4,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import SearchIcon from '@mui/icons-material/Search';
 import { TransactionSearchQuery } from '../../../shared/api/transactionApi';
-import { TransactionStatus } from '../../../shared/types';
+import { Person, TransactionStatus } from '../../../shared/types';
 
 const TRANSACTION_STATUSES: TransactionStatus[] = ['Pending', 'Completed', 'Cancelled'];
 const INVOLVEMENT_TYPES = ['Owned', 'Managed'] as const;
@@ -23,6 +23,7 @@ interface TransactionSearchBarProps {
   onSearch: (query: TransactionSearchQuery) => void;
   initialQuery?: TransactionSearchQuery;
   action?: React.ReactNode;
+  persons?: Person[];
 }
 
 function buildStatusOptions(): SearchFilterOption[] {
@@ -51,6 +52,16 @@ function buildTextInputPrompts(): SearchFilterOption[] {
     group: param.charAt(0).toUpperCase() + param.slice(1),
     isPrompt: true,
   }));
+}
+
+function buildPersonSearchPrompts(): SearchFilterOption[] {
+  return [{
+    param: 'involved',
+    value: '',
+    label: 'Involved',
+    group: 'Involved',
+    isPrompt: true,
+  }];
 }
 
 function buildQueryFromFilters(
@@ -86,74 +97,119 @@ function buildQueryFromFilters(
     query.description = description.value;
   }
 
+  const involvedIds = filters
+    .filter((f) => f.param === 'involved')
+    .map((f) => f.value);
+  if (involvedIds.length > 0) {
+    query.involved = involvedIds;
+  }
+
   return query;
 }
 
-function buildFiltersFromQuery(query: TransactionSearchQuery): SearchFilterOption[] {
+function buildTextFilter(param: string, value: string, group: string): SearchFilterOption {
+  return { param, value, label: value, group };
+}
+
+function resolvePersonName(personId: string, persons?: Person[]): string {
+  const person = persons?.find((p) => p.id === personId);
+  return person ? `${person.firstName} ${person.lastName}` : personId;
+}
+
+function buildFiltersFromQuery(query: TransactionSearchQuery, persons?: Person[]): SearchFilterOption[] {
   const filters: SearchFilterOption[] = [];
-  const allStatusOptions = buildStatusOptions();
-  const allInvolvementOptions = buildInvolvementOptions();
 
   if (query.status) {
-    for (const status of query.status) {
-      const option = allStatusOptions.find((o) => o.value === status);
-      if (option) {
-        filters.push(option);
-      }
-    }
+    const allStatusOptions = buildStatusOptions();
+    filters.push(...query.status.flatMap((s) => allStatusOptions.filter((o) => o.value === s)));
   }
 
   if (query.involvement) {
-    const option = allInvolvementOptions.find((o) => o.value === query.involvement);
-    if (option) {
-      filters.push(option);
-    }
+    const match = buildInvolvementOptions().find((o) => o.value === query.involvement);
+    if (match) filters.push(match);
   }
 
   if (query.category) {
-    filters.push({
-      param: 'category',
-      value: query.category,
-      label: query.category,
-      group: 'Category',
-    });
+    filters.push(buildTextFilter('category', query.category, 'Category'));
   }
 
   if (query.description) {
-    filters.push({
-      param: 'description',
-      value: query.description,
-      label: query.description,
-      group: 'Description',
-    });
+    filters.push(buildTextFilter('description', query.description, 'Description'));
+  }
+
+  if (query.involved) {
+    for (const personId of query.involved) {
+      filters.push({
+        param: 'involved',
+        value: personId,
+        label: resolvePersonName(personId, persons),
+        group: 'Involved',
+      });
+    }
   }
 
   return filters;
+}
+
+function getAutocompleteOptions(
+  pendingParam: string | null,
+  personOptions: SearchFilterOption[],
+  availableOptions: SearchFilterOption[],
+): SearchFilterOption[] {
+  if (pendingParam === 'involved') return personOptions;
+  if (pendingParam) return [];
+  return availableOptions;
+}
+
+function getPlaceholder(pendingParam: string | null): string {
+  if (pendingParam === 'involved') return 'Type a person name...';
+  if (pendingParam) return 'Type a value...';
+  return 'Search or filter transactions...';
 }
 
 const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
   onSearch,
   initialQuery = EMPTY_QUERY,
   action,
+  persons,
 }) => {
   const [activeFilters, setActiveFilters] = useState<SearchFilterOption[]>(() =>
-    buildFiltersFromQuery(initialQuery),
+    buildFiltersFromQuery(initialQuery, persons),
   );
   const [inputValue, setInputValue] = useState(initialQuery.freeText ?? '');
   const [pendingParam, setPendingParam] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    setActiveFilters(buildFiltersFromQuery(initialQuery));
+    setActiveFilters(buildFiltersFromQuery(initialQuery, persons));
     setInputValue(initialQuery.freeText ?? '');
     setPendingParam(null);
-  }, [initialQuery]);
+  }, [initialQuery, persons]);
+
+  const personOptions = useMemo(() => {
+    if (!persons) return [];
+    const existingInvolvedIds = new Set(
+      activeFilters.filter((f) => f.param === 'involved').map((f) => f.value),
+    );
+    return persons
+      .filter((p): p is Person & { id: string } => {
+        const personId = p.id;
+        return personId !== undefined && personId !== '' && !existingInvolvedIds.has(personId);
+      })
+      .map((p) => ({
+        param: 'involved',
+        value: p.id,
+        label: `${p.firstName} ${p.lastName}`,
+        group: 'Involved',
+      }));
+  }, [persons, activeFilters]);
 
   const availableOptions = useMemo(() => {
     const allOptions: SearchFilterOption[] = [
       ...buildStatusOptions(),
       ...buildInvolvementOptions(),
       ...buildTextInputPrompts(),
+      ...buildPersonSearchPrompts(),
     ];
     const activeKeys = new Set(activeFilters.map((f) => `${f.param}:${f.value}`));
     const hasInvolvement = activeFilters.some((f) => f.param === 'involvement');
@@ -162,7 +218,7 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
       (o) =>
         !activeKeys.has(`${o.param}:${o.value}`) &&
         !(o.param === 'involvement' && hasInvolvement) &&
-        !(o.isPrompt && activeParamNames.has(o.param)),
+        !(o.isPrompt && activeParamNames.has(o.param) && o.param !== 'involved'),
     );
   }, [activeFilters]);
 
@@ -176,12 +232,15 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
         setInputValue('');
         return;
       }
+      if (pendingParam) {
+        setPendingParam(null);
+      }
       const nextFilters = [...activeFilters, option];
       setActiveFilters(nextFilters);
       setInputValue('');
       onSearch(buildQueryFromFilters(nextFilters, ''));
     },
-    [activeFilters, onSearch],
+    [activeFilters, onSearch, pendingParam],
   );
 
   const handleRemoveFilter = useCallback((filterToRemove: SearchFilterOption) => {
@@ -219,6 +278,9 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
   const handleSubmit = useCallback(
     (event: React.SyntheticEvent) => {
       event.preventDefault();
+      if (pendingParam === 'involved') {
+        return;
+      }
       if (pendingParam) {
         handleConfirmPending();
         return;
@@ -255,7 +317,7 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
         >
         <Autocomplete
           freeSolo
-          options={pendingParam ? [] : availableOptions}
+          options={getAutocompleteOptions(pendingParam, personOptions, availableOptions)}
           getOptionLabel={(option) =>
             typeof option === 'string' ? option : option.label
           }
@@ -281,7 +343,7 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
             <TextField
               {...params}
               size="small"
-              placeholder={pendingParam ? 'Type a value...' : 'Search or filter transactions...'}
+              placeholder={getPlaceholder(pendingParam)}
               inputRef={inputRef}
               inputProps={{
                 ...params.inputProps,
@@ -317,6 +379,7 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
                       >
                         <CloseIcon sx={{ fontSize: 16 }} />
                       </IconButton>
+                      {pendingParam !== 'involved' && (
                       <IconButton
                         size="small"
                         aria-label="Confirm filter"
@@ -326,6 +389,7 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
                       >
                         <CheckIcon sx={{ fontSize: 16 }} />
                       </IconButton>
+                      )}
                     </Stack>
                   ),
                 } : {}),

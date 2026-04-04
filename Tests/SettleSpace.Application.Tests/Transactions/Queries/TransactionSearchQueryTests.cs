@@ -83,4 +83,30 @@ public class TransactionSearchQueryTests
 
         Assert.Throws<InvalidTransactionSearchException>(() => query.Validate());
     }
+
+    [Fact]
+    public void ValidatePassesWhenInvolvedHasValues()
+    {
+        var query = new TransactionSearchQuery { Involved = ["person-1", "person-2"] };
+
+        query.Validate();
+    }
+
+    [Fact]
+    public void ValidateThrowsWhenInvolvedIsEmptyList()
+    {
+        var query = new TransactionSearchQuery { Involved = [] };
+
+        Assert.Throws<InvalidTransactionSearchException>(() => query.Validate());
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("   ")]
+    public void ValidateThrowsWhenInvolvedContainsEmptyOrWhitespaceId(string id)
+    {
+        var query = new TransactionSearchQuery { Involved = ["person-1", id] };
+
+        Assert.Throws<InvalidTransactionSearchException>(() => query.Validate());
+    }
 }

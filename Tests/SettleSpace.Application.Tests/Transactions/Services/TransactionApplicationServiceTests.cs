@@ -286,6 +286,23 @@ public class TransactionApplicationServiceTests
     }
 
     [Fact]
+    public async Task SearchTransactionsAsyncPassesInvolvedToFilter()
+    {
+        var involved = new List<string> { "person-1", "person-2" };
+        var query = new TransactionSearchQuery { Involved = involved };
+        _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.Involved == involved)))
+            .ReturnsAsync([BuildTransaction("tx-1")]);
+        _domainServiceMock
+            .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+
+        var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
+
+        Assert.Single(result);
+        _repositoryMock.Verify(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.Involved == involved)), Times.Once);
+    }
+
+    [Fact]
     public async Task UpdateTransactionAsyncValidRequestUpdates()
     {
         var existing = BuildTransaction("tx-1");

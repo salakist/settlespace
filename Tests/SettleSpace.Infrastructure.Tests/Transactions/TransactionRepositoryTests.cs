@@ -203,6 +203,20 @@ public class TransactionRepositoryTests
     }
 
     [Fact]
+    public async Task SearchAsyncFilterWithInvolvedReturnsMatchingTransactions()
+    {
+        var tx = BuildTransaction("tx-1");
+        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+
+        var result = await repo.SearchAsync(new TransactionSearchFilter
+        {
+            Involved = ["user-1", "user-3"]
+        });
+
+        Assert.Single(result);
+    }
+
+    [Fact]
     public async Task UpdateAsyncCallsReplaceOne()
     {
         var tx = BuildTransaction("tx-1");

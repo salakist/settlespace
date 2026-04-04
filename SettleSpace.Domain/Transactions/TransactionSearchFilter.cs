@@ -8,5 +8,6 @@ namespace SettleSpace.Domain.Transactions
         public List<TransactionStatus>? Status { get; init; }
         public string? Category { get; init; }
         public string? Description { get; init; }
+        public List<string>? Involved { get; init; }
     }
 }

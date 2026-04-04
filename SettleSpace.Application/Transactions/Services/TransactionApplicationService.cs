@@ -50,6 +50,7 @@ namespace SettleSpace.Application.Transactions.Services
                 Status = query.Status,
                 Category = query.Category,
                 Description = query.Description,
+                Involved = query.Involved,
             };
 
             var transactionSearchTask = _repository.SearchAsync(filter);
