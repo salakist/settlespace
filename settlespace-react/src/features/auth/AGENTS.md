@@ -28,3 +28,4 @@ Auth feature provides login, registration, and password-change UI and session be
 
 ## Source-of-truth note
 Cross-cutting frontend policy and quality-gate workflow are defined in `settlespace-react/AGENTS.md`.
+Shared UX/UI conventions are defined in `settlespace-react/UX-PRINCIPLES.md`.

@@ -22,6 +22,7 @@ Debts feature provides UI for reviewing net balances with counterparties and rec
 
 ## Source-of-truth note
 Cross-cutting frontend policy is maintained in `settlespace-react/AGENTS.md`.
+Shared UX/UI conventions are defined in `settlespace-react/UX-PRINCIPLES.md`.
 Planned or shelved product ideas and future pages are tracked in repository-root `TODO.md`.
 This file should stay focused on debts feature-local scope and status.
 

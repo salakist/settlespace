@@ -20,8 +20,9 @@ Frontend module router for app-shell policy, shared frontend workflow, and featu
 - `src/app/` owns app shell and top-level orchestration.
 - `src/app/hooks/` owns app-level orchestration hooks, including `useAppAuth`.
 - Keep auth/session behavior in `src/features/auth/hooks/useAuth.ts`.
-- Route composition should favor dedicated `*Page` components over inline route JSX.
-- Frontend routing is URL-driven with React Router.
+- Shared UX/UI and interaction conventions are defined in `UX-PRINCIPLES.md`.
+- If a requested UI change clearly conflicts with `UX-PRINCIPLES.md`, agents should explain the conflict briefly and ask for confirmation before proceeding.
+- Route composition should favor dedicated `*Page` components over inline route JSX, and major flows should remain URL-driven with React Router.
 - In agent sessions, run tests with `npm run test:ci` to avoid watch mode.
 - Frontend quality gates are executed from repository root scripts.
 - Frontend ESLint is the fast local pre-commit subset gate for React/TypeScript issues it can model directly.
@@ -49,6 +50,6 @@ Frontend module router for app-shell policy, shared frontend workflow, and featu
 - Shared API clients and types under `src/shared/`
 
 ## Source-of-truth note
-Repo-wide AGENTS routing is defined in root `AGENTS.md`. Agent commit workflow and checklist policy
-are authoritative in root `COMMIT-POLICY.md`. Feature behavior is documented in the nearest feature
-AGENTS file.
+Repo-wide AGENTS routing is defined in root `AGENTS.md`. Shared frontend UX/UI conventions are
+maintained in `UX-PRINCIPLES.md`. Agent commit workflow and checklist policy are authoritative in
+root `COMMIT-POLICY.md`. Feature behavior is documented in the nearest feature AGENTS file.

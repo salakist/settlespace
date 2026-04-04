@@ -101,6 +101,7 @@ Every new or substantially updated AGENTS file should contain:
 - Hook behavior and local attribution enforcement: `scripts/hooks/AGENTS.md`.
 - Shared test-project policy: `Tests/AGENTS.md`.
 - User-facing setup and API examples: `README.md`.
+- Shared frontend UX/UI conventions: `settlespace-react/UX-PRINCIPLES.md`.
 - Planned or shelved product ideas and future pages: `TODO.md`.
 - Module and context behavior: nearest module/context/feature `AGENTS.md`.
 

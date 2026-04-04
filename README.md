@@ -433,6 +433,7 @@ settlespace-react/src/
   - `useTransactions` handles transaction CRUD/search/form state.
   - `useProfile` handles profile load/save/password flows.
 - Routes are URL-driven and support browser back/forward navigation.
+- Shared frontend UX/UI conventions are documented in `settlespace-react/UX-PRINCIPLES.md`.
 - Backend route generation is configured to lowercase URLs.
 
 ### Frontend commands

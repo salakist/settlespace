@@ -32,3 +32,4 @@ Persons feature provides persons CRUD UI, search flow, and feature-level state b
 
 ## Source-of-truth note
 Cross-cutting frontend policy and quality-gate workflow are defined in `settlespace-react/AGENTS.md`.
+Shared UX/UI conventions are defined in `settlespace-react/UX-PRINCIPLES.md`.

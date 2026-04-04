@@ -27,3 +27,4 @@ Profile feature provides authenticated profile editing and password-management e
 
 ## Source-of-truth note
 Cross-cutting frontend policy and quality-gate workflow are defined in `settlespace-react/AGENTS.md`.
+Shared UX/UI conventions are defined in `settlespace-react/UX-PRINCIPLES.md`.

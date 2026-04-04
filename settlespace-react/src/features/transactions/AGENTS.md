@@ -21,6 +21,7 @@ Transactions feature provides UI and state management for user-scoped transactio
 
 ## Source-of-truth note
 Cross-cutting frontend policy and quality-gate workflow are defined in `settlespace-react/AGENTS.md`.
+Shared UX/UI conventions are defined in `settlespace-react/UX-PRINCIPLES.md`.
 Planned or shelved product ideas are tracked in repository-root `TODO.md`.
 This file should stay focused on transactions feature-specific behavior.
 

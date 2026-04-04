@@ -22,3 +22,4 @@ Home feature provides the authenticated landing experience and top-level user gu
 
 ## Source-of-truth note
 Cross-cutting frontend policy and quality-gate workflow are defined in `settlespace-react/AGENTS.md`.
+Shared UX/UI conventions are defined in `settlespace-react/UX-PRINCIPLES.md`.
