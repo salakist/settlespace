@@ -12,7 +12,6 @@ Prioritized backlog for **planned / shelved product work**.
 
 **Initial scope**
 
-- introduce real TypeScript enums rather than the current string-union / as const style
 - run full code sonar analysis and fix all passing issues
 
 ### 1. Dashboard / overview page
