@@ -26,20 +26,6 @@ public class TransactionApplicationServiceTests
     }
 
     [Fact]
-    public async Task GetCurrentUserTransactionsAsyncReturnsRepositoryResults()
-    {
-        var transactions = new List<Transaction> { BuildTransaction("tx-1") };
-        _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(transactions);
-        _domainServiceMock
-            .Setup(d => d.FilterReadableTransactions(transactions, "user-1", PersonRole.USER))
-            .Returns(transactions);
-
-        var result = await _sut.GetCurrentUserTransactionsAsync("user-1", PersonRole.USER);
-
-        Assert.Single(result);
-    }
-
-    [Fact]
     public async Task CreateTransactionAsyncValidCommandAddsTransaction()
     {
         var command = new CreateTransactionCommand
@@ -327,20 +313,6 @@ public class TransactionApplicationServiceTests
         await _sut.UpdateTransactionAsync("tx-1", "user-1", PersonRole.USER, command);
 
         _repositoryMock.Verify(r => r.UpdateAsync("tx-1", It.Is<Transaction>(t => t.CurrencyCode == "USD")), Times.Once);
-    }
-
-    [Fact]
-    public async Task GetCurrentUserTransactionsAsyncMissingUserThrowsUnauthorizedTransactionAccessException()
-    {
-        _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Transaction>());
-        _domainServiceMock
-            .Setup(d => d.FilterReadableTransactions(
-                It.IsAny<IEnumerable<Transaction>>(),
-                It.Is<string>(personId => string.IsNullOrWhiteSpace(personId)),
-                PersonRole.USER))
-            .Throws(new UnauthorizedTransactionAccessException("Authenticated user identifier is required."));
-
-        await Assert.ThrowsAsync<UnauthorizedTransactionAccessException>(() => _sut.GetCurrentUserTransactionsAsync(" ", PersonRole.USER));
     }
 
     private static Transaction BuildTransaction(string id) =>

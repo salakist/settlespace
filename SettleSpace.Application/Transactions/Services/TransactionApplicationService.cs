@@ -29,12 +29,6 @@ namespace SettleSpace.Application.Transactions.Services
             _transactionMapper = transactionMapper;
         }
 
-        public async Task<List<Transaction>> GetCurrentUserTransactionsAsync(string loggedPersonId, PersonRole loggedRole)
-        {
-            var transactions = await _repository.GetAllAsync();
-            return _domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
-        }
-
         public async Task<List<Transaction>> SearchTransactionsAsync(string loggedPersonId, PersonRole loggedRole, TransactionSearchQuery query)
         {
             var freeText = query.FreeText?.Trim();

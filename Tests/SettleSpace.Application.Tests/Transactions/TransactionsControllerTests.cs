@@ -36,23 +36,6 @@ public class TransactionsControllerTests
     }
 
     [Fact]
-    public async Task GetCurrentUserTransactionsReturnsOkWithDtos()
-    {
-        var transactions = new List<Transaction>
-        {
-            BuildTransaction("tx-1")
-        };
-        _serviceMock.Setup(s => s.GetCurrentUserTransactionsAsync("user-1", PersonRole.USER)).ReturnsAsync(transactions);
-        SetUser("user-1", PersonRole.USER);
-
-        var result = await _controller.GetCurrentUserTransactions();
-
-        var ok = Assert.IsType<OkObjectResult>(result.Result);
-        var dtos = Assert.IsAssignableFrom<List<TransactionDto>>(ok.Value);
-        Assert.Single(dtos);
-    }
-
-    [Fact]
     public async Task PostReturnsCreatedAtAction()
     {
         var command = new CreateTransactionCommand

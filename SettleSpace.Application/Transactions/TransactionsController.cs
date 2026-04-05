@@ -32,19 +32,6 @@ namespace SettleSpace.Application.Transactions
             _authService = authService;
         }
 
-        [HttpGet("me")]
-        [ProducesResponseType(typeof(List<TransactionDto>), 200)]
-        [ProducesResponseType(401)]
-        public async Task<ActionResult<List<TransactionDto>>> GetCurrentUserTransactions()
-        {
-            var (personId, personRole) = _authService.ResolveAuthContext(User);
-            var transactions = await _applicationService.GetCurrentUserTransactionsAsync(personId, personRole);
-            var relatedPersonIds = transactions.SelectMany(transaction => transaction.GetRelatedPersonIds()).ToList();
-            var personDisplayNames = await _personDisplayNameResolver.ResolveAsync(relatedPersonIds);
-
-            return Ok(transactions.Select(transaction => _transactionMapper.ToDto(transaction, personDisplayNames)).ToList());
-        }
-
         [HttpPost("search")]
         [ProducesResponseType(typeof(List<TransactionDto>), 200)]
         [ProducesResponseType(400)]

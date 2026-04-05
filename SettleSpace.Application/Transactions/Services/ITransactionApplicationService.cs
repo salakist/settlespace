@@ -7,7 +7,6 @@ namespace SettleSpace.Application.Transactions.Services
 {
     public interface ITransactionApplicationService
     {
-        Task<List<Transaction>> GetCurrentUserTransactionsAsync(string loggedPersonId, PersonRole loggedRole);
         Task<List<Transaction>> SearchTransactionsAsync(string loggedPersonId, PersonRole loggedRole, TransactionSearchQuery query);
         Task<Transaction> GetTransactionByIdAsync(string id, string loggedPersonId, PersonRole loggedRole);
         Task<Transaction> CreateTransactionAsync(string loggedPersonId, PersonRole loggedRole, CreateTransactionCommand command);

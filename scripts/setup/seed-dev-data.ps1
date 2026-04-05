@@ -103,7 +103,7 @@ foreach ($person in $persons) {
 }
 
 foreach ($token in @($johnToken, $janeToken)) {
-    $existingTransactions = Invoke-Api -Method "GET" -Url "$ApiBaseUrl/transactions/me" -Token $token
+    $existingTransactions = Invoke-Api -Method "POST" -Url "$ApiBaseUrl/transactions/search" -Token $token -Body @{}
     foreach ($transaction in $existingTransactions) {
         if ($transaction.category -eq "SeedData") {
             Invoke-Api -Method "DELETE" -Url "$ApiBaseUrl/transactions/$($transaction.id)" -Token $token | Out-Null
@@ -150,8 +150,8 @@ $janeTransaction = @{
 }
 Invoke-Api -Method "POST" -Url "$ApiBaseUrl/transactions" -Token $janeToken -Body $janeTransaction | Out-Null
 
-$johnCount = (Invoke-Api -Method "GET" -Url "$ApiBaseUrl/transactions/me" -Token $johnToken).Count
-$janeCount = (Invoke-Api -Method "GET" -Url "$ApiBaseUrl/transactions/me" -Token $janeToken).Count
+$johnCount = (Invoke-Api -Method "POST" -Url "$ApiBaseUrl/transactions/search" -Token $johnToken -Body @{}).Count
+$janeCount = (Invoke-Api -Method "POST" -Url "$ApiBaseUrl/transactions/search" -Token $janeToken -Body @{}).Count
 
 Write-Host "[seed] Persons available: $($persons.Count)"
 Write-Host "[seed] John involved transactions: $johnCount"

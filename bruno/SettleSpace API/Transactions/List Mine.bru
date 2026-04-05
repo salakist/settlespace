@@ -1,13 +1,17 @@
 meta {
-  name: List Mine
+  name: Search Mine
   type: http
   seq: 1
 }
 
-get {
-  url: {{baseUrl}}/transactions/me
-  body: none
+post {
+  url: {{baseUrl}}/transactions/search
+  body: json
   auth: bearer
+}
+
+body:json {
+  {}
 }
 
 auth:bearer {
