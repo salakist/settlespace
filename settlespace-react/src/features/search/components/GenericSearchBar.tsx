@@ -136,24 +136,26 @@ const GenericSearchBar = <TParam extends string = string,>({
                 ? options
                 : filterAutocompleteOptions(options, state.inputValue)
             )}
-            ListboxProps={{
-              sx: {
-                scrollbarWidth: 'thin',
-                scrollbarColor: (theme) => `${theme.palette.grey[700]} ${theme.palette.background.default}`,
-                '&::-webkit-scrollbar': {
-                  width: 10,
-                },
-                '&::-webkit-scrollbar-track': {
-                  backgroundColor: 'background.default',
-                },
-                '&::-webkit-scrollbar-thumb': {
-                  backgroundColor: 'grey.700',
-                  borderRadius: 999,
-                  border: '2px solid',
-                  borderColor: 'background.paper',
-                },
-                '&::-webkit-scrollbar-thumb:hover': {
-                  backgroundColor: 'grey.600',
+            slotProps={{
+              listbox: {
+                sx: {
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: (theme) => `${theme.palette.grey[700]} ${theme.palette.background.default}`,
+                  '&::-webkit-scrollbar': {
+                    width: 10,
+                  },
+                  '&::-webkit-scrollbar-track': {
+                    backgroundColor: 'background.default',
+                  },
+                  '&::-webkit-scrollbar-thumb': {
+                    backgroundColor: 'grey.700',
+                    borderRadius: 999,
+                    border: '2px solid',
+                    borderColor: 'background.paper',
+                  },
+                  '&::-webkit-scrollbar-thumb:hover': {
+                    backgroundColor: 'grey.600',
+                  },
                 },
               },
             }}
@@ -163,23 +165,25 @@ const GenericSearchBar = <TParam extends string = string,>({
                 size="small"
                 placeholder={placeholder}
                 inputRef={inputRef}
-                inputProps={{
-                  ...params.inputProps,
-                  'aria-label': ariaLabel,
-                }}
-                InputProps={{
-                  ...params.InputProps,
-                  ...(pendingParameter ? {
-                    startAdornment: <PendingParameterChip pendingParameter={pendingParameter} />,
-                    endAdornment: (
-                      <PendingParameterActions
-                        pendingParameter={pendingParameter}
-                        inputValue={inputValue}
-                        onCancel={handleCancelPending}
-                        onConfirm={handleConfirmPending}
-                      />
-                    ),
-                  } : {}),
+                slotProps={{
+                  htmlInput: {
+                    ...params.inputProps,
+                    'aria-label': ariaLabel,
+                  },
+                  input: {
+                    ...params.InputProps,
+                    ...(pendingParameter ? {
+                      startAdornment: <PendingParameterChip pendingParameter={pendingParameter} />,
+                      endAdornment: (
+                        <PendingParameterActions
+                          pendingParameter={pendingParameter}
+                          inputValue={inputValue}
+                          onCancel={handleCancelPending}
+                          onConfirm={handleConfirmPending}
+                        />
+                      ),
+                    } : {}),
+                  },
                 }}
                 onKeyDown={(event) => {
                   if (!pendingParameter) {

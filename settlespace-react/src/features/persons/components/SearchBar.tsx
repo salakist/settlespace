@@ -1,10 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Stack, TextField } from '@mui/material';
 
-/**
- * @deprecated Prefer `PersonSearchBar` for persons-list search so new work uses the shared
- * `GenericSearchBar` flow. Keep this component stable until a dedicated removal slice.
- */
 interface SearchBarProps {
   onSearch: (query: string) => void;
   placeholder?: string;
@@ -13,6 +9,10 @@ interface SearchBarProps {
   ariaLabel?: string;
 }
 
+/**
+ * Legacy persons search bar. Prefer `PersonSearchBar` for new work so the shared
+ * `GenericSearchBar` flow remains the default, but keep this component stable until removal.
+ */
 const SearchBar: React.FC<SearchBarProps> = ({
   onSearch,
   placeholder = 'Search by first or last name',
@@ -47,7 +47,9 @@ const SearchBar: React.FC<SearchBarProps> = ({
         value={query}
         onChange={(event) => setQuery(event.target.value)}
         placeholder={placeholder}
-        inputProps={{ 'aria-label': ariaLabel }}
+        slotProps={{
+          htmlInput: { 'aria-label': ariaLabel },
+        }}
       />
       <Button variant="contained" type="submit" sx={{ minWidth: { md: 96 }, px: 1.5, whiteSpace: 'nowrap' }}>
         Search

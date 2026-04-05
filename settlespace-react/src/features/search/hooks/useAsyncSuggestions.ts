@@ -36,7 +36,7 @@ export function useAsyncSuggestions<TParam extends string = string>({
     requestIdRef.current = requestId;
     setLoadingSuggestions(true);
 
-    const timeoutId = window.setTimeout(async () => {
+    const timeoutId = globalThis.setTimeout(async () => {
       try {
         const suggestions = await pendingParameter.getSuggestions(query);
         if (requestIdRef.current !== requestId) {
@@ -56,7 +56,7 @@ export function useAsyncSuggestions<TParam extends string = string>({
     }, pendingParameter.debounceMs ?? 250);
 
     return () => {
-      window.clearTimeout(timeoutId);
+      globalThis.clearTimeout(timeoutId);
     };
   }, [activeFilters, inputValue, pendingParameter]);
 

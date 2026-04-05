@@ -125,7 +125,7 @@ function writeQueryValue<TQuery>(
 
 export function normalizeBridgeFreeText(freeText?: string): string | undefined {
   const trimmed = freeText?.trim();
-  return trimmed ? trimmed : undefined;
+  return trimmed || undefined;
 }
 
 export function getSingleFilterValue<TParam extends string = string>(

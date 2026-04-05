@@ -8,7 +8,7 @@ test('submits a plain-text query through the shared search wrapper', async () =>
 
   render(<PersonSearchBar onSearch={onSearch} />);
 
-  await userEvent.type(screen.getByRole('combobox', { name: /search/i }), 'john');
+  userEvent.type(screen.getByRole('combobox', { name: /search/i }), 'john');
   fireEvent.click(screen.getByRole('button', { name: /search/i }));
 
   expect(onSearch).toHaveBeenCalledWith('john');

@@ -109,7 +109,7 @@ export function buildQueryFromFilters(
   freeText?: string,
 ): TransactionSearchQuery {
   return transactionSearchBridge.fromSearchValue({
-    ...(freeText !== undefined ? { freeText } : {}),
+    ...(freeText === undefined ? {} : { freeText }),
     filters,
   });
 }

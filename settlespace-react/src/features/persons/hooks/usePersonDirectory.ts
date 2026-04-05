@@ -84,11 +84,9 @@ export function usePersonDirectory({
       setLoading(true);
       setError(null);
 
-      if (!cachedPromise) {
-        cachedPromise = personApi
-          .getAll()
-          .then((response) => primePersonDirectory(response.data));
-      }
+      cachedPromise ??= personApi
+        .getAll()
+        .then((response) => primePersonDirectory(response.data));
 
       const nextPersons = await cachedPromise;
       setPersons(nextPersons);

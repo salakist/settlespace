@@ -12,10 +12,110 @@ import {
   resolveEntityLabelById,
 } from './searchValueBridge';
 
+enum SampleParam {
+  Status = 'status',
+  Priority = 'priority',
+  Category = 'category',
+  Owner = 'owner',
+  Reviewer = 'reviewer',
+  Special = 'special',
+}
+
+type SampleQuery = {
+  search?: string;
+  status?: string[];
+  priority?: string;
+  category?: string;
+  owner?: string;
+  reviewers?: string[];
+  specialOwner?: string;
+};
+
+type SampleBridgeContext = {
+  labels: Record<string, string>;
+};
+
+function createSampleBridge() {
+  return createSearchValueBridge<SampleQuery, SampleParam, SampleBridgeContext>({
+    createEmptyQuery: () => ({}),
+    freeText: {
+      get: (query) => query.search,
+      set: (draft, freeText) => {
+        if (freeText) {
+          draft.search = freeText;
+        }
+      },
+    },
+    fields: [
+      {
+        kind: 'lookup-multi',
+        param: SampleParam.Status,
+        queryKey: 'status',
+        group: 'Status',
+        options: [
+          { value: 'Pending', label: 'Pending' },
+          { value: 'Completed', label: 'Completed' },
+        ],
+      },
+      {
+        kind: 'lookup-single',
+        param: SampleParam.Priority,
+        queryKey: 'priority',
+        group: 'Priority',
+        options: [{ value: 'high', label: 'High' }],
+      },
+      {
+        kind: 'text-single',
+        param: SampleParam.Category,
+        queryKey: 'category',
+        group: 'Category',
+      },
+      {
+        kind: 'resolved-single',
+        param: SampleParam.Owner,
+        queryKey: 'owner',
+        group: 'Owner',
+        resolveLabel: (value, context) => context?.labels[value] ?? value,
+      },
+      {
+        kind: 'resolved-multi',
+        param: SampleParam.Reviewer,
+        queryKey: 'reviewers',
+        group: 'Reviewer',
+        resolveLabel: (value, context) => context?.labels[value] ?? value,
+      },
+      {
+        kind: 'custom',
+        toFilters: (query) => query.specialOwner
+          ? [{
+            param: SampleParam.Special,
+            value: query.specialOwner,
+            label: `Special ${query.specialOwner}`,
+            group: 'Special',
+          }]
+          : [],
+        applyToQuery: (draft, filters) => {
+          const special = getSingleFilterValue(filters, SampleParam.Special);
+          if (special) {
+            draft.specialOwner = special;
+          }
+        },
+      },
+    ],
+  });
+}
+
+const sampleBridgeContext: SampleBridgeContext = {
+  labels: {
+    p1: 'Jane Doe',
+    p2: 'Sam Smith',
+  },
+};
+
 test('normalizeBridgeFreeText trims meaningful text and omits empty values', () => {
   expect(normalizeBridgeFreeText('  hello  ')).toBe('hello');
   expect(normalizeBridgeFreeText('   ')).toBeUndefined();
-  expect(normalizeBridgeFreeText(undefined)).toBeUndefined();
+  expect(normalizeBridgeFreeText()).toBeUndefined();
 });
 
 test('filter helpers read single and multi values by param', () => {
@@ -76,92 +176,7 @@ test('resolveEntityLabelById returns resolved labels and falls back to raw ids',
 });
 
 test('createSearchValueBridge maps queries to GenericSearchValue with declarative field configs', () => {
-  enum SampleParam {
-    Status = 'status',
-    Priority = 'priority',
-    Category = 'category',
-    Owner = 'owner',
-    Reviewer = 'reviewer',
-    Special = 'special',
-  }
-
-  type SampleQuery = {
-    search?: string;
-    status?: string[];
-    priority?: string;
-    category?: string;
-    owner?: string;
-    reviewers?: string[];
-    specialOwner?: string;
-  };
-
-  const bridge = createSearchValueBridge<SampleQuery, SampleParam, { labels: Record<string, string> }>({
-    createEmptyQuery: () => ({}),
-    freeText: {
-      get: (query) => query.search,
-      set: (draft, freeText) => {
-        if (freeText) {
-          draft.search = freeText;
-        }
-      },
-    },
-    fields: [
-      {
-        kind: 'lookup-multi',
-        param: SampleParam.Status,
-        queryKey: 'status',
-        group: 'Status',
-        options: [
-          { value: 'Pending', label: 'Pending' },
-          { value: 'Completed', label: 'Completed' },
-        ],
-      },
-      {
-        kind: 'lookup-single',
-        param: SampleParam.Priority,
-        queryKey: 'priority',
-        group: 'Priority',
-        options: [{ value: 'high', label: 'High' }],
-      },
-      {
-        kind: 'text-single',
-        param: SampleParam.Category,
-        queryKey: 'category',
-        group: 'Category',
-      },
-      {
-        kind: 'resolved-single',
-        param: SampleParam.Owner,
-        queryKey: 'owner',
-        group: 'Owner',
-        resolveLabel: (value, context) => context?.labels[value] ?? value,
-      },
-      {
-        kind: 'resolved-multi',
-        param: SampleParam.Reviewer,
-        queryKey: 'reviewers',
-        group: 'Reviewer',
-        resolveLabel: (value, context) => context?.labels[value] ?? value,
-      },
-      {
-        kind: 'custom',
-        toFilters: (query) => query.specialOwner
-          ? [{
-            param: SampleParam.Special,
-            value: query.specialOwner,
-            label: `Special ${query.specialOwner}`,
-            group: 'Special',
-          }]
-          : [],
-        applyToQuery: (draft, filters) => {
-          const special = getSingleFilterValue(filters, SampleParam.Special);
-          if (special) {
-            draft.specialOwner = special;
-          }
-        },
-      },
-    ],
-  });
+  const bridge = createSampleBridge();
 
   expect(bridge.toSearchValue({
     search: '  coffee  ',
@@ -171,12 +186,7 @@ test('createSearchValueBridge maps queries to GenericSearchValue with declarativ
     owner: 'p1',
     reviewers: ['p2'],
     specialOwner: 'p3',
-  }, {
-    labels: {
-      p1: 'Jane Doe',
-      p2: 'Sam Smith',
-    },
-  })).toEqual({
+  }, sampleBridgeContext)).toEqual({
     freeText: 'coffee',
     filters: [
       { param: SampleParam.Status, value: 'Pending', label: 'Pending', group: 'Status' },
@@ -191,92 +201,7 @@ test('createSearchValueBridge maps queries to GenericSearchValue with declarativ
 });
 
 test('createSearchValueBridge maps GenericSearchValue back to a query and supports the custom escape hatch', () => {
-  enum SampleParam {
-    Status = 'status',
-    Priority = 'priority',
-    Category = 'category',
-    Owner = 'owner',
-    Reviewer = 'reviewer',
-    Special = 'special',
-  }
-
-  type SampleQuery = {
-    search?: string;
-    status?: string[];
-    priority?: string;
-    category?: string;
-    owner?: string;
-    reviewers?: string[];
-    specialOwner?: string;
-  };
-
-  const bridge = createSearchValueBridge<SampleQuery, SampleParam, { labels: Record<string, string> }>({
-    createEmptyQuery: () => ({}),
-    freeText: {
-      get: (query) => query.search,
-      set: (draft, freeText) => {
-        if (freeText) {
-          draft.search = freeText;
-        }
-      },
-    },
-    fields: [
-      {
-        kind: 'lookup-multi',
-        param: SampleParam.Status,
-        queryKey: 'status',
-        group: 'Status',
-        options: [
-          { value: 'Pending', label: 'Pending' },
-          { value: 'Completed', label: 'Completed' },
-        ],
-      },
-      {
-        kind: 'lookup-single',
-        param: SampleParam.Priority,
-        queryKey: 'priority',
-        group: 'Priority',
-        options: [{ value: 'high', label: 'High' }],
-      },
-      {
-        kind: 'text-single',
-        param: SampleParam.Category,
-        queryKey: 'category',
-        group: 'Category',
-      },
-      {
-        kind: 'resolved-single',
-        param: SampleParam.Owner,
-        queryKey: 'owner',
-        group: 'Owner',
-        resolveLabel: (value, context) => context?.labels[value] ?? value,
-      },
-      {
-        kind: 'resolved-multi',
-        param: SampleParam.Reviewer,
-        queryKey: 'reviewers',
-        group: 'Reviewer',
-        resolveLabel: (value, context) => context?.labels[value] ?? value,
-      },
-      {
-        kind: 'custom',
-        toFilters: (query) => query.specialOwner
-          ? [{
-            param: SampleParam.Special,
-            value: query.specialOwner,
-            label: `Special ${query.specialOwner}`,
-            group: 'Special',
-          }]
-          : [],
-        applyToQuery: (draft, filters) => {
-          const special = getSingleFilterValue(filters, SampleParam.Special);
-          if (special) {
-            draft.specialOwner = special;
-          }
-        },
-      },
-    ],
-  });
+  const bridge = createSampleBridge();
 
   expect(bridge.fromSearchValue({
     freeText: '  coffee  ',
@@ -289,12 +214,7 @@ test('createSearchValueBridge maps GenericSearchValue back to a query and suppor
       { param: SampleParam.Reviewer, value: 'p2', label: 'Sam Smith', group: 'Reviewer' },
       { param: SampleParam.Special, value: 'p3', label: 'Special p3', group: 'Special' },
     ],
-  }, {
-    labels: {
-      p1: 'Jane Doe',
-      p2: 'Sam Smith',
-    },
-  })).toEqual({
+  }, sampleBridgeContext)).toEqual({
     search: 'coffee',
     status: ['Pending', 'Completed'],
     priority: 'high',
