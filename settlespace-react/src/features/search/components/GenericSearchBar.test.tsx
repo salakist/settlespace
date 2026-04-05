@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import GenericSearchBar from './GenericSearchBar';
 import { SEARCH_PLACEHOLDERS } from '../constants';
@@ -23,7 +23,7 @@ test('supports free-text-only mode when no parameters are provided', async () =>
   });
 });
 
-test('shows filter options from the left button even when the input is empty', async () => {
+test('the left filter button toggles the autocomplete open and closed', async () => {
   const onSearch = jest.fn();
   const parameters: SearchParameterConfig[] = [
     {
@@ -47,10 +47,16 @@ test('shows filter options from the left button even when the input is empty', a
     />,
   );
 
-  await userEvent.click(screen.getByRole('button', { name: /show filters/i }));
+  const toggleButton = screen.getByRole('button', { name: /show filters/i });
+  const input = screen.getByLabelText(SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL);
 
+  await userEvent.click(toggleButton);
   expect(await screen.findByRole('option', { name: SEARCH_TEST_TEXT.PENDING_STATUS })).toBeInTheDocument();
   expect(screen.getByText(SEARCH_TEST_TEXT.STATUS_LABEL)).toBeInTheDocument();
+  await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'true'));
+
+  await userEvent.click(toggleButton);
+  await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'false'));
 });
 
 test('selecting a fixed option adds a chip and triggers search', async () => {

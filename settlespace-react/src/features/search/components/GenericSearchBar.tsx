@@ -48,14 +48,19 @@ const GenericSearchBar = <TParam extends string = string,>({
   });
   const hasParameters = parameters.length > 0;
 
-  const handleOpenFilters = () => {
+  const handleToggleFilters = () => {
     if (!hasParameters || pendingParameter) {
       return;
     }
 
-    setShowAllOptions(true);
-    setIsAutocompleteOpen(true);
-    inputRef.current?.focus();
+    const shouldOpen = !showAllOptions;
+
+    setShowAllOptions(shouldOpen);
+    setIsAutocompleteOpen(shouldOpen);
+
+    if (!shouldOpen) {
+      inputRef.current?.blur();
+    }
   };
 
   return (
@@ -87,7 +92,7 @@ const GenericSearchBar = <TParam extends string = string,>({
             <IconButton
               type="button"
               aria-label={SEARCH_BAR_TEXT.FILTER_BUTTON_ARIA_LABEL}
-              onClick={handleOpenFilters}
+              onClick={handleToggleFilters}
               disabled={Boolean(pendingParameter)}
               sx={{
                 borderRadius: 0,
@@ -107,11 +112,6 @@ const GenericSearchBar = <TParam extends string = string,>({
           <Autocomplete
             freeSolo
             open={isAutocompleteOpen && autocompleteOptions.length > 0}
-            onOpen={() => {
-              if (autocompleteOptions.length > 0) {
-                setIsAutocompleteOpen(true);
-              }
-            }}
             onClose={() => {
               setIsAutocompleteOpen(false);
               setShowAllOptions(false);
@@ -136,6 +136,27 @@ const GenericSearchBar = <TParam extends string = string,>({
                 ? options
                 : filterAutocompleteOptions(options, state.inputValue)
             )}
+            ListboxProps={{
+              sx: {
+                scrollbarWidth: 'thin',
+                scrollbarColor: (theme) => `${theme.palette.grey[700]} ${theme.palette.background.default}`,
+                '&::-webkit-scrollbar': {
+                  width: 10,
+                },
+                '&::-webkit-scrollbar-track': {
+                  backgroundColor: 'background.default',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'grey.700',
+                  borderRadius: 999,
+                  border: '2px solid',
+                  borderColor: 'background.paper',
+                },
+                '&::-webkit-scrollbar-thumb:hover': {
+                  backgroundColor: 'grey.600',
+                },
+              },
+            }}
             renderInput={(params) => (
               <TextField
                 {...params}
