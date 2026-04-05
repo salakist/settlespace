@@ -4,6 +4,17 @@ import {
   parseTransactionInvolvement,
   parseTransactionStatus,
 } from '../../../shared/types';
+import {
+  buildLookupSearchFilter,
+  buildLookupSearchFilters,
+  buildResolvedSearchFilter,
+  buildResolvedSearchFilters,
+  buildTextSearchFilter,
+  getFilterValues,
+  getSingleFilterValue,
+  normalizeBridgeFreeText,
+  resolveEntityLabelById,
+} from '../../search/bridges/searchValueBridge';
 import { AppliedSearchFilter, GenericSearchValue } from '../../search/types';
 import { TRANSACTION_SEARCH_TEXT } from '../constants';
 import {
@@ -14,17 +25,12 @@ import {
 
 export const EMPTY_TRANSACTION_SEARCH_QUERY: TransactionSearchQuery = {};
 
-function buildTextFilter(
-  param: TransactionSearchParam,
-  value: string,
-  group: string,
-): AppliedSearchFilter<TransactionSearchParam> {
-  return { param, value, label: value, group };
-}
-
 export function resolvePersonName(personId: string, persons?: Person[]): string {
-  const person = persons?.find((candidate) => candidate.id === personId);
-  return person ? person.displayName?.trim() || `${person.firstName} ${person.lastName}`.trim() : personId;
+  return resolveEntityLabelById(
+    personId,
+    persons,
+    (person) => person.displayName?.trim() || `${person.firstName} ${person.lastName}`.trim(),
+  );
 }
 
 export function buildQueryFromFilters(
@@ -33,63 +39,52 @@ export function buildQueryFromFilters(
 ): TransactionSearchQuery {
   const query: TransactionSearchQuery = {};
 
-  const trimmed = freeText?.trim();
+  const trimmed = normalizeBridgeFreeText(freeText);
   if (trimmed) {
     query.freeText = trimmed;
   }
 
-  const statuses = filters
-    .filter((filter) => filter.param === TransactionSearchParam.Status)
-    .map((filter) => parseTransactionStatus(filter.value))
+  const statuses = getFilterValues(filters, TransactionSearchParam.Status)
+    .map((value) => parseTransactionStatus(value))
     .filter((status): status is NonNullable<typeof status> => status !== null);
   if (statuses.length > 0) {
     query.status = statuses;
   }
 
-  const involvement = filters.find(
-    (filter) => filter.param === TransactionSearchParam.Involvement,
-  );
-  if (involvement) {
-    const parsedInvolvement = parseTransactionInvolvement(involvement.value);
-    if (parsedInvolvement) {
-      query.involvement = parsedInvolvement;
-    }
+  const involvementValue = getSingleFilterValue(filters, TransactionSearchParam.Involvement);
+  const parsedInvolvement = parseTransactionInvolvement(involvementValue);
+  if (parsedInvolvement) {
+    query.involvement = parsedInvolvement;
   }
 
-  const category = filters.find((filter) => filter.param === TransactionSearchParam.Category);
+  const category = getSingleFilterValue(filters, TransactionSearchParam.Category);
   if (category) {
-    query.category = category.value;
+    query.category = category;
   }
 
-  const description = filters.find(
-    (filter) => filter.param === TransactionSearchParam.Description,
-  );
+  const description = getSingleFilterValue(filters, TransactionSearchParam.Description);
   if (description) {
-    query.description = description.value;
+    query.description = description;
   }
 
-  const involvedIds = filters
-    .filter((filter) => filter.param === TransactionSearchParam.Involved)
-    .map((filter) => filter.value);
+  const involvedIds = getFilterValues(filters, TransactionSearchParam.Involved);
   if (involvedIds.length > 0) {
     query.involved = involvedIds;
   }
 
-  const managedByIds = filters
-    .filter((filter) => filter.param === TransactionSearchParam.ManagedBy)
-    .map((filter) => filter.value);
+  const managedByIds = getFilterValues(filters, TransactionSearchParam.ManagedBy);
   if (managedByIds.length > 0) {
     query.managedBy = managedByIds;
   }
 
-  const payer = filters.find((filter) => filter.param === TransactionSearchParam.Payer);
+  const payer = getSingleFilterValue(filters, TransactionSearchParam.Payer);
   if (payer) {
-    query.payer = payer.value;
+    query.payer = payer;
   }
 
-  const payee = filters.find((filter) => filter.param === TransactionSearchParam.Payee);
+  const payee = getSingleFilterValue(filters, TransactionSearchParam.Payee);
   if (payee) {
-    query.payee = payee.value;
+    query.payee = payee;
   }
 
   return query;
@@ -101,43 +96,38 @@ export function buildFiltersFromQuery(
 ): AppliedSearchFilter<TransactionSearchParam>[] {
   const filters: AppliedSearchFilter<TransactionSearchParam>[] = [];
 
-  if (query.status) {
-    const allStatusOptions = buildStatusOptions();
-    filters.push(
-      ...query.status.flatMap((status) => allStatusOptions
-        .filter((option) => option.value === status)
-        .map((option) => ({
-          param: TransactionSearchParam.Status,
-          value: option.value,
-          label: option.label,
-          group: option.group ?? TRANSACTION_SEARCH_TEXT.STATUS_LABEL,
-        }))),
-    );
-  }
+  filters.push(
+    ...buildLookupSearchFilters(
+      TransactionSearchParam.Status,
+      query.status,
+      buildStatusOptions(),
+      TRANSACTION_SEARCH_TEXT.STATUS_LABEL,
+    ),
+  );
 
-  if (query.involvement) {
-    const match = buildInvolvementOptions().find((option) => option.value === query.involvement);
-    if (match) {
-      filters.push({
-        param: TransactionSearchParam.Involvement,
-        value: match.value,
-        label: match.label,
-        group: match.group ?? TRANSACTION_SEARCH_TEXT.INVOLVEMENT_LABEL,
-      });
-    }
+  const involvementFilter = buildLookupSearchFilter(
+    TransactionSearchParam.Involvement,
+    query.involvement,
+    buildInvolvementOptions(),
+    TRANSACTION_SEARCH_TEXT.INVOLVEMENT_LABEL,
+  );
+  if (involvementFilter) {
+    filters.push(involvementFilter);
   }
 
   if (query.category) {
-    filters.push(buildTextFilter(
-      TransactionSearchParam.Category,
-      query.category,
-      TRANSACTION_SEARCH_TEXT.CATEGORY_LABEL,
-    ));
+    filters.push(
+      buildTextSearchFilter(
+        TransactionSearchParam.Category,
+        query.category,
+        TRANSACTION_SEARCH_TEXT.CATEGORY_LABEL,
+      ),
+    );
   }
 
   if (query.description) {
     filters.push(
-      buildTextFilter(
+      buildTextSearchFilter(
         TransactionSearchParam.Description,
         query.description,
         TRANSACTION_SEARCH_TEXT.DESCRIPTION_LABEL,
@@ -145,44 +135,42 @@ export function buildFiltersFromQuery(
     );
   }
 
-  if (query.involved) {
-    for (const personId of query.involved) {
-      filters.push({
-        param: TransactionSearchParam.Involved,
-        value: personId,
-        label: resolvePersonName(personId, persons),
-        group: TRANSACTION_SEARCH_TEXT.INVOLVED_LABEL,
-      });
-    }
+  filters.push(
+    ...buildResolvedSearchFilters(
+      TransactionSearchParam.Involved,
+      query.involved,
+      TRANSACTION_SEARCH_TEXT.INVOLVED_LABEL,
+      (personId) => resolvePersonName(personId, persons),
+    ),
+  );
+
+  filters.push(
+    ...buildResolvedSearchFilters(
+      TransactionSearchParam.ManagedBy,
+      query.managedBy,
+      TRANSACTION_SEARCH_TEXT.MANAGED_BY_LABEL,
+      (personId) => resolvePersonName(personId, persons),
+    ),
+  );
+
+  const payerFilter = buildResolvedSearchFilter(
+    TransactionSearchParam.Payer,
+    query.payer,
+    TRANSACTION_SEARCH_TEXT.PAYER_LABEL,
+    (personId) => resolvePersonName(personId, persons),
+  );
+  if (payerFilter) {
+    filters.push(payerFilter);
   }
 
-  if (query.managedBy) {
-    for (const personId of query.managedBy) {
-      filters.push({
-        param: TransactionSearchParam.ManagedBy,
-        value: personId,
-        label: resolvePersonName(personId, persons),
-        group: TRANSACTION_SEARCH_TEXT.MANAGED_BY_LABEL,
-      });
-    }
-  }
-
-  if (query.payer) {
-    filters.push({
-      param: TransactionSearchParam.Payer,
-      value: query.payer,
-      label: resolvePersonName(query.payer, persons),
-      group: TRANSACTION_SEARCH_TEXT.PAYER_LABEL,
-    });
-  }
-
-  if (query.payee) {
-    filters.push({
-      param: TransactionSearchParam.Payee,
-      value: query.payee,
-      label: resolvePersonName(query.payee, persons),
-      group: TRANSACTION_SEARCH_TEXT.PAYEE_LABEL,
-    });
+  const payeeFilter = buildResolvedSearchFilter(
+    TransactionSearchParam.Payee,
+    query.payee,
+    TRANSACTION_SEARCH_TEXT.PAYEE_LABEL,
+    (personId) => resolvePersonName(personId, persons),
+  );
+  if (payeeFilter) {
+    filters.push(payeeFilter);
   }
 
   return filters;
