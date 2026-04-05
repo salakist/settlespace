@@ -20,7 +20,6 @@ namespace SettleSpace.Domain.Debts.Services
                     CurrencyCode = NormalizeCurrencyCode(transaction.CurrencyCode),
                 })
                 .Select(group => BuildSummary(group.Key.CounterpartyPersonId, group.Key.CurrencyCode, currentPersonId, group))
-                .Where(summary => summary.NetAmount > 0)
                 .OrderBy(summary => summary.CounterpartyPersonId, StringComparer.Ordinal)
                 .ThenBy(summary => summary.CurrencyCode, StringComparer.Ordinal)];
         }

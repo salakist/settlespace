@@ -30,6 +30,15 @@ const mockSampleDebt: DebtSummary = {
   transactionCount: 3,
 };
 
+const mockSettledDebt: DebtSummary = {
+  counterpartyPersonId: 'p3',
+  counterpartyDisplayName: 'Sam Settled',
+  currencyCode: 'USD',
+  netAmount: 0,
+  direction: DebtDirection.Settled,
+  transactionCount: 2,
+};
+
 const mockHook = {
   debts: [mockSampleDebt],
   error: null as string | null,
@@ -101,6 +110,16 @@ test('forwards settlement, filtering, and details actions', () => {
 
   mockHook.error = null;
   mockHook.successMessage = null;
+});
+
+test('shows an info alert when all visible debts are settled', () => {
+  mockHook.debts = [mockSettledDebt];
+
+  render(<DebtsPage expireSession={jest.fn()} />);
+
+  expect(screen.getByText(/all visible debts are settled/i)).toBeInTheDocument();
+
+  mockHook.debts = [mockSampleDebt];
 });
 
 test('shows loading spinner when loading is true', () => {

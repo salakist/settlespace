@@ -4,11 +4,11 @@
 **MVP implemented** — Debt summaries and settlement recording are now available.
 
 ## Role
-Debts feature provides UI for reviewing net balances with counterparties and recording partial or full settlements.
+Debts feature provides UI for reviewing active and settled balances with counterparties and recording partial or full settlements for outstanding balances.
 
 ## Responsibilities
-- `src/features/debts/components/DebtsPage.tsx` — orchestrates the debts page, loading state, and alerts.
-- `src/features/debts/components/DebtsList.tsx` — renders summary cards per counterparty and currency, with direct access to both details and settlement.
+- `src/features/debts/components/DebtsPage.tsx` — orchestrates the debts page, loading state, search, and mixed-list informational alerts.
+- `src/features/debts/components/DebtsList.tsx` — renders summary cards per counterparty and currency, keeps settled balances visible in the same list, and exposes only the actions that still apply.
 - `src/features/debts/components/DebtDetailsPage.tsx` — shows transaction-level debt details on a dedicated page.
 - `src/features/debts/components/DebtSettlementDrawer.tsx` — handles the side-drawer settlement flow with slider, amount input, and manual percent input.
 - `src/features/debts/hooks/useDebts.ts` — owns debts API loading, detail loading, drawer state, and settlement refresh flow.

@@ -43,14 +43,6 @@ function getTransactionCountLabel(count: number): string {
   return count === 1 ? '1 transaction' : `${count} transactions`;
 }
 
-function getSettlementButtonLabel(direction: DebtSummary['direction']): string {
-  if (direction === DebtDirection.Settled) {
-    return DEBT_LIST_TEXT.SETTLED;
-  }
-
-  return DEBT_LIST_TEXT.SETTLE_NOW;
-}
-
 const DebtsList: React.FC<DebtsListProps> = ({ debts, onSettle, onViewDetails }) => {
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [activeDebt, setActiveDebt] = useState<DebtSummary | null>(null);
@@ -142,12 +134,11 @@ const DebtsList: React.FC<DebtsListProps> = ({ debts, onSettle, onViewDetails })
 
       <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleCloseMenu}>
         <MenuItem onClick={handleViewDetailsAction}>{DEBT_LIST_TEXT.DETAILS}</MenuItem>
-        <MenuItem
-          onClick={handleSettleAction}
-          disabled={!activeDebt || activeDebt.direction === DebtDirection.Settled || activeDebt.netAmount <= 0}
-        >
-          {activeDebt ? getSettlementButtonLabel(activeDebt.direction) : 'Settle now'}
-        </MenuItem>
+        {activeDebt && activeDebt.direction !== DebtDirection.Settled && activeDebt.netAmount > 0 ? (
+          <MenuItem onClick={handleSettleAction}>
+            {DEBT_LIST_TEXT.SETTLE_NOW}
+          </MenuItem>
+        ) : null}
       </Menu>
     </>
   );

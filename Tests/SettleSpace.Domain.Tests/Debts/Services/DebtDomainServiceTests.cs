@@ -70,6 +70,23 @@ public class DebtDomainServiceTests
     }
 
     [Fact]
+    public void BuildDebtSummariesIncludesSettledBalancesWhenNetBalanceIsZero()
+    {
+        var transactions = new[]
+        {
+            BuildTransaction("tx-1", "user-1", "user-2", 25m, "EUR", TransactionStatus.Completed),
+            BuildTransaction("tx-2", "user-2", "user-1", 25m, "EUR", TransactionStatus.Completed),
+        };
+
+        var result = _sut.BuildDebtSummaries(transactions, "user-1");
+
+        var summary = Assert.Single(result);
+        Assert.Equal(0m, summary.NetAmount);
+        Assert.Equal(DebtDirection.Settled, summary.Direction);
+        Assert.Equal(2, summary.TransactionCount);
+    }
+
+    [Fact]
     public void CreateSettlementWhenAmountExceedsOutstandingDebtThrowsInvalidDebtSettlementException()
     {
         var transactions = new[]

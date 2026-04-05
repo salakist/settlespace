@@ -59,6 +59,32 @@ public class DebtsControllerTests
     }
 
     [Fact]
+    public async Task GetCurrentUserDebtsReturnsOkWithSettledDtos()
+    {
+        var summaries = new List<DebtSummary>
+        {
+            new()
+            {
+                CounterpartyPersonId = "user-2",
+                CurrencyCode = "EUR",
+                NetAmount = 0m,
+                Direction = DebtDirection.Settled,
+                TransactionCount = 2,
+            }
+        };
+        _serviceMock.Setup(s => s.GetCurrentUserDebtSummariesAsync("user-1")).ReturnsAsync(summaries);
+        SetUser("user-1", PersonRole.USER);
+
+        var result = await _controller.GetCurrentUserDebts();
+
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        var dtos = Assert.IsAssignableFrom<List<DebtSummaryDto>>(ok.Value);
+        var dto = Assert.Single(dtos);
+        Assert.Equal(0m, dto.NetAmount);
+        Assert.Equal(DebtDirection.Settled, dto.Direction);
+    }
+
+    [Fact]
     public async Task GetCurrentUserDebtDetailsReturnsOkWithDtos()
     {
         var details = new List<DebtDetails>

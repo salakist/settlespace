@@ -7,10 +7,11 @@ export const DEBT_DIRECTION_LABELS: Record<DebtDirection, string> = {
 };
 
 export const DEBT_LIST_TEXT = {
-  EMPTY_STATE: 'You have no outstanding debts right now. New balances will appear here after completed transactions.',
+  EMPTY_STATE: 'You have no debts right now. New balances will appear here after completed transactions.',
   DETAILS: 'Details',
   SETTLE_NOW: 'Settle now',
   SETTLED: 'Settled',
+  ALL_VISIBLE_SETTLED: 'All visible debts are settled.',
 } as const;
 
 export const DEBT_SETTLEMENT_TEXT = {

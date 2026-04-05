@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo } from 'react';
 import { Alert, CircularProgress, Stack } from '@mui/material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { DebtSummary } from '../../../shared/types';
+import { DebtDirection, DebtSummary } from '../../../shared/types';
 import { useDebts } from '../hooks/useDebts';
+import { DEBT_LIST_TEXT } from '../constants';
 import DebtsList from './DebtsList';
 import DebtSettlementDrawer from './DebtSettlementDrawer';
 import SearchBar from '../../persons/components/SearchBar';
@@ -45,6 +46,9 @@ const DebtsPage: React.FC<DebtsPageProps> = ({ expireSession }) => {
 
     return debts.filter((debt) => (debt.counterpartyDisplayName ?? debt.counterpartyPersonId).toLowerCase().includes(searchQuery));
   }, [debts, searchQuery]);
+
+  const allVisibleDebtsSettled = filteredDebts.length > 0
+    && filteredDebts.every((debt) => debt.direction === DebtDirection.Settled);
 
   const handleViewDetails = (debt: DebtSummary) => {
     navigate(`/debts/${encodeURIComponent(debt.counterpartyPersonId)}/${encodeURIComponent(debt.currencyCode)}`);
@@ -99,6 +103,10 @@ const DebtsPage: React.FC<DebtsPageProps> = ({ expireSession }) => {
       )}
 
       {error && <Alert severity="error">{error}</Alert>}
+
+      {allVisibleDebtsSettled && (
+        <Alert severity="info">{DEBT_LIST_TEXT.ALL_VISIBLE_SETTLED}</Alert>
+      )}
 
       {debtsContent}
 

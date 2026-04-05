@@ -33,7 +33,7 @@ const debts: DebtSummary[] = [
 test('shows an empty-state alert when there are no debts', () => {
   render(<DebtsList debts={[]} onSettle={jest.fn()} onViewDetails={jest.fn()} />);
 
-  expect(screen.getByRole('alert')).toHaveTextContent(/no outstanding debts right now/i);
+  expect(screen.getByRole('alert')).toHaveTextContent(/you have no debts right now/i);
 });
 
 test('renders concise debt summaries and exposes actions from a menu', () => {
@@ -43,11 +43,12 @@ test('renders concise debt summaries and exposes actions from a menu', () => {
   render(<DebtsList debts={debts} onSettle={onSettle} onViewDetails={onViewDetails} />);
 
   expect(screen.getByText('Bob Stone')).toBeInTheDocument();
+  expect(screen.getByText('Cara Lane')).toBeInTheDocument();
   expect(screen.getByText(/you owe them/i)).toBeInTheDocument();
   expect(screen.getByText(/they owe you/i)).toBeInTheDocument();
+  expect(screen.getAllByText(/^settled$/i).length).toBeGreaterThan(0);
   expect(screen.queryByText(/you owe Bob Stone/i)).not.toBeInTheDocument();
   expect(screen.queryByText(/Alice Walker owes you/i)).not.toBeInTheDocument();
-  expect(screen.queryByText(/This balance with Cara Lane is settled/i)).not.toBeInTheDocument();
   expect(screen.queryByText(/Currency:/i)).not.toBeInTheDocument();
   expect(screen.getByText(/4 transactions/i)).toBeInTheDocument();
 
@@ -58,7 +59,9 @@ test('renders concise debt summaries and exposes actions from a menu', () => {
   fireEvent.click(screen.getByRole('menuitem', { name: /^details$/i }));
 
   fireEvent.click(screen.getByRole('button', { name: /open actions for cara lane/i }));
-  expect(screen.getByRole('menuitem', { name: /^settled$/i })).toHaveAttribute('aria-disabled', 'true');
+  expect(screen.getByRole('menuitem', { name: /^details$/i })).toBeInTheDocument();
+  expect(screen.queryByRole('menuitem', { name: /^settle now$/i })).not.toBeInTheDocument();
+  expect(screen.queryByRole('menuitem', { name: /^settled$/i })).not.toBeInTheDocument();
 
   expect(onSettle).toHaveBeenCalledWith(debts[1]);
   expect(onViewDetails).toHaveBeenCalledWith(debts[1]);
