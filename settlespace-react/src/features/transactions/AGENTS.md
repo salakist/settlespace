@@ -12,7 +12,7 @@ Transactions feature provides UI and state management for user-scoped transactio
 - `src/features/transactions/components/TransactionList.tsx` — transaction list rendering.
 - `src/features/transactions/components/TransactionForm.tsx` — create/update transaction form.
 - `src/features/transactions/hooks/useTransactions.ts` — feature state, validation, and API interaction.
-- Keep `transactionSearchConfig.ts` and `transactionSearchBridge.ts` on a single-source-of-truth model: use `TransactionSearchParam` directly, and derive `TransactionStatus` / `TransactionInvolvement` option lists from `getEnumValues()` instead of maintaining duplicate arrays or param maps.
+- Keep `transactionSearchConfig.ts` and `transactionSearchBridge.ts` on a single-source-of-truth model: use `TransactionSearchParam` directly, derive `TransactionStatus` / `TransactionInvolvement` option lists from `getEnumValues()`, and keep `transactionSearchBridge.ts` as the feature-owned public adapter even though it now delegates the repetitive mechanics to the shared declarative search bridge.
 - Prefer backend-provided `payerDisplayName`, `payeeDisplayName`, and `createdByDisplayName` for read-only rendering; keep client person lookup only for forms, suggestions, and URL-chip hydration.
 - `src/features/transactions/components/*.test.tsx` and `src/features/transactions/hooks/useTransactions.test.tsx` — component and hook tests. When inline `jest.mock()` factories need shared transaction constants, prefer `jest.requireActual()` inside the factory rather than `mock* = SOME_CONST` alias duplication.
 

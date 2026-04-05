@@ -12,10 +12,11 @@ Search feature provides the shared, domain-agnostic frontend search UI and state
 - `src/features/search/hooks/useGenericSearchController.ts` — search-bar orchestration, filter application/removal, and submit behavior.
 - `src/features/search/hooks/useAsyncSuggestions.ts` — debounced async-suggestion loading with stale-request protection.
 - `src/features/search/utils/searchHelpers.ts` — pure helper logic for option visibility, placeholder selection, and filter normalization.
-- `src/features/search/bridges/searchValueBridge.ts` — reusable pure helpers for mapping typed query objects to/from `GenericSearchValue` filter lists.
+- `src/features/search/bridges/searchValueBridge.ts` — reusable helpers plus the declarative `createSearchValueBridge(...)` factory for mapping typed query objects to/from `GenericSearchValue` filter lists.
 - `src/features/search/types.ts` owns the finite search enums and shared type contract (`SearchParameterKind`, `SearchSelectionMode`, parameter config interfaces, emitted values).
 - `src/features/search/constants.ts` owns only search UI text, placeholders, layout tokens, and test IDs; do not reintroduce enum-wrapper mirrors such as `SEARCH_PARAMETER_KINDS` or `SEARCH_SELECTION_MODES` there.
 - Keep this feature domain-agnostic: reusable query/filter conversion mechanics may live here, but backend DTO mapping, URL serialization, enum parsing, and feature-specific query semantics stay in the consuming feature wrapper.
+- Prefer the declarative bridge field shapes (`text-single`, `lookup-single`, `lookup-multi`, `resolved-single`, `resolved-multi`) plus the small `custom` escape hatch before adding more one-off bridge helpers.
 
 ## Parameter format
 - `SearchParameterConfig<TParam>` uses a stable feature-local `param` key plus a user-facing `label`.
@@ -27,6 +28,7 @@ Search feature provides the shared, domain-agnostic frontend search UI and state
 - `showGroupLabel` optionally controls whether the top-level filter autocomplete shows a non-clickable group header for that parameter; parameter-value entry autocompletes should suppress those headings.
 - `GenericSearchValue<TParam>` is the shared output shape: optional `freeText` plus `filters: AppliedSearchFilter<TParam>[]`.
 - Consuming features such as transactions should translate between this generic value and their domain query models in a thin wrapper or bridge module.
+- When multiple features need similar query↔filter wiring, prefer a feature-local bridge config consumed by `createSearchValueBridge(...)` instead of duplicating imperative loops.
 
 ## Key files
 - `components/GenericSearchBar.tsx`
