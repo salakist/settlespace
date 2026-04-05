@@ -25,15 +25,17 @@ Persons feature provides persons CRUD UI, search flow, and feature-level state b
 - `components/PersonAddressEditor.tsx`
 - `components/PersonDetailsFormFields.tsx`
 - `hooks/personDetailsFormUtils.ts`
+- `hooks/usePersonDirectory.ts`
 - `hooks/usePersons.ts`
+- `api.ts`
 
 ## Commands
 - `npm run test:ci -- src/features/persons`
 - `npx eslint src/features/persons --ext .ts,.tsx --max-warnings=0`
 
 ## Dependencies
-- `src/shared/api/personApi.ts`
-- `src/shared/types/`
+- `src/shared/auth/permissions.ts`
+- `src/shared/types.ts`
 
 ## Source-of-truth note
 Cross-cutting frontend policy and quality-gate workflow are defined in `settlespace-react/AGENTS.md`.

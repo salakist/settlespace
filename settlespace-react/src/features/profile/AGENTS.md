@@ -22,8 +22,9 @@ Profile feature provides authenticated profile editing and password-management e
 - `npx eslint src/features/profile --ext .ts,.tsx --max-warnings=0`
 
 ## Dependencies
-- `src/shared/api/personApi.ts`
-- `src/shared/types/`
+- `src/features/persons/api.ts`
+- `src/features/persons/hooks/usePersonDirectory.ts`
+- `src/shared/types.ts`
 - `src/features/persons/components/PersonDetailsFormFields.tsx`
 - `src/features/persons/hooks/personDetailsFormUtils.ts`
 

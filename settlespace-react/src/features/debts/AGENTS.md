@@ -24,6 +24,8 @@ Debts feature provides UI for reviewing active and settled balances with counter
 - `src/features/debts/components/DebtDetailsPage.tsx`
 - `src/features/debts/components/DebtSettlementDrawer.tsx`
 - `src/features/debts/hooks/useDebts.ts`
+- `src/features/debts/api.ts`
+- `src/features/debts/types.ts`
 
 ## Source-of-truth note
 Cross-cutting frontend policy is maintained in `settlespace-react/AGENTS.md`.
@@ -33,10 +35,11 @@ This file should stay focused on debts feature-local scope and status.
 
 ## Commands
 - `npm run test:ci -- --runTestsByPath src/features/debts/**/*.test.tsx`
-- `npx eslint src/features/debts src/shared/api/debtsApi.ts --ext .ts,.tsx --max-warnings=0`
+- `npx eslint src/features/debts src/features/debts/api.ts --ext .ts,.tsx --max-warnings=0`
 
 ## Dependencies
 - Debts backend endpoints under `/api/debts`
-- Shared frontend types in `src/shared/types/index.ts`
+- Shared cross-feature models in `src/shared/types.ts`
+- `src/shared/api/requestHandling.ts`
 - Material UI components including `Drawer` and `Slider`
 - Transaction-derived debt summaries from the backend

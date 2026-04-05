@@ -22,6 +22,10 @@ Transactions feature provides UI and state management for user-scoped transactio
 - `src/features/transactions/components/TransactionList.tsx`
 - `src/features/transactions/components/TransactionForm.tsx`
 - `src/features/transactions/hooks/useTransactions.ts`
+- `src/features/transactions/search/transactionSearchConfig.ts`
+- `src/features/transactions/search/transactionSearchBridge.ts`
+- `src/features/transactions/api.ts`
+- `src/features/transactions/types.ts`
 
 ## Source-of-truth note
 Cross-cutting frontend policy and quality-gate workflow are defined in `settlespace-react/AGENTS.md`.
@@ -34,5 +38,7 @@ This file should stay focused on transactions feature-specific behavior.
 - `npx eslint src/features/transactions --ext .ts,.tsx --max-warnings=0`
 
 ## Dependencies
-- `src/shared/api/transactionApi.ts`
-- Shared transaction types under `src/shared/types/`
+- Cross-feature transaction models under `src/shared/types.ts`
+- `src/shared/auth/permissions.ts`
+- `src/features/persons/api.ts`
+- `src/features/persons/hooks/usePersonDirectory.ts`

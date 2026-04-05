@@ -16,15 +16,18 @@ Auth feature provides login, registration, and password-change UI and session be
 - `components/RegisterPage.tsx`
 - `components/ChangePasswordForm.tsx`
 - `hooks/useAuth.ts`
+- `api.ts`
+- `storage.ts`
+- `types.ts`
 
 ## Commands
 - `npm run test:ci -- src/features/auth`
 - `npx eslint src/features/auth --ext .ts,.tsx --max-warnings=0`
 
 ## Dependencies
-- `src/shared/api/authApi.ts`
-- `src/shared/api/authStorage.ts`
-- `src/shared/types/`
+- `src/app/hooks/useAppAuth.ts`
+- `src/shared/api/requestHandling.ts`
+- `src/shared/types.ts`
 
 ## Source-of-truth note
 Cross-cutting frontend policy and quality-gate workflow are defined in `settlespace-react/AGENTS.md`.

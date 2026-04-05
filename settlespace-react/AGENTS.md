@@ -25,7 +25,7 @@ Frontend module router for app-shell policy, shared frontend workflow, and featu
 - Do not eagerly preload the full persons directory or the full current profile on authenticated app boot; load persons/profile data on the routes that own them.
 - Keep reusable, domain-agnostic chip/filter search UI in `src/features/search/`; feature wrappers own query mapping and route integration.
 - Use a **single source of truth** for reusable values: finite state sets belong in enums, while reusable copy/IDs/routes belong in grouped constant objects owned by the narrowest context.
-- Do not mirror enums with wrapper exports such as `*_KINDS`, `*_MODES`, `*_VALUES`, or duplicate param maps when direct enum usage is sufficient; prefer `getEnumValues()` from `src/shared/types/` when you need enum iteration.
+- Do not mirror enums with wrapper exports such as `*_KINDS`, `*_MODES`, `*_VALUES`, or duplicate param maps when direct enum usage is sufficient; prefer `getEnumValues()` from `src/shared/types.ts` when you need enum iteration.
 - In tests, export reusable fixture text/IDs once from grouped `testConstants` objects or the owning production constants module rather than exporting both standalone values and a wrapper object.
 - When a `jest.mock()` factory needs shared constants or enum members, prefer `jest.requireActual()` inside the factory (or a `mockRender...` indirection when the implementation must vary per test) instead of creating one-off `mock* = SOME_CONST` alias duplication purely for Jest scope rules.
 - Shared UX/UI and interaction conventions are defined in `UX-PRINCIPLES.md`.
