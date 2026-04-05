@@ -1,9 +1,9 @@
 import { useCallback, useState } from 'react';
-import { debtsApi } from '../../../shared/api/debtsApi';
 import { handleRequestError } from '../../../shared/api/requestHandling';
 import { SESSION_EXPIRED_MESSAGE } from '../../../shared/constants/messages';
-import { DebtDetails, DebtSummary, SettleDebtRequest } from '../../../shared/types';
+import { debtsApi } from '../api';
 import { DEBT_SETTLEMENT_TEXT } from '../constants';
+import { DebtDetails, DebtSummary, SettleDebtRequest } from '../types';
 
 type UseDebtsOptions = {
   expireSession: (message?: string) => void;

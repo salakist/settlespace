@@ -4,7 +4,7 @@ import { SESSION_EXPIRED_MESSAGE } from '../../../shared/constants/messages';
 import { PersonRole } from '../../../shared/types';
 import { usePersons } from './usePersons';
 
-jest.mock('../../../shared/api/api', () => ({
+jest.mock('../api', () => ({
   personApi: {
     getAll: jest.fn(),
     search: jest.fn(),
@@ -14,7 +14,7 @@ jest.mock('../../../shared/api/api', () => ({
   },
 }));
 
-const { personApi } = jest.requireMock('../../../shared/api/api') as {
+const { personApi } = jest.requireMock('../api') as {
   personApi: {
     getAll: jest.Mock;
     search: jest.Mock;

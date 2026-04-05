@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Alert, Chip, IconButton, Menu, MenuItem, Paper, Stack, Typography } from '@mui/material';
-import { DebtDirection, DebtSummary } from '../../../shared/types';
+import { DebtDirection, DebtSummary } from '../types';
 import { panelSurfaceSx } from '../../../shared/theme/surfaceStyles';
 import { DEBT_DIRECTION_LABELS, DEBT_LIST_TEXT } from '../constants';
 

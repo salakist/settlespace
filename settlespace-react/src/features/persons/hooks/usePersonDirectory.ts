@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { personApi } from '../api/api';
-import { handleRequestError } from '../api/requestHandling';
-import { SESSION_EXPIRED_MESSAGE } from '../constants/messages';
-import { Person } from '../types';
+import { handleRequestError } from '../../../shared/api/requestHandling';
+import { SESSION_EXPIRED_MESSAGE } from '../../../shared/constants/messages';
+import { Person } from '../../../shared/types';
+import { personApi } from '../api';
 
 let cachedPersons: Person[] = [];
 let cachedPromise: Promise<Person[]> | null = null;

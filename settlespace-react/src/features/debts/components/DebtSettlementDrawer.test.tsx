@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { DebtDirection } from '../../../shared/types';
+import { DebtDirection } from '../types';
 import DebtSettlementDrawer from './DebtSettlementDrawer';
 
 const baseDetails = {

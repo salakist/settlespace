@@ -1,35 +1,18 @@
 import axios from 'axios';
-import { TransactionStatus } from '../types';
-import { mockDelete, mockGet, mockPost, mockPut, mockRequestUse, setupApiClientMock } from './apiTestClientMock';
-import { API_TEST_VALUES } from './testConstants';
+import { TransactionStatus } from '../../shared/types';
+import { mockDelete, mockGet, mockPost, mockPut, setupApiClientMock } from '../../shared/api/apiTestClientMock';
+import { API_TEST_VALUES } from '../../shared/api/testConstants';
 
 jest.mock('axios');
-
 
 beforeEach(() => {
   setupApiClientMock();
 });
 
-test('registers interceptor and applies bearer token when present', () => {
-  localStorage.setItem('settlespace.auth.token', 'token-1');
-
-  let loadedApi: typeof import('./transactionApi').transactionApi;
-  jest.isolateModules(() => {
-    loadedApi = require('./transactionApi').transactionApi;
-  });
-
-  expect(loadedApi!).toBeDefined();
-  expect(mockRequestUse).toHaveBeenCalled();
-
-  const interceptor = mockRequestUse.mock.calls[0][0] as (config: { headers: { Authorization?: string } }) => { headers: { Authorization?: string } };
-  const result = interceptor({ headers: {} });
-  expect(result.headers.Authorization).toBe('Bearer token-1');
-});
-
 test('transaction api methods call expected routes', () => {
-  let loadedApi: typeof import('./transactionApi').transactionApi;
+  let loadedApi: typeof import('./api').transactionApi;
   jest.isolateModules(() => {
-    loadedApi = require('./transactionApi').transactionApi;
+    loadedApi = require('./api').transactionApi;
   });
 
   loadedApi!.getById(API_TEST_VALUES.TRANSACTION_ID);

@@ -2,8 +2,9 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import TransactionSearchBar from './TransactionSearchBar';
-import { personApi } from '../../../shared/api/api';
-import { Person, TransactionInvolvement, TransactionStatus } from '../../../shared/types';
+import { personApi } from '../../persons/api';
+import { Person, TransactionStatus } from '../../../shared/types';
+import { TransactionInvolvement } from '../types';
 import {
   DEFAULT_TRANSACTION_TEST_PERSONS,
   TRANSACTION_TEST_IDS,
@@ -12,7 +13,7 @@ import {
 
 const TEST_PERSONS: Person[] = DEFAULT_TRANSACTION_TEST_PERSONS;
 
-jest.mock('../../../shared/api/api', () => ({
+jest.mock('../../persons/api', () => ({
   personApi: {
     search: jest.fn(),
   },

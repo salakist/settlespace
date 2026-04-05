@@ -15,29 +15,15 @@ const {
 
 const mockGetAppTestValues = () => (jest.requireActual('./testConstants') as typeof import('./testConstants')).APP_TEST_VALUES;
 
-jest.mock('../shared/api/api', () => ({
+jest.mock('../features/auth/api', () => ({
   authApi: {
     login: jest.fn(),
     register: jest.fn(),
     changePassword: jest.fn(),
   },
-  personApi: {
-    getAll: jest.fn(),
-    getCurrent: jest.fn(),
-    getById: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    updateCurrent: jest.fn(),
-    delete: jest.fn(),
-    search: jest.fn(),
-  },
-  transactionApi: {
-    getById: jest.fn(),
-    search: jest.fn(),
-    create: jest.fn(),
-    update: jest.fn(),
-    delete: jest.fn(),
-  },
+}));
+
+jest.mock('../features/auth/storage', () => ({
   authStorage: {
     isAuthenticated: jest.fn(),
     getUsername: jest.fn(),
@@ -53,17 +39,46 @@ jest.mock('../shared/api/api', () => ({
   },
 }));
 
-const {
-  authApi: mockAuthApi,
-  personApi: mockPersonApi,
-  transactionApi: mockTransactionApi,
-  authStorage: mockAuthStorage,
-} = jest.requireMock('../shared/api/api') as {
+jest.mock('../features/persons/api', () => ({
+  personApi: {
+    getAll: jest.fn(),
+    getCurrent: jest.fn(),
+    getById: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    updateCurrent: jest.fn(),
+    delete: jest.fn(),
+    search: jest.fn(),
+  },
+}));
+
+jest.mock('../features/transactions/api', () => ({
+  transactionApi: {
+    getById: jest.fn(),
+    search: jest.fn(),
+    create: jest.fn(),
+    update: jest.fn(),
+    delete: jest.fn(),
+  },
+}));
+
+jest.mock('../features/debts/api', () => ({
+  debtsApi: {
+    getCurrentUser: jest.fn(),
+    getCurrentUserDetails: jest.fn(),
+    settle: jest.fn(),
+  },
+}));
+
+const { authApi: mockAuthApi } = jest.requireMock('../features/auth/api') as {
   authApi: {
     login: jest.Mock;
     register: jest.Mock;
     changePassword: jest.Mock;
   };
+};
+
+const { personApi: mockPersonApi } = jest.requireMock('../features/persons/api') as {
   personApi: {
     getAll: jest.Mock;
     getCurrent: jest.Mock;
@@ -74,6 +89,9 @@ const {
     delete: jest.Mock;
     search: jest.Mock;
   };
+};
+
+const { transactionApi: mockTransactionApi } = jest.requireMock('../features/transactions/api') as {
   transactionApi: {
     getById: jest.Mock;
     search: jest.Mock;
@@ -81,6 +99,9 @@ const {
     update: jest.Mock;
     delete: jest.Mock;
   };
+};
+
+const { authStorage: mockAuthStorage } = jest.requireMock('../features/auth/storage') as {
   authStorage: {
     isAuthenticated: jest.Mock;
     getUsername: jest.Mock;
@@ -96,7 +117,7 @@ const {
   };
 };
 
-const { debtsApi: mockDebtsApi } = jest.requireMock('../shared/api/debtsApi') as {
+const { debtsApi: mockDebtsApi } = jest.requireMock('../features/debts/api') as {
   debtsApi: {
     getCurrentUser: jest.Mock;
     getCurrentUserDetails: jest.Mock;
@@ -105,14 +126,6 @@ const { debtsApi: mockDebtsApi } = jest.requireMock('../shared/api/debtsApi') as
 };
 
 const App = require('./App').default;
-
-jest.mock('../shared/api/debtsApi', () => ({
-  debtsApi: {
-    getCurrentUser: jest.fn(),
-    getCurrentUserDetails: jest.fn(),
-    settle: jest.fn(),
-  },
-}));
 
 jest.mock('../features/persons/components/PersonSearchBar', () => ({
   __esModule: true,

@@ -3,13 +3,13 @@ import { act, render } from '@testing-library/react';
 import { SESSION_EXPIRED_MESSAGE } from '../../../shared/constants/messages';
 import {
   PersonRole,
-  TransactionInvolvement,
   TransactionStatus,
 } from '../../../shared/types';
 import { useTransactions } from './useTransactions';
 import { TRANSACTION_TEST_VALUES } from '../testConstants';
+import { TransactionInvolvement } from '../types';
 
-jest.mock('../../../shared/api/transactionApi', () => ({
+jest.mock('../api', () => ({
   transactionApi: {
     search: jest.fn(),
     create: jest.fn(),
@@ -18,7 +18,7 @@ jest.mock('../../../shared/api/transactionApi', () => ({
   },
 }));
 
-const { transactionApi } = jest.requireMock('../../../shared/api/transactionApi') as {
+const { transactionApi } = jest.requireMock('../api') as {
   transactionApi: {
     search: jest.Mock;
     create: jest.Mock;

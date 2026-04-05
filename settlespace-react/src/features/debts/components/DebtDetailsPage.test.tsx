@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { DebtDirection, TransactionStatus } from '../../../shared/types';
+import { TransactionStatus } from '../../../shared/types';
+import { DebtDirection } from '../types';
 import DebtDetailsPage from './DebtDetailsPage';
 
 const mockNavigate = jest.fn();

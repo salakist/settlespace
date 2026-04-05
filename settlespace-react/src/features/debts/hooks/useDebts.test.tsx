@@ -1,10 +1,10 @@
 import React from 'react';
 import { act, render } from '@testing-library/react';
 import { SESSION_EXPIRED_MESSAGE } from '../../../shared/constants/messages';
-import { DebtDirection, DebtSummary } from '../../../shared/types';
 import { useDebts } from './useDebts';
+import { DebtDirection, DebtSummary } from '../types';
 
-jest.mock('../../../shared/api/debtsApi', () => ({
+jest.mock('../api', () => ({
   debtsApi: {
     getCurrentUser: jest.fn(),
     getCurrentUserDetails: jest.fn(),
@@ -12,7 +12,7 @@ jest.mock('../../../shared/api/debtsApi', () => ({
   },
 }));
 
-const { debtsApi } = jest.requireMock('../../../shared/api/debtsApi') as {
+const { debtsApi } = jest.requireMock('../api') as {
   debtsApi: {
     getCurrentUser: jest.Mock;
     getCurrentUserDetails: jest.Mock;

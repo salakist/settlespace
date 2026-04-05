@@ -11,7 +11,7 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { DebtDetails, DebtDirection, DebtSummary, SettleDebtRequest } from '../../../shared/types';
+import { DebtDetails, DebtDirection, DebtSummary, SettleDebtRequest } from '../types';
 import { insetSurfaceSx } from '../../../shared/theme/surfaceStyles';
 import { DEFAULT_TRANSACTION_CURRENCY } from '../../transactions/constants';
 import {

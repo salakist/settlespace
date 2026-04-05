@@ -3,9 +3,10 @@ import {
   handleRequestError,
   rejectUnauthorizedAction,
 } from '../../../shared/api/requestHandling';
-import { transactionApi, TransactionSearchQuery } from '../../../shared/api/transactionApi';
 import { canUpdateOrDeleteTransaction } from '../../../shared/auth/permissions';
 import { PersonRole, Transaction } from '../../../shared/types';
+import { transactionApi } from '../api';
+import { TransactionSearchQuery } from '../types';
 
 type UseTransactionsOptions = {
   expireSession: (message?: string) => void;

@@ -9,8 +9,8 @@ import {
   PersonRole,
   Transaction,
   TransactionStatus,
-  parseTransactionStatus,
 } from '../../../shared/types';
+import { parseTransactionStatus } from '../types';
 import {
   DEFAULT_TRANSACTION_CURRENCY,
   DEFAULT_TRANSACTION_STATUS,

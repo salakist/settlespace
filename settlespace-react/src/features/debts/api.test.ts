@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { mockGet, mockPost, mockRequestUse, setupApiClientMock } from './apiTestClientMock';
+import { mockGet, mockPost, setupApiClientMock } from '../../shared/api/apiTestClientMock';
 
 jest.mock('axios');
 
@@ -7,27 +7,10 @@ beforeEach(() => {
   setupApiClientMock();
 });
 
-test('registers interceptor and applies bearer token when present', () => {
-  localStorage.setItem('settlespace.auth.token', 'token-1');
-
-  let loadedApi: typeof import('./debtsApi').debtsApi;
-  jest.isolateModules(() => {
-    loadedApi = require('./debtsApi').debtsApi;
-  });
-
-  expect(loadedApi!).toBeDefined();
-  expect(mockRequestUse).toHaveBeenCalled();
-
-  const interceptor = mockRequestUse.mock.calls[0][0] as (config: { headers: { Authorization?: string } }) => { headers: { Authorization?: string } };
-  const result = interceptor({ headers: {} });
-
-  expect(result.headers.Authorization).toBe('Bearer token-1');
-});
-
 test('debts api methods call expected routes', () => {
-  let loadedApi: typeof import('./debtsApi').debtsApi;
+  let loadedApi: typeof import('./api').debtsApi;
   jest.isolateModules(() => {
-    loadedApi = require('./debtsApi').debtsApi;
+    loadedApi = require('./api').debtsApi;
   });
 
   loadedApi!.getCurrentUser();

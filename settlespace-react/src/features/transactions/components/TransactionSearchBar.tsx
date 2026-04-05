@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
-import { TransactionSearchQuery } from '../../../shared/api/transactionApi';
 import { Person } from '../../../shared/types';
+import { TransactionSearchQuery } from '../types';
 import GenericSearchBar from '../../search/components/GenericSearchBar';
 import { AppliedSearchFilter } from '../../search/types';
 import {

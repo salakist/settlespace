@@ -9,11 +9,14 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-jest.mock('../../../shared/api/api', () => ({
+jest.mock('../api', () => ({
   authApi: {
     login: jest.fn(),
     register: jest.fn(),
   },
+}));
+
+jest.mock('../storage', () => ({
   authStorage: {
     isAuthenticated: jest.fn(),
     getUsername: jest.fn(),
@@ -29,11 +32,14 @@ jest.mock('../../../shared/api/api', () => ({
   },
 }));
 
-const { authApi, authStorage } = jest.requireMock('../../../shared/api/api') as {
+const { authApi } = jest.requireMock('../api') as {
   authApi: {
     login: jest.Mock;
     register: jest.Mock;
   };
+};
+
+const { authStorage } = jest.requireMock('../storage') as {
   authStorage: {
     isAuthenticated: jest.Mock;
     getUsername: jest.Mock;

@@ -1,12 +1,14 @@
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { APP_ROUTES } from '../../../app/constants';
-import { AUTH_ERROR_MESSAGES } from '../constants';
-import { authApi, authStorage } from '../../../shared/api/api';
 import { logHandledError } from '../../../shared/api/requestHandling';
 import { SESSION_EXPIRED_MESSAGE } from '../../../shared/constants/messages';
-import { clearPersonDirectoryCache } from '../../../shared/hooks/usePersonDirectory';
-import { PersonRole, RegisterRequest } from '../../../shared/types';
+import { PersonRole } from '../../../shared/types';
+import { clearPersonDirectoryCache } from '../../persons/hooks/usePersonDirectory';
+import { authApi } from '../api';
+import { AUTH_ERROR_MESSAGES } from '../constants';
+import { authStorage } from '../storage';
+import { RegisterRequest } from '../types';
 
 export function useAuth() {
   const navigate = useNavigate();

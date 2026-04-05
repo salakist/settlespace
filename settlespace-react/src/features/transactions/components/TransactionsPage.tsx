@@ -1,17 +1,19 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Button, CircularProgress, LinearProgress, Stack } from '@mui/material';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { TransactionSearchQuery } from '../../../shared/api/transactionApi';
 import { canUpdateOrDeleteTransaction } from '../../../shared/auth/permissions';
 import ConfirmationDialog from '../../../shared/components/ConfirmationDialog';
-import { usePersonDirectory } from '../../../shared/hooks/usePersonDirectory';
+import { usePersonDirectory } from '../../persons/hooks/usePersonDirectory';
 import {
   Person,
   PersonRole,
   Transaction,
+} from '../../../shared/types';
+import {
   parseTransactionInvolvement,
   parseTransactionStatus,
-} from '../../../shared/types';
+  TransactionSearchQuery,
+} from '../types';
 import TransactionSearchBar from './TransactionSearchBar';
 import TransactionForm from './TransactionForm';
 import TransactionList from './TransactionList';

@@ -1,19 +1,6 @@
-import axios from 'axios';
-import { ChangePasswordRequest, LoginRequest, LoginResponse, Person, PersonRole, RegisterRequest, parsePersonRole } from '../types';
-import { API_BASE_URL, AUTH_STORAGE_KEYS } from './constants';
-
-const api = axios.create({
-  baseURL: API_BASE_URL,
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN);
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-
-  return config;
-});
+import { AUTH_STORAGE_KEYS } from '../../shared/api/constants';
+import { PersonRole, parsePersonRole } from '../../shared/types';
+import { LoginResponse } from './types';
 
 export const authStorage = {
   getToken: () => localStorage.getItem(AUTH_STORAGE_KEYS.TOKEN),
@@ -42,21 +29,4 @@ export const authStorage = {
     localStorage.removeItem(AUTH_STORAGE_KEYS.DISPLAY_NAME);
     localStorage.removeItem(AUTH_STORAGE_KEYS.ROLE);
   },
-};
-
-export const authApi = {
-  login: (request: LoginRequest) => api.post<LoginResponse>('/auth/login', request),
-  register: (request: RegisterRequest) => api.post<LoginResponse>('/auth/register', request),
-  changePassword: (request: ChangePasswordRequest) => api.post('/auth/change-password', request),
-};
-
-export const personApi = {
-  getAll: () => api.get<Person[]>('/persons'),
-  getCurrent: () => api.get<Person>('/persons/me'),
-  getById: (id: string) => api.get<Person>(`/persons/${id}`),
-  create: (person: Omit<Person, 'id'>) => api.post<Person>('/persons', person),
-  update: (id: string, person: Omit<Person, 'id'>) => api.put(`/persons/${id}`, person),
-  updateCurrent: (person: Omit<Person, 'id'>) => api.put('/persons/me', person),
-  delete: (id: string) => api.delete(`/persons/${id}`),
-  search: (query: string) => api.get<Person[]>(`/persons/search/${query}`),
 };

@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { DebtDirection, DebtSummary } from '../../../shared/types';
+import { DebtDirection, DebtSummary } from '../types';
 import DebtsPage from './DebtsPage';
 
 const mockNavigate = jest.fn();
@@ -13,7 +13,7 @@ jest.mock('react-router-dom', () => ({
 }));
 
 jest.mock('./DebtSearchBar', () => {
-  const { DebtDirection } = jest.requireActual('../../../shared/types');
+  const { DebtDirection } = jest.requireActual('../types');
 
   return {
     __esModule: true,

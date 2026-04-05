@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react';
-import { authApi, personApi } from '../../../shared/api/api';
+import { authApi } from '../../auth/api';
+import { personApi } from '../../persons/api';
 import { logHandledError } from '../../../shared/api/requestHandling';
-import { primePersonDirectory } from '../../../shared/hooks/usePersonDirectory';
+import { primePersonDirectory } from '../../persons/hooks/usePersonDirectory';
 import { Person, PersonRole } from '../../../shared/types';
 
 type UseProfileOptions = {

@@ -1,4 +1,4 @@
-import { DebtDirection } from '../../shared/types';
+import { DebtDirection } from './types';
 
 export const DEBT_DIRECTION_LABELS: Record<DebtDirection, string> = {
   [DebtDirection.TheyOweYou]: 'They owe you',

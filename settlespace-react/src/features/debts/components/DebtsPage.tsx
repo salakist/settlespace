@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { Alert, CircularProgress, Stack } from '@mui/material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { DebtDirection, DebtSummary, parseDebtDirection } from '../../../shared/types';
+import { DebtDirection, DebtSummary, parseDebtDirection } from '../types';
 import SearchResultsAlert from '../../search/components/SearchResultsAlert';
 import { useDebts } from '../hooks/useDebts';
 import { DEBT_LIST_TEXT } from '../constants';

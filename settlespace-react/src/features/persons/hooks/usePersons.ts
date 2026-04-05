@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { personApi } from '../../../shared/api/api';
+import { personApi } from '../api';
 import {
   handleRequestError,
   rejectUnauthorizedAction,
@@ -11,7 +11,7 @@ import {
 } from '../../../shared/auth/permissions';
 import { Person, PersonRole } from '../../../shared/types';
 import { SESSION_EXPIRED_MESSAGE } from '../../../shared/constants/messages';
-import { primePersonDirectory } from '../../../shared/hooks/usePersonDirectory';
+import { primePersonDirectory } from './usePersonDirectory';
 
 type UsePersonsOptions = {
   expireSession: (message?: string) => void;

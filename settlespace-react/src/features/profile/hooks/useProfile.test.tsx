@@ -2,20 +2,26 @@ import React from 'react';
 import { act, render, waitFor } from '@testing-library/react';
 import { useProfile } from './useProfile';
 
-jest.mock('../../../shared/api/api', () => ({
+jest.mock('../../auth/api', () => ({
   authApi: {
     changePassword: jest.fn(),
   },
+}));
+
+jest.mock('../../persons/api', () => ({
   personApi: {
     getCurrent: jest.fn(),
     updateCurrent: jest.fn(),
   },
 }));
 
-const { authApi, personApi } = jest.requireMock('../../../shared/api/api') as {
+const { authApi } = jest.requireMock('../../auth/api') as {
   authApi: {
     changePassword: jest.Mock;
   };
+};
+
+const { personApi } = jest.requireMock('../../persons/api') as {
   personApi: {
     getCurrent: jest.Mock;
     updateCurrent: jest.Mock;

@@ -1,4 +1,4 @@
-import { parseDebtDirection } from '../../../shared/types';
+import { parseDebtDirection } from '../types';
 import { createSearchValueBridge } from '../../search/bridges/searchValueBridge';
 import { GenericSearchValue } from '../../search/types';
 import { DEBT_SEARCH_TEXT } from '../constants';

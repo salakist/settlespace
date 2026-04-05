@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { DebtDirection, DebtSummary } from '../../../shared/types';
+import { DebtDirection, DebtSummary } from '../types';
 import DebtsList from './DebtsList';
 
 const debts: DebtSummary[] = [

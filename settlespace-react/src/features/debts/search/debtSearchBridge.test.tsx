@@ -1,4 +1,4 @@
-import { DebtDirection } from '../../../shared/types';
+import { DebtDirection } from '../types';
 import { GenericSearchValue } from '../../search/types';
 import { DEBT_SEARCH_TEXT } from '../constants';
 import {

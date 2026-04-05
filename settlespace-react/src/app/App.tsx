@@ -14,7 +14,7 @@ import DebtDetailsPage from '../features/debts/components/DebtDetailsPage';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { useAppAuth } from './hooks/useAppAuth';
 import { APP_ROUTES, PRIMARY_TABS as PRIMARY_NAV_TABS } from './constants';
-import { personApi } from '../shared/api/api';
+import { personApi } from '../features/persons/api';
 import { logHandledError } from '../shared/api/requestHandling';
 import { canAccessPersonsPage } from '../shared/auth/permissions';
 import { BRAND_HEADER_SRC } from '../shared/theme/surfaceStyles';

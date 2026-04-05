@@ -1,9 +1,11 @@
-import { TransactionSearchQuery } from '../../../shared/api/transactionApi';
 import {
   Person,
-  TransactionInvolvement,
   TransactionStatus,
 } from '../../../shared/types';
+import {
+  TransactionInvolvement,
+  TransactionSearchQuery,
+} from '../types';
 import { TRANSACTION_SEARCH_TEXT } from '../constants';
 import {
   buildFiltersFromQuery,

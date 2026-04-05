@@ -3,9 +3,9 @@ import { SESSION_EXPIRED_MESSAGE } from '../../shared/constants/messages';
 import {
   Person,
   PersonRole,
-  TransactionInvolvement,
   TransactionStatus,
 } from '../../shared/types';
+import { TransactionInvolvement } from './types';
 import { SEARCH_TEST_IDS } from '../search/constants';
 import { TRANSACTION_SEARCH_TEXT } from './constants';
 

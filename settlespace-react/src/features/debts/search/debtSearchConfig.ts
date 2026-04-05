@@ -1,4 +1,5 @@
-import { DebtDirection, getEnumValues } from '../../../shared/types';
+import { getEnumValues } from '../../../shared/types';
+import { DebtDirection } from '../types';
 import {
   SearchParameterConfig,
   SearchParameterKind,

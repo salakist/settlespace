@@ -1,5 +1,5 @@
 import { useCallback } from 'react';
-import { RegisterRequest } from '../../shared/types';
+import { RegisterRequest } from '../../features/auth/types';
 
 type UseAppAuthOptions = {
   login: (username: string, password: string) => Promise<boolean>;

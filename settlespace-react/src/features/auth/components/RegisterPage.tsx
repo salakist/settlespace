@@ -10,8 +10,9 @@ import {
 } from '@mui/material';
 import { authCardSurfaceSx, BRAND_HEADER_SRC } from '../../../shared/theme/surfaceStyles';
 import DateInputField from '../../../shared/components/DateInputField';
+import { Address } from '../../../shared/types';
 import PersonAddressEditor from '../../persons/components/PersonAddressEditor';
-import { Address, RegisterRequest } from '../../../shared/types';
+import { RegisterRequest } from '../types';
 
 interface RegisterPageProps {
   onRegister: (request: RegisterRequest) => Promise<void>;

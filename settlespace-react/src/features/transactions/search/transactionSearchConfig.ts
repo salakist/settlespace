@@ -1,10 +1,10 @@
-import { personApi } from '../../../shared/api/api';
 import {
   getEnumValues,
   Person,
-  TransactionInvolvement,
   TransactionStatus,
 } from '../../../shared/types';
+import { personApi } from '../../persons/api';
+import { TransactionInvolvement } from '../types';
 import { TRANSACTION_SEARCH_TEXT } from '../constants';
 import {
   SearchParameterConfig,

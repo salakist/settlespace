@@ -1,9 +1,9 @@
-import { TransactionSearchQuery } from '../../../shared/api/transactionApi';
+import { Person } from '../../../shared/types';
 import {
-  Person,
   parseTransactionInvolvement,
   parseTransactionStatus,
-} from '../../../shared/types';
+  TransactionSearchQuery,
+} from '../types';
 import {
   createSearchValueBridge,
   resolveEntityLabelById,
