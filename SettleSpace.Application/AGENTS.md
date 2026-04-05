@@ -5,6 +5,7 @@ Application layer and API host router for orchestration, HTTP endpoints, and dep
 
 ## Responsibilities
 - Keep cross-context application policy (DI, host wiring, middleware registration, artifact ownership).
+- Keep namespaces aligned with the `SettleSpace.Application.*` root and the folder structure under this module.
 - Route implementation guidance to context AGENTS files under this module.
 - Keep this file policy-focused; keep context behavior in child AGENTS.
 
