@@ -9,13 +9,13 @@ import {
 } from './PendingParameterAdornment';
 import { SEARCH_BAR_TEXT, SEARCH_LAYOUT, SEARCH_PLACEHOLDERS } from '../constants';
 import { useGenericSearchController } from '../hooks/useGenericSearchController';
-import { GenericSearchBarProps } from '../types';
+import { SearchBarProps } from '../types';
 import {
   filterAutocompleteOptions,
   getAutocompleteGroupLabel,
 } from '../utils/searchHelpers';
 
-const GenericSearchBar = <TParam extends string = string,>({
+const SearchBar = <TParam extends string = string,>({
   onSearch,
   initialValue,
   action,
@@ -23,7 +23,7 @@ const GenericSearchBar = <TParam extends string = string,>({
   ariaLabel = SEARCH_BAR_TEXT.DEFAULT_ARIA_LABEL,
   freeTextPlaceholder = SEARCH_PLACEHOLDERS.DEFAULT,
   dataTestId,
-}: GenericSearchBarProps<TParam>) => {
+}: SearchBarProps<TParam>) => {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isAutocompleteOpen, setIsAutocompleteOpen] = useState(false);
   const [showAllOptions, setShowAllOptions] = useState(false);
@@ -247,4 +247,4 @@ const GenericSearchBar = <TParam extends string = string,>({
   );
 };
 
-export default GenericSearchBar;
+export default SearchBar;

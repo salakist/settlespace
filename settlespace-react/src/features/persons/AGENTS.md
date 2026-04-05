@@ -9,7 +9,7 @@ Persons feature provides persons CRUD UI, search flow, and feature-level state b
 ## Responsibilities
 - `src/features/persons/components/` owns person list/form/search/address editor UI, `PersonsPage` composition, and the route-level wrapper `PersonsRoutePage.tsx`.
 - `src/features/persons/components/` also owns shared person-details form fields reused by profile.
-- The persons list uses `components/PersonSearchBar.tsx` as its shared-search wrapper; keep new search behavior on the shared `GenericSearchBar` path and do not reintroduce a feature-local legacy bar.
+- The persons list uses `components/PersonSearchBar.tsx` as its shared-search wrapper; keep new search behavior on the shared `SearchBar` path and do not reintroduce a feature-local legacy bar.
 - `src/features/persons/hooks/` owns persons domain behavior (`usePersons`) and shared person-details form utilities reused by profile.
 - Role-selection UI should derive options directly from `PersonRole` via `getEnumValues()`; do not reintroduce mirrored role arrays such as `PERSON_ROLE_VALUES`.
 - The full persons directory is route-scoped: load it when `/persons`-related routes are active rather than from the app shell.

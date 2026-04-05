@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import GenericSearchBar from '../../search/components/GenericSearchBar';
+import SearchBar from '../../search/components/SearchBar';
 import { DEBT_SEARCH_TEXT } from '../constants';
 import {
   EMPTY_DEBT_SEARCH_QUERY,
@@ -27,7 +27,7 @@ const DebtSearchBar: React.FC<DebtSearchBarProps> = ({
   const parameters = useMemo(() => buildDebtSearchParameters(), []);
 
   return (
-    <GenericSearchBar<DebtSearchParam>
+    <SearchBar<DebtSearchParam>
       onSearch={(value) => onSearch(fromDebtSearchValue(value))}
       initialValue={initialValue}
       action={action}

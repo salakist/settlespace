@@ -1,9 +1,8 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import GenericSearchBar from './GenericSearchBar';
-import { SEARCH_PLACEHOLDERS } from '../constants';
-import {
+import SearchBar from './SearchBar';
+import { SEARCH_PLACEHOLDERS } from '../constants';import {
   SearchParameterConfig,
   SearchParameterKind,
   SearchSelectionMode,
@@ -49,7 +48,7 @@ async function clickOption(optionName: string): Promise<void> {
 
 test('supports free-text-only mode when no parameters are provided', async () => {
   const onSearch = jest.fn();
-  render(<GenericSearchBar onSearch={onSearch} ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL} />);
+  render(<SearchBar onSearch={onSearch} ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL} />);
 
   const input = screen.getByLabelText(SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL);
   userEvent.type(input, 'hello');
@@ -65,7 +64,7 @@ test('the left filter button toggles the autocomplete open and closed', async ()
   const onSearch = jest.fn();
 
   render(
-    <GenericSearchBar
+    <SearchBar
       onSearch={onSearch}
       ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL}
       parameters={buildStatusParameters()}
@@ -88,7 +87,7 @@ test('selecting a fixed option adds a chip and triggers search', async () => {
   const onSearch = jest.fn();
 
   render(
-    <GenericSearchBar
+    <SearchBar
       onSearch={onSearch}
       ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL}
       parameters={buildStatusParameters()}
@@ -125,7 +124,7 @@ test('async suggestion parameters load results and add selected chips', async ()
   });
 
   render(
-    <GenericSearchBar
+    <SearchBar
       onSearch={onSearch}
       ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL}
       parameters={buildInvolvedAsyncParameters(getSuggestions)}
@@ -155,7 +154,7 @@ test('supports hiding group headings in top-level filter autocomplete', async ()
   const onSearch = jest.fn();
 
   render(
-    <GenericSearchBar
+    <SearchBar
       onSearch={onSearch}
       ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL}
       parameters={buildStatusParameters({ showGroupLabel: false })}
@@ -177,7 +176,7 @@ test('does not show group headings while entering an async parameter value', asy
   }]);
 
   render(
-    <GenericSearchBar
+    <SearchBar
       onSearch={jest.fn()}
       ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL}
       parameters={buildInvolvedAsyncParameters(getSuggestions)}

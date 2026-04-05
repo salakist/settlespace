@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import GenericSearchBar from '../../search/components/GenericSearchBar';
+import SearchBar from '../../search/components/SearchBar';
 import { GenericSearchValue } from '../../search/types';
 
 interface PersonSearchBarProps {
@@ -29,7 +29,7 @@ const PersonSearchBar: React.FC<PersonSearchBarProps> = ({
   const initialValue = useMemo(() => buildInitialValue(initialQuery), [initialQuery]);
 
   return (
-    <GenericSearchBar
+    <SearchBar
       onSearch={(value) => onSearch(value.freeText ?? '')}
       initialValue={initialValue}
       action={action}

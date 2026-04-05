@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Person } from '../../../shared/types';
 import { TransactionSearchQuery } from '../types';
-import GenericSearchBar from '../../search/components/GenericSearchBar';
+import SearchBar from '../../search/components/SearchBar';
 import { AppliedSearchFilter } from '../../search/types';
 import {
   buildTransactionParameters,
@@ -37,7 +37,7 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
   const parameters = useMemo(() => buildTransactionParameters(), []);
 
   return (
-    <GenericSearchBar<TransactionSearchParam>
+    <SearchBar<TransactionSearchParam>
       onSearch={(value) => onSearch(fromTransactionSearchValue(value))}
       initialValue={initialValue}
       action={action}

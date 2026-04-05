@@ -7,7 +7,7 @@ Implemented and actively being generalized for reuse by other frontend features.
 Search feature provides the shared, domain-agnostic frontend search UI and state model for free-text search plus chip-based parameter filters.
 
 ## Responsibilities
-- `src/features/search/components/GenericSearchBar.tsx` — reusable search input and high-level composition for the shared search UI.
+- `src/features/search/components/SearchBar.tsx` — reusable search input and high-level composition for the shared search UI.
 - `src/features/search/components/ActiveFilterChips.tsx`, `src/features/search/components/PendingParameterAdornment.tsx`, and `src/features/search/components/SearchResultsAlert.tsx` — shared presentational helpers for active chips, pending-filter affordances, and unified no-results messaging.
 - `src/features/search/hooks/useGenericSearchController.ts` — search-bar orchestration, filter application/removal, and submit behavior.
 - `src/features/search/hooks/useAsyncSuggestions.ts` — debounced async-suggestion loading with stale-request protection.
@@ -31,7 +31,7 @@ Search feature provides the shared, domain-agnostic frontend search UI and state
 - When multiple features need similar query↔filter wiring, prefer a feature-local bridge config consumed by `createSearchValueBridge(...)` instead of duplicating imperative loops.
 
 ## Key files
-- `components/GenericSearchBar.tsx`
+- `components/SearchBar.tsx`
 - `components/ActiveFilterChips.tsx`
 - `components/PendingParameterAdornment.tsx`
 - `components/SearchResultsAlert.tsx`

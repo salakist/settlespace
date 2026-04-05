@@ -61,7 +61,7 @@ export interface GenericSearchValue<TParam extends string = string> {
   filters: AppliedSearchFilter<TParam>[];
 }
 
-export interface GenericSearchBarProps<TParam extends string = string> {
+export interface SearchBarProps<TParam extends string = string> {
   onSearch: (value: GenericSearchValue<TParam>) => void;
   initialValue?: GenericSearchValue<TParam>;
   action?: React.ReactNode;
