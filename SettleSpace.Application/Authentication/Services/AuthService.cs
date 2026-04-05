@@ -64,8 +64,8 @@ namespace SettleSpace.Application.Authentication.Services
                 await _personRepository.UpdateAsync(person.Id, person);
             }
 
-            var resolvedUsername = $"{person.FirstName}.{person.LastName}";
-            var displayName = $"{person.FirstName} {person.LastName}".Trim();
+            var resolvedUsername = person.Username;
+            var displayName = person.DisplayName;
 
             var expiresAtUtc = DateTime.UtcNow.AddMinutes(_authSettings.TokenExpirationMinutes);
             var claims = new[]
@@ -115,7 +115,7 @@ namespace SettleSpace.Application.Authentication.Services
 
             var loginResponse = await LoginAsync(new LoginCommand
             {
-                Username = $"{createdPerson.FirstName}.{createdPerson.LastName}",
+                Username = createdPerson.Username,
                 Password = command.Password
             });
 

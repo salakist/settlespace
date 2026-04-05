@@ -14,6 +14,8 @@ export interface Person {
   id?: string;
   firstName: string;
   lastName: string;
+  displayName?: string;
+  username?: string;
   role?: PersonRole;
   phoneNumber?: string;
   email?: string;
@@ -26,8 +28,11 @@ export type TransactionStatus = 'Pending' | 'Completed' | 'Cancelled';
 export interface Transaction {
   id?: string;
   payerPersonId: string;
+  payerDisplayName?: string;
   payeePersonId: string;
+  payeeDisplayName?: string;
   createdByPersonId?: string;
+  createdByDisplayName?: string;
   amount: number;
   currencyCode: string;
   transactionDateUtc: string;
@@ -42,6 +47,7 @@ export type DebtDirection = 'TheyOweYou' | 'YouOweThem' | 'Settled';
 
 export interface DebtSummary {
   counterpartyPersonId: string;
+  counterpartyDisplayName?: string;
   currencyCode: string;
   netAmount: number;
   direction: DebtDirection;
@@ -57,6 +63,7 @@ export interface DebtDetails extends DebtSummary {
 export interface DebtSettlementResult {
   settlementTransactionId?: string;
   counterpartyPersonId: string;
+  counterpartyDisplayName?: string;
   currencyCode: string;
   settledAmount: number;
   remainingNetAmount: number;

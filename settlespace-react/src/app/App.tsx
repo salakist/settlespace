@@ -155,8 +155,8 @@ function App() {
         }
 
         const person = response.data;
-        const nextUsername = `${person.firstName}.${person.lastName}`;
-        const nextDisplayName = `${person.firstName} ${person.lastName}`.trim();
+        const nextUsername = person.username?.trim() || `${person.firstName}.${person.lastName}`;
+        const nextDisplayName = person.displayName?.trim() || `${person.firstName} ${person.lastName}`.trim();
 
         setAuthUsername(nextUsername);
         setAuthDisplayName(nextDisplayName);

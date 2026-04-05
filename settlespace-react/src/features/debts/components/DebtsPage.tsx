@@ -1,29 +1,18 @@
 import React, { useEffect, useMemo } from 'react';
 import { Alert, CircularProgress, Stack } from '@mui/material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { usePersonDirectory } from '../../../shared/hooks/usePersonDirectory';
-import { DebtSummary, Person } from '../../../shared/types';
+import { DebtSummary } from '../../../shared/types';
 import { useDebts } from '../hooks/useDebts';
 import DebtsList from './DebtsList';
 import DebtSettlementDrawer from './DebtSettlementDrawer';
 import SearchBar from '../../persons/components/SearchBar';
 
 type DebtsPageProps = {
-  persons?: Person[];
   expireSession: (message?: string) => void;
 };
 
-function getPersonDisplayName(persons: Person[], personId: string): string {
-  const person = persons.find((candidate) => candidate.id === personId);
-  return person ? `${person.firstName} ${person.lastName}` : personId;
-}
-
-const DebtsPage: React.FC<DebtsPageProps> = ({ persons, expireSession }) => {
+const DebtsPage: React.FC<DebtsPageProps> = ({ expireSession }) => {
   const navigate = useNavigate();
-  const {
-    error: personsError,
-    persons: loadedPersons,
-  } = usePersonDirectory({ expireSession, initialPersons: persons });
   const [searchParams, setSearchParams] = useSearchParams();
   const searchQuery = searchParams.get('search')?.trim().toLowerCase() ?? '';
   const {
@@ -54,8 +43,8 @@ const DebtsPage: React.FC<DebtsPageProps> = ({ persons, expireSession }) => {
       return debts;
     }
 
-    return debts.filter((debt) => getPersonDisplayName(loadedPersons, debt.counterpartyPersonId).toLowerCase().includes(searchQuery));
-  }, [debts, loadedPersons, searchQuery]);
+    return debts.filter((debt) => (debt.counterpartyDisplayName ?? debt.counterpartyPersonId).toLowerCase().includes(searchQuery));
+  }, [debts, searchQuery]);
 
   const handleViewDetails = (debt: DebtSummary) => {
     navigate(`/debts/${encodeURIComponent(debt.counterpartyPersonId)}/${encodeURIComponent(debt.currencyCode)}`);
@@ -88,7 +77,6 @@ const DebtsPage: React.FC<DebtsPageProps> = ({ persons, expireSession }) => {
     debtsContent = (
       <DebtsList
         debts={filteredDebts}
-        persons={loadedPersons}
         onSettle={openSettlementDrawer}
         onViewDetails={handleViewDetails}
       />
@@ -110,7 +98,6 @@ const DebtsPage: React.FC<DebtsPageProps> = ({ persons, expireSession }) => {
         </Alert>
       )}
 
-      {personsError && <Alert severity="error">{personsError}</Alert>}
       {error && <Alert severity="error">{error}</Alert>}
 
       {debtsContent}
@@ -119,7 +106,6 @@ const DebtsPage: React.FC<DebtsPageProps> = ({ persons, expireSession }) => {
         open={settlementOpen}
         debt={selectedDebt}
         details={selectedDebtDetail}
-        persons={loadedPersons}
         loading={detailsLoading}
         saving={settlementSaving}
         error={error}

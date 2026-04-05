@@ -120,7 +120,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           >
             {selectablePersons.map((person) => (
               <MenuItem key={person.id} value={person.id}>
-                {person.firstName} {person.lastName}
+                {person.displayName?.trim() || `${person.firstName} ${person.lastName}`.trim()}
               </MenuItem>
             ))}
           </TextField>
@@ -135,7 +135,7 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
           >
             {selectablePersons.map((person) => (
               <MenuItem key={person.id} value={person.id}>
-                {person.firstName} {person.lastName}
+                {person.displayName?.trim() || `${person.firstName} ${person.lastName}`.trim()}
               </MenuItem>
             ))}
           </TextField>

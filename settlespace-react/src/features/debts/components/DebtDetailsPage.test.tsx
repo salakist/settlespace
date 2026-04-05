@@ -43,11 +43,14 @@ beforeEach(() => {
     transactionCount: 2,
     paidByCurrentPerson: 65,
     paidByCounterparty: 22.5,
+    counterpartyDisplayName: 'Jane Doe',
     transactions: [
       {
         id: 'tx-1',
         payerPersonId: 'p1',
         payeePersonId: 'p2',
+        payerDisplayName: 'John Doe',
+        payeeDisplayName: 'Jane Doe',
         amount: 20,
         currencyCode: 'EUR',
         transactionDateUtc: '2026-04-01T12:00:00Z',
@@ -59,6 +62,8 @@ beforeEach(() => {
         id: 'tx-2',
         payerPersonId: 'p2',
         payeePersonId: 'p1',
+        payerDisplayName: 'Jane Doe',
+        payeeDisplayName: 'John Doe',
         amount: 12.5,
         currencyCode: 'EUR',
         transactionDateUtc: '2026-03-28T18:30:00Z',
@@ -73,10 +78,6 @@ beforeEach(() => {
 test('loads and renders debt details with underlying transactions', async () => {
   render(
     <DebtDetailsPage
-      persons={[
-        { id: 'p1', firstName: 'John', lastName: 'Doe', addresses: [], role: 'USER' },
-        { id: 'p2', firstName: 'Jane', lastName: 'Doe', addresses: [], role: 'USER' },
-      ]}
       expireSession={jest.fn()}
     />,
   );
@@ -86,6 +87,7 @@ test('loads and renders debt details with underlying transactions', async () => 
   expect(dinnerRow).toBeInTheDocument();
   expect(screen.getByText('01/04/2026 · Food')).toBeInTheDocument();
   expect(await screen.findByText(/Taxi/i)).toBeInTheDocument();
+  expect(screen.getByText(/John Doe paid Jane Doe/i)).toBeInTheDocument();
   expect(screen.getByText(/completed transactions:/i)).toBeInTheDocument();
 
   const buttonLabels = screen.getAllByRole('button')
@@ -97,10 +99,6 @@ test('loads and renders debt details with underlying transactions', async () => 
 test('supports opening settlement from the details page', async () => {
   render(
     <DebtDetailsPage
-      persons={[
-        { id: 'p1', firstName: 'John', lastName: 'Doe', addresses: [], role: 'USER' },
-        { id: 'p2', firstName: 'Jane', lastName: 'Doe', addresses: [], role: 'USER' },
-      ]}
       expireSession={jest.fn()}
     />,
   );

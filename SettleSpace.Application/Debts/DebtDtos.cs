@@ -6,6 +6,7 @@ namespace SettleSpace.Application.Debts
     public class DebtSummaryDto
     {
         public string CounterpartyPersonId { get; set; } = null!;
+        public string CounterpartyDisplayName { get; set; } = null!;
         public string CurrencyCode { get; set; } = null!;
         public decimal NetAmount { get; set; }
         public DebtDirection Direction { get; set; }
@@ -23,6 +24,7 @@ namespace SettleSpace.Application.Debts
     {
         public string? SettlementTransactionId { get; set; }
         public string CounterpartyPersonId { get; set; } = null!;
+        public string CounterpartyDisplayName { get; set; } = null!;
         public string CurrencyCode { get; set; } = null!;
         public decimal SettledAmount { get; set; }
         public decimal RemainingNetAmount { get; set; }

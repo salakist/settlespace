@@ -4,6 +4,8 @@ using SettleSpace.Application.Authentication.Services;
 using SettleSpace.Application.Debts.Commands;
 using SettleSpace.Application.Debts.Mapping;
 using SettleSpace.Application.Debts.Services;
+using SettleSpace.Application.Persons.Services;
+using SettleSpace.Domain.Debts.Entities;
 
 namespace SettleSpace.Application.Debts
 {
@@ -14,15 +16,18 @@ namespace SettleSpace.Application.Debts
     {
         private readonly IDebtApplicationService _applicationService;
         private readonly IDebtMapper _debtMapper;
+        private readonly IPersonDisplayNameResolver _personDisplayNameResolver;
         private readonly IAuthService _authService;
 
         public DebtsController(
             IDebtApplicationService applicationService,
             IDebtMapper debtMapper,
+            IPersonDisplayNameResolver personDisplayNameResolver,
             IAuthService authService)
         {
             _applicationService = applicationService;
             _debtMapper = debtMapper;
+            _personDisplayNameResolver = personDisplayNameResolver;
             _authService = authService;
         }
 
@@ -33,8 +38,10 @@ namespace SettleSpace.Application.Debts
         {
             var (personId, _) = _authService.ResolveAuthContext(User);
             var debts = await _applicationService.GetCurrentUserDebtSummariesAsync(personId);
+            var counterpartyPersonIds = debts.Select(debt => debt.CounterpartyPersonId).ToList();
+            var personDisplayNames = await _personDisplayNameResolver.ResolveAsync(counterpartyPersonIds);
 
-            return Ok(debts.Select(_debtMapper.ToSummaryDto).ToList());
+            return Ok(debts.Select(debt => _debtMapper.ToSummaryDto(debt, personDisplayNames)).ToList());
         }
 
         [HttpGet("me/{counterpartyPersonId}")]
@@ -44,8 +51,14 @@ namespace SettleSpace.Application.Debts
         {
             var (personId, _) = _authService.ResolveAuthContext(User);
             var details = await _applicationService.GetCurrentUserDebtDetailsAsync(personId, counterpartyPersonId);
+            var relatedPersonIds = details.ConvertAll(detail => detail.CounterpartyPersonId);
+            relatedPersonIds.AddRange(details
+                .SelectMany(detail => detail.Transactions)
+                .SelectMany(transaction => transaction.GetRelatedPersonIds())
+                .ToList());
+            var personDisplayNames = await _personDisplayNameResolver.ResolveAsync(relatedPersonIds);
 
-            return Ok(details.Select(_debtMapper.ToDetailsDto).ToList());
+            return Ok(details.Select(detail => _debtMapper.ToDetailsDto(detail, personDisplayNames)).ToList());
         }
 
         [HttpPost("settlements")]
@@ -56,8 +69,10 @@ namespace SettleSpace.Application.Debts
         {
             var (personId, _) = _authService.ResolveAuthContext(User);
             var settlementResult = await _applicationService.SettleCurrentUserDebtAsync(personId, command);
+            var personDisplayNames = await _personDisplayNameResolver.ResolveAsync([settlementResult.CounterpartyPersonId]);
 
-            return Ok(_debtMapper.ToSettlementResultDto(settlementResult));
+            return Ok(_debtMapper.ToSettlementResultDto(settlementResult, personDisplayNames));
         }
+
     }
 }

@@ -5,13 +5,16 @@ namespace SettleSpace.Application.Transactions.Mapping
 {
     public class TransactionMapper : ITransactionMapper
     {
-        public TransactionDto ToDto(Transaction entity) =>
+        public TransactionDto ToDto(Transaction entity, IReadOnlyDictionary<string, string>? personDisplayNames = null) =>
             new()
             {
                 Id = entity.Id,
                 PayerPersonId = entity.PayerPersonId,
+                PayerDisplayName = ResolvePersonDisplayName(personDisplayNames, entity.PayerPersonId),
                 PayeePersonId = entity.PayeePersonId,
+                PayeeDisplayName = ResolvePersonDisplayName(personDisplayNames, entity.PayeePersonId),
                 CreatedByPersonId = entity.CreatedByPersonId,
+                CreatedByDisplayName = ResolvePersonDisplayName(personDisplayNames, entity.CreatedByPersonId),
                 Amount = entity.Amount,
                 CurrencyCode = entity.CurrencyCode,
                 TransactionDateUtc = entity.TransactionDateUtc,
@@ -59,6 +62,20 @@ namespace SettleSpace.Application.Transactions.Mapping
                 CreatedAtUtc = createdAtUtc,
                 UpdatedAtUtc = updatedAtUtc,
             };
+        }
+
+        private static string ResolvePersonDisplayName(
+            IReadOnlyDictionary<string, string>? personDisplayNames,
+            string personId)
+        {
+            if (personDisplayNames != null
+                && personDisplayNames.TryGetValue(personId, out var displayName)
+                && !string.IsNullOrWhiteSpace(displayName))
+            {
+                return displayName;
+            }
+
+            return personId;
         }
     }
 }

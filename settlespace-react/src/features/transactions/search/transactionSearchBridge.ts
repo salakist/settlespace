@@ -21,7 +21,7 @@ function buildTextFilter(
 
 export function resolvePersonName(personId: string, persons?: Person[]): string {
   const person = persons?.find((candidate) => candidate.id === personId);
-  return person ? `${person.firstName} ${person.lastName}` : personId;
+  return person ? person.displayName?.trim() || `${person.firstName} ${person.lastName}`.trim() : personId;
 }
 
 export function buildQueryFromFilters(

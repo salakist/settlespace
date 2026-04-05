@@ -43,6 +43,8 @@ namespace SettleSpace.Infrastructure.Persons
                 BsonClassMap.RegisterClassMap<Person>(cm =>
                 {
                     cm.AutoMap();
+                    cm.UnmapProperty(p => p.DisplayName);
+                    cm.UnmapProperty(p => p.Username);
                     cm.MapIdMember(p => p.Id)
                       .SetIdGenerator(StringObjectIdGenerator.Instance)
                       .SetSerializer(new StringSerializer(BsonType.ObjectId));
@@ -86,6 +88,22 @@ namespace SettleSpace.Infrastructure.Persons
         public async Task<Person?> GetByIdAsync(string id)
         {
             return await _personsCollection.Find(x => x.Id == id).FirstOrDefaultAsync();
+        }
+
+        public async Task<List<Person>> GetByIdsAsync(List<string> ids)
+        {
+            var distinctIds = ids
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .Distinct(StringComparer.Ordinal)
+                .ToList();
+
+            if (distinctIds.Count == 0)
+            {
+                return [];
+            }
+
+            var filter = Builders<Person>.Filter.In(person => person.Id, distinctIds);
+            return await _personsCollection.Find(filter).ToListAsync();
         }
 
         public async Task<List<Person>> SearchAsync(string query)

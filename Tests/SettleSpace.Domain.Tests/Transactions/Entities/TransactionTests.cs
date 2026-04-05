@@ -135,6 +135,16 @@ public class TransactionTests
         Assert.False(transaction.IsCreatedBy("other"));
     }
 
+    [Fact]
+    public void GetRelatedPersonIdsReturnsPayerPayeeAndCreatorIds()
+    {
+        var transaction = BuildValidTransaction();
+
+        var result = transaction.GetRelatedPersonIds();
+
+        Assert.Equal(["payer-1", "payee-1", "payer-1"], result);
+    }
+
     private static Transaction BuildValidTransaction() =>
         new()
         {

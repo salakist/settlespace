@@ -18,12 +18,21 @@ namespace SettleSpace.Application.Tests.Transactions;
 public class TransactionsControllerTests
 {
     private readonly Mock<ITransactionApplicationService> _serviceMock = new();
+    private readonly Mock<SettleSpace.Application.Persons.Services.IPersonDisplayNameResolver> _personDisplayNameResolverMock = new();
     private readonly Mock<IAuthService> _authServiceMock = new();
     private readonly TransactionsController _controller;
 
     public TransactionsControllerTests()
     {
-        _controller = new TransactionsController(_serviceMock.Object, new TransactionMapper(), _authServiceMock.Object);
+        _personDisplayNameResolverMock
+            .Setup(resolver => resolver.ResolveAsync(It.IsAny<List<string>>()))
+            .ReturnsAsync(new Dictionary<string, string>());
+
+        _controller = new TransactionsController(
+            _serviceMock.Object,
+            new TransactionMapper(),
+            _personDisplayNameResolverMock.Object,
+            _authServiceMock.Object);
     }
 
     [Fact]

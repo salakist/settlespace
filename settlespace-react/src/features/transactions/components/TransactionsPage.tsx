@@ -298,7 +298,6 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
             )}
             <TransactionList
               transactions={transactions}
-              persons={availablePersons}
               currentPersonId={currentPersonId}
               canManage={canManageTransaction}
               onEdit={handleEditNavigate}

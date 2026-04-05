@@ -59,6 +59,7 @@ builder.Services.AddScoped<IPasswordValidator, PasswordValidator>();
 builder.Services.AddScoped<IPasswordGenerator, PasswordGenerator>();
 builder.Services.AddScoped<IPasswordHashingService, PasswordHashingService>();
 builder.Services.AddScoped<IPersonMapper, PersonMapper>();
+builder.Services.AddScoped<IPersonDisplayNameResolver, PersonDisplayNameResolver>();
 builder.Services.AddScoped<ITransactionMapper, TransactionMapper>();
 builder.Services.AddScoped<IDebtMapper, DebtMapper>();
 builder.Services.AddScoped<IPersonApplicationService, PersonApplicationService>();

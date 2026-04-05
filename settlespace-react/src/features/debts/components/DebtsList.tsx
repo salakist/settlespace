@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Alert, Chip, IconButton, Menu, MenuItem, Paper, Stack, Typography } from '@mui/material';
-import { DebtSummary, Person } from '../../../shared/types';
+import { DebtSummary } from '../../../shared/types';
 import { panelSurfaceSx } from '../../../shared/theme/surfaceStyles';
 
 type DebtsListProps = {
   debts: DebtSummary[];
-  persons: Person[];
   onSettle: (debt: DebtSummary) => void;
   onViewDetails: (debt: DebtSummary) => void;
 };
@@ -22,11 +21,6 @@ function formatCurrency(amount: number, currencyCode: string): string {
   } catch {
     return `${currencyCode} ${amount.toFixed(2)}`;
   }
-}
-
-function getPersonDisplayName(persons: Person[], personId: string): string {
-  const person = persons.find((candidate) => candidate.id === personId);
-  return person ? `${person.firstName} ${person.lastName}` : personId;
 }
 
 function getDirectionLabel(direction: DebtSummary['direction']): string {
@@ -63,7 +57,7 @@ function getSettlementButtonLabel(direction: DebtSummary['direction']): string {
   return 'Settle now';
 }
 
-const DebtsList: React.FC<DebtsListProps> = ({ debts, persons, onSettle, onViewDetails }) => {
+const DebtsList: React.FC<DebtsListProps> = ({ debts, onSettle, onViewDetails }) => {
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [activeDebt, setActiveDebt] = useState<DebtSummary | null>(null);
 
@@ -107,7 +101,7 @@ const DebtsList: React.FC<DebtsListProps> = ({ debts, persons, onSettle, onViewD
     <>
       <Stack spacing={2}>
         {sortedDebts.map((debt) => {
-        const counterpartyName = getPersonDisplayName(persons, debt.counterpartyPersonId);
+        const counterpartyName = debt.counterpartyDisplayName ?? debt.counterpartyPersonId;
         const balanceText = formatCurrency(debt.netAmount, debt.currencyCode);
         const transactionCountLabel = getTransactionCountLabel(debt.transactionCount);
 

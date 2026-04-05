@@ -3,12 +3,6 @@ import { fireEvent, render, screen } from '@testing-library/react';
 import { DebtSummary } from '../../../shared/types';
 import DebtsList from './DebtsList';
 
-const persons = [
-  { id: 'p2', firstName: 'Alice', lastName: 'Walker', addresses: [], role: 'USER' as const },
-  { id: 'p3', firstName: 'Bob', lastName: 'Stone', addresses: [], role: 'USER' as const },
-  { id: 'p4', firstName: 'Cara', lastName: 'Lane', addresses: [], role: 'USER' as const },
-];
-
 const debts: DebtSummary[] = [
   {
     counterpartyPersonId: 'p2',
@@ -16,6 +10,7 @@ const debts: DebtSummary[] = [
     netAmount: 18.5,
     direction: 'TheyOweYou',
     transactionCount: 2,
+    counterpartyDisplayName: 'Alice Walker',
   },
   {
     counterpartyPersonId: 'p3',
@@ -23,6 +18,7 @@ const debts: DebtSummary[] = [
     netAmount: 42,
     direction: 'YouOweThem',
     transactionCount: 4,
+    counterpartyDisplayName: 'Bob Stone',
   },
   {
     counterpartyPersonId: 'p4',
@@ -30,11 +26,12 @@ const debts: DebtSummary[] = [
     netAmount: 0,
     direction: 'Settled',
     transactionCount: 1,
+    counterpartyDisplayName: 'Cara Lane',
   },
 ];
 
 test('shows an empty-state alert when there are no debts', () => {
-  render(<DebtsList debts={[]} persons={persons} onSettle={jest.fn()} onViewDetails={jest.fn()} />);
+  render(<DebtsList debts={[]} onSettle={jest.fn()} onViewDetails={jest.fn()} />);
 
   expect(screen.getByRole('alert')).toHaveTextContent(/no outstanding debts right now/i);
 });
@@ -43,7 +40,7 @@ test('renders concise debt summaries and exposes actions from a menu', () => {
   const onSettle = jest.fn();
   const onViewDetails = jest.fn();
 
-  render(<DebtsList debts={debts} persons={persons} onSettle={onSettle} onViewDetails={onViewDetails} />);
+  render(<DebtsList debts={debts} onSettle={onSettle} onViewDetails={onViewDetails} />);
 
   expect(screen.getByText('Bob Stone')).toBeInTheDocument();
   expect(screen.getByText(/you owe them/i)).toBeInTheDocument();

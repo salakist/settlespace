@@ -12,6 +12,8 @@ namespace SettleSpace.Application.Persons.Mapping
                 Id = entity.Id,
                 FirstName = entity.FirstName,
                 LastName = entity.LastName,
+                DisplayName = entity.DisplayName,
+                Username = entity.Username,
                 PhoneNumber = entity.PhoneNumber,
                 Email = entity.Email,
                 DateOfBirth = entity.DateOfBirth,

@@ -15,6 +15,22 @@ public class PersonTests
         Assert.Null(ex);
     }
 
+    [Fact]
+    public void DisplayNameReturnsTrimmedFullName()
+    {
+        var person = new Person { Id = "person-1", FirstName = " John ", LastName = " Doe " };
+
+        Assert.Equal("John Doe", person.DisplayName);
+    }
+
+    [Fact]
+    public void UsernameReturnsTrimmedNameSegments()
+    {
+        var person = new Person { FirstName = " John ", LastName = " Doe " };
+
+        Assert.Equal("John.Doe", person.Username);
+    }
+
     [Theory]
     [InlineData("", "Doe")]
     [InlineData("   ", "Doe")]

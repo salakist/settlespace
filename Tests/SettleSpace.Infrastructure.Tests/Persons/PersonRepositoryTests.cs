@@ -102,6 +102,40 @@ public class PersonRepositoryTests
         Assert.Null(result);
     }
 
+    /// <summary>Gets persons by ids returns the matching persons with a single $in filter.</summary>
+    [Fact]
+    public async Task GetByIdsAsyncReturnsMatchingPersons()
+    {
+        FilterDefinition<Person>? capturedFilter = null;
+        var persons = new List<Person>
+        {
+            new() { Id = "507f1f77bcf86cd799439011", FirstName = "John", LastName = "Doe" },
+            new() { Id = "507f1f77bcf86cd799439012", FirstName = "Jane", LastName = "Smith" }
+        };
+
+        var mock = new Mock<IMongoCollection<Person>>();
+        mock.Setup(c => c.FindAsync(
+                It.IsAny<FilterDefinition<Person>>(),
+                It.IsAny<FindOptions<Person, Person>>(),
+                It.IsAny<CancellationToken>()))
+            .Callback((FilterDefinition<Person> filter, FindOptions<Person, Person>? _, CancellationToken _) => capturedFilter = filter)
+            .ReturnsAsync(BuildCursor(persons));
+
+        var repo = CreateRepo(mock.Object);
+
+        var result = await repo.GetByIdsAsync(["507f1f77bcf86cd799439011", "507f1f77bcf86cd799439012", "507f1f77bcf86cd799439011", " "]);
+
+        Assert.Equal(2, result.Count);
+        Assert.NotNull(capturedFilter);
+
+        var serializer = BsonSerializer.SerializerRegistry.GetSerializer<Person>();
+        var rendered = capturedFilter!.Render(new RenderArgs<Person>(serializer, BsonSerializer.SerializerRegistry)).ToString();
+
+        Assert.Contains("$in", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("507f1f77bcf86cd799439011", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("507f1f77bcf86cd799439012", rendered, StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary>Searches with empty query returns all persons.</summary>
     [Fact]
     public async Task SearchAsyncEmptyQueryReturnsAllPersons()

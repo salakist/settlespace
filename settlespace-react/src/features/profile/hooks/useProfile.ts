@@ -48,8 +48,8 @@ export function useProfile({
       };
       setCurrentPerson(person);
       primePersonDirectory([person]);
-      const nextUsername = `${person.firstName}.${person.lastName}`;
-      const nextDisplayName = `${person.firstName} ${person.lastName}`.trim();
+      const nextUsername = person.username?.trim() || `${person.firstName}.${person.lastName}`;
+      const nextDisplayName = person.displayName?.trim() || `${person.firstName} ${person.lastName}`.trim();
       setAuthUsername(nextUsername);
       setAuthDisplayName(nextDisplayName);
       if (person.id) {

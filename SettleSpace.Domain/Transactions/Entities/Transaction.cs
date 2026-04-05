@@ -34,6 +34,11 @@ namespace SettleSpace.Domain.Transactions.Entities
             return string.Equals(CreatedByPersonId, personId, StringComparison.Ordinal);
         }
 
+        public List<string> GetRelatedPersonIds()
+        {
+            return [PayerPersonId, PayeePersonId, CreatedByPersonId];
+        }
+
         public void Validate()
         {
             if (string.IsNullOrWhiteSpace(PayerPersonId))

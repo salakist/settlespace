@@ -23,6 +23,7 @@ jest.mock('../../persons/components/SearchBar', () => ({
 
 const sampleDebt: DebtSummary = {
   counterpartyPersonId: 'p2',
+  counterpartyDisplayName: 'Jane Doe',
   currencyCode: 'EUR',
   netAmount: 42.5,
   direction: 'YouOweThem',
@@ -69,7 +70,6 @@ jest.mock('./DebtSettlementDrawer', () => ({
 test('renders debt list and loads debts on mount', () => {
   render(
     <DebtsPage
-      persons={[{ id: 'p2', firstName: 'Jane', lastName: 'Doe', addresses: [], role: 'USER' }]}
       expireSession={jest.fn()}
     />,
   );
@@ -85,7 +85,6 @@ test('forwards settlement, filtering, and details actions', () => {
 
   render(
     <DebtsPage
-      persons={[{ id: 'p2', firstName: 'Jane', lastName: 'Doe', addresses: [], role: 'USER' }]}
       expireSession={jest.fn()}
     />,
   );
@@ -107,7 +106,7 @@ test('forwards settlement, filtering, and details actions', () => {
 test('shows loading spinner when loading is true', () => {
   mockHook.loading = true;
 
-  render(<DebtsPage persons={[]} expireSession={jest.fn()} />);
+  render(<DebtsPage expireSession={jest.fn()} />);
 
   expect(screen.getByRole('progressbar')).toBeInTheDocument();
   mockHook.loading = false;

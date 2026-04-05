@@ -31,6 +31,46 @@ namespace SettleSpace.Domain.Persons.Entities
         public string LastName { get; set; } = null!;
 
         /// <summary>
+        /// The person's full display name derived from their first and last names.
+        /// </summary>
+        public string DisplayName
+        {
+            get
+            {
+                var firstName = FirstName?.Trim() ?? string.Empty;
+                var lastName = LastName?.Trim() ?? string.Empty;
+
+                if (string.IsNullOrWhiteSpace(firstName))
+                {
+                    return string.IsNullOrWhiteSpace(lastName) ? Id ?? string.Empty : lastName;
+                }
+
+                if (string.IsNullOrWhiteSpace(lastName))
+                {
+                    return firstName;
+                }
+
+                return $"{firstName} {lastName}";
+            }
+        }
+
+        /// <summary>
+        /// The person's username derived from their first and last names.
+        /// </summary>
+        public string Username
+        {
+            get
+            {
+                var firstName = FirstName?.Trim() ?? string.Empty;
+                var lastName = LastName?.Trim() ?? string.Empty;
+
+                return string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName)
+                    ? string.Empty
+                    : $"{firstName}.{lastName}";
+            }
+        }
+
+        /// <summary>
         /// The password for the person (validated for strength if provided).
         /// </summary>
         public string? Password { get; set; }

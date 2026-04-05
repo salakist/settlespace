@@ -89,7 +89,7 @@ const PersonList: React.FC<PersonListProps> = ({
               const secondaryDetails = [person.email, person.phoneNumber]
                 .filter(Boolean)
                 .join(' · ');
-              const displayName = `${person.firstName} ${person.lastName}`.trim();
+              const displayName = person.displayName?.trim() || `${person.firstName} ${person.lastName}`.trim();
 
               return (
                 <Paper

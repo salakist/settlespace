@@ -11,14 +11,13 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { DebtDetails, DebtSummary, Person, SettleDebtRequest } from '../../../shared/types';
+import { DebtDetails, DebtSummary, SettleDebtRequest } from '../../../shared/types';
 import { insetSurfaceSx } from '../../../shared/theme/surfaceStyles';
 
 type DebtSettlementDrawerProps = {
   open: boolean;
   debt?: DebtSummary;
   details?: DebtDetails;
-  persons: Person[];
   loading: boolean;
   saving: boolean;
   error?: string | null;
@@ -50,11 +49,6 @@ function clampAmount(value: number, maxAmount: number): number {
 
 function roundCurrency(value: number): number {
   return Math.round(value * 100) / 100;
-}
-
-function getPersonDisplayName(persons: Person[], personId: string): string {
-  const person = persons.find((candidate) => candidate.id === personId);
-  return person ? `${person.firstName} ${person.lastName}` : personId;
 }
 
 function getDirectionTitle(direction?: DebtSummary['direction']): string {
@@ -107,7 +101,6 @@ const DebtSettlementDrawer: React.FC<DebtSettlementDrawerProps> = ({
   open,
   debt,
   details,
-  persons,
   loading,
   saving,
   error,
@@ -117,7 +110,7 @@ const DebtSettlementDrawer: React.FC<DebtSettlementDrawerProps> = ({
 }) => {
   const maxAmount = roundCurrency(Math.max(debt?.netAmount ?? 0, 0));
   const currencyCode = debt?.currencyCode ?? 'EUR';
-  const counterpartyName = debt ? getPersonDisplayName(persons, debt.counterpartyPersonId) : 'Counterparty';
+  const counterpartyName = debt ? (debt.counterpartyDisplayName ?? debt.counterpartyPersonId) : 'Counterparty';
   const [amount, setAmount] = useState(0);
   const [description, setDescription] = useState('');
 

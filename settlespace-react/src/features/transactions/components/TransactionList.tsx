@@ -1,27 +1,17 @@
 import React, { useState } from 'react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Alert, Chip, IconButton, Menu, MenuItem, Paper, Stack, Typography } from '@mui/material';
-import { Person, Transaction, TransactionStatus } from '../../../shared/types';
+import { Transaction, TransactionStatus } from '../../../shared/types';
 import { listItemSurfaceSx } from '../../../shared/theme/surfaceStyles';
 import { formatDateDDMMYYYY } from '../../../shared/utils/dateFormatting';
 
 type TransactionListProps = {
   transactions: Transaction[];
-  persons: Person[];
   currentPersonId?: string;
   canManage: (transaction: Transaction) => boolean;
   onEdit: (transaction: Transaction) => void;
   onDelete: (id: string) => void;
 };
-
-function resolvePersonName(persons: Person[], personId: string): string {
-  const person = persons.find((candidate) => candidate.id === personId);
-  if (!person) {
-    return personId;
-  }
-
-  return `${person.firstName} ${person.lastName}`;
-}
 
 function formatCurrency(amount: number, currencyCode: string): string {
   try {
@@ -62,7 +52,6 @@ function isManagedTransaction(transaction: Transaction, currentPersonId?: string
 
 const TransactionList: React.FC<TransactionListProps> = ({
   transactions,
-  persons,
   currentPersonId,
   canManage,
   onEdit,
@@ -124,7 +113,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
                     )}
                   </Stack>
                   <Typography variant="body2" color={SECONDARY_TEXT_COLOR}>
-                    {resolvePersonName(persons, transaction.payerPersonId)} paid {resolvePersonName(persons, transaction.payeePersonId)}
+                    {(transaction.payerDisplayName ?? transaction.payerPersonId)} paid {(transaction.payeeDisplayName ?? transaction.payeePersonId)}
                   </Typography>
                   <Typography variant="caption" color={SECONDARY_TEXT_COLOR}>
                     {formatDateDDMMYYYY(transaction.transactionDateUtc)}

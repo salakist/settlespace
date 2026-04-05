@@ -2,10 +2,9 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import DebtSettlementDrawer from './DebtSettlementDrawer';
 
-const basePersons = [{ id: 'p2', firstName: 'Jane', lastName: 'Doe', addresses: [], role: 'USER' as const }];
-
 const baseDetails = {
   counterpartyPersonId: 'p2',
+  counterpartyDisplayName: 'Jane Doe',
   currencyCode: 'EUR',
   netAmount: 42.5,
   direction: 'YouOweThem' as const,
@@ -21,7 +20,6 @@ test('shows payment wording and supports manual percent input for debts you owe'
       open
       debt={baseDetails}
       details={baseDetails}
-      persons={basePersons}
       loading={false}
       saving={false}
       onClose={jest.fn()}
@@ -53,7 +51,6 @@ test('adapts wording, keeps affirmative action first, and submits settlement for
       open
       debt={{ ...baseDetails, netAmount: 20, direction: 'TheyOweYou' }}
       details={{ ...baseDetails, netAmount: 20, direction: 'TheyOweYou', paidByCounterparty: 45 }}
-      persons={basePersons}
       loading={false}
       saving={false}
       onClose={jest.fn()}

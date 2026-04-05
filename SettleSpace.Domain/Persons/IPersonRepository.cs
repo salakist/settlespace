@@ -21,6 +21,13 @@ namespace SettleSpace.Domain.Persons
         Task<Person?> GetByIdAsync(string id);
 
         /// <summary>
+        /// Retrieves all persons matching the supplied unique identifiers.
+        /// </summary>
+        /// <param name="ids">The person IDs to fetch.</param>
+        /// <returns>The matching persons.</returns>
+        Task<List<Person>> GetByIdsAsync(List<string> ids);
+
+        /// <summary>
         /// Searches for persons by a query string (case-insensitive, substring match on firstName or lastName).
         /// </summary>
         /// <param name="query">The search query.</param>

@@ -16,12 +16,21 @@ namespace SettleSpace.Application.Tests.Debts;
 public class DebtsControllerTests
 {
     private readonly Mock<IDebtApplicationService> _serviceMock = new();
+    private readonly Mock<SettleSpace.Application.Persons.Services.IPersonDisplayNameResolver> _personDisplayNameResolverMock = new();
     private readonly Mock<IAuthService> _authServiceMock = new();
     private readonly DebtsController _controller;
 
     public DebtsControllerTests()
     {
-        _controller = new DebtsController(_serviceMock.Object, new DebtMapper(), _authServiceMock.Object);
+        _personDisplayNameResolverMock
+            .Setup(resolver => resolver.ResolveAsync(It.IsAny<List<string>>()))
+            .ReturnsAsync(new Dictionary<string, string>());
+
+        _controller = new DebtsController(
+            _serviceMock.Object,
+            new DebtMapper(),
+            _personDisplayNameResolverMock.Object,
+            _authServiceMock.Object);
     }
 
     [Fact]
@@ -46,6 +55,7 @@ public class DebtsControllerTests
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         var dtos = Assert.IsAssignableFrom<List<DebtSummaryDto>>(ok.Value);
         Assert.Single(dtos);
+        Assert.Equal("user-2", dtos[0].CounterpartyDisplayName);
     }
 
     [Fact]

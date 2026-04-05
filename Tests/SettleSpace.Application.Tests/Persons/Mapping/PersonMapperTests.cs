@@ -39,6 +39,8 @@ public class PersonMapperTests
         Assert.Equal(entity.Id, result.Id);
         Assert.Equal(entity.FirstName, result.FirstName);
         Assert.Equal(entity.LastName, result.LastName);
+        Assert.Equal(entity.DisplayName, result.DisplayName);
+        Assert.Equal(entity.Username, result.Username);
         Assert.Equal(entity.PhoneNumber, result.PhoneNumber);
         Assert.Equal(entity.Email, result.Email);
         Assert.Equal(entity.DateOfBirth, result.DateOfBirth);

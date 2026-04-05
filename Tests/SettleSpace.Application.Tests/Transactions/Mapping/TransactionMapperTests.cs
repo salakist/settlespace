@@ -38,6 +38,9 @@ public class TransactionMapperTests
         Assert.Equal(entity.Description, dto.Description);
         Assert.Equal(entity.Category, dto.Category);
         Assert.Equal(entity.Status, dto.Status);
+        Assert.Equal(entity.PayerPersonId, dto.PayerDisplayName);
+        Assert.Equal(entity.PayeePersonId, dto.PayeeDisplayName);
+        Assert.Equal(entity.CreatedByPersonId, dto.CreatedByDisplayName);
     }
 
     [Fact]

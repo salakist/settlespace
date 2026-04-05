@@ -1,8 +1,10 @@
 using SettleSpace.Application.Authentication.Services;
+using SettleSpace.Application.Persons.Services;
 using SettleSpace.Application.Transactions.Commands;
 using SettleSpace.Application.Transactions.Queries;
 using SettleSpace.Application.Transactions.Mapping;
 using SettleSpace.Application.Transactions.Services;
+using SettleSpace.Domain.Transactions.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,15 +17,18 @@ namespace SettleSpace.Application.Transactions
     {
         private readonly ITransactionApplicationService _applicationService;
         private readonly ITransactionMapper _transactionMapper;
+        private readonly IPersonDisplayNameResolver _personDisplayNameResolver;
         private readonly IAuthService _authService;
 
         public TransactionsController(
             ITransactionApplicationService applicationService,
             ITransactionMapper transactionMapper,
+            IPersonDisplayNameResolver personDisplayNameResolver,
             IAuthService authService)
         {
             _applicationService = applicationService;
             _transactionMapper = transactionMapper;
+            _personDisplayNameResolver = personDisplayNameResolver;
             _authService = authService;
         }
 
@@ -34,8 +39,10 @@ namespace SettleSpace.Application.Transactions
         {
             var (personId, personRole) = _authService.ResolveAuthContext(User);
             var transactions = await _applicationService.GetCurrentUserTransactionsAsync(personId, personRole);
+            var relatedPersonIds = transactions.SelectMany(transaction => transaction.GetRelatedPersonIds()).ToList();
+            var personDisplayNames = await _personDisplayNameResolver.ResolveAsync(relatedPersonIds);
 
-            return Ok(transactions.Select(_transactionMapper.ToDto).ToList());
+            return Ok(transactions.Select(transaction => _transactionMapper.ToDto(transaction, personDisplayNames)).ToList());
         }
 
         [HttpPost("search")]
@@ -47,8 +54,10 @@ namespace SettleSpace.Application.Transactions
             query.Validate();
             var (personId, personRole) = _authService.ResolveAuthContext(User);
             var transactions = await _applicationService.SearchTransactionsAsync(personId, personRole, query);
+            var relatedPersonIds = transactions.SelectMany(transaction => transaction.GetRelatedPersonIds()).ToList();
+            var personDisplayNames = await _personDisplayNameResolver.ResolveAsync(relatedPersonIds);
 
-            return Ok(transactions.Select(_transactionMapper.ToDto).ToList());
+            return Ok(transactions.Select(transaction => _transactionMapper.ToDto(transaction, personDisplayNames)).ToList());
         }
 
         [HttpGet("{id:length(24)}")]
@@ -60,8 +69,9 @@ namespace SettleSpace.Application.Transactions
         {
             var (personId, personRole) = _authService.ResolveAuthContext(User);
             var transaction = await _applicationService.GetTransactionByIdAsync(id, personId, personRole);
+            var personDisplayNames = await _personDisplayNameResolver.ResolveAsync(transaction.GetRelatedPersonIds());
 
-            return Ok(_transactionMapper.ToDto(transaction));
+            return Ok(_transactionMapper.ToDto(transaction, personDisplayNames));
         }
 
         [HttpPost]
@@ -73,8 +83,9 @@ namespace SettleSpace.Application.Transactions
         {
             var (personId, personRole) = _authService.ResolveAuthContext(User);
             var transaction = await _applicationService.CreateTransactionAsync(personId, personRole, command);
+            var personDisplayNames = await _personDisplayNameResolver.ResolveAsync(transaction.GetRelatedPersonIds());
 
-            return CreatedAtAction(nameof(GetById), new { id = transaction.Id }, _transactionMapper.ToDto(transaction));
+            return CreatedAtAction(nameof(GetById), new { id = transaction.Id }, _transactionMapper.ToDto(transaction, personDisplayNames));
         }
 
         [HttpPut("{id:length(24)}")]
@@ -103,6 +114,7 @@ namespace SettleSpace.Application.Transactions
 
             return NoContent();
         }
+
     }
 }
 

@@ -55,7 +55,7 @@ async function searchPeopleSuggestions(input: string): Promise<SearchSuggestionO
       .filter((person): person is Person & { id: string } => Boolean(person.id))
       .map((person) => ({
         value: person.id,
-        label: `${person.firstName} ${person.lastName}`,
+        label: person.displayName?.trim() || `${person.firstName} ${person.lastName}`.trim(),
       }));
   } catch {
     return [];
