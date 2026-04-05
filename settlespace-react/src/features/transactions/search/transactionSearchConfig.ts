@@ -1,50 +1,42 @@
 import { personApi } from '../../../shared/api/api';
-import { Person, TransactionStatus } from '../../../shared/types';
 import {
-  SEARCH_PARAMETER_KINDS,
-  SEARCH_SELECTION_MODES,
-} from '../../search/constants';
+  getEnumValues,
+  Person,
+  TransactionInvolvement,
+  TransactionStatus,
+} from '../../../shared/types';
+import { TRANSACTION_SEARCH_TEXT } from '../constants';
 import {
   SearchParameterConfig,
+  SearchParameterKind,
   SearchSelectionMode,
   SearchSuggestionOption,
 } from '../../search/types';
 
-const TRANSACTION_STATUSES: TransactionStatus[] = ['Pending', 'Completed', 'Cancelled'];
-const INVOLVEMENT_TYPES = ['Owned', 'Managed'] as const;
-const PERSON_PLACEHOLDER = 'Type a person name...';
-const TEXT_VALUE_PLACEHOLDER = 'Type a value...';
-
-export const TRANSACTION_SEARCH_PLACEHOLDER = 'Search or filter transactions...';
-export const MANAGED_BY_LABEL = 'Managed By';
-
-export const TRANSACTION_SEARCH_PARAMS = {
-  STATUS: 'status',
-  INVOLVEMENT: 'involvement',
-  CATEGORY: 'category',
-  DESCRIPTION: 'description',
-  INVOLVED: 'involved',
-  MANAGED_BY: 'managedBy',
-  PAYER: 'payer',
-  PAYEE: 'payee',
-} as const;
-
-export type TransactionSearchParam =
-  typeof TRANSACTION_SEARCH_PARAMS[keyof typeof TRANSACTION_SEARCH_PARAMS];
+export enum TransactionSearchParam {
+  Status = 'status',
+  Involvement = 'involvement',
+  Category = 'category',
+  Description = 'description',
+  Involved = 'involved',
+  ManagedBy = 'managedBy',
+  Payer = 'payer',
+  Payee = 'payee',
+}
 
 export function buildStatusOptions(): SearchSuggestionOption[] {
-  return TRANSACTION_STATUSES.map((status) => ({
+  return getEnumValues(TransactionStatus).map((status) => ({
     value: status,
     label: status,
-    group: 'Status',
+    group: TRANSACTION_SEARCH_TEXT.STATUS_LABEL,
   }));
 }
 
 export function buildInvolvementOptions(): SearchSuggestionOption[] {
-  return INVOLVEMENT_TYPES.map((type) => ({
+  return getEnumValues(TransactionInvolvement).map((type) => ({
     value: type,
     label: type,
-    group: 'Involvement',
+    group: TRANSACTION_SEARCH_TEXT.INVOLVEMENT_LABEL,
   }));
 }
 
@@ -65,14 +57,14 @@ async function searchPeopleSuggestions(input: string): Promise<SearchSuggestionO
 function buildPersonParameter(
   param: TransactionSearchParam,
   label: string,
-  selectionMode: SearchSelectionMode = SEARCH_SELECTION_MODES.SINGLE,
+  selectionMode: SearchSelectionMode = SearchSelectionMode.Single,
 ): SearchParameterConfig<TransactionSearchParam> {
   return {
     param,
     label,
-    kind: SEARCH_PARAMETER_KINDS.ASYNC_SUGGESTIONS,
+    kind: SearchParameterKind.AsyncSuggestions,
     selectionMode,
-    placeholder: PERSON_PLACEHOLDER,
+    placeholder: TRANSACTION_SEARCH_TEXT.PERSON_PLACEHOLDER,
     showGroupLabel: false,
     getSuggestions: searchPeopleSuggestions,
   };
@@ -81,48 +73,48 @@ function buildPersonParameter(
 export function buildTransactionParameters(): SearchParameterConfig<TransactionSearchParam>[] {
   return [
     {
-      param: TRANSACTION_SEARCH_PARAMS.STATUS,
-      label: 'Status',
-      kind: SEARCH_PARAMETER_KINDS.FIXED,
-      selectionMode: SEARCH_SELECTION_MODES.MULTIPLE,
+      param: TransactionSearchParam.Status,
+      label: TRANSACTION_SEARCH_TEXT.STATUS_LABEL,
+      kind: SearchParameterKind.Fixed,
+      selectionMode: SearchSelectionMode.Multiple,
       showGroupLabel: false,
       options: buildStatusOptions(),
     },
     {
-      param: TRANSACTION_SEARCH_PARAMS.INVOLVEMENT,
-      label: 'Involvement',
-      kind: SEARCH_PARAMETER_KINDS.FIXED,
-      selectionMode: SEARCH_SELECTION_MODES.SINGLE,
+      param: TransactionSearchParam.Involvement,
+      label: TRANSACTION_SEARCH_TEXT.INVOLVEMENT_LABEL,
+      kind: SearchParameterKind.Fixed,
+      selectionMode: SearchSelectionMode.Single,
       showGroupLabel: false,
       options: buildInvolvementOptions(),
     },
     {
-      param: TRANSACTION_SEARCH_PARAMS.CATEGORY,
-      label: 'Category',
-      kind: SEARCH_PARAMETER_KINDS.TEXT_INPUT,
-      selectionMode: SEARCH_SELECTION_MODES.SINGLE,
-      placeholder: TEXT_VALUE_PLACEHOLDER,
+      param: TransactionSearchParam.Category,
+      label: TRANSACTION_SEARCH_TEXT.CATEGORY_LABEL,
+      kind: SearchParameterKind.TextInput,
+      selectionMode: SearchSelectionMode.Single,
+      placeholder: TRANSACTION_SEARCH_TEXT.TEXT_VALUE_PLACEHOLDER,
       showGroupLabel: false,
     },
     {
-      param: TRANSACTION_SEARCH_PARAMS.DESCRIPTION,
-      label: 'Description',
-      kind: SEARCH_PARAMETER_KINDS.TEXT_INPUT,
-      selectionMode: SEARCH_SELECTION_MODES.SINGLE,
-      placeholder: TEXT_VALUE_PLACEHOLDER,
+      param: TransactionSearchParam.Description,
+      label: TRANSACTION_SEARCH_TEXT.DESCRIPTION_LABEL,
+      kind: SearchParameterKind.TextInput,
+      selectionMode: SearchSelectionMode.Single,
+      placeholder: TRANSACTION_SEARCH_TEXT.TEXT_VALUE_PLACEHOLDER,
       showGroupLabel: false,
     },
     buildPersonParameter(
-      TRANSACTION_SEARCH_PARAMS.INVOLVED,
-      'Involved',
-      SEARCH_SELECTION_MODES.MULTIPLE,
+      TransactionSearchParam.Involved,
+      TRANSACTION_SEARCH_TEXT.INVOLVED_LABEL,
+      SearchSelectionMode.Multiple,
     ),
     buildPersonParameter(
-      TRANSACTION_SEARCH_PARAMS.MANAGED_BY,
-      MANAGED_BY_LABEL,
-      SEARCH_SELECTION_MODES.MULTIPLE,
+      TransactionSearchParam.ManagedBy,
+      TRANSACTION_SEARCH_TEXT.MANAGED_BY_LABEL,
+      SearchSelectionMode.Multiple,
     ),
-    buildPersonParameter(TRANSACTION_SEARCH_PARAMS.PAYER, 'Payer'),
-    buildPersonParameter(TRANSACTION_SEARCH_PARAMS.PAYEE, 'Payee'),
+    buildPersonParameter(TransactionSearchParam.Payer, TRANSACTION_SEARCH_TEXT.PAYER_LABEL),
+    buildPersonParameter(TransactionSearchParam.Payee, TRANSACTION_SEARCH_TEXT.PAYEE_LABEL),
   ];
 }

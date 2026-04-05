@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, render, waitFor } from '@testing-library/react';
+import { PersonRole } from '../../../shared/types';
 import { useAuth } from './useAuth';
 
 const mockNavigate = jest.fn();
@@ -73,10 +74,10 @@ beforeEach(() => {
   authStorage.getDisplayName.mockReturnValue('');
   authStorage.getRole.mockReturnValue(null);
   authApi.login.mockResolvedValue({
-    data: { token: 't1', username: 'john.doe', personId: 'p1', displayName: 'John Doe', role: 'USER' },
+    data: { token: 't1', username: 'john.doe', personId: 'p1', displayName: 'John Doe', role: PersonRole.User },
   });
   authApi.register.mockResolvedValue({
-    data: { token: 't2', username: 'jane.doe', personId: 'p2', displayName: 'Jane Doe', role: 'USER' },
+    data: { token: 't2', username: 'jane.doe', personId: 'p2', displayName: 'Jane Doe', role: PersonRole.User },
   });
 });
 
@@ -94,7 +95,7 @@ test('login saves session, updates auth state, and navigates to home', async () 
       username: 'john.doe',
       personId: 'p1',
       displayName: 'John Doe',
-      role: 'USER',
+      role: PersonRole.User,
     });
   });
 

@@ -6,12 +6,11 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import dayjs from 'dayjs';
 import customParseFormat from 'dayjs/plugin/customParseFormat';
 import 'dayjs/locale/en-gb';
+import { DATE_INPUT_DEFAULT_PLACEHOLDER, DATE_INPUT_THEME_KEYS } from './constants';
 
 dayjs.extend(customParseFormat);
 
-const CALENDAR_SURFACE = 'background.paper';
-const CALENDAR_TEXT = 'text.primary';
-const PICKER_ICON_COLOR = 'grey.300';
+const { CALENDAR_SURFACE, CALENDAR_TEXT, PICKER_ICON_COLOR } = DATE_INPUT_THEME_KEYS;
 
 type DateInputFieldProps = Omit<TextFieldProps, 'type' | 'value' | 'onChange'> & {
   value: string;
@@ -30,7 +29,7 @@ function parseDateValue(value: string) {
 const DateInputField: React.FC<DateInputFieldProps> = ({
   value,
   onChange,
-  placeholder = 'DD/MM/YYYY',
+  placeholder = DATE_INPUT_DEFAULT_PLACEHOLDER,
   fullWidth = true,
   ...props
 }) => {

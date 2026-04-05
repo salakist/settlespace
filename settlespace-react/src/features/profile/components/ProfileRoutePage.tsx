@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import { APP_ROUTES } from '../../../app/constants';
+import { SESSION_EXPIRED_MESSAGE } from '../../../shared/constants/messages';
 import { PersonRole } from '../../../shared/types';
 import { useProfile } from '../hooks/useProfile';
 import ProfilePage from './ProfilePage';
@@ -12,9 +14,9 @@ type ProfileRoutePageProps = {
   setAuthPersonId: (nextPersonId: string) => void;
 };
 
-const PROFILE_ROUTE = '/profile';
-
-const isProfileRoutePath = (pathname: string) => pathname === PROFILE_ROUTE || pathname.startsWith(`${PROFILE_ROUTE}/`);
+const isProfileRoutePath = (pathname: string) => (
+  pathname === APP_ROUTES.PROFILE || pathname.startsWith(`${APP_ROUTES.PROFILE}/`)
+);
 
 const ProfileRoutePage: React.FC<ProfileRoutePageProps> = ({
   expireSession,
@@ -26,7 +28,7 @@ const ProfileRoutePage: React.FC<ProfileRoutePageProps> = ({
   const location = useLocation();
   const isActiveRoute = isProfileRoutePath(location.pathname);
   const handleUnauthorized = useCallback(() => {
-    expireSession('Your session expired. Please log in again.');
+    expireSession(SESSION_EXPIRED_MESSAGE);
   }, [expireSession]);
   const {
     currentPerson,

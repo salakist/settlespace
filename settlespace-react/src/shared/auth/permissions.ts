@@ -1,16 +1,16 @@
 import { Person, PersonRole, Transaction } from '../types';
 
 export function canAccessPersonsPage(role: PersonRole | null): boolean {
-  return role === 'ADMIN' || role === 'MANAGER';
+  return role === PersonRole.Admin || role === PersonRole.Manager;
 }
 
 export function canCreatePerson(role: PersonRole | null, targetRole: PersonRole): boolean {
-  if (role === 'ADMIN') {
+  if (role === PersonRole.Admin) {
     return true;
   }
 
-  if (role === 'MANAGER') {
-    return targetRole === 'USER';
+  if (role === PersonRole.Manager) {
+    return targetRole === PersonRole.User;
   }
 
   return false;
@@ -25,35 +25,35 @@ export function canUpdatePerson(role: PersonRole | null, currentPersonId: string
     return false;
   }
 
-  if (role === 'ADMIN') {
+  if (role === PersonRole.Admin) {
     return true;
   }
 
-  if (role === 'MANAGER') {
-    return target.role === 'USER' && requestedRole === 'USER';
+  if (role === PersonRole.Manager) {
+    return target.role === PersonRole.User && requestedRole === PersonRole.User;
   }
 
   return false;
 }
 
 export function canDeletePerson(role: PersonRole | null, target: Person): boolean {
-  if (role === 'ADMIN') {
+  if (role === PersonRole.Admin) {
     return true;
   }
 
-  if (role === 'MANAGER') {
-    return target.role === 'USER';
+  if (role === PersonRole.Manager) {
+    return target.role === PersonRole.User;
   }
 
   return false;
 }
 
 export function canEditRole(role: PersonRole | null): boolean {
-  return role === 'ADMIN';
+  return role === PersonRole.Admin;
 }
 
 export function canReadTransaction(role: PersonRole | null, currentPersonId: string | undefined, transaction: Transaction): boolean {
-  if (role === 'ADMIN') {
+  if (role === PersonRole.Admin) {
     return true;
   }
 
@@ -64,7 +64,7 @@ export function canReadTransaction(role: PersonRole | null, currentPersonId: str
   const involved = transaction.payerPersonId === currentPersonId || transaction.payeePersonId === currentPersonId;
   const created = transaction.createdByPersonId === currentPersonId;
 
-  if (role === 'MANAGER') {
+  if (role === PersonRole.Manager) {
     return involved || created;
   }
 
@@ -72,7 +72,7 @@ export function canReadTransaction(role: PersonRole | null, currentPersonId: str
 }
 
 export function canCreateTransaction(role: PersonRole | null, currentPersonId: string | undefined, payerPersonId: string, payeePersonId: string): boolean {
-  if (role === 'ADMIN' || role === 'MANAGER') {
+  if (role === PersonRole.Admin || role === PersonRole.Manager) {
     return true;
   }
 
@@ -84,7 +84,7 @@ export function canCreateTransaction(role: PersonRole | null, currentPersonId: s
 }
 
 export function canUpdateOrDeleteTransaction(role: PersonRole | null, currentPersonId: string | undefined, transaction: Transaction): boolean {
-  if (role === 'ADMIN') {
+  if (role === PersonRole.Admin) {
     return true;
   }
 

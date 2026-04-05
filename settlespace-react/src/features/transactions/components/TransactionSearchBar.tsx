@@ -6,8 +6,8 @@ import { AppliedSearchFilter } from '../../search/types';
 import {
   buildTransactionParameters,
   TransactionSearchParam,
-  TRANSACTION_SEARCH_PLACEHOLDER,
 } from '../search/transactionSearchConfig';
+import { TRANSACTION_SEARCH_TEST_IDS, TRANSACTION_SEARCH_TEXT } from '../constants';
 import {
   EMPTY_TRANSACTION_SEARCH_QUERY,
   fromTransactionSearchValue,
@@ -42,9 +42,9 @@ const TransactionSearchBar: React.FC<TransactionSearchBarProps> = ({
       initialValue={initialValue}
       action={action}
       parameters={parameters}
-      ariaLabel="Transaction search"
-      freeTextPlaceholder={TRANSACTION_SEARCH_PLACEHOLDER}
-      dataTestId="transaction-search-autocomplete"
+      ariaLabel={TRANSACTION_SEARCH_TEXT.ARIA_LABEL}
+      freeTextPlaceholder={TRANSACTION_SEARCH_TEXT.DEFAULT_PLACEHOLDER}
+      dataTestId={TRANSACTION_SEARCH_TEST_IDS.AUTOCOMPLETE}
     />
   );
 };

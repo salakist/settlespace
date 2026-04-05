@@ -1,11 +1,10 @@
 import axios from 'axios';
+import { TransactionStatus } from '../types';
 import { mockDelete, mockGet, mockPost, mockPut, mockRequestUse, setupApiClientMock } from './apiTestClientMock';
+import { API_TEST_VALUES } from './testConstants';
 
 jest.mock('axios');
 
-const TX_DATE = '2026-03-29T00:00:00Z';
-const TX_ID = 'tx-1';
-const TX_ROUTE = '/transactions/tx-1';
 
 beforeEach(() => {
   setupApiClientMock();
@@ -33,32 +32,32 @@ test('transaction api methods call expected routes', () => {
     loadedApi = require('./transactionApi').transactionApi;
   });
 
-  loadedApi!.getById(TX_ID);
+  loadedApi!.getById(API_TEST_VALUES.TRANSACTION_ID);
   loadedApi!.search({ freeText: 'lunch' });
   loadedApi!.create({
     payerPersonId: 'p1',
     payeePersonId: 'p2',
     amount: 10,
     currencyCode: 'EUR',
-    transactionDateUtc: TX_DATE,
+    transactionDateUtc: API_TEST_VALUES.TRANSACTION_DATE_UTC,
     description: 'Lunch',
-    status: 'Completed',
+    status: TransactionStatus.Completed,
   });
-  loadedApi!.update(TX_ID, {
+  loadedApi!.update(API_TEST_VALUES.TRANSACTION_ID, {
     payerPersonId: 'p1',
     payeePersonId: 'p2',
     amount: 20,
     currencyCode: 'EUR',
-    transactionDateUtc: TX_DATE,
+    transactionDateUtc: API_TEST_VALUES.TRANSACTION_DATE_UTC,
     description: 'Dinner',
-    status: 'Pending',
+    status: TransactionStatus.Pending,
   });
-  loadedApi!.delete(TX_ID);
+  loadedApi!.delete(API_TEST_VALUES.TRANSACTION_ID);
 
-  expect(mockGet).toHaveBeenNthCalledWith(1, TX_ROUTE);
+  expect(mockGet).toHaveBeenNthCalledWith(1, API_TEST_VALUES.TRANSACTION_ROUTE);
   expect(mockPost).toHaveBeenNthCalledWith(1, '/transactions/search', { freeText: 'lunch' });
   expect(mockPost).toHaveBeenNthCalledWith(2, '/transactions', expect.any(Object));
-  expect(mockPut).toHaveBeenCalledWith(TX_ROUTE, expect.any(Object));
-  expect(mockDelete).toHaveBeenCalledWith(TX_ROUTE);
+  expect(mockPut).toHaveBeenCalledWith(API_TEST_VALUES.TRANSACTION_ROUTE, expect.any(Object));
+  expect(mockDelete).toHaveBeenCalledWith(API_TEST_VALUES.TRANSACTION_ROUTE);
   expect((axios.create as jest.Mock).mock.calls[0][0]).toEqual({ baseURL: 'http://localhost:5279/api' });
 });

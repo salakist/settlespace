@@ -1,12 +1,12 @@
 import { useCallback, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { APP_ROUTES } from '../../../app/constants';
+import { AUTH_ERROR_MESSAGES } from '../constants';
 import { authApi, authStorage } from '../../../shared/api/api';
 import { logHandledError } from '../../../shared/api/requestHandling';
+import { SESSION_EXPIRED_MESSAGE } from '../../../shared/constants/messages';
 import { clearPersonDirectoryCache } from '../../../shared/hooks/usePersonDirectory';
 import { PersonRole, RegisterRequest } from '../../../shared/types';
-
-const ROUTE_LOGIN = '/login';
-const ROUTE_HOME = '/home';
 
 export function useAuth() {
   const navigate = useNavigate();
@@ -51,7 +51,7 @@ export function useAuth() {
     setAuthError(null);
   }, []);
 
-  const expireSession = useCallback((message = 'Your session expired. Please log in again.') => {
+  const expireSession = useCallback((message = SESSION_EXPIRED_MESSAGE) => {
     authStorage.clearSession();
     clearPersonDirectoryCache();
     setIsAuthenticated(false);
@@ -60,7 +60,7 @@ export function useAuth() {
     setDisplayName('');
     setRole(null);
     setAuthError(message);
-    navigate(ROUTE_LOGIN);
+    navigate(APP_ROUTES.LOGIN);
   }, [navigate]);
 
   const login = useCallback(async (loginUsername: string, loginPassword: string): Promise<boolean> => {
@@ -74,10 +74,10 @@ export function useAuth() {
       setRole(response.data.role);
       setIsAuthenticated(true);
       setAuthError(null);
-      navigate(ROUTE_HOME);
+      navigate(APP_ROUTES.HOME);
       return true;
     } catch (err) {
-      setAuthError('Invalid username or password.');
+      setAuthError(AUTH_ERROR_MESSAGES.INVALID_CREDENTIALS);
       logHandledError(err);
       return false;
     } finally {
@@ -96,11 +96,11 @@ export function useAuth() {
       setRole(response.data.role);
       setIsAuthenticated(true);
       setAuthError(null);
-      navigate(ROUTE_HOME);
+      navigate(APP_ROUTES.HOME);
       return true;
     } catch (err) {
       const axiosError = err as { response?: { data?: { error?: string } } };
-      setAuthError(axiosError.response?.data?.error ?? 'Registration failed.');
+      setAuthError(axiosError.response?.data?.error ?? AUTH_ERROR_MESSAGES.REGISTRATION_FAILED);
       logHandledError(err);
       return false;
     } finally {
@@ -117,7 +117,7 @@ export function useAuth() {
     setDisplayName('');
     setRole(null);
     setAuthError(null);
-    navigate(ROUTE_LOGIN);
+    navigate(APP_ROUTES.LOGIN);
   }, [navigate]);
 
   return {

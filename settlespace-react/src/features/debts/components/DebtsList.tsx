@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Alert, Chip, IconButton, Menu, MenuItem, Paper, Stack, Typography } from '@mui/material';
-import { DebtSummary } from '../../../shared/types';
+import { DebtDirection, DebtSummary } from '../../../shared/types';
 import { panelSurfaceSx } from '../../../shared/theme/surfaceStyles';
+import { DEBT_DIRECTION_LABELS, DEBT_LIST_TEXT } from '../constants';
 
 type DebtsListProps = {
   debts: DebtSummary[];
@@ -24,21 +25,14 @@ function formatCurrency(amount: number, currencyCode: string): string {
 }
 
 function getDirectionLabel(direction: DebtSummary['direction']): string {
-  switch (direction) {
-    case 'YouOweThem':
-      return 'You owe them';
-    case 'TheyOweYou':
-      return 'They owe you';
-    default:
-      return 'Settled';
-  }
+  return DEBT_DIRECTION_LABELS[direction];
 }
 
 function getDirectionColor(direction: DebtSummary['direction']): 'success' | 'warning' | 'default' {
   switch (direction) {
-    case 'TheyOweYou':
+    case DebtDirection.TheyOweYou:
       return 'success';
-    case 'YouOweThem':
+    case DebtDirection.YouOweThem:
       return 'warning';
     default:
       return 'default';
@@ -50,11 +44,11 @@ function getTransactionCountLabel(count: number): string {
 }
 
 function getSettlementButtonLabel(direction: DebtSummary['direction']): string {
-  if (direction === 'Settled') {
-    return 'Settled';
+  if (direction === DebtDirection.Settled) {
+    return DEBT_LIST_TEXT.SETTLED;
   }
 
-  return 'Settle now';
+  return DEBT_LIST_TEXT.SETTLE_NOW;
 }
 
 const DebtsList: React.FC<DebtsListProps> = ({ debts, onSettle, onViewDetails }) => {
@@ -80,7 +74,7 @@ const DebtsList: React.FC<DebtsListProps> = ({ debts, onSettle, onViewDetails })
   };
 
   const handleSettleAction = () => {
-    if (activeDebt && activeDebt.direction !== 'Settled' && activeDebt.netAmount > 0) {
+    if (activeDebt && activeDebt.direction !== DebtDirection.Settled && activeDebt.netAmount > 0) {
       onSettle(activeDebt);
     }
 
@@ -89,9 +83,7 @@ const DebtsList: React.FC<DebtsListProps> = ({ debts, onSettle, onViewDetails })
 
   if (debts.length === 0) {
     return (
-      <Alert severity="info">
-        You have no outstanding debts right now. New balances will appear here after completed transactions.
-      </Alert>
+      <Alert severity="info">{DEBT_LIST_TEXT.EMPTY_STATE}</Alert>
     );
   }
 
@@ -124,7 +116,7 @@ const DebtsList: React.FC<DebtsListProps> = ({ debts, onSettle, onViewDetails })
                   <Chip
                     label={getDirectionLabel(debt.direction)}
                     color={getDirectionColor(debt.direction)}
-                    variant={debt.direction === 'Settled' ? 'outlined' : 'filled'}
+                    variant={debt.direction === DebtDirection.Settled ? 'outlined' : 'filled'}
                   />
                 </Stack>
 
@@ -149,10 +141,10 @@ const DebtsList: React.FC<DebtsListProps> = ({ debts, onSettle, onViewDetails })
       </Stack>
 
       <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleCloseMenu}>
-        <MenuItem onClick={handleViewDetailsAction}>Details</MenuItem>
+        <MenuItem onClick={handleViewDetailsAction}>{DEBT_LIST_TEXT.DETAILS}</MenuItem>
         <MenuItem
           onClick={handleSettleAction}
-          disabled={!activeDebt || activeDebt.direction === 'Settled' || activeDebt.netAmount <= 0}
+          disabled={!activeDebt || activeDebt.direction === DebtDirection.Settled || activeDebt.netAmount <= 0}
         >
           {activeDebt ? getSettlementButtonLabel(activeDebt.direction) : 'Settle now'}
         </MenuItem>

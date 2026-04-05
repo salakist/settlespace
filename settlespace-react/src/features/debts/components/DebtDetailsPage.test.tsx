@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { DebtDirection, TransactionStatus } from '../../../shared/types';
 import DebtDetailsPage from './DebtDetailsPage';
 
 const mockNavigate = jest.fn();
@@ -39,7 +40,7 @@ beforeEach(() => {
     counterpartyPersonId: 'p2',
     currencyCode: 'EUR',
     netAmount: 42.5,
-    direction: 'YouOweThem',
+    direction: DebtDirection.YouOweThem,
     transactionCount: 2,
     paidByCurrentPerson: 65,
     paidByCounterparty: 22.5,
@@ -56,7 +57,7 @@ beforeEach(() => {
         transactionDateUtc: '2026-04-01T12:00:00Z',
         description: 'Dinner',
         category: 'Food',
-        status: 'Completed',
+        status: TransactionStatus.Completed,
       },
       {
         id: 'tx-2',
@@ -69,7 +70,7 @@ beforeEach(() => {
         transactionDateUtc: '2026-03-28T18:30:00Z',
         description: 'Taxi',
         category: 'Travel',
-        status: 'Completed',
+        status: TransactionStatus.Completed,
       },
     ],
   });

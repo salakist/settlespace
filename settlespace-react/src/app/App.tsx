@@ -1,11 +1,7 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { Box, Button, Container, CssBaseline, Paper, Stack, Tab, Tabs, ThemeProvider, createTheme } from '@mui/material';
-import HomeIcon from '@mui/icons-material/Home';
-import GroupIcon from '@mui/icons-material/Group';
 import PersonIcon from '@mui/icons-material/Person';
-import CompareArrowsIcon from '@mui/icons-material/CompareArrows';
-import ErrorIcon from '@mui/icons-material/Error';
 import '../styles/App.css';
 import LoginPage from '../features/auth/components/LoginPage';
 import RegisterPage from '../features/auth/components/RegisterPage';
@@ -17,33 +13,14 @@ import DebtsPage from '../features/debts/components/DebtsPage';
 import DebtDetailsPage from '../features/debts/components/DebtDetailsPage';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { useAppAuth } from './hooks/useAppAuth';
+import { APP_ROUTES, PRIMARY_TABS as PRIMARY_NAV_TABS } from './constants';
 import { personApi } from '../shared/api/api';
 import { logHandledError } from '../shared/api/requestHandling';
 import { canAccessPersonsPage } from '../shared/auth/permissions';
 import { BRAND_HEADER_SRC } from '../shared/theme/surfaceStyles';
 
-const ROUTE_LOGIN = '/login';
-const ROUTE_REGISTER = '/register';
-const ROUTE_HOME = '/home';
-const ROUTE_PERSONS = '/persons';
-const ROUTE_PERSON_CREATE = '/persons/new';
-const ROUTE_PERSON_EDIT = '/persons/:personId/edit';
-const ROUTE_PROFILE = '/profile';
-const ROUTE_TRANSACTIONS = '/transactions';
-const ROUTE_TRANSACTION_CREATE = '/transactions/new';
-const ROUTE_TRANSACTION_EDIT = '/transactions/:transactionId/edit';
-const ROUTE_DEBTS = '/debts';
-const ROUTE_DEBT_DETAILS = '/debts/:counterpartyPersonId/:currencyCode';
-
-const PRIMARY_TABS = [
-  { label: 'Home', value: ROUTE_HOME, icon: HomeIcon },
-  { label: 'Persons', value: ROUTE_PERSONS, icon: GroupIcon },
-  { label: 'Transactions', value: ROUTE_TRANSACTIONS, icon: CompareArrowsIcon },
-  { label: 'Debts', value: ROUTE_DEBTS, icon: ErrorIcon },
-] as const;
-
 function getPrimaryTabValue(pathname: string, tabs: readonly { value: string }[]): string | false {
-  if (pathname === ROUTE_PROFILE) {
+  if (pathname === APP_ROUTES.PROFILE) {
     return false;
   }
 
@@ -52,7 +29,7 @@ function getPrimaryTabValue(pathname: string, tabs: readonly { value: string }[]
     return matchingTab.value;
   }
 
-  return ROUTE_HOME;
+  return APP_ROUTES.HOME;
 }
 
 const darkTheme = createTheme({
@@ -138,7 +115,7 @@ function App() {
     logout,
   });
 
-  const isProfileRoute = location.pathname === ROUTE_PROFILE;
+  const isProfileRoute = location.pathname === APP_ROUTES.PROFILE;
 
   useEffect(() => {
     if (!isAuthenticated || (personId && displayName && role)) {
@@ -199,13 +176,13 @@ function App() {
         <CssBaseline />
         <Routes>
           <Route
-            path={ROUTE_LOGIN}
+            path={APP_ROUTES.LOGIN}
             element={
               <LoginPage
                 onLogin={handleLogin}
                 onShowRegister={() => {
                   clearAuthError();
-                  navigate(ROUTE_REGISTER);
+                  navigate(APP_ROUTES.REGISTER);
                 }}
                 error={authError}
                 loading={authLoading}
@@ -213,27 +190,27 @@ function App() {
             }
           />
           <Route
-            path={ROUTE_REGISTER}
+            path={APP_ROUTES.REGISTER}
             element={
               <RegisterPage
                 onRegister={handleRegister}
                 onShowLogin={() => {
                   clearAuthError();
-                  navigate(ROUTE_LOGIN);
+                  navigate(APP_ROUTES.LOGIN);
                 }}
                 error={authError}
                 loading={authLoading}
               />
             }
           />
-          <Route path="*" element={<Navigate to={ROUTE_LOGIN} replace />} />
+          <Route path="*" element={<Navigate to={APP_ROUTES.LOGIN} replace />} />
         </Routes>
       </ThemeProvider>
     );
   }
 
   const canAccessPersons = canAccessPersonsPage(role);
-  const primaryTabs = PRIMARY_TABS.filter((tab) => tab.value !== ROUTE_PERSONS || canAccessPersons);
+  const primaryTabs = PRIMARY_NAV_TABS.filter((tab) => tab.value !== APP_ROUTES.PERSONS || canAccessPersons);
   const primaryTabValue = getPrimaryTabValue(location.pathname, primaryTabs);
   const currentDisplayName = displayName || username;
 
@@ -306,7 +283,7 @@ function App() {
                   sx={{ minWidth: 'fit-content' }}
                 >
                   <Button
-                    onClick={() => navigate(ROUTE_PROFILE)}
+                    onClick={() => navigate(APP_ROUTES.PROFILE)}
                     variant={isProfileRoute ? 'contained' : 'outlined'}
                     startIcon={<PersonIcon />}
                     sx={{
@@ -332,7 +309,7 @@ function App() {
 
           <Routes>
             <Route
-              path={ROUTE_HOME}
+              path={APP_ROUTES.HOME}
               element={
                 <HomePage
                   displayName={currentDisplayName}
@@ -340,7 +317,7 @@ function App() {
               }
             />
             <Route
-              path={ROUTE_PROFILE}
+              path={APP_ROUTES.PROFILE}
               element={(
                 <ProfileRoutePage
                   expireSession={expireSession}
@@ -352,7 +329,7 @@ function App() {
               )}
             />
             <Route
-              path={ROUTE_PERSONS}
+              path={APP_ROUTES.PERSONS}
               element={(
                 <PersonsRoutePage
                   expireSession={expireSession}
@@ -362,7 +339,7 @@ function App() {
               )}
             />
             <Route
-              path={ROUTE_PERSON_CREATE}
+              path={APP_ROUTES.PERSON_CREATE}
               element={(
                 <PersonsRoutePage
                   expireSession={expireSession}
@@ -372,7 +349,7 @@ function App() {
               )}
             />
             <Route
-              path={ROUTE_PERSON_EDIT}
+              path={APP_ROUTES.PERSON_EDIT}
               element={(
                 <PersonsRoutePage
                   expireSession={expireSession}
@@ -381,11 +358,11 @@ function App() {
                 />
               )}
             />
-            <Route path={ROUTE_TRANSACTIONS} element={transactionsPageElement} />
-            <Route path={ROUTE_TRANSACTION_CREATE} element={transactionsPageElement} />
-            <Route path={ROUTE_TRANSACTION_EDIT} element={transactionsPageElement} />
+            <Route path={APP_ROUTES.TRANSACTIONS} element={transactionsPageElement} />
+            <Route path={APP_ROUTES.TRANSACTION_CREATE} element={transactionsPageElement} />
+            <Route path={APP_ROUTES.TRANSACTION_EDIT} element={transactionsPageElement} />
             <Route
-              path={ROUTE_DEBTS}
+              path={APP_ROUTES.DEBTS}
               element={(
                 <DebtsPage
                   expireSession={expireSession}
@@ -393,14 +370,14 @@ function App() {
               )}
             />
             <Route
-              path={ROUTE_DEBT_DETAILS}
+              path={APP_ROUTES.DEBT_DETAILS}
               element={(
                 <DebtDetailsPage
                   expireSession={expireSession}
                 />
               )}
             />
-            <Route path="*" element={<Navigate to={ROUTE_HOME} replace />} />
+            <Route path="*" element={<Navigate to={APP_ROUTES.HOME} replace />} />
           </Routes>
         </Container>
       </div>

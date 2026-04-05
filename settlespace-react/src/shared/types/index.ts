@@ -1,4 +1,61 @@
-export type PersonRole = 'ADMIN' | 'USER' | 'MANAGER';
+export enum PersonRole {
+  Admin = 'ADMIN',
+  Manager = 'MANAGER',
+  User = 'USER',
+}
+
+export enum TransactionStatus {
+  Pending = 'Pending',
+  Completed = 'Completed',
+  Cancelled = 'Cancelled',
+}
+
+export enum TransactionInvolvement {
+  Owned = 'Owned',
+  Managed = 'Managed',
+}
+
+export enum DebtDirection {
+  TheyOweYou = 'TheyOweYou',
+  YouOweThem = 'YouOweThem',
+  Settled = 'Settled',
+}
+
+export function getEnumValues<TEnum extends Record<string, string>>(
+  enumType: TEnum,
+): Array<TEnum[keyof TEnum]> {
+  return Object.values(enumType) as Array<TEnum[keyof TEnum]>;
+}
+
+function parseEnumValue<TEnum extends Record<string, string>>(
+  enumType: TEnum,
+  value: string | null | undefined,
+): TEnum[keyof TEnum] | null {
+  if (!value) {
+    return null;
+  }
+
+  const allowedValues = getEnumValues(enumType) as string[];
+  return allowedValues.includes(value) ? (value as TEnum[keyof TEnum]) : null;
+}
+
+export function parsePersonRole(value: string | null | undefined): PersonRole | null {
+  return parseEnumValue(PersonRole, value);
+}
+
+export function parseTransactionStatus(value: string | null | undefined): TransactionStatus | null {
+  return parseEnumValue(TransactionStatus, value);
+}
+
+export function parseTransactionInvolvement(
+  value: string | null | undefined,
+): TransactionInvolvement | null {
+  return parseEnumValue(TransactionInvolvement, value);
+}
+
+export function parseDebtDirection(value: string | null | undefined): DebtDirection | null {
+  return parseEnumValue(DebtDirection, value);
+}
 
 export interface Address {
   label: string;
@@ -23,8 +80,6 @@ export interface Person {
   addresses?: Address[];
 }
 
-export type TransactionStatus = 'Pending' | 'Completed' | 'Cancelled';
-
 export interface Transaction {
   id?: string;
   payerPersonId: string;
@@ -42,8 +97,6 @@ export interface Transaction {
   createdAtUtc?: string;
   updatedAtUtc?: string;
 }
-
-export type DebtDirection = 'TheyOweYou' | 'YouOweThem' | 'Settled';
 
 export interface DebtSummary {
   counterpartyPersonId: string;

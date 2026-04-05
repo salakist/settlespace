@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { DebtDirection } from '../../../shared/types';
 import DebtSettlementDrawer from './DebtSettlementDrawer';
 
 const baseDetails = {
@@ -7,7 +8,7 @@ const baseDetails = {
   counterpartyDisplayName: 'Jane Doe',
   currencyCode: 'EUR',
   netAmount: 42.5,
-  direction: 'YouOweThem' as const,
+  direction: DebtDirection.YouOweThem,
   transactionCount: 3,
   paidByCurrentPerson: 65,
   paidByCounterparty: 22.5,
@@ -49,8 +50,13 @@ test('adapts wording, keeps affirmative action first, and submits settlement for
   render(
     <DebtSettlementDrawer
       open
-      debt={{ ...baseDetails, netAmount: 20, direction: 'TheyOweYou' }}
-      details={{ ...baseDetails, netAmount: 20, direction: 'TheyOweYou', paidByCounterparty: 45 }}
+      debt={{ ...baseDetails, netAmount: 20, direction: DebtDirection.TheyOweYou }}
+      details={{
+        ...baseDetails,
+        netAmount: 20,
+        direction: DebtDirection.TheyOweYou,
+        paidByCounterparty: 45,
+      }}
       loading={false}
       saving={false}
       onClose={jest.fn()}

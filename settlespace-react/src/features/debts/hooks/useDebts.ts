@@ -1,13 +1,13 @@
 import { useCallback, useState } from 'react';
 import { debtsApi } from '../../../shared/api/debtsApi';
 import { handleRequestError } from '../../../shared/api/requestHandling';
+import { SESSION_EXPIRED_MESSAGE } from '../../../shared/constants/messages';
 import { DebtDetails, DebtSummary, SettleDebtRequest } from '../../../shared/types';
+import { DEBT_SETTLEMENT_TEXT } from '../constants';
 
 type UseDebtsOptions = {
   expireSession: (message?: string) => void;
 };
-
-const SESSION_EXPIRED_MESSAGE = 'Your session expired. Please log in again.';
 
 function findMatchingDetail(details: DebtDetails[], currencyCode: string): DebtDetails | undefined {
   return details.find((candidate) => candidate.currencyCode === currencyCode);
@@ -110,7 +110,7 @@ export function useDebts({ expireSession }: UseDebtsOptions) {
       setError(null);
       await loadDebts();
       closeSettlementDrawer();
-      setSuccessMessage('Settlement recorded successfully.');
+      setSuccessMessage(DEBT_SETTLEMENT_TEXT.SETTLEMENT_RECORDED);
     } catch (err) {
       handleRequestError({
         error: err,

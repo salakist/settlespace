@@ -1,6 +1,13 @@
 import React from 'react';
 import { act, render } from '@testing-library/react';
+import { SESSION_EXPIRED_MESSAGE } from '../../../shared/constants/messages';
+import {
+  PersonRole,
+  TransactionInvolvement,
+  TransactionStatus,
+} from '../../../shared/types';
 import { useTransactions } from './useTransactions';
+import { TRANSACTION_TEST_VALUES } from '../testConstants';
 
 jest.mock('../../../shared/api/transactionApi', () => ({
   transactionApi: {
@@ -21,17 +28,15 @@ const { transactionApi } = jest.requireMock('../../../shared/api/transactionApi'
 };
 
 type TransactionsHookResult = ReturnType<typeof useTransactions>;
-const SESSION_EXPIRED_MESSAGE = 'Your session expired. Please log in again.';
-const TX_DATE = '2026-03-29T00:00:00Z';
 
 function createHarness(options: {
   expireSession?: jest.Mock;
-  role?: 'ADMIN' | 'USER' | 'MANAGER' | null;
+  role?: PersonRole | null;
   currentPersonId?: string;
 } = {}) {
   const {
     expireSession = jest.fn(),
-    role = 'ADMIN',
+    role = PersonRole.Admin,
     currentPersonId = 'p1',
   } = options;
   let latest: TransactionsHookResult;
@@ -66,9 +71,9 @@ test('handleSearch with empty query loads all transactions', async () => {
         payeePersonId: 'p2',
         amount: 20,
         currencyCode: 'EUR',
-        transactionDateUtc: TX_DATE,
+        transactionDateUtc: TRANSACTION_TEST_VALUES.DATE_UTC,
         description: 'Dinner',
-        status: 'Completed',
+        status: TransactionStatus.Completed,
       },
     ],
   });
@@ -89,9 +94,9 @@ test('handleSave calls create for new transaction and update for edited one', as
     payeePersonId: 'p2',
     amount: 10,
     currencyCode: 'EUR',
-    transactionDateUtc: TX_DATE,
+    transactionDateUtc: TRANSACTION_TEST_VALUES.DATE_UTC,
     description: 'Lunch',
-    status: 'Completed' as const,
+    status: TransactionStatus.Completed as const,
   };
 
   await act(async () => {
@@ -133,9 +138,9 @@ test('handleSearch calls search endpoint with freeText', async () => {
         payeePersonId: 'p2',
         amount: 10,
         currencyCode: 'EUR',
-        transactionDateUtc: TX_DATE,
+        transactionDateUtc: TRANSACTION_TEST_VALUES.DATE_UTC,
         description: 'Lunch',
-        status: 'Completed',
+        status: TransactionStatus.Completed,
       },
     ],
   });
@@ -165,10 +170,10 @@ test('handleSearch with involvement only calls search endpoint', async () => {
   const harness = createHarness();
 
   await act(async () => {
-    await harness.getHook().handleSearch({ involvement: 'Owned' });
+    await harness.getHook().handleSearch({ involvement: TransactionInvolvement.Owned });
   });
 
-  expect(transactionApi.search).toHaveBeenCalledWith({ involvement: 'Owned' });
+  expect(transactionApi.search).toHaveBeenCalledWith({ involvement: TransactionInvolvement.Owned });
 });
 
 test('unauthorized search triggers session expiration and clears state', async () => {
@@ -218,9 +223,9 @@ test('handleSave failure sets error message', async () => {
       payeePersonId: 'p2',
       amount: 10,
       currencyCode: 'EUR',
-      transactionDateUtc: TX_DATE,
+      transactionDateUtc: TRANSACTION_TEST_VALUES.DATE_UTC,
       description: 'Lunch',
-      status: 'Completed',
+      status: TransactionStatus.Completed,
     });
   })).rejects.toThrow('boom');
 
@@ -239,7 +244,7 @@ test('handleDelete failure sets error message', async () => {
 });
 
 test('handleEdit blocks users from editing transactions they did not create', () => {
-  const harness = createHarness({ role: 'USER', currentPersonId: 'p1' });
+  const harness = createHarness({ role: PersonRole.User, currentPersonId: 'p1' });
 
   act(() => {
     harness.getHook().handleEdit({
@@ -249,9 +254,9 @@ test('handleEdit blocks users from editing transactions they did not create', ()
       createdByPersonId: 'p9',
       amount: 15,
       currencyCode: 'EUR',
-      transactionDateUtc: TX_DATE,
+      transactionDateUtc: TRANSACTION_TEST_VALUES.DATE_UTC,
       description: 'Blocked edit',
-      status: 'Pending',
+      status: TransactionStatus.Pending,
     });
   });
 
@@ -268,12 +273,12 @@ test('handleDelete blocks users from deleting transactions they did not create',
       createdByPersonId: 'p9',
       amount: 15,
       currencyCode: 'EUR',
-      transactionDateUtc: TX_DATE,
+      transactionDateUtc: TRANSACTION_TEST_VALUES.DATE_UTC,
       description: 'Blocked delete',
-      status: 'Pending',
+      status: TransactionStatus.Pending,
     }],
   });
-  const harness = createHarness({ role: 'USER', currentPersonId: 'p1' });
+  const harness = createHarness({ role: PersonRole.User, currentPersonId: 'p1' });
 
   await act(async () => {
     await harness.getHook().handleSearch();

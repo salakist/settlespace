@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import { PersonRole } from '../../../shared/types';
 import PersonsPage from './PersonsPage';
 
 const mockNavigate = jest.fn();
@@ -71,7 +72,7 @@ const defaultProps = {
   canEdit: jest.fn(() => true),
   canDelete: jest.fn(() => true),
   canEditRole: true,
-  defaultCreateRole: 'USER' as const,
+  defaultCreateRole: PersonRole.User,
   onAdd: jest.fn(),
   onSearch: jest.fn(),
   onSave: jest.fn().mockResolvedValue(undefined),
@@ -196,7 +197,7 @@ test('confirms deletion in a modal before calling onDelete', () => {
   render(
     <PersonsPage
       {...defaultProps}
-      persons={[{ id: 'p1', firstName: 'John', lastName: 'Doe', addresses: [], role: 'USER' }]}
+      persons={[{ id: 'p1', firstName: 'John', lastName: 'Doe', addresses: [], role: PersonRole.User }]}
       onDelete={onDelete}
     />,
   );

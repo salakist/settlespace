@@ -1,5 +1,7 @@
 import React from 'react';
 import { act, render, waitFor } from '@testing-library/react';
+import { SESSION_EXPIRED_MESSAGE } from '../../../shared/constants/messages';
+import { PersonRole } from '../../../shared/types';
 import { usePersons } from './usePersons';
 
 jest.mock('../../../shared/api/api', () => ({
@@ -22,18 +24,16 @@ const { personApi } = jest.requireMock('../../../shared/api/api') as {
   };
 };
 
-const SESSION_EXPIRED_MESSAGE = 'Your session expired. Please log in again.';
-
 type PersonsHookResult = ReturnType<typeof usePersons>;
 
 function createPersonsHarness(options: {
   expireSession?: jest.Mock;
-  role?: 'ADMIN' | 'USER' | 'MANAGER' | null;
+  role?: PersonRole | null;
   currentPersonId?: string;
 } = {}) {
   const {
     expireSession = jest.fn(),
-    role = 'ADMIN',
+    role = PersonRole.Admin,
     currentPersonId = 'p-admin',
   } = options;
   let latest: PersonsHookResult;
@@ -340,7 +340,7 @@ test('showCreateForm shows form without an editing person', () => {
 });
 
 test('showCreateForm blocks unauthorized users before opening the form', () => {
-  const harness = createPersonsHarness({ role: 'USER' });
+  const harness = createPersonsHarness({ role: PersonRole.User });
 
   act(() => {
     harness.getHook().showCreateForm();
@@ -352,14 +352,14 @@ test('showCreateForm blocks unauthorized users before opening the form', () => {
 });
 
 test('handleEdit blocks managers from editing admin profiles', () => {
-  const harness = createPersonsHarness({ role: 'MANAGER' });
+  const harness = createPersonsHarness({ role: PersonRole.Manager });
 
   act(() => {
     harness.getHook().handleEdit({
       id: 'admin-1',
       firstName: 'Ada',
       lastName: 'Admin',
-      role: 'ADMIN',
+      role: PersonRole.Admin,
       addresses: [],
     });
   });
@@ -371,9 +371,9 @@ test('handleEdit blocks managers from editing admin profiles', () => {
 
 test('handleDelete blocks managers from deleting admin profiles', async () => {
   personApi.getAll.mockResolvedValueOnce({
-    data: [{ id: 'admin-1', firstName: 'Ada', lastName: 'Admin', role: 'ADMIN', addresses: [] }],
+    data: [{ id: 'admin-1', firstName: 'Ada', lastName: 'Admin', role: PersonRole.Admin, addresses: [] }],
   });
-  const harness = createPersonsHarness({ role: 'MANAGER' });
+  const harness = createPersonsHarness({ role: PersonRole.Manager });
 
   await act(async () => {
     await harness.getHook().loadPersons();

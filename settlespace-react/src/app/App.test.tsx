@@ -1,5 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { PersonRole } from '../shared/types';
+import { APP_TEST_ATTRIBUTES } from './testConstants';
 
 jest.mock('react-router-dom');
 
@@ -13,7 +15,6 @@ const {
   __setMockPathname: (pathname: string) => void;
 };
 
-const ARIA_SELECTED = 'aria-selected';
 const mockPersonsPage = jest.fn((_props?: unknown) => <div>Persons Page</div>);
 
 jest.mock('../features/auth/hooks/useAuth', () => ({
@@ -86,7 +87,10 @@ const { useAppAuth: mockUseAppAuth } = jest.requireMock('./hooks/useAppAuth') as
 
 const App = require('./App').default;
 
-const setAuthenticatedSession = (currentPersonId?: string, role: 'ADMIN' | 'MANAGER' | 'USER' = 'ADMIN') => {
+const setAuthenticatedSession = (
+  currentPersonId?: string,
+  role: PersonRole = PersonRole.Admin,
+) => {
   mockUseAuth.mockReturnValue({
     authError: null,
     authLoading: false,
@@ -215,7 +219,7 @@ test('renders home navigation tabs and shows welcome content', () => {
 
   render(<App />);
 
-  expect(screen.getByRole('tab', { name: /home/i })).toHaveAttribute(ARIA_SELECTED, 'true');
+  expect(screen.getByRole('tab', { name: /home/i })).toHaveAttribute(APP_TEST_ATTRIBUTES.ARIA_SELECTED, 'true');
   expect(screen.getByRole('tab', { name: /persons/i })).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /john doe/i })).toBeInTheDocument();
   expect(screen.getByText(/welcome back, john doe/i)).toBeInTheDocument();
@@ -233,8 +237,8 @@ test('renders non-home tabs and navigates correctly', () => {
   const profileButton = screen.getByRole('button', { name: /john doe/i });
 
   expect(profileButton).toBeInTheDocument();
-  expect(personsTab).toHaveAttribute(ARIA_SELECTED, 'false');
-  expect(homeTab).toHaveAttribute(ARIA_SELECTED, 'false');
+  expect(personsTab).toHaveAttribute(APP_TEST_ATTRIBUTES.ARIA_SELECTED, 'false');
+  expect(homeTab).toHaveAttribute(APP_TEST_ATTRIBUTES.ARIA_SELECTED, 'false');
 
   fireEvent.click(homeTab);
   fireEvent.click(personsTab);
@@ -251,7 +255,7 @@ test('keeps debts tab selected on nested debt details routes', () => {
 
   render(<App />);
 
-  expect(screen.getByRole('tab', { name: /debts/i })).toHaveAttribute(ARIA_SELECTED, 'true');
+  expect(screen.getByRole('tab', { name: /debts/i })).toHaveAttribute(APP_TEST_ATTRIBUTES.ARIA_SELECTED, 'true');
 });
 
 test('keeps persons tab selected on nested person routes', () => {
@@ -260,7 +264,7 @@ test('keeps persons tab selected on nested person routes', () => {
 
   render(<App />);
 
-  expect(screen.getByRole('tab', { name: /persons/i })).toHaveAttribute(ARIA_SELECTED, 'true');
+  expect(screen.getByRole('tab', { name: /persons/i })).toHaveAttribute(APP_TEST_ATTRIBUTES.ARIA_SELECTED, 'true');
 });
 
 test('keeps transactions tab selected on nested transaction routes', () => {
@@ -269,7 +273,7 @@ test('keeps transactions tab selected on nested transaction routes', () => {
 
   render(<App />);
 
-  expect(screen.getByRole('tab', { name: /transactions/i })).toHaveAttribute(ARIA_SELECTED, 'true');
+  expect(screen.getByRole('tab', { name: /transactions/i })).toHaveAttribute(APP_TEST_ATTRIBUTES.ARIA_SELECTED, 'true');
 });
 
 test('does not pass logged-in user to persons page list', () => {

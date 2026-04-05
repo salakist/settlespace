@@ -6,7 +6,7 @@ import {
   PendingParameterActions,
   PendingParameterChip,
 } from './PendingParameterAdornment';
-import { SEARCH_PLACEHOLDERS } from '../constants';
+import { SEARCH_BAR_TEXT, SEARCH_LAYOUT, SEARCH_PLACEHOLDERS } from '../constants';
 import { useGenericSearchController } from '../hooks/useGenericSearchController';
 import { GenericSearchBarProps } from '../types';
 import {
@@ -14,14 +14,12 @@ import {
   getAutocompleteGroupLabel,
 } from '../utils/searchHelpers';
 
-const INPUT_PADDING_RIGHT = '72px';
-
 const GenericSearchBar = <TParam extends string = string,>({
   onSearch,
   initialValue,
   action,
   parameters = [],
-  ariaLabel = 'Search',
+  ariaLabel = SEARCH_BAR_TEXT.DEFAULT_ARIA_LABEL,
   freeTextPlaceholder = SEARCH_PLACEHOLDERS.DEFAULT,
   dataTestId,
 }: GenericSearchBarProps<TParam>) => {
@@ -75,7 +73,7 @@ const GenericSearchBar = <TParam extends string = string,>({
             freeSolo
             options={autocompleteOptions}
             loading={loadingSuggestions}
-            loadingText="Loading..."
+            loadingText={SEARCH_BAR_TEXT.LOADING}
             getOptionLabel={(option) => (typeof option === 'string' ? option : option.label)}
             groupBy={(option) => (typeof option === 'string' ? '' : getAutocompleteGroupLabel(option))}
             inputValue={inputValue}
@@ -128,7 +126,9 @@ const GenericSearchBar = <TParam extends string = string,>({
                   '& .MuiOutlinedInput-root': {
                     borderTopRightRadius: 0,
                     borderBottomRightRadius: 0,
-                    ...(pendingParameter ? { paddingRight: INPUT_PADDING_RIGHT } : {}),
+                    ...(pendingParameter
+                      ? { paddingRight: SEARCH_LAYOUT.INPUT_PADDING_RIGHT }
+                      : {}),
                   },
                 }}
               />
@@ -141,7 +141,7 @@ const GenericSearchBar = <TParam extends string = string,>({
           />
           <IconButton
             type="submit"
-            aria-label="Search"
+            aria-label={SEARCH_BAR_TEXT.SEARCH_BUTTON_ARIA_LABEL}
             sx={{
               bgcolor: 'primary.main',
               color: 'primary.contrastText',

@@ -1,7 +1,7 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
-
-const MOCK_DOB = '1990-01-01';
+import { PersonRole } from '../shared/types';
+import { APP_TEST_VALUES } from './testConstants';
 
 jest.mock('react-router-dom');
 
@@ -12,6 +12,8 @@ const {
   __resetRouterMocks: () => void;
   __setMockPathname: (pathname: string) => void;
 };
+
+const mockGetAppTestValues = () => (jest.requireActual('./testConstants') as typeof import('./testConstants')).APP_TEST_VALUES;
 
 jest.mock('../shared/api/api', () => ({
   authApi: {
@@ -127,26 +129,30 @@ jest.mock('../features/transactions/components/TransactionsPage', () => ({
   default: () => <div>Transactions Page</div>,
 }));
 
-jest.mock('../features/persons/components/PersonForm', () => ({
-  __esModule: true,
-  default: ({ onSave, onCancel }: { onSave: (person: unknown) => Promise<void>; onCancel: () => void }) => (
-    <div>
-      <button
-        onClick={() =>
-          onSave({
-            firstName: 'Test',
-            lastName: 'Person',
-            dateOfBirth: MOCK_DOB,
-            addresses: [],
-          })
-        }
-      >
-        Save Person
-      </button>
-      <button onClick={onCancel}>Cancel Person</button>
-    </div>
-  ),
-}));
+jest.mock('../features/persons/components/PersonForm', () => {
+  const APP_TEST_VALUES = mockGetAppTestValues();
+
+  return {
+    __esModule: true,
+    default: ({ onSave, onCancel }: { onSave: (person: unknown) => Promise<void>; onCancel: () => void }) => (
+      <div>
+        <button
+          onClick={() =>
+            onSave({
+              firstName: 'Test',
+              lastName: 'Person',
+              dateOfBirth: APP_TEST_VALUES.MOCK_DATE_OF_BIRTH,
+              addresses: [],
+            })
+          }
+        >
+          Save Person
+        </button>
+        <button onClick={onCancel}>Cancel Person</button>
+      </div>
+    ),
+  };
+});
 
 jest.mock('../features/persons/components/PersonList', () => ({
   __esModule: true,
@@ -158,50 +164,62 @@ jest.mock('../features/persons/components/PersonList', () => ({
   ),
 }));
 
-jest.mock('../features/auth/components/LoginPage', () => ({
-  __esModule: true,
-  default: ({ onLogin, onShowRegister, error }: { onLogin: (u: string, p: string) => void; onShowRegister: () => void; error?: string | null }) => (
-    <div>
-      <h1>Sign In</h1>
-      <button onClick={() => onLogin('john.doe', 'Secret!1')}>Submit Login</button>
-      <button onClick={onShowRegister}>Go Register</button>
-      {error ? <div>{error}</div> : null}
-    </div>
-  ),
-}));
+jest.mock('../features/auth/components/LoginPage', () => {
+  const APP_TEST_VALUES = mockGetAppTestValues();
 
-jest.mock('../features/auth/components/RegisterPage', () => ({
-  __esModule: true,
-  default: ({ onRegister, onShowLogin }: { onRegister: (request: unknown) => void; onShowLogin: () => void }) => (
-    <div>
-      <h1>Register</h1>
-      <button onClick={() => onRegister({ firstName: 'Jane', lastName: 'Doe', password: 'Secret!1', dateOfBirth: MOCK_DOB, addresses: [] })}>Submit Register</button>
-      <button onClick={onShowLogin}>Back Login</button>
-    </div>
-  ),
-}));
+  return {
+    __esModule: true,
+    default: ({ onLogin, onShowRegister, error }: { onLogin: (u: string, p: string) => void; onShowRegister: () => void; error?: string | null }) => (
+      <div>
+        <h1>Sign In</h1>
+        <button onClick={() => onLogin('john.doe', APP_TEST_VALUES.TEST_PASSWORD)}>Submit Login</button>
+        <button onClick={onShowRegister}>Go Register</button>
+        {error ? <div>{error}</div> : null}
+      </div>
+    ),
+  };
+});
 
-jest.mock('../features/profile/components/ProfilePage', () => ({
-  __esModule: true,
-  default: ({ onSave, onChangePassword }: { onSave: (person: unknown) => Promise<void>; onChangePassword: (c: string, n: string) => Promise<void> }) => (
-    <div>
-      <h2>Profile Page</h2>
-      <button
-        onClick={() =>
-          onSave({
-            firstName: 'John',
-            lastName: 'Doe',
-            dateOfBirth: MOCK_DOB,
-            addresses: [],
-          })
-        }
-      >
-        Save Profile
-      </button>
-      <button onClick={() => void onChangePassword('old-password', 'new-password')}>Change Password</button>
-    </div>
-  ),
-}));
+jest.mock('../features/auth/components/RegisterPage', () => {
+  const APP_TEST_VALUES = mockGetAppTestValues();
+
+  return {
+    __esModule: true,
+    default: ({ onRegister, onShowLogin }: { onRegister: (request: unknown) => void; onShowLogin: () => void }) => (
+      <div>
+        <h1>Register</h1>
+        <button onClick={() => onRegister({ firstName: 'Jane', lastName: 'Doe', password: APP_TEST_VALUES.TEST_PASSWORD, dateOfBirth: APP_TEST_VALUES.MOCK_DATE_OF_BIRTH, addresses: [] })}>Submit Register</button>
+        <button onClick={onShowLogin}>Back Login</button>
+      </div>
+    ),
+  };
+});
+
+jest.mock('../features/profile/components/ProfilePage', () => {
+  const APP_TEST_VALUES = mockGetAppTestValues();
+
+  return {
+    __esModule: true,
+    default: ({ onSave, onChangePassword }: { onSave: (person: unknown) => Promise<void>; onChangePassword: (c: string, n: string) => Promise<void> }) => (
+      <div>
+        <h2>Profile Page</h2>
+        <button
+          onClick={() =>
+            onSave({
+              firstName: 'John',
+              lastName: 'Doe',
+              dateOfBirth: APP_TEST_VALUES.MOCK_DATE_OF_BIRTH,
+              addresses: [],
+            })
+          }
+        >
+          Save Profile
+        </button>
+        <button onClick={() => void onChangePassword('old-password', 'new-password')}>Change Password</button>
+      </div>
+    ),
+  };
+});
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -214,10 +232,10 @@ beforeEach(() => {
   mockAuthStorage.getRole.mockReturnValue(null);
 
   mockAuthApi.login.mockResolvedValue({
-    data: { token: 'token', username: 'john.doe', personId: 'p1', displayName: 'John Doe', role: 'ADMIN' },
+    data: { token: 'token', username: 'john.doe', personId: 'p1', displayName: 'John Doe', role: PersonRole.Admin },
   });
   mockAuthApi.register.mockResolvedValue({
-    data: { token: 'token2', username: 'jane.doe', personId: 'p2', displayName: 'Jane Doe', role: 'USER' },
+    data: { token: 'token2', username: 'jane.doe', personId: 'p2', displayName: 'Jane Doe', role: PersonRole.User },
   });
   mockAuthApi.changePassword.mockResolvedValue({});
 
@@ -227,8 +245,8 @@ beforeEach(() => {
         id: 'p1',
         firstName: 'John',
         lastName: 'Doe',
-        role: 'ADMIN',
-        dateOfBirth: MOCK_DOB,
+        role: PersonRole.Admin,
+        dateOfBirth: APP_TEST_VALUES.MOCK_DATE_OF_BIRTH,
         addresses: [],
       },
     ],
@@ -238,8 +256,8 @@ beforeEach(() => {
       id: 'p1',
       firstName: 'John',
       lastName: 'Doe',
-      role: 'ADMIN',
-      dateOfBirth: MOCK_DOB,
+      role: PersonRole.Admin,
+      dateOfBirth: APP_TEST_VALUES.MOCK_DATE_OF_BIRTH,
       addresses: [],
     },
   });
@@ -284,7 +302,7 @@ test('hydrates auth identity for authenticated legacy sessions missing person me
   expect(mockAuthStorage.setUsername).toHaveBeenCalledWith('John.Doe');
   expect(mockAuthStorage.setDisplayName).toHaveBeenCalledWith('John Doe');
   expect(mockAuthStorage.setPersonId).toHaveBeenCalledWith('p1');
-  expect(mockAuthStorage.setRole).toHaveBeenCalledWith('ADMIN');
+  expect(mockAuthStorage.setRole).toHaveBeenCalledWith(PersonRole.Admin);
 });
 
 test('expires the session when identity hydration is unauthorized', async () => {

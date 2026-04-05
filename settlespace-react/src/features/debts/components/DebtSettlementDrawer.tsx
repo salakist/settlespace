@@ -11,8 +11,14 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { DebtDetails, DebtSummary, SettleDebtRequest } from '../../../shared/types';
+import { DebtDetails, DebtDirection, DebtSummary, SettleDebtRequest } from '../../../shared/types';
 import { insetSurfaceSx } from '../../../shared/theme/surfaceStyles';
+import { DEFAULT_TRANSACTION_CURRENCY } from '../../transactions/constants';
+import {
+  DEBT_DIRECTION_LABELS,
+  DEBT_SETTLEMENT_SLIDER_MARKS,
+  DEBT_SETTLEMENT_TEXT,
+} from '../constants';
 
 type DebtSettlementDrawerProps = {
   open: boolean;
@@ -52,14 +58,9 @@ function roundCurrency(value: number): number {
 }
 
 function getDirectionTitle(direction?: DebtSummary['direction']): string {
-  switch (direction) {
-    case 'TheyOweYou':
-      return 'They owe you';
-    case 'YouOweThem':
-      return 'You owe them';
-    default:
-      return 'Settled';
-  }
+  return direction
+    ? DEBT_DIRECTION_LABELS[direction]
+    : DEBT_DIRECTION_LABELS[DebtDirection.Settled];
 }
 
 function getPrimaryMessage(
@@ -68,34 +69,38 @@ function getPrimaryMessage(
   percentage: number,
   totalText: string,
 ): string {
-  if (direction === 'TheyOweYou') {
+  if (direction === DebtDirection.TheyOweYou) {
     return `You are recording ${amountText} received (${percentage}% of ${totalText}).`;
   }
 
-  if (direction === 'Settled') {
-    return 'This balance is already settled.';
+  if (direction === DebtDirection.Settled) {
+    return DEBT_SETTLEMENT_TEXT.ALREADY_SETTLED;
   }
 
   return `You are paying ${amountText} (${percentage}% of ${totalText}).`;
 }
 
 function getDescriptionPlaceholder(direction?: DebtSummary['direction']): string {
-  return direction === 'TheyOweYou' ? 'Settlement received' : 'Debt repayment';
+  return direction === DebtDirection.TheyOweYou
+    ? DEBT_SETTLEMENT_TEXT.SETTLEMENT_RECEIVED_PLACEHOLDER
+    : DEBT_SETTLEMENT_TEXT.DEBT_REPAYMENT_PLACEHOLDER;
 }
 
 function getSubmitLabel(direction: DebtSummary['direction'] | undefined, saving: boolean): string {
   if (saving) {
-    return 'Saving...';
+    return DEBT_SETTLEMENT_TEXT.SAVING;
   }
 
-  return direction === 'TheyOweYou' ? 'Record received payment' : 'Record payment';
+  return direction === DebtDirection.TheyOweYou
+    ? DEBT_SETTLEMENT_TEXT.RECORD_RECEIVED_PAYMENT
+    : DEBT_SETTLEMENT_TEXT.RECORD_PAYMENT;
 }
 
 function getAlertSeverity(direction?: DebtSummary['direction']): 'success' | 'info' {
-  return direction === 'TheyOweYou' ? 'success' : 'info';
+  return direction === DebtDirection.TheyOweYou ? 'success' : 'info';
 }
 
-const SLIDER_MARKS = [0, 25, 50, 75, 100].map((value) => ({ value, label: `${value}%` }));
+const SLIDER_MARKS = DEBT_SETTLEMENT_SLIDER_MARKS;
 
 const DebtSettlementDrawer: React.FC<DebtSettlementDrawerProps> = ({
   open,
@@ -109,8 +114,10 @@ const DebtSettlementDrawer: React.FC<DebtSettlementDrawerProps> = ({
   onSubmit,
 }) => {
   const maxAmount = roundCurrency(Math.max(debt?.netAmount ?? 0, 0));
-  const currencyCode = debt?.currencyCode ?? 'EUR';
-  const counterpartyName = debt ? (debt.counterpartyDisplayName ?? debt.counterpartyPersonId) : 'Counterparty';
+  const currencyCode = debt?.currencyCode ?? DEFAULT_TRANSACTION_CURRENCY;
+  const counterpartyName = debt
+    ? (debt.counterpartyDisplayName ?? debt.counterpartyPersonId)
+    : DEBT_SETTLEMENT_TEXT.COUNTERPARTY_FALLBACK;
   const [amount, setAmount] = useState(0);
   const [description, setDescription] = useState('');
 
@@ -199,7 +206,7 @@ const DebtSettlementDrawer: React.FC<DebtSettlementDrawerProps> = ({
         </Alert>
 
         <div>
-          <Typography gutterBottom>Settlement amount</Typography>
+          <Typography gutterBottom>{DEBT_SETTLEMENT_TEXT.SETTLEMENT_AMOUNT}</Typography>
           <Slider
             value={percentage}
             min={0}
@@ -226,7 +233,7 @@ const DebtSettlementDrawer: React.FC<DebtSettlementDrawerProps> = ({
           />
 
           <TextField
-            label="Percent (%)"
+            label={DEBT_SETTLEMENT_TEXT.PERCENT_LABEL}
             type="number"
             value={percentage}
             onChange={handlePercentChange}
@@ -237,7 +244,7 @@ const DebtSettlementDrawer: React.FC<DebtSettlementDrawerProps> = ({
         </Stack>
 
         <TextField
-          label="Description (optional)"
+          label={DEBT_SETTLEMENT_TEXT.DESCRIPTION_LABEL}
           value={description}
           onChange={(event) => setDescription(event.target.value)}
           placeholder={getDescriptionPlaceholder(debt.direction)}
@@ -251,12 +258,12 @@ const DebtSettlementDrawer: React.FC<DebtSettlementDrawerProps> = ({
           <Button type="submit" variant="contained" disabled={saving || amount <= 0 || maxAmount <= 0}>
             {getSubmitLabel(debt.direction, saving)}
           </Button>
-          <Button onClick={onClose} disabled={saving}>Close</Button>
+          <Button onClick={onClose} disabled={saving}>{DEBT_SETTLEMENT_TEXT.CLOSE}</Button>
         </Stack>
       </>
     );
   } else {
-    drawerContent = <Typography color="text.secondary">Select a debt to settle.</Typography>;
+    drawerContent = <Typography color="text.secondary">{DEBT_SETTLEMENT_TEXT.SELECT_DEBT_PROMPT}</Typography>;
   }
 
   return (
@@ -277,11 +284,11 @@ const DebtSettlementDrawer: React.FC<DebtSettlementDrawerProps> = ({
       <Stack spacing={2.5} component="form" onSubmit={handleSubmit}>
         <div>
           <Typography variant="overline" color="primary.main">
-            Settlement
+            {DEBT_SETTLEMENT_TEXT.SETTLEMENT}
           </Typography>
           <Typography variant="h5">{counterpartyName}</Typography>
           <Typography variant="body2" color="text.secondary">
-            Adjust this balance with a partial or full settlement entry.
+            {DEBT_SETTLEMENT_TEXT.BALANCE_HELPER}
           </Typography>
         </div>
 

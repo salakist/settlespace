@@ -2,6 +2,7 @@ import React from 'react';
 import { Chip, IconButton, Stack } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import { SEARCH_BAR_TEXT, SEARCH_TEST_IDS } from '../constants';
 import { SearchParameterConfig } from '../types';
 import { isAsyncSearchParameter } from '../utils/searchHelpers';
 
@@ -18,7 +19,7 @@ export const PendingParameterChip = <TParam extends string = string,>({
     label={pendingParameter.label}
     size="small"
     sx={{ mr: 0.5 }}
-    data-testid="pending-param-chip"
+    data-testid={SEARCH_TEST_IDS.PENDING_PARAMETER_CHIP}
   />
 );
 
@@ -47,7 +48,7 @@ export const PendingParameterActions = <TParam extends string = string,>({
   >
     <IconButton
       size="small"
-      aria-label="Cancel filter"
+      aria-label={SEARCH_BAR_TEXT.CANCEL_FILTER_ARIA_LABEL}
       onClick={onCancel}
       tabIndex={-1}
     >
@@ -56,7 +57,7 @@ export const PendingParameterActions = <TParam extends string = string,>({
     {!isAsyncSearchParameter(pendingParameter) && (
       <IconButton
         size="small"
-        aria-label="Confirm filter"
+        aria-label={SEARCH_BAR_TEXT.CONFIRM_FILTER_ARIA_LABEL}
         onClick={onConfirm}
         disabled={!inputValue.trim()}
         tabIndex={-1}

@@ -12,7 +12,8 @@ Search feature provides the shared, domain-agnostic frontend search UI and state
 - `src/features/search/hooks/useGenericSearchController.ts` — search-bar orchestration, filter application/removal, and submit behavior.
 - `src/features/search/hooks/useAsyncSuggestions.ts` — debounced async-suggestion loading with stale-request protection.
 - `src/features/search/utils/searchHelpers.ts` — pure helper logic for option visibility, placeholder selection, and filter normalization.
-- `src/features/search/types.ts` and `src/features/search/constants.ts` — shared public contract for parameter configuration and emitted search values.
+- `src/features/search/types.ts` owns the finite search enums and shared type contract (`SearchParameterKind`, `SearchSelectionMode`, parameter config interfaces, emitted values).
+- `src/features/search/constants.ts` owns only search UI text, placeholders, layout tokens, and test IDs; do not reintroduce enum-wrapper mirrors such as `SEARCH_PARAMETER_KINDS` or `SEARCH_SELECTION_MODES` there.
 - Keep this feature domain-agnostic: backend DTO mapping, URL serialization, and feature-specific query conversion stay in the consuming feature wrapper.
 
 ## Parameter format

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import { Alert, Chip, IconButton, Menu, MenuItem, Paper, Stack, Typography } from '@mui/material';
-import { Person } from '../../../shared/types';
+import { Person, PersonRole } from '../../../shared/types';
 import { listItemSurfaceSx } from '../../../shared/theme/surfaceStyles';
+import { PERSON_LIST_TEXT } from '../constants';
 
 interface PersonListProps {
   persons: Person[];
@@ -16,11 +17,11 @@ interface PersonListProps {
 
 function getRoleColor(role?: Person['role']): 'error' | 'warning' | 'info' | 'default' {
   switch (role) {
-    case 'ADMIN':
+    case PersonRole.Admin:
       return 'error';
-    case 'MANAGER':
+    case PersonRole.Manager:
       return 'warning';
-    case 'USER':
+    case PersonRole.User:
       return 'info';
     default:
       return 'default';
@@ -80,7 +81,7 @@ const PersonList: React.FC<PersonListProps> = ({
   return (
     <div>
       {persons.length === 0 ? (
-        <Alert severity="info">No persons found.</Alert>
+        <Alert severity="info">{PERSON_LIST_TEXT.EMPTY_STATE}</Alert>
       ) : (
         <>
           <Stack spacing={1.5}>
@@ -130,16 +131,16 @@ const PersonList: React.FC<PersonListProps> = ({
           </Stack>
 
           <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleCloseMenu}>
-            <MenuItem onClick={handleViewTransactionsAction}>View transactions</MenuItem>
-            <MenuItem onClick={handleViewDebtsAction}>View debts</MenuItem>
+            <MenuItem onClick={handleViewTransactionsAction}>{PERSON_LIST_TEXT.VIEW_TRANSACTIONS}</MenuItem>
+            <MenuItem onClick={handleViewDebtsAction}>{PERSON_LIST_TEXT.VIEW_DEBTS}</MenuItem>
             <MenuItem onClick={handleEditAction} disabled={!activePerson || !canEdit(activePerson)}>
-              Edit
+              {PERSON_LIST_TEXT.EDIT}
             </MenuItem>
             <MenuItem
               onClick={handleDeleteAction}
               disabled={!activePerson?.id || !activePerson || !canDelete(activePerson)}
             >
-              Delete
+              {PERSON_LIST_TEXT.DELETE}
             </MenuItem>
           </Menu>
         </>

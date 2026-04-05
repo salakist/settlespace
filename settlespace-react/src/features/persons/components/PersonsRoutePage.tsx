@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
+import { APP_ROUTES } from '../../../app/constants';
 import {
   canAccessPersonsPage,
   canDeletePerson,
@@ -7,6 +8,7 @@ import {
   canUpdatePerson,
 } from '../../../shared/auth/permissions';
 import { Person, PersonRole } from '../../../shared/types';
+import { DEFAULT_PERSON_CREATE_ROLE } from '../constants';
 import { usePersons } from '../hooks/usePersons';
 import PersonsPage from './PersonsPage';
 
@@ -17,15 +19,15 @@ type PersonsRoutePageProps = {
   redirectTo?: string;
 };
 
-const PERSONS_ROUTE = '/persons';
-
-const isPersonsRoutePath = (pathname: string) => pathname === PERSONS_ROUTE || pathname.startsWith(`${PERSONS_ROUTE}/`);
+const isPersonsRoutePath = (pathname: string) => (
+  pathname === APP_ROUTES.PERSONS || pathname.startsWith(`${APP_ROUTES.PERSONS}/`)
+);
 
 const PersonsRoutePage: React.FC<PersonsRoutePageProps> = ({
   expireSession,
   currentPersonId,
   role,
-  redirectTo = '/home',
+  redirectTo = APP_ROUTES.HOME,
 }) => {
   const location = useLocation();
   const isActiveRoute = isPersonsRoutePath(location.pathname);
@@ -64,10 +66,10 @@ const PersonsRoutePage: React.FC<PersonsRoutePageProps> = ({
   const visiblePersons = currentPersonId
     ? persons.filter((person) => person.id !== currentPersonId)
     : persons;
-  const canCreateManagedPerson = role === 'ADMIN' || role === 'MANAGER';
+  const canCreateManagedPerson = role === PersonRole.Admin || role === PersonRole.Manager;
 
   const canEditManagedPerson = (person: Person) =>
-    canUpdatePerson(role, currentPersonId, person, person.role ?? 'USER');
+    canUpdatePerson(role, currentPersonId, person, person.role ?? PersonRole.User);
 
   const canDeleteManagedPerson = (person: Person) => canDeletePerson(role, person);
 
@@ -83,7 +85,7 @@ const PersonsRoutePage: React.FC<PersonsRoutePageProps> = ({
       canEdit={canEditManagedPerson}
       canDelete={canDeleteManagedPerson}
       canEditRole={canEditRole(role)}
-      defaultCreateRole="USER"
+      defaultCreateRole={DEFAULT_PERSON_CREATE_ROLE}
       onAdd={showCreateForm}
       onSearch={handleSearch}
       onSave={handleSave}

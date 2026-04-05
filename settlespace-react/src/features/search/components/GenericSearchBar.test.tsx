@@ -2,22 +2,19 @@ import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import GenericSearchBar from './GenericSearchBar';
-import { SearchParameterConfig } from '../types';
-
-const GENERIC_SEARCH_LABEL = 'Generic search';
-const STATUS_LABEL = 'Status';
-const PENDING_STATUS = 'Pending';
-const ASYNC_SUGGESTIONS_KIND = 'async-suggestions' as const;
-const PERSON_PLACEHOLDER = 'Type a person name...';
-const INVOLVED_LABEL = 'Involved';
-const JANE_SMITH = 'Jane Smith';
-const PEOPLE_GROUP = 'People';
+import { SEARCH_PLACEHOLDERS } from '../constants';
+import {
+  SearchParameterConfig,
+  SearchParameterKind,
+  SearchSelectionMode,
+} from '../types';
+import { SEARCH_TEST_TEXT } from '../testConstants';
 
 test('supports free-text-only mode when no parameters are provided', async () => {
   const onSearch = jest.fn();
-  render(<GenericSearchBar onSearch={onSearch} ariaLabel={GENERIC_SEARCH_LABEL} />);
+  render(<GenericSearchBar onSearch={onSearch} ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL} />);
 
-  await userEvent.type(screen.getByLabelText(GENERIC_SEARCH_LABEL), 'hello');
+  await userEvent.type(screen.getByLabelText(SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL), 'hello');
   fireEvent.click(screen.getByRole('button', { name: /search/i }));
 
   expect(onSearch).toHaveBeenCalledWith({
@@ -31,28 +28,37 @@ test('selecting a fixed option adds a chip and triggers search', async () => {
   const parameters: SearchParameterConfig[] = [
     {
       param: 'status',
-      label: STATUS_LABEL,
-      kind: 'fixed',
-      selectionMode: 'multiple',
-      options: [{ value: PENDING_STATUS, label: PENDING_STATUS, group: STATUS_LABEL }],
+      label: SEARCH_TEST_TEXT.STATUS_LABEL,
+      kind: SearchParameterKind.Fixed,
+      selectionMode: SearchSelectionMode.Multiple,
+      options: [{
+        value: SEARCH_TEST_TEXT.PENDING_STATUS,
+        label: SEARCH_TEST_TEXT.PENDING_STATUS,
+        group: SEARCH_TEST_TEXT.STATUS_LABEL,
+      }],
     },
   ];
 
   render(
     <GenericSearchBar
       onSearch={onSearch}
-      ariaLabel={GENERIC_SEARCH_LABEL}
+      ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL}
       parameters={parameters}
     />,
   );
 
-  const input = screen.getByLabelText(GENERIC_SEARCH_LABEL);
+  const input = screen.getByLabelText(SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL);
   await userEvent.type(input, 'Pend');
-  await userEvent.click(await screen.findByRole('option', { name: PENDING_STATUS }));
+  await userEvent.click(await screen.findByRole('option', { name: SEARCH_TEST_TEXT.PENDING_STATUS }));
 
-  expect(screen.getByText(`${STATUS_LABEL}: ${PENDING_STATUS}`)).toBeInTheDocument();
+  expect(screen.getByText(`${SEARCH_TEST_TEXT.STATUS_LABEL}: ${SEARCH_TEST_TEXT.PENDING_STATUS}`)).toBeInTheDocument();
   expect(onSearch).toHaveBeenCalledWith({
-    filters: [{ param: 'status', value: PENDING_STATUS, label: PENDING_STATUS, group: STATUS_LABEL }],
+    filters: [{
+      param: 'status',
+      value: SEARCH_TEST_TEXT.PENDING_STATUS,
+      label: SEARCH_TEST_TEXT.PENDING_STATUS,
+      group: SEARCH_TEST_TEXT.STATUS_LABEL,
+    }],
   });
 });
 
@@ -60,7 +66,11 @@ test('async suggestion parameters load results and add selected chips', async ()
   const onSearch = jest.fn();
   const getSuggestions = jest.fn(async (input: string) => {
     if (input.toLowerCase().includes('jane')) {
-      return [{ value: 'p2', label: JANE_SMITH, group: PEOPLE_GROUP }];
+      return [{
+        value: 'p2',
+        label: SEARCH_TEST_TEXT.JANE_SMITH,
+        group: SEARCH_TEST_TEXT.PEOPLE_GROUP,
+      }];
     }
 
     return [];
@@ -68,10 +78,10 @@ test('async suggestion parameters load results and add selected chips', async ()
   const parameters: SearchParameterConfig[] = [
     {
       param: 'involved',
-      label: INVOLVED_LABEL,
-      kind: ASYNC_SUGGESTIONS_KIND,
-      selectionMode: 'multiple',
-      placeholder: PERSON_PLACEHOLDER,
+      label: SEARCH_TEST_TEXT.INVOLVED_LABEL,
+      kind: SearchParameterKind.AsyncSuggestions,
+      selectionMode: SearchSelectionMode.Multiple,
+      placeholder: SEARCH_PLACEHOLDERS.ASYNC_SUGGESTIONS,
       getSuggestions,
       debounceMs: 0,
     },
@@ -80,22 +90,27 @@ test('async suggestion parameters load results and add selected chips', async ()
   render(
     <GenericSearchBar
       onSearch={onSearch}
-      ariaLabel={GENERIC_SEARCH_LABEL}
+      ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL}
       parameters={parameters}
     />,
   );
 
-  const input = screen.getByLabelText(GENERIC_SEARCH_LABEL);
+  const input = screen.getByLabelText(SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL);
   await userEvent.type(input, 'Inv');
-  await userEvent.click(await screen.findByRole('option', { name: INVOLVED_LABEL }));
+  await userEvent.click(await screen.findByRole('option', { name: SEARCH_TEST_TEXT.INVOLVED_LABEL }));
 
   await userEvent.type(input, 'Jane');
-  await userEvent.click(await screen.findByRole('option', { name: JANE_SMITH }));
+  await userEvent.click(await screen.findByRole('option', { name: SEARCH_TEST_TEXT.JANE_SMITH }));
 
   expect(getSuggestions).toHaveBeenCalledWith('Jane');
-  expect(screen.getByText(`${PEOPLE_GROUP}: ${JANE_SMITH}`)).toBeInTheDocument();
+  expect(screen.getByText(`${SEARCH_TEST_TEXT.PEOPLE_GROUP}: ${SEARCH_TEST_TEXT.JANE_SMITH}`)).toBeInTheDocument();
   expect(onSearch).toHaveBeenCalledWith({
-    filters: [{ param: 'involved', value: 'p2', label: JANE_SMITH, group: PEOPLE_GROUP }],
+    filters: [{
+      param: 'involved',
+      value: 'p2',
+      label: SEARCH_TEST_TEXT.JANE_SMITH,
+      group: SEARCH_TEST_TEXT.PEOPLE_GROUP,
+    }],
   });
 });
 
@@ -104,38 +119,46 @@ test('supports hiding group headings in top-level filter autocomplete', async ()
   const parameters: SearchParameterConfig[] = [
     {
       param: 'status',
-      label: STATUS_LABEL,
-      kind: 'fixed',
-      selectionMode: 'multiple',
+      label: SEARCH_TEST_TEXT.STATUS_LABEL,
+      kind: SearchParameterKind.Fixed,
+      selectionMode: SearchSelectionMode.Multiple,
       showGroupLabel: false,
-      options: [{ value: PENDING_STATUS, label: PENDING_STATUS, group: STATUS_LABEL }],
+      options: [{
+        value: SEARCH_TEST_TEXT.PENDING_STATUS,
+        label: SEARCH_TEST_TEXT.PENDING_STATUS,
+        group: SEARCH_TEST_TEXT.STATUS_LABEL,
+      }],
     },
   ];
 
   render(
     <GenericSearchBar
       onSearch={onSearch}
-      ariaLabel={GENERIC_SEARCH_LABEL}
+      ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL}
       parameters={parameters}
     />,
   );
 
-  const input = screen.getByLabelText(GENERIC_SEARCH_LABEL);
+  const input = screen.getByLabelText(SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL);
   await userEvent.type(input, 'Pend');
 
-  expect(await screen.findByRole('option', { name: PENDING_STATUS })).toBeInTheDocument();
-  expect(screen.queryByText(STATUS_LABEL)).not.toBeInTheDocument();
+  expect(await screen.findByRole('option', { name: SEARCH_TEST_TEXT.PENDING_STATUS })).toBeInTheDocument();
+  expect(screen.queryByText(SEARCH_TEST_TEXT.STATUS_LABEL)).not.toBeInTheDocument();
 });
 
 test('does not show group headings while entering an async parameter value', async () => {
-  const getSuggestions = jest.fn(async () => [{ value: 'p2', label: JANE_SMITH, group: PEOPLE_GROUP }]);
+  const getSuggestions = jest.fn(async () => [{
+    value: 'p2',
+    label: SEARCH_TEST_TEXT.JANE_SMITH,
+    group: SEARCH_TEST_TEXT.PEOPLE_GROUP,
+  }]);
   const parameters: SearchParameterConfig[] = [
     {
       param: 'involved',
-      label: INVOLVED_LABEL,
-      kind: ASYNC_SUGGESTIONS_KIND,
-      selectionMode: 'multiple',
-      placeholder: PERSON_PLACEHOLDER,
+      label: SEARCH_TEST_TEXT.INVOLVED_LABEL,
+      kind: SearchParameterKind.AsyncSuggestions,
+      selectionMode: SearchSelectionMode.Multiple,
+      placeholder: SEARCH_PLACEHOLDERS.ASYNC_SUGGESTIONS,
       getSuggestions,
       debounceMs: 0,
     },
@@ -144,16 +167,16 @@ test('does not show group headings while entering an async parameter value', asy
   render(
     <GenericSearchBar
       onSearch={jest.fn()}
-      ariaLabel={GENERIC_SEARCH_LABEL}
+      ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL}
       parameters={parameters}
     />,
   );
 
-  const input = screen.getByLabelText(GENERIC_SEARCH_LABEL);
+  const input = screen.getByLabelText(SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL);
   await userEvent.type(input, 'Inv');
-  await userEvent.click(await screen.findByRole('option', { name: INVOLVED_LABEL }));
+  await userEvent.click(await screen.findByRole('option', { name: SEARCH_TEST_TEXT.INVOLVED_LABEL }));
 
   await userEvent.type(input, 'Jane');
-  expect(await screen.findByRole('option', { name: JANE_SMITH })).toBeInTheDocument();
-  expect(screen.queryByText(PEOPLE_GROUP)).not.toBeInTheDocument();
+  expect(await screen.findByRole('option', { name: SEARCH_TEST_TEXT.JANE_SMITH })).toBeInTheDocument();
+  expect(screen.queryByText(SEARCH_TEST_TEXT.PEOPLE_GROUP)).not.toBeInTheDocument();
 });

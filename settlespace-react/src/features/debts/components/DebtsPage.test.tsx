@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { DebtSummary } from '../../../shared/types';
+import { DebtDirection, DebtSummary } from '../../../shared/types';
 import DebtsPage from './DebtsPage';
 
 const mockNavigate = jest.fn();
@@ -21,17 +21,17 @@ jest.mock('../../persons/components/SearchBar', () => ({
   ),
 }));
 
-const sampleDebt: DebtSummary = {
+const mockSampleDebt: DebtSummary = {
   counterpartyPersonId: 'p2',
   counterpartyDisplayName: 'Jane Doe',
   currencyCode: 'EUR',
   netAmount: 42.5,
-  direction: 'YouOweThem',
+  direction: DebtDirection.YouOweThem,
   transactionCount: 3,
 };
 
 const mockHook = {
-  debts: [sampleDebt],
+  debts: [mockSampleDebt],
   error: null as string | null,
   successMessage: null as string | null,
   loadDebts: jest.fn(),
@@ -56,8 +56,8 @@ jest.mock('./DebtsList', () => ({
   default: ({ onSettle, onViewDetails }: { onSettle: (debt: DebtSummary) => void; onViewDetails: (debt: DebtSummary) => void }) => (
     <div>
       <div>Debts List</div>
-      <button onClick={() => onSettle(sampleDebt)}>Settle now</button>
-      <button onClick={() => onViewDetails(sampleDebt)}>Details</button>
+      <button onClick={() => onSettle(mockSampleDebt)}>Settle now</button>
+      <button onClick={() => onViewDetails(mockSampleDebt)}>Details</button>
     </div>
   ),
 }));
@@ -94,7 +94,7 @@ test('forwards settlement, filtering, and details actions', () => {
   fireEvent.click(screen.getByRole('button', { name: /^details$/i }));
 
   expect(mockSetSearchParams).toHaveBeenCalled();
-  expect(mockHook.openSettlementDrawer).toHaveBeenCalledWith(sampleDebt);
+  expect(mockHook.openSettlementDrawer).toHaveBeenCalledWith(mockSampleDebt);
   expect(mockNavigate).toHaveBeenCalledWith('/debts/p2/EUR');
   expect(screen.getByText('Load failed')).toBeInTheDocument();
   expect(screen.getByText(/settlement recorded successfully/i)).toBeInTheDocument();

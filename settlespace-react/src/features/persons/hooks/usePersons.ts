@@ -10,6 +10,7 @@ import {
   canUpdatePerson,
 } from '../../../shared/auth/permissions';
 import { Person, PersonRole } from '../../../shared/types';
+import { SESSION_EXPIRED_MESSAGE } from '../../../shared/constants/messages';
 import { primePersonDirectory } from '../../../shared/hooks/usePersonDirectory';
 
 type UsePersonsOptions = {
@@ -57,7 +58,7 @@ export function usePersons({ expireSession, currentPersonId, role }: UsePersonsO
 
   const handleUnauthorized = useCallback(() => {
     clearPersonsState();
-    expireSession('Your session expired. Please log in again.');
+    expireSession(SESSION_EXPIRED_MESSAGE);
   }, [clearPersonsState, expireSession]);
 
   const loadPersons = useCallback(async () => {
@@ -106,7 +107,7 @@ export function usePersons({ expireSession, currentPersonId, role }: UsePersonsO
   }, [handleUnauthorized, loadPersons, normalizePerson]);
 
   const handleSave = useCallback(async (personData: Omit<Person, 'id'>) => {
-    const requestedRole = personData.role ?? 'USER';
+    const requestedRole = personData.role ?? PersonRole.User;
 
     if (editingPerson) {
       if (rejectUnauthorizedAction(
@@ -151,7 +152,7 @@ export function usePersons({ expireSession, currentPersonId, role }: UsePersonsO
   }, [currentPersonId, editingPerson, handleUnauthorized, loadPersons, role]);
 
   const handleEdit = useCallback((person: Person) => {
-    const requestedRole = person.role ?? 'USER';
+    const requestedRole = person.role ?? PersonRole.User;
     if (rejectUnauthorizedAction(
       canUpdatePerson(role, currentPersonId, person, requestedRole),
       setError,
@@ -195,7 +196,7 @@ export function usePersons({ expireSession, currentPersonId, role }: UsePersonsO
 
   const showCreateForm = useCallback(() => {
     if (rejectUnauthorizedAction(
-      canCreatePerson(role, 'USER'),
+      canCreatePerson(role, PersonRole.User),
       setError,
       'You are not allowed to create persons.',
     )) {

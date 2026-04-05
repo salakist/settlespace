@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Alert, Button, MenuItem, Paper, Stack, TextField, Typography } from '@mui/material';
-import { Person, PersonRole } from '../../../shared/types';
+import { getEnumValues, Person, PersonRole, parsePersonRole } from '../../../shared/types';
+import { DEFAULT_PERSON_CREATE_ROLE } from '../constants';
 import {
   PersonDetailsValidationErrors,
   PersonDetailsFormValues,
@@ -20,9 +21,7 @@ interface PersonFormProps {
   defaultRole: PersonRole;
 }
 
-const ROLE_VALUES: PersonRole[] = ['ADMIN', 'MANAGER', 'USER'];
-
-const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel, saveLoading, canEditRole, defaultRole }) => {
+const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel, saveLoading, canEditRole, defaultRole = DEFAULT_PERSON_CREATE_ROLE }) => {
   const [values, setValues] = useState<PersonDetailsFormValues>(() => createPersonDetailsValues(person));
   const [role, setRole] = useState<PersonRole>(person?.role ?? defaultRole);
   const [validationErrors, setValidationErrors] = useState<PersonDetailsValidationErrors>({});
@@ -101,11 +100,11 @@ const PersonForm: React.FC<PersonFormProps> = ({ person, onSave, onCancel, saveL
             select
             label="Role"
             value={role}
-            onChange={(event) => setRole(event.target.value as PersonRole)}
+            onChange={(event) => setRole(parsePersonRole(event.target.value) ?? defaultRole)}
             disabled={saveLoading || !canEditRole}
             fullWidth
           >
-            {ROLE_VALUES.map((value) => (
+            {getEnumValues(PersonRole).map((value) => (
               <MenuItem key={value} value={value}>{value}</MenuItem>
             ))}
           </TextField>

@@ -1,13 +1,15 @@
 import React from 'react';
-import {
-  SEARCH_PARAMETER_KINDS,
-  SEARCH_SELECTION_MODES,
-} from './constants';
 
-export type SearchSelectionMode =
-  typeof SEARCH_SELECTION_MODES[keyof typeof SEARCH_SELECTION_MODES];
-export type SearchParameterKind =
-  typeof SEARCH_PARAMETER_KINDS[keyof typeof SEARCH_PARAMETER_KINDS];
+export enum SearchParameterKind {
+  Fixed = 'fixed',
+  TextInput = 'text-input',
+  AsyncSuggestions = 'async-suggestions',
+}
+
+export enum SearchSelectionMode {
+  Single = 'single',
+  Multiple = 'multiple',
+}
 
 export interface AppliedSearchFilter<TParam extends string = string> {
   param: TParam;
@@ -32,18 +34,18 @@ export interface BaseSearchParameterConfig<TParam extends string = string> {
 
 export interface FixedSearchParameterConfig<TParam extends string = string>
   extends BaseSearchParameterConfig<TParam> {
-  kind: typeof SEARCH_PARAMETER_KINDS.FIXED;
+  kind: SearchParameterKind.Fixed;
   options: SearchSuggestionOption[];
 }
 
 export interface TextInputSearchParameterConfig<TParam extends string = string>
   extends BaseSearchParameterConfig<TParam> {
-  kind: typeof SEARCH_PARAMETER_KINDS.TEXT_INPUT;
+  kind: SearchParameterKind.TextInput;
 }
 
 export interface AsyncSearchParameterConfig<TParam extends string = string>
   extends BaseSearchParameterConfig<TParam> {
-  kind: typeof SEARCH_PARAMETER_KINDS.ASYNC_SUGGESTIONS;
+  kind: SearchParameterKind.AsyncSuggestions;
   minChars?: number;
   debounceMs?: number;
   getSuggestions: (input: string) => Promise<SearchSuggestionOption[]>;

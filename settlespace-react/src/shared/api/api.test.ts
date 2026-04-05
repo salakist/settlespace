@@ -1,4 +1,7 @@
 import axios from 'axios';
+import { PersonRole } from '../types';
+import { AUTH_STORAGE_KEYS } from './constants';
+import { API_TEST_VALUES } from './testConstants';
 import { mockDelete, mockGet, mockPost, mockPut, mockRequestUse, setupApiClientMock } from './apiTestClientMock';
 
 jest.mock('axios');
@@ -8,7 +11,7 @@ beforeEach(() => {
 });
 
 test('registers interceptor and applies bearer token when present', () => {
-  localStorage.setItem('settlespace.auth.token', 'token-abc');
+  localStorage.setItem(AUTH_STORAGE_KEYS.TOKEN, 'token-abc');
 
   let loadedApi: typeof import('./api');
   jest.isolateModules(() => {
@@ -57,26 +60,36 @@ test('personApi methods call expected routes', () => {
     loadedApi = require('./api');
   });
 
-  const personId = 'person-1';
   const personData = { firstName: 'John', lastName: 'Doe', addresses: [] };
 
   loadedApi!.personApi.getAll();
   loadedApi!.personApi.getCurrent();
-  loadedApi!.personApi.getById(personId);
+  loadedApi!.personApi.getById(API_TEST_VALUES.PERSON_ID);
   loadedApi!.personApi.create(personData);
-  loadedApi!.personApi.update(personId, personData);
+  loadedApi!.personApi.update(API_TEST_VALUES.PERSON_ID, personData);
   loadedApi!.personApi.updateCurrent(personData);
-  loadedApi!.personApi.delete(personId);
+  loadedApi!.personApi.delete(API_TEST_VALUES.PERSON_ID);
   loadedApi!.personApi.search('john');
 
   expect(mockGet).toHaveBeenNthCalledWith(1, '/persons');
   expect(mockGet).toHaveBeenNthCalledWith(2, '/persons/me');
-  expect(mockGet).toHaveBeenNthCalledWith(3, `/persons/${personId}`);
+  expect(mockGet).toHaveBeenNthCalledWith(3, `/persons/${API_TEST_VALUES.PERSON_ID}`);
   expect(mockPost).toHaveBeenCalledWith('/persons', personData);
-  expect(mockPut).toHaveBeenNthCalledWith(1, `/persons/${personId}`, personData);
+  expect(mockPut).toHaveBeenNthCalledWith(1, `/persons/${API_TEST_VALUES.PERSON_ID}`, personData);
   expect(mockPut).toHaveBeenNthCalledWith(2, '/persons/me', personData);
-  expect(mockDelete).toHaveBeenCalledWith(`/persons/${personId}`);
+  expect(mockDelete).toHaveBeenCalledWith(`/persons/${API_TEST_VALUES.PERSON_ID}`);
   expect(mockGet).toHaveBeenNthCalledWith(4, '/persons/search/john');
+});
+
+test('authStorage returns null for an invalid stored role value', () => {
+  localStorage.setItem(AUTH_STORAGE_KEYS.ROLE, 'NOT_A_REAL_ROLE');
+
+  let loadedApi: typeof import('./api');
+  jest.isolateModules(() => {
+    loadedApi = require('./api');
+  });
+
+  expect(loadedApi!.authStorage.getRole()).toBeNull();
 });
 
 test('authStorage reads and writes to localStorage', () => {
@@ -99,14 +112,14 @@ test('authStorage reads and writes to localStorage', () => {
     username: 'john',
     personId: 'person-1',
     displayName: 'John Doe',
-    role: 'USER',
+    role: PersonRole.User,
     expiresAtUtc: '2026-01-01T00:00:00Z',
   });
   expect(authStorage.getToken()).toBe('tok');
   expect(authStorage.getUsername()).toBe('john');
   expect(authStorage.getPersonId()).toBe('person-1');
   expect(authStorage.getDisplayName()).toBe('John Doe');
-  expect(authStorage.getRole()).toBe('USER');
+  expect(authStorage.getRole()).toBe(PersonRole.User);
   expect(authStorage.isAuthenticated()).toBe(true);
 
   authStorage.setUsername('jane');

@@ -1,6 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
-import { DebtSummary } from '../../../shared/types';
+import { DebtDirection, DebtSummary } from '../../../shared/types';
 import DebtsList from './DebtsList';
 
 const debts: DebtSummary[] = [
@@ -8,7 +8,7 @@ const debts: DebtSummary[] = [
     counterpartyPersonId: 'p2',
     currencyCode: 'EUR',
     netAmount: 18.5,
-    direction: 'TheyOweYou',
+    direction: DebtDirection.TheyOweYou,
     transactionCount: 2,
     counterpartyDisplayName: 'Alice Walker',
   },
@@ -16,7 +16,7 @@ const debts: DebtSummary[] = [
     counterpartyPersonId: 'p3',
     currencyCode: 'USD',
     netAmount: 42,
-    direction: 'YouOweThem',
+    direction: DebtDirection.YouOweThem,
     transactionCount: 4,
     counterpartyDisplayName: 'Bob Stone',
   },
@@ -24,7 +24,7 @@ const debts: DebtSummary[] = [
     counterpartyPersonId: 'p4',
     currencyCode: 'GBP',
     netAmount: 0,
-    direction: 'Settled',
+    direction: DebtDirection.Settled,
     transactionCount: 1,
     counterpartyDisplayName: 'Cara Lane',
   },

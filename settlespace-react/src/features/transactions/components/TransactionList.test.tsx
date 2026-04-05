@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { TransactionStatus } from '../../../shared/types';
 import TransactionList from './TransactionList';
 
 test('renders empty state when there are no transactions', () => {
@@ -34,7 +35,7 @@ test('renders transactions, highlights managed rows, and calls edit/delete callb
           payerDisplayName: 'John Doe',
           payeeDisplayName: 'Jane Smith',
           createdByDisplayName: 'Alex Taylor',
-          status: 'Completed',
+          status: TransactionStatus.Completed,
         },
       ]}
       currentPersonId="p3"

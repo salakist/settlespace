@@ -1,11 +1,14 @@
 import { TransactionSearchQuery } from '../../../shared/api/transactionApi';
-import { Person } from '../../../shared/types';
+import {
+  Person,
+  parseTransactionInvolvement,
+  parseTransactionStatus,
+} from '../../../shared/types';
 import { AppliedSearchFilter, GenericSearchValue } from '../../search/types';
+import { TRANSACTION_SEARCH_TEXT } from '../constants';
 import {
   buildInvolvementOptions,
   buildStatusOptions,
-  MANAGED_BY_LABEL,
-  TRANSACTION_SEARCH_PARAMS,
   TransactionSearchParam,
 } from './transactionSearchConfig';
 
@@ -36,51 +39,55 @@ export function buildQueryFromFilters(
   }
 
   const statuses = filters
-    .filter((filter) => filter.param === TRANSACTION_SEARCH_PARAMS.STATUS)
-    .map((filter) => filter.value);
+    .filter((filter) => filter.param === TransactionSearchParam.Status)
+    .map((filter) => parseTransactionStatus(filter.value))
+    .filter((status): status is NonNullable<typeof status> => status !== null);
   if (statuses.length > 0) {
     query.status = statuses;
   }
 
   const involvement = filters.find(
-    (filter) => filter.param === TRANSACTION_SEARCH_PARAMS.INVOLVEMENT,
+    (filter) => filter.param === TransactionSearchParam.Involvement,
   );
   if (involvement) {
-    query.involvement = involvement.value;
+    const parsedInvolvement = parseTransactionInvolvement(involvement.value);
+    if (parsedInvolvement) {
+      query.involvement = parsedInvolvement;
+    }
   }
 
-  const category = filters.find((filter) => filter.param === TRANSACTION_SEARCH_PARAMS.CATEGORY);
+  const category = filters.find((filter) => filter.param === TransactionSearchParam.Category);
   if (category) {
     query.category = category.value;
   }
 
   const description = filters.find(
-    (filter) => filter.param === TRANSACTION_SEARCH_PARAMS.DESCRIPTION,
+    (filter) => filter.param === TransactionSearchParam.Description,
   );
   if (description) {
     query.description = description.value;
   }
 
   const involvedIds = filters
-    .filter((filter) => filter.param === TRANSACTION_SEARCH_PARAMS.INVOLVED)
+    .filter((filter) => filter.param === TransactionSearchParam.Involved)
     .map((filter) => filter.value);
   if (involvedIds.length > 0) {
     query.involved = involvedIds;
   }
 
   const managedByIds = filters
-    .filter((filter) => filter.param === TRANSACTION_SEARCH_PARAMS.MANAGED_BY)
+    .filter((filter) => filter.param === TransactionSearchParam.ManagedBy)
     .map((filter) => filter.value);
   if (managedByIds.length > 0) {
     query.managedBy = managedByIds;
   }
 
-  const payer = filters.find((filter) => filter.param === TRANSACTION_SEARCH_PARAMS.PAYER);
+  const payer = filters.find((filter) => filter.param === TransactionSearchParam.Payer);
   if (payer) {
     query.payer = payer.value;
   }
 
-  const payee = filters.find((filter) => filter.param === TRANSACTION_SEARCH_PARAMS.PAYEE);
+  const payee = filters.find((filter) => filter.param === TransactionSearchParam.Payee);
   if (payee) {
     query.payee = payee.value;
   }
@@ -100,10 +107,10 @@ export function buildFiltersFromQuery(
       ...query.status.flatMap((status) => allStatusOptions
         .filter((option) => option.value === status)
         .map((option) => ({
-          param: TRANSACTION_SEARCH_PARAMS.STATUS,
+          param: TransactionSearchParam.Status,
           value: option.value,
           label: option.label,
-          group: option.group ?? 'Status',
+          group: option.group ?? TRANSACTION_SEARCH_TEXT.STATUS_LABEL,
         }))),
     );
   }
@@ -112,31 +119,39 @@ export function buildFiltersFromQuery(
     const match = buildInvolvementOptions().find((option) => option.value === query.involvement);
     if (match) {
       filters.push({
-        param: TRANSACTION_SEARCH_PARAMS.INVOLVEMENT,
+        param: TransactionSearchParam.Involvement,
         value: match.value,
         label: match.label,
-        group: match.group ?? 'Involvement',
+        group: match.group ?? TRANSACTION_SEARCH_TEXT.INVOLVEMENT_LABEL,
       });
     }
   }
 
   if (query.category) {
-    filters.push(buildTextFilter(TRANSACTION_SEARCH_PARAMS.CATEGORY, query.category, 'Category'));
+    filters.push(buildTextFilter(
+      TransactionSearchParam.Category,
+      query.category,
+      TRANSACTION_SEARCH_TEXT.CATEGORY_LABEL,
+    ));
   }
 
   if (query.description) {
     filters.push(
-      buildTextFilter(TRANSACTION_SEARCH_PARAMS.DESCRIPTION, query.description, 'Description'),
+      buildTextFilter(
+        TransactionSearchParam.Description,
+        query.description,
+        TRANSACTION_SEARCH_TEXT.DESCRIPTION_LABEL,
+      ),
     );
   }
 
   if (query.involved) {
     for (const personId of query.involved) {
       filters.push({
-        param: TRANSACTION_SEARCH_PARAMS.INVOLVED,
+        param: TransactionSearchParam.Involved,
         value: personId,
         label: resolvePersonName(personId, persons),
-        group: 'Involved',
+        group: TRANSACTION_SEARCH_TEXT.INVOLVED_LABEL,
       });
     }
   }
@@ -144,29 +159,29 @@ export function buildFiltersFromQuery(
   if (query.managedBy) {
     for (const personId of query.managedBy) {
       filters.push({
-        param: TRANSACTION_SEARCH_PARAMS.MANAGED_BY,
+        param: TransactionSearchParam.ManagedBy,
         value: personId,
         label: resolvePersonName(personId, persons),
-        group: MANAGED_BY_LABEL,
+        group: TRANSACTION_SEARCH_TEXT.MANAGED_BY_LABEL,
       });
     }
   }
 
   if (query.payer) {
     filters.push({
-      param: TRANSACTION_SEARCH_PARAMS.PAYER,
+      param: TransactionSearchParam.Payer,
       value: query.payer,
       label: resolvePersonName(query.payer, persons),
-      group: 'Payer',
+      group: TRANSACTION_SEARCH_TEXT.PAYER_LABEL,
     });
   }
 
   if (query.payee) {
     filters.push({
-      param: TRANSACTION_SEARCH_PARAMS.PAYEE,
+      param: TransactionSearchParam.Payee,
       value: query.payee,
       label: resolvePersonName(query.payee, persons),
-      group: 'Payee',
+      group: TRANSACTION_SEARCH_TEXT.PAYEE_LABEL,
     });
   }
 

@@ -1,18 +1,12 @@
-import {
-  SEARCH_PARAMETER_KINDS,
-  SEARCH_PLACEHOLDERS,
-  SEARCH_SELECTION_MODES,
-} from '../constants';
+import { SEARCH_PLACEHOLDERS } from '../constants';
 import {
   AppliedSearchFilter,
   AsyncSearchParameterConfig,
   GenericSearchValue,
   SearchParameterConfig,
+  SearchParameterKind,
   SearchSelectionMode,
 } from '../types';
-
-const SINGLE_SELECTION = SEARCH_SELECTION_MODES.SINGLE;
-const MULTIPLE_SELECTION = SEARCH_SELECTION_MODES.MULTIPLE;
 
 export interface AutocompleteSearchOption<TParam extends string = string>
   extends AppliedSearchFilter<TParam> {
@@ -34,20 +28,20 @@ export function normalizeSearchValue<TParam extends string = string>(
 export function getSelectionMode<TParam extends string = string>(
   parameter?: SearchParameterConfig<TParam>,
 ): SearchSelectionMode {
-  return parameter?.selectionMode ?? SINGLE_SELECTION;
+  return parameter?.selectionMode ?? SearchSelectionMode.Single;
 }
 
 export function isAsyncSearchParameter<TParam extends string = string>(
   parameter: SearchParameterConfig<TParam> | null,
 ): parameter is AsyncSearchParameterConfig<TParam> {
-  return parameter?.kind === SEARCH_PARAMETER_KINDS.ASYNC_SUGGESTIONS;
+  return parameter?.kind === SearchParameterKind.AsyncSuggestions;
 }
 
 export function isInputSearchParameter<TParam extends string = string>(
   parameter: SearchParameterConfig<TParam> | null,
 ): boolean {
-  return parameter?.kind === SEARCH_PARAMETER_KINDS.TEXT_INPUT
-    || parameter?.kind === SEARCH_PARAMETER_KINDS.ASYNC_SUGGESTIONS;
+  return parameter?.kind === SearchParameterKind.TextInput
+    || parameter?.kind === SearchParameterKind.AsyncSuggestions;
 }
 
 export function buildAvailableOptions<TParam extends string = string>(
@@ -60,8 +54,8 @@ export function buildAvailableOptions<TParam extends string = string>(
   return parameters.flatMap((parameter) => {
     const showGroupLabel = parameter.showGroupLabel ?? true;
 
-    if (parameter.kind !== SEARCH_PARAMETER_KINDS.FIXED) {
-      const showPrompt = getSelectionMode(parameter) === MULTIPLE_SELECTION
+    if (parameter.kind !== SearchParameterKind.Fixed) {
+      const showPrompt = getSelectionMode(parameter) === SearchSelectionMode.Multiple
         || !activeParams.has(parameter.param);
       return showPrompt
         ? [{
@@ -75,7 +69,7 @@ export function buildAvailableOptions<TParam extends string = string>(
         : [];
     }
 
-    if (getSelectionMode(parameter) === SINGLE_SELECTION && activeParams.has(parameter.param)) {
+    if (getSelectionMode(parameter) === SearchSelectionMode.Single && activeParams.has(parameter.param)) {
       return [];
     }
 
@@ -131,7 +125,7 @@ export function applyFilterSelection<TParam extends string = string>(
     group: nextFilter.group,
   };
 
-  if (selectionMode !== SINGLE_SELECTION) {
+  if (selectionMode !== SearchSelectionMode.Single) {
     return [...activeFilters, normalizedFilter];
   }
 
@@ -161,11 +155,11 @@ export function getInputPlaceholder<TParam extends string = string>(
   pendingParameter: SearchParameterConfig<TParam> | null,
   freeTextPlaceholder: string,
 ): string {
-  if (pendingParameter?.kind === SEARCH_PARAMETER_KINDS.TEXT_INPUT) {
+  if (pendingParameter?.kind === SearchParameterKind.TextInput) {
     return pendingParameter.placeholder ?? SEARCH_PLACEHOLDERS.TEXT_INPUT;
   }
 
-  if (pendingParameter?.kind === SEARCH_PARAMETER_KINDS.ASYNC_SUGGESTIONS) {
+  if (pendingParameter?.kind === SearchParameterKind.AsyncSuggestions) {
     return pendingParameter.placeholder ?? SEARCH_PLACEHOLDERS.ASYNC_SUGGESTIONS;
   }
 

@@ -5,7 +5,13 @@ import { TransactionSearchQuery } from '../../../shared/api/transactionApi';
 import { canUpdateOrDeleteTransaction } from '../../../shared/auth/permissions';
 import ConfirmationDialog from '../../../shared/components/ConfirmationDialog';
 import { usePersonDirectory } from '../../../shared/hooks/usePersonDirectory';
-import { Person, PersonRole, Transaction } from '../../../shared/types';
+import {
+  Person,
+  PersonRole,
+  Transaction,
+  parseTransactionInvolvement,
+  parseTransactionStatus,
+} from '../../../shared/types';
 import TransactionSearchBar from './TransactionSearchBar';
 import TransactionForm from './TransactionForm';
 import TransactionList from './TransactionList';
@@ -35,11 +41,13 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({ persons, currentPer
     if (freeText) {
       query.freeText = freeText;
     }
-    const statuses = searchParams.getAll('status');
+    const statuses = searchParams.getAll('status')
+      .map((status) => parseTransactionStatus(status))
+      .filter((status): status is NonNullable<typeof status> => status !== null);
     if (statuses.length > 0) {
       query.status = statuses;
     }
-    const involvement = searchParams.get('involvement');
+    const involvement = parseTransactionInvolvement(searchParams.get('involvement'));
     if (involvement) {
       query.involvement = involvement;
     }

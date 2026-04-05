@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Alert, Button, CircularProgress, Paper, Stack, Typography } from '@mui/material';
 import { Navigate, useNavigate, useParams } from 'react-router-dom';
-import { DebtDetails, DebtSummary, Transaction } from '../../../shared/types';
+import { APP_ROUTES } from '../../../app/constants';
+import { DebtDetails, DebtDirection, DebtSummary, Transaction } from '../../../shared/types';
 import { panelSurfaceSx, listItemSurfaceSx } from '../../../shared/theme/surfaceStyles';
 import { formatDateDDMMYYYY } from '../../../shared/utils/dateFormatting';
+import { DEBT_DIRECTION_LABELS, DEBT_LIST_TEXT } from '../constants';
 import { useDebts } from '../hooks/useDebts';
 import DebtSettlementDrawer from './DebtSettlementDrawer';
 
@@ -25,14 +27,7 @@ function formatCurrency(amount: number, currencyCode: string): string {
 }
 
 function getDirectionSummary(direction: DebtSummary['direction']): string {
-  switch (direction) {
-    case 'TheyOweYou':
-      return 'They owe you';
-    case 'YouOweThem':
-      return 'You owe them';
-    default:
-      return 'Settled';
-  }
+  return DEBT_DIRECTION_LABELS[direction];
 }
 
 function getTransactionNarrative(transaction: Transaction): string {
@@ -113,7 +108,7 @@ const DebtDetailsPage: React.FC<DebtDetailsPageProps> = ({ expireSession }) => {
   }, [displayedDetail]);
 
   if (!counterpartyPersonId || !decodedCurrencyCode) {
-    return <Navigate to="/debts" replace />;
+    return <Navigate to={APP_ROUTES.DEBTS} replace />;
   }
 
   let pageContent: React.ReactNode;
@@ -151,11 +146,11 @@ const DebtDetailsPage: React.FC<DebtDetailsPageProps> = ({ expireSession }) => {
                       void openSettlementDrawer(debtSummary);
                     }
                   }}
-                  disabled={!debtSummary || debtSummary.direction === 'Settled' || debtSummary.netAmount <= 0}
+                  disabled={!debtSummary || debtSummary.direction === DebtDirection.Settled || debtSummary.netAmount <= 0}
                 >
-                  Settle now
+                  {DEBT_LIST_TEXT.SETTLE_NOW}
                 </Button>
-                <Button variant="outlined" onClick={() => navigate('/debts')}>
+                <Button variant="outlined" onClick={() => navigate(APP_ROUTES.DEBTS)}>
                   Back
                 </Button>
               </Stack>

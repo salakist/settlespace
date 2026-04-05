@@ -4,30 +4,26 @@ import {
   toPersonPayload,
   validatePersonDetails,
 } from './personDetailsFormUtils';
-
-const FIRST_NAME = 'John';
-const LAST_NAME = 'Doe';
-const DATE_OF_BIRTH = '1990-01-01';
-const EMAIL = 'john@doe.com';
+import { PERSON_TEST_VALUES } from '../testConstants';
 
 describe('personDetailsFormUtils', () => {
   test('createPersonDetailsValues maps person data and normalizes date', () => {
     const values = createPersonDetailsValues({
       id: 'p1',
-      firstName: FIRST_NAME,
-      lastName: LAST_NAME,
+      firstName: PERSON_TEST_VALUES.FIRST_NAME,
+      lastName: PERSON_TEST_VALUES.LAST_NAME,
       phoneNumber: '123',
-      email: EMAIL,
+      email: PERSON_TEST_VALUES.EMAIL,
       dateOfBirth: '1990-01-01T00:00:00Z',
       addresses: [],
     });
 
     expect(values).toEqual({
-      firstName: FIRST_NAME,
-      lastName: LAST_NAME,
+      firstName: PERSON_TEST_VALUES.FIRST_NAME,
+      lastName: PERSON_TEST_VALUES.LAST_NAME,
       phoneNumber: '123',
-      email: EMAIL,
-      dateOfBirth: DATE_OF_BIRTH,
+      email: PERSON_TEST_VALUES.EMAIL,
+      dateOfBirth: PERSON_TEST_VALUES.DATE_OF_BIRTH,
       addresses: [],
     });
   });
@@ -69,11 +65,11 @@ describe('personDetailsFormUtils', () => {
 
   test('toPersonPayload trims optional fields and sanitizes addresses', () => {
     const payload = toPersonPayload({
-      firstName: ` ${FIRST_NAME} `,
-      lastName: ` ${LAST_NAME} `,
+      firstName: ` ${PERSON_TEST_VALUES.FIRST_NAME} `,
+      lastName: ` ${PERSON_TEST_VALUES.LAST_NAME} `,
       phoneNumber: ' ',
       email: ' john@doe.com ',
-      dateOfBirth: DATE_OF_BIRTH,
+      dateOfBirth: PERSON_TEST_VALUES.DATE_OF_BIRTH,
       addresses: [
         {
           label: ' Home ',
@@ -88,11 +84,11 @@ describe('personDetailsFormUtils', () => {
     });
 
     expect(payload).toEqual({
-      firstName: FIRST_NAME,
-      lastName: LAST_NAME,
+      firstName: PERSON_TEST_VALUES.FIRST_NAME,
+      lastName: PERSON_TEST_VALUES.LAST_NAME,
       phoneNumber: undefined,
-      email: EMAIL,
-      dateOfBirth: DATE_OF_BIRTH,
+      email: PERSON_TEST_VALUES.EMAIL,
+      dateOfBirth: PERSON_TEST_VALUES.DATE_OF_BIRTH,
       addresses: [
         {
           label: 'Home',

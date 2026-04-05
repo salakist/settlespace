@@ -1,14 +1,12 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { PersonRole, TransactionStatus } from '../../../shared/types';
 import TransactionForm from './TransactionForm';
-
-const persons = [
-  { id: 'p1', firstName: 'John', lastName: 'Doe', addresses: [] },
-  { id: 'p2', firstName: 'Jane', lastName: 'Smith', addresses: [] },
-  { id: 'p3', firstName: 'Alex', lastName: 'Taylor', addresses: [] },
-];
-const TX_DATE = '2026-03-29T00:00:00Z';
-const STATUS_COMPLETED = 'Completed' as const;
+import {
+  DEFAULT_TRANSACTION_TEST_PERSONS,
+  TRANSACTION_TEST_TEXT,
+  TRANSACTION_TEST_VALUES,
+} from '../testConstants';
 
 test('submits valid transaction data', () => {
   const onSave = jest.fn();
@@ -17,17 +15,17 @@ test('submits valid transaction data', () => {
   render(
     <TransactionForm
       transaction={{
-        payerPersonId: 'p1',
-        payeePersonId: 'p2',
+        payerPersonId: TRANSACTION_TEST_VALUES.CURRENT_PERSON_ID,
+        payeePersonId: TRANSACTION_TEST_VALUES.SECOND_PERSON_ID,
         amount: 10.5,
         currencyCode: 'EUR',
-        transactionDateUtc: TX_DATE,
-        description: 'Lunch',
-        status: STATUS_COMPLETED,
+        transactionDateUtc: TRANSACTION_TEST_VALUES.DATE_UTC,
+        description: TRANSACTION_TEST_TEXT.LUNCH,
+        status: TransactionStatus.Completed,
       }}
-      persons={persons}
-      currentPersonId="p1"
-      role="USER"
+      persons={DEFAULT_TRANSACTION_TEST_PERSONS}
+      currentPersonId={TRANSACTION_TEST_VALUES.CURRENT_PERSON_ID}
+      role={PersonRole.User}
       onSave={onSave}
       onCancel={onCancel}
     />,
@@ -36,15 +34,15 @@ test('submits valid transaction data', () => {
   fireEvent.change(screen.getByLabelText(/amount/i), { target: { value: '10.5' } });
   fireEvent.change(screen.getByLabelText(/currency/i), { target: { value: 'eur' } });
   fireEvent.change(screen.getByLabelText(/transaction date/i), { target: { value: '29/03/2026' } });
-  fireEvent.change(screen.getByLabelText(/description/i), { target: { value: 'Lunch' } });
+  fireEvent.change(screen.getByLabelText(/description/i), { target: { value: TRANSACTION_TEST_TEXT.LUNCH } });
   fireEvent.click(screen.getByRole('button', { name: /update/i }));
 
   expect(onSave).toHaveBeenCalledWith(expect.objectContaining({
-    payerPersonId: 'p1',
-    payeePersonId: 'p2',
+    payerPersonId: TRANSACTION_TEST_VALUES.CURRENT_PERSON_ID,
+    payeePersonId: TRANSACTION_TEST_VALUES.SECOND_PERSON_ID,
     amount: 10.5,
     currencyCode: 'EUR',
-    description: 'Lunch',
+    description: TRANSACTION_TEST_TEXT.LUNCH,
   }));
 });
 
@@ -52,17 +50,17 @@ test('shows validation error when payer and payee are equal', () => {
   render(
     <TransactionForm
       transaction={{
-        payerPersonId: 'p1',
-        payeePersonId: 'p1',
+        payerPersonId: TRANSACTION_TEST_VALUES.CURRENT_PERSON_ID,
+        payeePersonId: TRANSACTION_TEST_VALUES.CURRENT_PERSON_ID,
         amount: 10.5,
         currencyCode: 'EUR',
-        transactionDateUtc: TX_DATE,
-        description: 'Lunch',
-        status: STATUS_COMPLETED,
+        transactionDateUtc: TRANSACTION_TEST_VALUES.DATE_UTC,
+        description: TRANSACTION_TEST_TEXT.LUNCH,
+        status: TransactionStatus.Completed,
       }}
-      persons={persons}
+      persons={DEFAULT_TRANSACTION_TEST_PERSONS}
       currentPersonId="p1"
-      role="USER"
+      role={PersonRole.User}
       onSave={jest.fn()}
       onCancel={jest.fn()}
     />,
@@ -78,17 +76,17 @@ test('shows validation error when amount is invalid', () => {
   render(
     <TransactionForm
       transaction={{
-        payerPersonId: 'p1',
-        payeePersonId: 'p2',
+        payerPersonId: TRANSACTION_TEST_VALUES.CURRENT_PERSON_ID,
+        payeePersonId: TRANSACTION_TEST_VALUES.SECOND_PERSON_ID,
         amount: 0,
         currencyCode: 'EUR',
-        transactionDateUtc: TX_DATE,
-        description: 'Lunch',
-        status: STATUS_COMPLETED,
+        transactionDateUtc: TRANSACTION_TEST_VALUES.DATE_UTC,
+        description: TRANSACTION_TEST_TEXT.LUNCH,
+        status: TransactionStatus.Completed,
       }}
-      persons={persons}
+      persons={DEFAULT_TRANSACTION_TEST_PERSONS}
       currentPersonId="p1"
-      role="USER"
+      role={PersonRole.User}
       onSave={onSave}
       onCancel={jest.fn()}
     />,
@@ -106,17 +104,17 @@ test('shows validation error when currency code is invalid', () => {
   render(
     <TransactionForm
       transaction={{
-        payerPersonId: 'p1',
-        payeePersonId: 'p2',
+        payerPersonId: TRANSACTION_TEST_VALUES.CURRENT_PERSON_ID,
+        payeePersonId: TRANSACTION_TEST_VALUES.SECOND_PERSON_ID,
         amount: 10.5,
         currencyCode: 'EURO',
-        transactionDateUtc: TX_DATE,
-        description: 'Lunch',
-        status: STATUS_COMPLETED,
+        transactionDateUtc: TRANSACTION_TEST_VALUES.DATE_UTC,
+        description: TRANSACTION_TEST_TEXT.LUNCH,
+        status: TransactionStatus.Completed,
       }}
-      persons={persons}
+      persons={DEFAULT_TRANSACTION_TEST_PERSONS}
       currentPersonId="p1"
-      role="USER"
+      role={PersonRole.User}
       onSave={onSave}
       onCancel={jest.fn()}
     />,
@@ -132,9 +130,9 @@ test('cancel button triggers onCancel callback', () => {
   const onCancel = jest.fn();
   render(
     <TransactionForm
-      persons={persons}
+      persons={DEFAULT_TRANSACTION_TEST_PERSONS}
       currentPersonId="p1"
-      role="USER"
+      role={PersonRole.User}
       onSave={jest.fn()}
       onCancel={onCancel}
     />,
@@ -147,9 +145,9 @@ test('cancel button triggers onCancel callback', () => {
 test('disables save when creating and current user is not payer or payee', () => {
   render(
     <TransactionForm
-      persons={persons}
+      persons={DEFAULT_TRANSACTION_TEST_PERSONS}
       currentPersonId="p1"
-      role="USER"
+      role={PersonRole.User}
       onSave={jest.fn()}
       onCancel={jest.fn()}
     />,
@@ -158,7 +156,7 @@ test('disables save when creating and current user is not payer or payee', () =>
   fireEvent.mouseDown(screen.getByLabelText(/payer/i));
   fireEvent.click(screen.getByRole('option', { name: /jane smith/i }));
   fireEvent.mouseDown(screen.getByLabelText(/payee/i));
-  fireEvent.click(screen.getByRole('option', { name: /alex taylor/i }));
+  fireEvent.click(screen.getByRole('option', { name: new RegExp(TRANSACTION_TEST_TEXT.ALICE_JOHNSON, 'i') }));
 
   expect(screen.getByRole('button', { name: /create/i })).toBeDisabled();
   expect(screen.getByText(/must be either the payer or the payee/i)).toBeInTheDocument();

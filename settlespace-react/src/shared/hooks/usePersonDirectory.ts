@@ -1,9 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
 import { personApi } from '../api/api';
 import { handleRequestError } from '../api/requestHandling';
+import { SESSION_EXPIRED_MESSAGE } from '../constants/messages';
 import { Person } from '../types';
-
-const SESSION_EXPIRED_MESSAGE = 'Your session expired. Please log in again.';
 
 let cachedPersons: Person[] = [];
 let cachedPromise: Promise<Person[]> | null = null;

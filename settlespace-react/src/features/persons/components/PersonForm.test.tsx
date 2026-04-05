@@ -1,29 +1,31 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { PersonRole } from '../../../shared/types';
+import { PERSON_TEST_VALUES } from '../testConstants';
 import PersonForm from './PersonForm';
 
 test('creates person and clears fields', async () => {
   const onSave = jest.fn().mockResolvedValue(undefined);
   const onCancel = jest.fn();
 
-  render(<PersonForm onSave={onSave} onCancel={onCancel} saveLoading={false} canEditRole={true} defaultRole="USER" />);
+  render(<PersonForm onSave={onSave} onCancel={onCancel} saveLoading={false} canEditRole={true} defaultRole={PersonRole.User} />);
 
-  fireEvent.change(screen.getByLabelText(/First Name/i), { target: { value: 'John' } });
-  fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { value: 'Doe' } });
+  fireEvent.change(screen.getByLabelText(/First Name/i), { target: { value: PERSON_TEST_VALUES.FIRST_NAME } });
+  fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { value: PERSON_TEST_VALUES.LAST_NAME } });
   fireEvent.change(screen.getByLabelText(/Phone Number/i), { target: { value: ' +15551234567 ' } });
-  fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: ' john@doe.com ' } });
+  fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: ` ${PERSON_TEST_VALUES.EMAIL} ` } });
   fireEvent.change(screen.getByLabelText(/Date of Birth/i), { target: { value: '01/01/1990' } });
   fireEvent.click(screen.getByRole('button', { name: /^Create$/i }));
 
   await waitFor(() => {
     expect(onSave).toHaveBeenCalledWith({
-      firstName: 'John',
-      lastName: 'Doe',
+      firstName: PERSON_TEST_VALUES.FIRST_NAME,
+      lastName: PERSON_TEST_VALUES.LAST_NAME,
       phoneNumber: '+15551234567',
-      email: 'john@doe.com',
-      dateOfBirth: '1990-01-01',
+      email: PERSON_TEST_VALUES.EMAIL,
+      dateOfBirth: PERSON_TEST_VALUES.DATE_OF_BIRTH,
       addresses: [],
-      role: 'USER',
+      role: PersonRole.User,
     });
   });
 
@@ -43,12 +45,12 @@ test('updates existing person', async () => {
 
   render(
     <PersonForm
-      person={{ id: '1', firstName: 'Jane', lastName: 'Smith', addresses: [], role: 'USER' }}
+      person={{ id: '1', firstName: 'Jane', lastName: 'Smith', addresses: [], role: PersonRole.User }}
       onSave={onSave}
       onCancel={jest.fn()}
       saveLoading={false}
       canEditRole={true}
-      defaultRole="USER"
+      defaultRole={PersonRole.User}
     />
   );
 
@@ -63,7 +65,7 @@ test('updates existing person', async () => {
       email: undefined,
       dateOfBirth: undefined,
       addresses: [],
-      role: 'USER',
+      role: PersonRole.User,
     });
   });
 });
@@ -71,7 +73,7 @@ test('updates existing person', async () => {
 test('shows validation errors and blocks submit when data is invalid', async () => {
   const onSave = jest.fn().mockResolvedValue(undefined);
 
-  render(<PersonForm onSave={onSave} onCancel={jest.fn()} saveLoading={false} canEditRole={true} defaultRole="USER" />);
+  render(<PersonForm onSave={onSave} onCancel={jest.fn()} saveLoading={false} canEditRole={true} defaultRole={PersonRole.User} />);
 
   fireEvent.change(screen.getByLabelText(/Email/i), { target: { value: 'invalid-email' } });
   fireEvent.change(screen.getByLabelText(/Phone Number/i), { target: { value: '12' } });

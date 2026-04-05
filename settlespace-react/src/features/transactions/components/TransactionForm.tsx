@@ -3,7 +3,18 @@ import { Alert, Button, MenuItem, Paper, Stack, TextField, Typography } from '@m
 import { canCreateTransaction } from '../../../shared/auth/permissions';
 import DateInputField from '../../../shared/components/DateInputField';
 import { panelSurfaceSx } from '../../../shared/theme/surfaceStyles';
-import { Person, PersonRole, Transaction, TransactionStatus } from '../../../shared/types';
+import {
+  getEnumValues,
+  Person,
+  PersonRole,
+  Transaction,
+  TransactionStatus,
+  parseTransactionStatus,
+} from '../../../shared/types';
+import {
+  DEFAULT_TRANSACTION_CURRENCY,
+  DEFAULT_TRANSACTION_STATUS,
+} from '../constants';
 
 type TransactionFormProps = {
   transaction?: Transaction;
@@ -13,8 +24,6 @@ type TransactionFormProps = {
   onSave: (transaction: Omit<Transaction, 'id' | 'createdByPersonId' | 'createdAtUtc' | 'updatedAtUtc'>) => void;
   onCancel: () => void;
 };
-
-const STATUS_VALUES: TransactionStatus[] = ['Pending', 'Completed', 'Cancelled'];
 
 function formatDateForInput(value?: string): string {
   if (!value) {
@@ -35,11 +44,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
   const [payerPersonId, setPayerPersonId] = useState(transaction?.payerPersonId ?? currentPersonId ?? '');
   const [payeePersonId, setPayeePersonId] = useState(transaction?.payeePersonId ?? '');
   const [amount, setAmount] = useState(transaction ? String(transaction.amount) : '');
-  const [currencyCode, setCurrencyCode] = useState(transaction?.currencyCode ?? 'EUR');
+  const [currencyCode, setCurrencyCode] = useState(transaction?.currencyCode ?? DEFAULT_TRANSACTION_CURRENCY);
   const [transactionDateUtc, setTransactionDateUtc] = useState(formatDateForInput(transaction?.transactionDateUtc));
   const [description, setDescription] = useState(transaction?.description ?? '');
   const [category, setCategory] = useState(transaction?.category ?? '');
-  const [status, setStatus] = useState<TransactionStatus>(transaction?.status ?? 'Completed');
+  const [status, setStatus] = useState<TransactionStatus>(transaction?.status ?? DEFAULT_TRANSACTION_STATUS);
   const [validationError, setValidationError] = useState<string | null>(null);
 
   const selectablePersons = useMemo(() => persons.filter((person) => person.id), [persons]);
@@ -188,11 +197,11 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             select
             label="Status"
             value={status}
-            onChange={(event) => setStatus(event.target.value as TransactionStatus)}
+            onChange={(event) => setStatus(parseTransactionStatus(event.target.value) ?? DEFAULT_TRANSACTION_STATUS)}
             fullWidth
             required
           >
-            {STATUS_VALUES.map((value) => (
+            {getEnumValues(TransactionStatus).map((value) => (
               <MenuItem key={value} value={value}>{value}</MenuItem>
             ))}
           </TextField>

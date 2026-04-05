@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, render } from '@testing-library/react';
-import { DebtSummary } from '../../../shared/types';
+import { SESSION_EXPIRED_MESSAGE } from '../../../shared/constants/messages';
+import { DebtDirection, DebtSummary } from '../../../shared/types';
 import { useDebts } from './useDebts';
 
 jest.mock('../../../shared/api/debtsApi', () => ({
@@ -20,13 +21,12 @@ const { debtsApi } = jest.requireMock('../../../shared/api/debtsApi') as {
 };
 
 type DebtsHookResult = ReturnType<typeof useDebts>;
-const SESSION_EXPIRED_MESSAGE = 'Your session expired. Please log in again.';
 
 const sampleDebt: DebtSummary = {
   counterpartyPersonId: 'p2',
   currencyCode: 'EUR',
   netAmount: 42.5,
-  direction: 'YouOweThem',
+  direction: DebtDirection.YouOweThem,
   transactionCount: 3,
 };
 
