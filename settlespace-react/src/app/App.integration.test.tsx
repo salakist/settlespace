@@ -114,7 +114,7 @@ jest.mock('../shared/api/debtsApi', () => ({
   },
 }));
 
-jest.mock('../features/persons/components/SearchBar', () => ({
+jest.mock('../features/persons/components/PersonSearchBar', () => ({
   __esModule: true,
   default: ({ onSearch, action }: { onSearch: (query: string) => void; action?: React.ReactNode }) => (
     <div>

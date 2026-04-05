@@ -11,7 +11,7 @@ jest.mock('react-router-dom', () => ({
   useParams: () => ({}),
 }));
 
-jest.mock('./SearchBar', () => ({
+jest.mock('./PersonSearchBar', () => ({
   __esModule: true,
   default: ({ onSearch, action }: { onSearch: (query: string) => void; action?: React.ReactNode }) => (
     <>

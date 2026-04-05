@@ -3,7 +3,7 @@ import { Alert, Button, CircularProgress, Stack } from '@mui/material';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Person, PersonRole } from '../../../shared/types';
 import ConfirmationDialog from '../../../shared/components/ConfirmationDialog';
-import SearchBar from './SearchBar';
+import PersonSearchBar from './PersonSearchBar';
 import PersonForm from './PersonForm';
 import PersonList from './PersonList';
 
@@ -178,7 +178,7 @@ const PersonsPage: React.FC<PersonsPageProps> = ({
   return (
     <Stack spacing={2.5}>
       {!displayForm && (
-        <SearchBar
+        <PersonSearchBar
           onSearch={onSearch}
           action={(
             <Button

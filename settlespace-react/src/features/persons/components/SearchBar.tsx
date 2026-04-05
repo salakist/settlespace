@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Button, Stack, TextField } from '@mui/material';
 
+/**
+ * @deprecated Prefer `PersonSearchBar` for persons-list search so new work uses the shared
+ * `GenericSearchBar` flow. Keep this component stable until a dedicated removal slice.
+ */
 interface SearchBarProps {
   onSearch: (query: string) => void;
   placeholder?: string;
