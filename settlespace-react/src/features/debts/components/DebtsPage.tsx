@@ -2,8 +2,9 @@ import React, { useCallback, useEffect, useMemo } from 'react';
 import { Alert, CircularProgress, Stack } from '@mui/material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { DebtDirection, DebtSummary, parseDebtDirection } from '../../../shared/types';
+import SearchResultsAlert from '../../search/components/SearchResultsAlert';
 import { useDebts } from '../hooks/useDebts';
-import { DEBT_LIST_TEXT, DEBT_SEARCH_TEXT } from '../constants';
+import { DEBT_LIST_TEXT } from '../constants';
 import { DebtSearchQuery } from '../search/debtSearchConfig';
 import DebtsList from './DebtsList';
 import DebtSettlementDrawer from './DebtSettlementDrawer';
@@ -65,7 +66,8 @@ const DebtsPage: React.FC<DebtsPageProps> = ({ expireSession }) => {
   }), [debts, normalizedFreeText, searchQueryFromUrl.direction]);
 
   const allVisibleDebtsSettled = filteredDebts.length > 0
-    && filteredDebts.every((debt) => debt.direction === DebtDirection.Settled);
+    && filteredDebts.every((debt) => debt.direction === DebtDirection.Settled)
+    && searchQueryFromUrl.direction !== DebtDirection.Settled;
 
   const handleViewDetails = (debt: DebtSummary) => {
     navigate(`/debts/${encodeURIComponent(debt.counterpartyPersonId)}/${encodeURIComponent(debt.currencyCode)}`);
@@ -98,7 +100,7 @@ const DebtsPage: React.FC<DebtsPageProps> = ({ expireSession }) => {
       </Stack>
     );
   } else if (hasActiveSearch && debts.length > 0 && filteredDebts.length === 0) {
-    debtsContent = <Alert severity="info">{DEBT_SEARCH_TEXT.NO_MATCHING_RESULTS}</Alert>;
+    debtsContent = <SearchResultsAlert entityName="debts" />;
   } else {
     debtsContent = (
       <DebtsList

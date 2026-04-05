@@ -31,7 +31,7 @@ export function buildDebtSearchParameters(): SearchParameterConfig<DebtSearchPar
       label: DEBT_SEARCH_TEXT.DIRECTION_LABEL,
       kind: SearchParameterKind.Fixed,
       selectionMode: SearchSelectionMode.Single,
-      showGroupLabel: false,
+      showGroupLabel: true,
       options: buildDebtDirectionOptions(),
     },
   ];

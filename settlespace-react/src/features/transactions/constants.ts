@@ -28,7 +28,6 @@ export const TRANSACTION_LIST_STYLE = {
 } as const;
 
 export const TRANSACTION_LIST_TEXT = {
-  EMPTY_STATE: 'No transactions found for your account.',
   MANAGED: 'Managed',
   EDIT: 'Edit',
   DELETE: 'Delete',

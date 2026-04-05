@@ -6,6 +6,7 @@ export const SEARCH_PLACEHOLDERS = {
 
 export const SEARCH_BAR_TEXT = {
   DEFAULT_ARIA_LABEL: 'Search',
+  FILTER_BUTTON_ARIA_LABEL: 'Show filters',
   SEARCH_BUTTON_ARIA_LABEL: 'Search',
   LOADING: 'Loading...',
   CANCEL_FILTER_ARIA_LABEL: 'Cancel filter',

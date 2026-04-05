@@ -1,5 +1,6 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { Autocomplete, IconButton, Stack, TextField } from '@mui/material';
+import FilterListIcon from '@mui/icons-material/FilterList';
 import SearchIcon from '@mui/icons-material/Search';
 import ActiveFilterChips from './ActiveFilterChips';
 import {
@@ -24,6 +25,8 @@ const GenericSearchBar = <TParam extends string = string,>({
   dataTestId,
 }: GenericSearchBarProps<TParam>) => {
   const inputRef = useRef<HTMLInputElement>(null);
+  const [isAutocompleteOpen, setIsAutocompleteOpen] = useState(false);
+  const [showAllOptions, setShowAllOptions] = useState(false);
   const {
     activeFilters,
     autocompleteOptions,
@@ -43,6 +46,17 @@ const GenericSearchBar = <TParam extends string = string,>({
     parameters,
     freeTextPlaceholder,
   });
+  const hasParameters = parameters.length > 0;
+
+  const handleOpenFilters = () => {
+    if (!hasParameters || pendingParameter) {
+      return;
+    }
+
+    setShowAllOptions(true);
+    setIsAutocompleteOpen(true);
+    inputRef.current?.focus();
+  };
 
   return (
     <Stack spacing={1}>
@@ -69,8 +83,39 @@ const GenericSearchBar = <TParam extends string = string,>({
             },
           }}
         >
+          {hasParameters && (
+            <IconButton
+              type="button"
+              aria-label={SEARCH_BAR_TEXT.FILTER_BUTTON_ARIA_LABEL}
+              onClick={handleOpenFilters}
+              disabled={Boolean(pendingParameter)}
+              sx={{
+                borderRadius: 0,
+                borderTopLeftRadius: (theme) => `${theme.shape.borderRadius}px`,
+                borderBottomLeftRadius: (theme) => `${theme.shape.borderRadius}px`,
+                height: 40,
+                width: 40,
+                border: 1,
+                borderRight: 0,
+                borderColor: 'divider',
+                bgcolor: 'background.paper',
+              }}
+            >
+              <FilterListIcon fontSize="small" />
+            </IconButton>
+          )}
           <Autocomplete
             freeSolo
+            open={isAutocompleteOpen && autocompleteOptions.length > 0}
+            onOpen={() => {
+              if (autocompleteOptions.length > 0) {
+                setIsAutocompleteOpen(true);
+              }
+            }}
+            onClose={() => {
+              setIsAutocompleteOpen(false);
+              setShowAllOptions(false);
+            }}
             options={autocompleteOptions}
             loading={loadingSuggestions}
             loadingText={SEARCH_BAR_TEXT.LOADING}
@@ -80,11 +125,17 @@ const GenericSearchBar = <TParam extends string = string,>({
             onInputChange={(_event, newValue, reason) => {
               if (reason !== 'reset') {
                 setInputValue(newValue);
+                setShowAllOptions(false);
+                setIsAutocompleteOpen(Boolean(newValue));
               }
             }}
             onChange={handleSelectOption}
             value={null}
-            filterOptions={(options, state) => filterAutocompleteOptions(options, state.inputValue)}
+            filterOptions={(options, state) => (
+              showAllOptions && !state.inputValue
+                ? options
+                : filterAutocompleteOptions(options, state.inputValue)
+            )}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -124,6 +175,12 @@ const GenericSearchBar = <TParam extends string = string,>({
                 }}
                 sx={{
                   '& .MuiOutlinedInput-root': {
+                    ...(hasParameters
+                      ? {
+                        borderTopLeftRadius: 0,
+                        borderBottomLeftRadius: 0,
+                      }
+                      : {}),
                     borderTopRightRadius: 0,
                     borderBottomRightRadius: 0,
                     ...(pendingParameter

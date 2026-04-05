@@ -10,7 +10,6 @@ export const DEBT_SEARCH_TEXT = {
   ARIA_LABEL: 'Debt search',
   DEFAULT_PLACEHOLDER: 'Search by counterparty name',
   DIRECTION_LABEL: 'Direction',
-  NO_MATCHING_RESULTS: 'No debts match the current search.',
 } as const;
 
 export const DEBT_LIST_TEXT = {

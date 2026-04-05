@@ -23,6 +23,36 @@ test('supports free-text-only mode when no parameters are provided', async () =>
   });
 });
 
+test('shows filter options from the left button even when the input is empty', async () => {
+  const onSearch = jest.fn();
+  const parameters: SearchParameterConfig[] = [
+    {
+      param: 'status',
+      label: SEARCH_TEST_TEXT.STATUS_LABEL,
+      kind: SearchParameterKind.Fixed,
+      selectionMode: SearchSelectionMode.Multiple,
+      options: [{
+        value: SEARCH_TEST_TEXT.PENDING_STATUS,
+        label: SEARCH_TEST_TEXT.PENDING_STATUS,
+        group: SEARCH_TEST_TEXT.STATUS_LABEL,
+      }],
+    },
+  ];
+
+  render(
+    <GenericSearchBar
+      onSearch={onSearch}
+      ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL}
+      parameters={parameters}
+    />,
+  );
+
+  await userEvent.click(screen.getByRole('button', { name: /show filters/i }));
+
+  expect(await screen.findByRole('option', { name: SEARCH_TEST_TEXT.PENDING_STATUS })).toBeInTheDocument();
+  expect(screen.getByText(SEARCH_TEST_TEXT.STATUS_LABEL)).toBeInTheDocument();
+});
+
 test('selecting a fixed option adds a chip and triggers search', async () => {
   const onSearch = jest.fn();
   const parameters: SearchParameterConfig[] = [

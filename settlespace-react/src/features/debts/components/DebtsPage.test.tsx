@@ -151,7 +151,16 @@ test('shows an info alert when the active filters exclude all debts', () => {
 
   render(<DebtsPage expireSession={jest.fn()} />);
 
-  expect(screen.getByText(/no debts match the current search/i)).toBeInTheDocument();
+  expect(screen.getByText(/no debts found/i)).toBeInTheDocument();
+});
+
+test('does not show the settled summary alert when settled is already the active direction filter', () => {
+  mockHook.debts = [mockSettledDebt];
+  mockSearchParams = new URLSearchParams(`direction=${DebtDirection.Settled}`);
+
+  render(<DebtsPage expireSession={jest.fn()} />);
+
+  expect(screen.queryByText(/all visible debts are settled/i)).not.toBeInTheDocument();
 });
 
 test('shows loading spinner when loading is true', () => {

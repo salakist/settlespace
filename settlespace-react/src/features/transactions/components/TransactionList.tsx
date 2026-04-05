@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { Alert, Chip, IconButton, Menu, MenuItem, Paper, Stack, Typography } from '@mui/material';
+import { Chip, IconButton, Menu, MenuItem, Paper, Stack, Typography } from '@mui/material';
 import { Transaction, TransactionStatus } from '../../../shared/types';
 import { listItemSurfaceSx } from '../../../shared/theme/surfaceStyles';
 import { formatDateDDMMYYYY } from '../../../shared/utils/dateFormatting';
+import SearchResultsAlert from '../../search/components/SearchResultsAlert';
 import { TRANSACTION_LIST_STYLE, TRANSACTION_LIST_TEXT } from '../constants';
 
 type TransactionListProps = {
@@ -86,7 +87,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
     handleCloseMenu();
   };
   if (transactions.length === 0) {
-    return <Alert severity="info">{TRANSACTION_LIST_TEXT.EMPTY_STATE}</Alert>;
+    return <SearchResultsAlert entityName="transactions" />;
   }
 
   return (

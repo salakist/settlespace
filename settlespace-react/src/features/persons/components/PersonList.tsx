@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { Alert, Chip, IconButton, Menu, MenuItem, Paper, Stack, Typography } from '@mui/material';
+import { Chip, IconButton, Menu, MenuItem, Paper, Stack, Typography } from '@mui/material';
 import { Person, PersonRole } from '../../../shared/types';
 import { listItemSurfaceSx } from '../../../shared/theme/surfaceStyles';
+import SearchResultsAlert from '../../search/components/SearchResultsAlert';
 import { PERSON_LIST_TEXT } from '../constants';
 
 interface PersonListProps {
@@ -81,7 +82,7 @@ const PersonList: React.FC<PersonListProps> = ({
   return (
     <div>
       {persons.length === 0 ? (
-        <Alert severity="info">{PERSON_LIST_TEXT.EMPTY_STATE}</Alert>
+        <SearchResultsAlert entityName="persons" />
       ) : (
         <>
           <Stack spacing={1.5}>
