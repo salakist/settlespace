@@ -5,21 +5,26 @@ import DebtsPage from './DebtsPage';
 
 const mockNavigate = jest.fn();
 const mockSetSearchParams = jest.fn();
+let mockSearchParams = new URLSearchParams('');
 
 jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
-  useSearchParams: () => [new URLSearchParams(''), mockSetSearchParams],
+  useSearchParams: () => [mockSearchParams, mockSetSearchParams],
 }));
 
-jest.mock('../../persons/components/SearchBar', () => ({
-  __esModule: true,
-  default: ({ onSearch, placeholder }: { onSearch: (query: string) => void; placeholder?: string }) => (
-    <div>
-      <input aria-label="Debt search" placeholder={placeholder} readOnly />
-      <button onClick={() => onSearch('Jane Doe')}>Search debts</button>
-    </div>
-  ),
-}));
+jest.mock('./DebtSearchBar', () => {
+  const { DebtDirection } = jest.requireActual('../../../shared/types');
+
+  return {
+    __esModule: true,
+    default: ({ onSearch }: { onSearch: (query: { freeText?: string; direction?: string }) => void }) => (
+      <div>
+        <input aria-label="Debt search" placeholder="Search by counterparty name" readOnly />
+        <button onClick={() => onSearch({ freeText: 'Jane Doe', direction: DebtDirection.YouOweThem })}>Search debts</button>
+      </div>
+    ),
+  };
+});
 
 const mockSampleDebt: DebtSummary = {
   counterpartyPersonId: 'p2',
@@ -76,6 +81,26 @@ jest.mock('./DebtSettlementDrawer', () => ({
   default: ({ open }: { open: boolean }) => (open ? <div>Settlement Drawer</div> : null),
 }));
 
+beforeEach(() => {
+  mockSearchParams = new URLSearchParams('');
+  mockNavigate.mockReset();
+  mockSetSearchParams.mockReset();
+  mockHook.debts = [mockSampleDebt];
+  mockHook.error = null;
+  mockHook.successMessage = null;
+  mockHook.loadDebts.mockClear();
+  mockHook.openSettlementDrawer.mockClear();
+  mockHook.closeSettlementDrawer.mockClear();
+  mockHook.clearSuccessMessage.mockClear();
+  mockHook.submitSettlement.mockClear();
+  mockHook.loading = false;
+  mockHook.detailsLoading = false;
+  mockHook.settlementSaving = false;
+  mockHook.settlementOpen = false;
+  mockHook.selectedDebt = undefined;
+  mockHook.selectedDebtDetail = undefined;
+});
+
 test('renders debt list and loads debts on mount', () => {
   render(
     <DebtsPage
@@ -85,7 +110,7 @@ test('renders debt list and loads debts on mount', () => {
 
   expect(mockHook.loadDebts).toHaveBeenCalled();
   expect(screen.getByText(/debts list/i)).toBeInTheDocument();
-  expect(screen.getByPlaceholderText(/first or last name/i)).toBeInTheDocument();
+  expect(screen.getByPlaceholderText(/counterparty name/i)).toBeInTheDocument();
 });
 
 test('forwards settlement, filtering, and details actions', () => {
@@ -102,14 +127,15 @@ test('forwards settlement, filtering, and details actions', () => {
   fireEvent.click(screen.getByRole('button', { name: /^settle now$/i }));
   fireEvent.click(screen.getByRole('button', { name: /^details$/i }));
 
+  const nextSearchParams = mockSetSearchParams.mock.calls.at(-1)?.[0] as URLSearchParams;
+
   expect(mockSetSearchParams).toHaveBeenCalled();
+  expect(nextSearchParams.toString()).toContain('freeText=Jane+Doe');
+  expect(nextSearchParams.toString()).toContain(`direction=${DebtDirection.YouOweThem}`);
   expect(mockHook.openSettlementDrawer).toHaveBeenCalledWith(mockSampleDebt);
   expect(mockNavigate).toHaveBeenCalledWith('/debts/p2/EUR');
   expect(screen.getByText('Load failed')).toBeInTheDocument();
   expect(screen.getByText(/settlement recorded successfully/i)).toBeInTheDocument();
-
-  mockHook.error = null;
-  mockHook.successMessage = null;
 });
 
 test('shows an info alert when all visible debts are settled', () => {
@@ -118,8 +144,14 @@ test('shows an info alert when all visible debts are settled', () => {
   render(<DebtsPage expireSession={jest.fn()} />);
 
   expect(screen.getByText(/all visible debts are settled/i)).toBeInTheDocument();
+});
 
-  mockHook.debts = [mockSampleDebt];
+test('shows an info alert when the active filters exclude all debts', () => {
+  mockSearchParams = new URLSearchParams(`direction=${DebtDirection.Settled}`);
+
+  render(<DebtsPage expireSession={jest.fn()} />);
+
+  expect(screen.getByText(/no debts match the current search/i)).toBeInTheDocument();
 });
 
 test('shows loading spinner when loading is true', () => {
@@ -128,5 +160,4 @@ test('shows loading spinner when loading is true', () => {
   render(<DebtsPage expireSession={jest.fn()} />);
 
   expect(screen.getByRole('progressbar')).toBeInTheDocument();
-  mockHook.loading = false;
 });

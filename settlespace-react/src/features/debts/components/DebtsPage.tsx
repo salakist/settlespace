@@ -1,12 +1,13 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo } from 'react';
 import { Alert, CircularProgress, Stack } from '@mui/material';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { DebtDirection, DebtSummary } from '../../../shared/types';
+import { DebtDirection, DebtSummary, parseDebtDirection } from '../../../shared/types';
 import { useDebts } from '../hooks/useDebts';
-import { DEBT_LIST_TEXT } from '../constants';
+import { DEBT_LIST_TEXT, DEBT_SEARCH_TEXT } from '../constants';
+import { DebtSearchQuery } from '../search/debtSearchConfig';
 import DebtsList from './DebtsList';
 import DebtSettlementDrawer from './DebtSettlementDrawer';
-import SearchBar from '../../persons/components/SearchBar';
+import DebtSearchBar from './DebtSearchBar';
 
 type DebtsPageProps = {
   expireSession: (message?: string) => void;
@@ -15,7 +16,23 @@ type DebtsPageProps = {
 const DebtsPage: React.FC<DebtsPageProps> = ({ expireSession }) => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const searchQuery = searchParams.get('search')?.trim().toLowerCase() ?? '';
+  const searchQueryFromUrl = useMemo<DebtSearchQuery>(() => {
+    const query: DebtSearchQuery = {};
+    const freeText = searchParams.get('freeText')?.trim() ?? searchParams.get('search')?.trim();
+    const direction = parseDebtDirection(searchParams.get('direction'));
+
+    if (freeText) {
+      query.freeText = freeText;
+    }
+
+    if (direction) {
+      query.direction = direction;
+    }
+
+    return query;
+  }, [searchParams]);
+  const normalizedFreeText = searchQueryFromUrl.freeText?.toLowerCase() ?? '';
+  const hasActiveSearch = Boolean(searchQueryFromUrl.freeText || searchQueryFromUrl.direction);
   const {
     clearSuccessMessage,
     closeSettlementDrawer,
@@ -39,13 +56,13 @@ const DebtsPage: React.FC<DebtsPageProps> = ({ expireSession }) => {
     });
   }, [loadDebts]);
 
-  const filteredDebts = useMemo(() => {
-    if (!searchQuery) {
-      return debts;
-    }
+  const filteredDebts = useMemo(() => debts.filter((debt) => {
+    const counterpartyName = (debt.counterpartyDisplayName ?? debt.counterpartyPersonId).toLowerCase();
+    const matchesFreeText = !normalizedFreeText || counterpartyName.includes(normalizedFreeText);
+    const matchesDirection = !searchQueryFromUrl.direction || debt.direction === searchQueryFromUrl.direction;
 
-    return debts.filter((debt) => (debt.counterpartyDisplayName ?? debt.counterpartyPersonId).toLowerCase().includes(searchQuery));
-  }, [debts, searchQuery]);
+    return matchesFreeText && matchesDirection;
+  }), [debts, normalizedFreeText, searchQueryFromUrl.direction]);
 
   const allVisibleDebtsSettled = filteredDebts.length > 0
     && filteredDebts.every((debt) => debt.direction === DebtDirection.Settled);
@@ -54,18 +71,23 @@ const DebtsPage: React.FC<DebtsPageProps> = ({ expireSession }) => {
     navigate(`/debts/${encodeURIComponent(debt.counterpartyPersonId)}/${encodeURIComponent(debt.currencyCode)}`);
   };
 
-  const handleSearch = (query: string) => {
+  const handleSearchChange = useCallback((query: DebtSearchQuery) => {
     const nextSearchParams = new URLSearchParams(searchParams);
-    const trimmedQuery = query.trim();
 
-    if (trimmedQuery) {
-      nextSearchParams.set('search', trimmedQuery);
-    } else {
-      nextSearchParams.delete('search');
+    nextSearchParams.delete('search');
+    nextSearchParams.delete('freeText');
+    nextSearchParams.delete('direction');
+
+    if (query.freeText) {
+      nextSearchParams.set('freeText', query.freeText);
+    }
+
+    if (query.direction) {
+      nextSearchParams.set('direction', query.direction);
     }
 
     setSearchParams(nextSearchParams);
-  };
+  }, [searchParams, setSearchParams]);
 
   let debtsContent: React.ReactNode;
 
@@ -75,8 +97,8 @@ const DebtsPage: React.FC<DebtsPageProps> = ({ expireSession }) => {
         <CircularProgress />
       </Stack>
     );
-  } else if (searchQuery && debts.length > 0 && filteredDebts.length === 0) {
-    debtsContent = <Alert severity="info">No debts match that person name.</Alert>;
+  } else if (hasActiveSearch && debts.length > 0 && filteredDebts.length === 0) {
+    debtsContent = <Alert severity="info">{DEBT_SEARCH_TEXT.NO_MATCHING_RESULTS}</Alert>;
   } else {
     debtsContent = (
       <DebtsList
@@ -89,11 +111,9 @@ const DebtsPage: React.FC<DebtsPageProps> = ({ expireSession }) => {
 
   return (
     <Stack spacing={2.5}>
-      <SearchBar
-        onSearch={handleSearch}
-        placeholder="Search by first or last name"
-        initialQuery={searchParams.get('search') ?? ''}
-        ariaLabel="Debt search"
+      <DebtSearchBar
+        onSearch={handleSearchChange}
+        initialQuery={searchQueryFromUrl}
       />
 
       {successMessage && (

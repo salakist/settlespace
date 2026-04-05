@@ -6,6 +6,13 @@ export const DEBT_DIRECTION_LABELS: Record<DebtDirection, string> = {
   [DebtDirection.Settled]: 'Settled',
 };
 
+export const DEBT_SEARCH_TEXT = {
+  ARIA_LABEL: 'Debt search',
+  DEFAULT_PLACEHOLDER: 'Search by counterparty name',
+  DIRECTION_LABEL: 'Direction',
+  NO_MATCHING_RESULTS: 'No debts match the current search.',
+} as const;
+
 export const DEBT_LIST_TEXT = {
   EMPTY_STATE: 'You have no debts right now. New balances will appear here after completed transactions.',
   DETAILS: 'Details',

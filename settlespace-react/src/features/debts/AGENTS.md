@@ -8,6 +8,7 @@ Debts feature provides UI for reviewing active and settled balances with counter
 
 ## Responsibilities
 - `src/features/debts/components/DebtsPage.tsx` — orchestrates the debts page, loading state, search, and mixed-list informational alerts.
+- `src/features/debts/components/DebtSearchBar.tsx` and `src/features/debts/search/debtSearchBridge.ts` — keep debt-specific query/URL mapping on top of the shared generic search UI; prefer the shared bridge factory over ad-hoc filter loops.
 - `src/features/debts/components/DebtsList.tsx` — renders summary cards per counterparty and currency, keeps settled balances visible in the same list, and exposes only the actions that still apply.
 - `src/features/debts/components/DebtDetailsPage.tsx` — shows transaction-level debt details on a dedicated page.
 - `src/features/debts/components/DebtSettlementDrawer.tsx` — handles the side-drawer settlement flow with slider, amount input, and manual percent input.
@@ -16,6 +17,9 @@ Debts feature provides UI for reviewing active and settled balances with counter
 
 ## Key files
 - `src/features/debts/components/DebtsPage.tsx`
+- `src/features/debts/components/DebtSearchBar.tsx`
+- `src/features/debts/search/debtSearchConfig.ts`
+- `src/features/debts/search/debtSearchBridge.ts`
 - `src/features/debts/components/DebtsList.tsx`
 - `src/features/debts/components/DebtDetailsPage.tsx`
 - `src/features/debts/components/DebtSettlementDrawer.tsx`
