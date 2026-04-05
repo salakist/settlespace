@@ -18,9 +18,11 @@ Frontend module router for app-shell policy, shared frontend workflow, and featu
 - `src/features/search/AGENTS.md`
 
 ## Cross-cutting frontend policy
-- `src/app/` owns app shell and top-level orchestration.
+- `src/app/` owns app shell and top-level orchestration only; keep feature data loading out of `App.tsx` unless it is truly global auth/session state.
 - `src/app/hooks/` owns app-level orchestration hooks, including `useAppAuth`.
 - Keep auth/session behavior in `src/features/auth/hooks/useAuth.ts`.
+- Prefer route-scoped feature wrappers such as `PersonsRoutePage.tsx` and `ProfileRoutePage.tsx` when a page needs local loading or composition logic.
+- Do not eagerly preload the full persons directory or the full current profile on authenticated app boot; load persons/profile data on the routes that own them.
 - Keep reusable, domain-agnostic chip/filter search UI in `src/features/search/`; feature wrappers own query mapping and route integration.
 - Shared UX/UI and interaction conventions are defined in `UX-PRINCIPLES.md`.
 - If a requested UI change clearly conflicts with `UX-PRINCIPLES.md`, agents should explain the conflict briefly and ask for confirmation before proceeding.

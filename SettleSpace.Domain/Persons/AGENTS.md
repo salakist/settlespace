@@ -6,6 +6,7 @@ Domain persons context for aggregate invariants, repository contract, and unique
 ## Responsibilities
 - Define person aggregate and address value-object validation rules.
 - Define person repository interface.
+- Keep `Person` as the source of truth for computed naming rules such as `DisplayName` and `Username`.
 - Define and implement person domain service uniqueness rules.
 - Define person-specific domain exceptions.
 

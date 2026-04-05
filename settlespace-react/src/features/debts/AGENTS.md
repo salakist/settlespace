@@ -7,11 +7,12 @@
 Debts feature provides UI for reviewing net balances with counterparties and recording partial or full settlements.
 
 ## Responsibilities
-- `src/features/debts/components/DebtsPage.tsx` — Orchestrates the debts page, loading state, and alerts.
-- `src/features/debts/components/DebtsList.tsx` — Renders summary cards per counterparty and currency, with direct access to both details and settlement.
-- `src/features/debts/components/DebtDetailsPage.tsx` — Shows transaction-level debt details on a dedicated page.
-- `src/features/debts/components/DebtSettlementDrawer.tsx` — Handles the side-drawer settlement flow with slider, amount input, and manual percent input.
-- `src/features/debts/hooks/useDebts.ts` — Owns debts API loading, detail loading, drawer state, and settlement refresh flow.
+- `src/features/debts/components/DebtsPage.tsx` — orchestrates the debts page, loading state, and alerts.
+- `src/features/debts/components/DebtsList.tsx` — renders summary cards per counterparty and currency, with direct access to both details and settlement.
+- `src/features/debts/components/DebtDetailsPage.tsx` — shows transaction-level debt details on a dedicated page.
+- `src/features/debts/components/DebtSettlementDrawer.tsx` — handles the side-drawer settlement flow with slider, amount input, and manual percent input.
+- `src/features/debts/hooks/useDebts.ts` — owns debts API loading, detail loading, drawer state, and settlement refresh flow.
+- Prefer backend-provided `counterpartyDisplayName` and nested transaction display-name fields for read-only debt rendering; keep client person lookup only where an interactive picker still needs it.
 
 ## Key files
 - `src/features/debts/components/DebtsPage.tsx`

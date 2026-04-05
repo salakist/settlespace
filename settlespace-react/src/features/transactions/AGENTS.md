@@ -7,11 +7,12 @@ Implemented.
 Transactions feature provides UI and state management for user-scoped transaction CRUD.
 
 ## Responsibilities
-- `src/features/transactions/components/TransactionsPage.tsx` â€” page composition and orchestration.
+- `src/features/transactions/components/TransactionsPage.tsx` — page composition and orchestration.
 - `src/features/transactions/components/TransactionSearchBar.tsx` — multi-parameter search with chip-based filters and person autocomplete.
 - `src/features/transactions/components/TransactionList.tsx` — transaction list rendering.
 - `src/features/transactions/components/TransactionForm.tsx` — create/update transaction form.
 - `src/features/transactions/hooks/useTransactions.ts` — feature state, validation, and API interaction.
+- Prefer backend-provided `payerDisplayName`, `payeeDisplayName`, and `createdByDisplayName` for read-only rendering; keep client person lookup only for forms, suggestions, and URL-chip hydration.
 - `src/features/transactions/components/*.test.tsx` and `src/features/transactions/hooks/useTransactions.test.tsx` — component and hook tests.
 
 ## Key files

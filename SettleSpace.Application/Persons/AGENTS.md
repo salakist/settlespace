@@ -8,6 +8,7 @@ Persons API context for person CRUD orchestration and DTO mapping.
 - Own person commands and DTO contracts.
 - Own person mapping between commands, domain models, and DTO responses.
 - Own application-service orchestration for person workflows.
+- Own shared person display-name resolution orchestration for other application contexts via `PersonDisplayNameResolver`.
 
 ## Key files
 - `PersonsController.cs`
@@ -15,6 +16,7 @@ Persons API context for person CRUD orchestration and DTO mapping.
 - `DTOs/`
 - `Mapping/`
 - `Services/`
+- `Services/PersonDisplayNameResolver.cs`
 
 ## Commands
 - `dotnet test Tests/SettleSpace.Application.Tests/SettleSpace.Application.Tests.csproj --filter "FullyQualifiedName~Persons"`

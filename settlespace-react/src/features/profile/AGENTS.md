@@ -7,12 +7,14 @@ Implemented.
 Profile feature provides authenticated profile editing and password-management entry points.
 
 ## Responsibilities
-- `src/features/profile/components/` owns profile page/forms UI.
+- `src/features/profile/components/` owns profile page/forms UI and the route-level wrapper `ProfileRoutePage.tsx`.
 - `src/features/profile/hooks/` owns profile domain behavior (`useProfile`).
+- Load the full current person only when the profile route is active; use auth session identity for the global header/app shell.
 - Keep profile-specific state and validation in feature hooks, not app shell.
 
 ## Key files
 - `components/ProfilePage.tsx`
+- `components/ProfileRoutePage.tsx`
 - `hooks/useProfile.ts`
 
 ## Commands
