@@ -22,3 +22,9 @@ test('renders the existing persons placeholder and action content', () => {
   expect(screen.getByPlaceholderText(/search by first or last name/i)).toBeInTheDocument();
   expect(screen.getByRole('button', { name: /create person/i })).toBeInTheDocument();
 });
+
+test('renders a custom placeholder when provided', () => {
+  render(<PersonSearchBar onSearch={jest.fn()} placeholder="Search transactions or people" />);
+
+  expect(screen.getByPlaceholderText(/search transactions or people/i)).toBeInTheDocument();
+});
