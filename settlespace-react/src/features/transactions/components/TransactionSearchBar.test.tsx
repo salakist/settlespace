@@ -30,6 +30,28 @@ async function clickOption(optionName: string): Promise<void> {
   userEvent.click(option);
 }
 
+async function selectTopLevelOption(
+  queryText: string,
+  optionName: string = queryText,
+): Promise<HTMLElement> {
+  const input = getSearchInput();
+  userEvent.type(input, queryText);
+  await clickOption(optionName);
+  return input;
+}
+
+async function addPersonFilterChip(
+  queryText: string,
+  optionName: string,
+  personQuery: string,
+  personName: string,
+): Promise<HTMLElement> {
+  const input = await selectTopLevelOption(queryText, optionName);
+  userEvent.type(input, personQuery);
+  await clickOption(personName);
+  return input;
+}
+
 beforeEach(() => {
   mockPersonSearch.mockReset();
   mockPersonSearch.mockImplementation(async (query: string) => ({
@@ -225,10 +247,7 @@ test('top-level transaction filter suggestions do not duplicate group headings',
 test('selecting Category enters sub-input mode with chip and action buttons', async () => {
   render(<TransactionSearchBar onSearch={jest.fn()} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, 'Cat');
-  const option = await screen.findByRole('option', { name: TRANSACTION_TEST_TEXT.CATEGORY_LABEL });
-  userEvent.click(option);
+  const input = await selectTopLevelOption('Cat', TRANSACTION_TEST_TEXT.CATEGORY_LABEL);
 
   expect(screen.getByTestId(TRANSACTION_TEST_IDS.PENDING_PARAM_CHIP)).toHaveTextContent(TRANSACTION_TEST_TEXT.CATEGORY_LABEL);
   expect(screen.getByRole('button', { name: /cancel filter/i })).toBeInTheDocument();
@@ -239,9 +258,7 @@ test('selecting Category enters sub-input mode with chip and action buttons', as
 test('confirm button is enabled when sub-input has text', async () => {
   render(<TransactionSearchBar onSearch={jest.fn()} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, 'Cat');
-  await clickOption(TRANSACTION_TEST_TEXT.CATEGORY_LABEL);
+  const input = await selectTopLevelOption('Cat', TRANSACTION_TEST_TEXT.CATEGORY_LABEL);
 
   userEvent.type(input, 'food');
   expect(screen.getByRole('button', { name: /confirm filter/i })).toBeEnabled();
@@ -251,9 +268,7 @@ test('clicking confirm button adds a chip and searches', async () => {
   const onSearch = jest.fn();
   render(<TransactionSearchBar onSearch={onSearch} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, 'Cat');
-  await clickOption(TRANSACTION_TEST_TEXT.CATEGORY_LABEL);
+  const input = await selectTopLevelOption('Cat', TRANSACTION_TEST_TEXT.CATEGORY_LABEL);
 
   userEvent.type(input, 'food');
   fireEvent.click(screen.getByRole('button', { name: /confirm filter/i }));
@@ -265,9 +280,7 @@ test('clicking confirm button adds a chip and searches', async () => {
 test('pressing Escape cancels sub-input mode', async () => {
   render(<TransactionSearchBar onSearch={jest.fn()} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, 'Cat');
-  await clickOption(TRANSACTION_TEST_TEXT.CATEGORY_LABEL);
+  const input = await selectTopLevelOption('Cat', TRANSACTION_TEST_TEXT.CATEGORY_LABEL);
 
   expect(screen.getByTestId(TRANSACTION_TEST_IDS.PENDING_PARAM_CHIP)).toBeInTheDocument();
 
@@ -279,9 +292,7 @@ test('pressing Escape cancels sub-input mode', async () => {
 test('clicking cancel button cancels sub-input mode', async () => {
   render(<TransactionSearchBar onSearch={jest.fn()} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, 'Cat');
-  await clickOption(TRANSACTION_TEST_TEXT.CATEGORY_LABEL);
+  await selectTopLevelOption('Cat', TRANSACTION_TEST_TEXT.CATEGORY_LABEL);
 
   expect(screen.getByTestId(TRANSACTION_TEST_IDS.PENDING_PARAM_CHIP)).toBeInTheDocument();
 
@@ -293,9 +304,7 @@ test('clicking cancel button cancels sub-input mode', async () => {
 test('pressing Backspace on empty sub-input cancels sub-input mode', async () => {
   render(<TransactionSearchBar onSearch={jest.fn()} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, 'Cat');
-  await clickOption(TRANSACTION_TEST_TEXT.CATEGORY_LABEL);
+  const input = await selectTopLevelOption('Cat', TRANSACTION_TEST_TEXT.CATEGORY_LABEL);
 
   expect(screen.getByTestId(TRANSACTION_TEST_IDS.PENDING_PARAM_CHIP)).toBeInTheDocument();
 
@@ -308,10 +317,7 @@ test('selecting Description enters sub-input and creates a chip on confirm', asy
   const onSearch = jest.fn();
   render(<TransactionSearchBar onSearch={onSearch} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, 'Desc');
-  const option = await screen.findByRole('option', { name: TRANSACTION_TEST_TEXT.DESCRIPTION_LABEL });
-  userEvent.click(option);
+  const input = await selectTopLevelOption('Desc', TRANSACTION_TEST_TEXT.DESCRIPTION_LABEL);
 
   expect(screen.getByTestId(TRANSACTION_TEST_IDS.PENDING_PARAM_CHIP)).toHaveTextContent(TRANSACTION_TEST_TEXT.DESCRIPTION_LABEL);
 
@@ -351,10 +357,7 @@ test('initializes from initialQuery with category and description', () => {
 test('selecting Involved enters sub-input mode with chip and cancel button', async () => {
   render(<TransactionSearchBar onSearch={jest.fn()} persons={TEST_PERSONS} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, 'Inv');
-  const option = await screen.findByRole('option', { name: TRANSACTION_TEST_TEXT.INVOLVED_LABEL });
-  userEvent.click(option);
+  const input = await selectTopLevelOption('Inv', TRANSACTION_TEST_TEXT.INVOLVED_LABEL);
 
   expect(screen.getByTestId(TRANSACTION_TEST_IDS.PENDING_PARAM_CHIP)).toHaveTextContent(TRANSACTION_TEST_TEXT.INVOLVED_LABEL);
   expect(screen.getByRole('button', { name: /cancel filter/i })).toBeInTheDocument();
@@ -365,9 +368,7 @@ test('selecting Involved enters sub-input mode with chip and cancel button', asy
 test('typing a person name in Involved mode shows matching persons', async () => {
   render(<TransactionSearchBar onSearch={jest.fn()} persons={TEST_PERSONS} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, 'Inv');
-  await clickOption(TRANSACTION_TEST_TEXT.INVOLVED_LABEL);
+  const input = await selectTopLevelOption('Inv', TRANSACTION_TEST_TEXT.INVOLVED_LABEL);
 
   userEvent.type(input, 'John');
   expect(await screen.findByRole('option', { name: TRANSACTION_TEST_TEXT.JOHN_DOE })).toBeInTheDocument();
@@ -378,12 +379,7 @@ test('selecting a person in Involved mode adds a chip and searches', async () =>
   const onSearch = jest.fn();
   render(<TransactionSearchBar onSearch={onSearch} persons={TEST_PERSONS} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, 'Inv');
-  await clickOption(TRANSACTION_TEST_TEXT.INVOLVED_LABEL);
-
-  userEvent.type(input, 'Jane');
-  await clickOption(TRANSACTION_TEST_TEXT.JANE_SMITH);
+  await addPersonFilterChip('Inv', TRANSACTION_TEST_TEXT.INVOLVED_LABEL, 'Jane', TRANSACTION_TEST_TEXT.JANE_SMITH);
 
   expect(screen.getByText(`${TRANSACTION_TEST_TEXT.INVOLVED_LABEL}: ${TRANSACTION_TEST_TEXT.JANE_SMITH}`)).toBeInTheDocument();
   expect(screen.queryByTestId(TRANSACTION_TEST_IDS.PENDING_PARAM_CHIP)).not.toBeInTheDocument();
@@ -393,9 +389,7 @@ test('selecting a person in Involved mode adds a chip and searches', async () =>
 test('Escape cancels Involved sub-input mode', async () => {
   render(<TransactionSearchBar onSearch={jest.fn()} persons={TEST_PERSONS} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, 'Inv');
-  await clickOption(TRANSACTION_TEST_TEXT.INVOLVED_LABEL);
+  const input = await selectTopLevelOption('Inv', TRANSACTION_TEST_TEXT.INVOLVED_LABEL);
 
   expect(screen.getByTestId(TRANSACTION_TEST_IDS.PENDING_PARAM_CHIP)).toBeInTheDocument();
 
@@ -408,12 +402,7 @@ test('Involved option remains available after adding an involved chip', async ()
   const onSearch = jest.fn();
   render(<TransactionSearchBar onSearch={onSearch} persons={TEST_PERSONS} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, 'Inv');
-  await clickOption(TRANSACTION_TEST_TEXT.INVOLVED_LABEL);
-
-  userEvent.type(input, 'John');
-  await clickOption(TRANSACTION_TEST_TEXT.JOHN_DOE);
+  const input = await addPersonFilterChip('Inv', TRANSACTION_TEST_TEXT.INVOLVED_LABEL, 'John', TRANSACTION_TEST_TEXT.JOHN_DOE);
 
   expect(screen.getByText(`${TRANSACTION_TEST_TEXT.INVOLVED_LABEL}: ${TRANSACTION_TEST_TEXT.JOHN_DOE}`)).toBeInTheDocument();
 
@@ -425,12 +414,7 @@ test('already-selected persons are excluded from Involved suggestions', async ()
   const onSearch = jest.fn();
   render(<TransactionSearchBar onSearch={onSearch} persons={TEST_PERSONS} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, 'Inv');
-  await clickOption(TRANSACTION_TEST_TEXT.INVOLVED_LABEL);
-
-  userEvent.type(input, 'John');
-  await clickOption(TRANSACTION_TEST_TEXT.JOHN_DOE);
+  const input = await addPersonFilterChip('Inv', TRANSACTION_TEST_TEXT.INVOLVED_LABEL, 'John', TRANSACTION_TEST_TEXT.JOHN_DOE);
 
   userEvent.type(input, 'Inv');
   await clickOption(TRANSACTION_TEST_TEXT.INVOLVED_LABEL);
@@ -467,9 +451,7 @@ test('selecting Managed By enters sub-input mode and allows multiple persons', a
   const onSearch = jest.fn();
   render(<TransactionSearchBar onSearch={onSearch} persons={TEST_PERSONS} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, 'Managed');
-  await clickOption(TRANSACTION_TEST_TEXT.MANAGED_BY_OPTION);
+  const input = await selectTopLevelOption('Managed', TRANSACTION_TEST_TEXT.MANAGED_BY_OPTION);
 
   expect(screen.getByTestId(TRANSACTION_TEST_IDS.PENDING_PARAM_CHIP)).toHaveTextContent(TRANSACTION_TEST_TEXT.MANAGED_BY_OPTION);
 
@@ -484,12 +466,7 @@ test('Managed By option remains available after adding a chip', async () => {
   const onSearch = jest.fn();
   render(<TransactionSearchBar onSearch={onSearch} persons={TEST_PERSONS} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, 'Managed');
-  await clickOption(TRANSACTION_TEST_TEXT.MANAGED_BY_OPTION);
-
-  userEvent.type(input, 'John');
-  await clickOption(TRANSACTION_TEST_TEXT.JOHN_DOE);
+  const input = await addPersonFilterChip('Managed', TRANSACTION_TEST_TEXT.MANAGED_BY_OPTION, 'John', TRANSACTION_TEST_TEXT.JOHN_DOE);
 
   expect(screen.getByText(TRANSACTION_TEST_TEXT.MANAGED_BY_JOHN_DOE_CHIP)).toBeInTheDocument();
 
@@ -501,9 +478,7 @@ test('selecting Payer enters sub-input mode and adds a chip', async () => {
   const onSearch = jest.fn();
   render(<TransactionSearchBar onSearch={onSearch} persons={TEST_PERSONS} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, TRANSACTION_TEST_TEXT.PAYER_LABEL);
-  await clickOption(TRANSACTION_TEST_TEXT.PAYER_LABEL);
+  const input = await selectTopLevelOption(TRANSACTION_TEST_TEXT.PAYER_LABEL);
 
   expect(screen.getByTestId(TRANSACTION_TEST_IDS.PENDING_PARAM_CHIP)).toHaveTextContent(TRANSACTION_TEST_TEXT.PAYER_LABEL);
 
@@ -518,12 +493,12 @@ test('Payer option hides after adding a chip', async () => {
   const onSearch = jest.fn();
   render(<TransactionSearchBar onSearch={onSearch} persons={TEST_PERSONS} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, TRANSACTION_TEST_TEXT.PAYER_LABEL);
-  await clickOption(TRANSACTION_TEST_TEXT.PAYER_LABEL);
-
-  userEvent.type(input, 'John');
-  await clickOption(TRANSACTION_TEST_TEXT.JOHN_DOE);
+  const input = await addPersonFilterChip(
+    TRANSACTION_TEST_TEXT.PAYER_LABEL,
+    TRANSACTION_TEST_TEXT.PAYER_LABEL,
+    'John',
+    TRANSACTION_TEST_TEXT.JOHN_DOE,
+  );
 
   expect(screen.getByText(`${TRANSACTION_TEST_TEXT.PAYER_LABEL}: ${TRANSACTION_TEST_TEXT.JOHN_DOE}`)).toBeInTheDocument();
 
@@ -535,9 +510,7 @@ test('selecting Payee enters sub-input mode and adds a chip', async () => {
   const onSearch = jest.fn();
   render(<TransactionSearchBar onSearch={onSearch} persons={TEST_PERSONS} />);
 
-  const input = getSearchInput();
-  userEvent.type(input, TRANSACTION_TEST_TEXT.PAYEE_LABEL);
-  await clickOption(TRANSACTION_TEST_TEXT.PAYEE_LABEL);
+  const input = await selectTopLevelOption(TRANSACTION_TEST_TEXT.PAYEE_LABEL);
 
   expect(screen.getByTestId(TRANSACTION_TEST_IDS.PENDING_PARAM_CHIP)).toHaveTextContent(TRANSACTION_TEST_TEXT.PAYEE_LABEL);
 

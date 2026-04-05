@@ -1,5 +1,13 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
+import {
+  AuthApiModule,
+  AuthStorageModule,
+  getAuthApiMock,
+  getAuthStorageMock,
+  seedAuthStorage,
+  seedSuccessfulAuthResponses,
+} from '../features/auth/testHelpers';
 import { PersonRole } from '../shared/types';
 import { APP_TEST_VALUES } from './testConstants';
 
@@ -15,29 +23,21 @@ const {
 
 const mockGetAppTestValues = () => (jest.requireActual('./testConstants') as typeof import('./testConstants')).APP_TEST_VALUES;
 
-jest.mock('../features/auth/api', () => ({
-  authApi: {
-    login: jest.fn(),
-    register: jest.fn(),
-    changePassword: jest.fn(),
-  },
-}));
+jest.mock('../features/auth/api', () => {
+  const { createAuthApiMock } = jest.requireActual('../features/auth/testHelpers') as typeof import('../features/auth/testHelpers');
 
-jest.mock('../features/auth/storage', () => ({
-  authStorage: {
-    isAuthenticated: jest.fn(),
-    getUsername: jest.fn(),
-    getPersonId: jest.fn(),
-    getDisplayName: jest.fn(),
-    getRole: jest.fn(),
-    saveSession: jest.fn(),
-    clearSession: jest.fn(),
-    setUsername: jest.fn(),
-    setPersonId: jest.fn(),
-    setDisplayName: jest.fn(),
-    setRole: jest.fn(),
-  },
-}));
+  return {
+    authApi: createAuthApiMock(),
+  };
+});
+
+jest.mock('../features/auth/storage', () => {
+  const { createAuthStorageMock } = jest.requireActual('../features/auth/testHelpers') as typeof import('../features/auth/testHelpers');
+
+  return {
+    authStorage: createAuthStorageMock(),
+  };
+});
 
 jest.mock('../features/persons/api', () => ({
   personApi: {
@@ -70,13 +70,15 @@ jest.mock('../features/debts/api', () => ({
   },
 }));
 
-const { authApi: mockAuthApi } = jest.requireMock('../features/auth/api') as {
-  authApi: {
-    login: jest.Mock;
-    register: jest.Mock;
-    changePassword: jest.Mock;
-  };
-};
+const mockAuthApi = getAuthApiMock<{
+  login: jest.Mock;
+  register: jest.Mock;
+  changePassword: jest.Mock;
+}>(jest.requireMock('../features/auth/api') as AuthApiModule<{
+  login: jest.Mock;
+  register: jest.Mock;
+  changePassword: jest.Mock;
+}>);
 
 const { personApi: mockPersonApi } = jest.requireMock('../features/persons/api') as {
   personApi: {
@@ -101,21 +103,9 @@ const { transactionApi: mockTransactionApi } = jest.requireMock('../features/tra
   };
 };
 
-const { authStorage: mockAuthStorage } = jest.requireMock('../features/auth/storage') as {
-  authStorage: {
-    isAuthenticated: jest.Mock;
-    getUsername: jest.Mock;
-    getPersonId: jest.Mock;
-    getDisplayName: jest.Mock;
-    getRole: jest.Mock;
-    saveSession: jest.Mock;
-    clearSession: jest.Mock;
-    setUsername: jest.Mock;
-    setPersonId: jest.Mock;
-    setDisplayName: jest.Mock;
-    setRole: jest.Mock;
-  };
-};
+const mockAuthStorage = getAuthStorageMock(
+  jest.requireMock('../features/auth/storage') as AuthStorageModule,
+);
 
 const { debtsApi: mockDebtsApi } = jest.requireMock('../features/debts/api') as {
   debtsApi: {
@@ -238,19 +228,23 @@ beforeEach(() => {
   jest.clearAllMocks();
   __resetRouterMocks();
 
-  mockAuthStorage.isAuthenticated.mockReturnValue(false);
-  mockAuthStorage.getUsername.mockReturnValue(null);
-  mockAuthStorage.getPersonId.mockReturnValue(null);
-  mockAuthStorage.getDisplayName.mockReturnValue(null);
-  mockAuthStorage.getRole.mockReturnValue(null);
-
-  mockAuthApi.login.mockResolvedValue({
-    data: { token: 'token', username: 'john.doe', personId: 'p1', displayName: 'John Doe', role: PersonRole.Admin },
+  seedAuthStorage(mockAuthStorage);
+  seedSuccessfulAuthResponses(mockAuthApi, {
+    login: {
+      token: 'token',
+      username: 'john.doe',
+      personId: 'p1',
+      displayName: 'John Doe',
+      role: PersonRole.Admin,
+    },
+    register: {
+      token: 'token2',
+      username: 'jane.doe',
+      personId: 'p2',
+      displayName: 'Jane Doe',
+      role: PersonRole.User,
+    },
   });
-  mockAuthApi.register.mockResolvedValue({
-    data: { token: 'token2', username: 'jane.doe', personId: 'p2', displayName: 'Jane Doe', role: PersonRole.User },
-  });
-  mockAuthApi.changePassword.mockResolvedValue({});
 
   mockPersonApi.getAll.mockResolvedValue({
     data: [

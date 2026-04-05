@@ -112,6 +112,25 @@ const sampleBridgeContext: SampleBridgeContext = {
   },
 };
 
+function createExpectedFilter<TParam extends string>(
+  param: TParam,
+  value: string,
+  label: string,
+  group: string,
+): AppliedSearchFilter<TParam> {
+  return { param, value, label, group };
+}
+
+const sampleBridgeFilters: AppliedSearchFilter<SampleParam>[] = [
+  createExpectedFilter(SampleParam.Status, 'Pending', 'Pending', 'Status'),
+  createExpectedFilter(SampleParam.Status, 'Completed', 'Completed', 'Status'),
+  createExpectedFilter(SampleParam.Priority, 'high', 'High', 'Priority'),
+  createExpectedFilter(SampleParam.Category, 'Travel', 'Travel', 'Category'),
+  createExpectedFilter(SampleParam.Owner, 'p1', 'Jane Doe', 'Owner'),
+  createExpectedFilter(SampleParam.Reviewer, 'p2', 'Sam Smith', 'Reviewer'),
+  createExpectedFilter(SampleParam.Special, 'p3', 'Special p3', 'Special'),
+];
+
 test('normalizeBridgeFreeText trims meaningful text and omits empty values', () => {
   expect(normalizeBridgeFreeText('  hello  ')).toBe('hello');
   expect(normalizeBridgeFreeText('   ')).toBeUndefined();
@@ -130,38 +149,29 @@ test('filter helpers read single and multi values by param', () => {
 });
 
 test('build helpers create lookup, text, and resolved filters with expected labels', () => {
-  expect(buildTextSearchFilter('category', 'Travel', 'Category')).toEqual({
-    param: 'category',
-    value: 'Travel',
-    label: 'Travel',
-    group: 'Category',
-  });
+  expect(buildTextSearchFilter('category', 'Travel', 'Category')).toEqual(
+    createExpectedFilter('category', 'Travel', 'Travel', 'Category'),
+  );
 
-  expect(buildLookupSearchFilter('status', 'Pending', [{ value: 'Pending', label: 'Pending' }], 'Status')).toEqual({
-    param: 'status',
-    value: 'Pending',
-    label: 'Pending',
-    group: 'Status',
-  });
+  expect(buildLookupSearchFilter('status', 'Pending', [{ value: 'Pending', label: 'Pending' }], 'Status')).toEqual(
+    createExpectedFilter('status', 'Pending', 'Pending', 'Status'),
+  );
 
   expect(buildLookupSearchFilters('status', ['Pending', 'Completed'], [
     { value: 'Pending', label: 'Pending' },
     { value: 'Completed', label: 'Completed', group: 'Lifecycle' },
   ], 'Status')).toEqual([
-    { param: 'status', value: 'Pending', label: 'Pending', group: 'Status' },
-    { param: 'status', value: 'Completed', label: 'Completed', group: 'Lifecycle' },
+    createExpectedFilter('status', 'Pending', 'Pending', 'Status'),
+    createExpectedFilter('status', 'Completed', 'Completed', 'Lifecycle'),
   ]);
 
-  expect(buildResolvedSearchFilter('payer', 'p1', 'Payer', (value) => `User ${value}`)).toEqual({
-    param: 'payer',
-    value: 'p1',
-    label: 'User p1',
-    group: 'Payer',
-  });
+  expect(buildResolvedSearchFilter('payer', 'p1', 'Payer', (value) => `User ${value}`)).toEqual(
+    createExpectedFilter('payer', 'p1', 'User p1', 'Payer'),
+  );
 
   expect(buildResolvedSearchFilters('payer', ['p1', 'p2'], 'Payer', (value) => `User ${value}`)).toEqual([
-    { param: 'payer', value: 'p1', label: 'User p1', group: 'Payer' },
-    { param: 'payer', value: 'p2', label: 'User p2', group: 'Payer' },
+    createExpectedFilter('payer', 'p1', 'User p1', 'Payer'),
+    createExpectedFilter('payer', 'p2', 'User p2', 'Payer'),
   ]);
 });
 
@@ -188,15 +198,7 @@ test('createSearchValueBridge maps queries to GenericSearchValue with declarativ
     specialOwner: 'p3',
   }, sampleBridgeContext)).toEqual({
     freeText: 'coffee',
-    filters: [
-      { param: SampleParam.Status, value: 'Pending', label: 'Pending', group: 'Status' },
-      { param: SampleParam.Status, value: 'Completed', label: 'Completed', group: 'Status' },
-      { param: SampleParam.Priority, value: 'high', label: 'High', group: 'Priority' },
-      { param: SampleParam.Category, value: 'Travel', label: 'Travel', group: 'Category' },
-      { param: SampleParam.Owner, value: 'p1', label: 'Jane Doe', group: 'Owner' },
-      { param: SampleParam.Reviewer, value: 'p2', label: 'Sam Smith', group: 'Reviewer' },
-      { param: SampleParam.Special, value: 'p3', label: 'Special p3', group: 'Special' },
-    ],
+    filters: sampleBridgeFilters,
   });
 });
 
@@ -205,15 +207,7 @@ test('createSearchValueBridge maps GenericSearchValue back to a query and suppor
 
   expect(bridge.fromSearchValue({
     freeText: '  coffee  ',
-    filters: [
-      { param: SampleParam.Status, value: 'Pending', label: 'Pending', group: 'Status' },
-      { param: SampleParam.Status, value: 'Completed', label: 'Completed', group: 'Status' },
-      { param: SampleParam.Priority, value: 'high', label: 'High', group: 'Priority' },
-      { param: SampleParam.Category, value: 'Travel', label: 'Travel', group: 'Category' },
-      { param: SampleParam.Owner, value: 'p1', label: 'Jane Doe', group: 'Owner' },
-      { param: SampleParam.Reviewer, value: 'p2', label: 'Sam Smith', group: 'Reviewer' },
-      { param: SampleParam.Special, value: 'p3', label: 'Special p3', group: 'Special' },
-    ],
+    filters: sampleBridgeFilters,
   }, sampleBridgeContext)).toEqual({
     search: 'coffee',
     status: ['Pending', 'Completed'],
