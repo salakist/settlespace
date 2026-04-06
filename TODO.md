@@ -15,6 +15,7 @@ Prioritized backlog for **planned / shelved product work**.
 **Scope**
 
 - Refactor transaction search business-policy helpers (`ApplyManagedByFilter` / `ApplyInvolvementFilter`) into a clearer domain policy/service home instead of keeping them inside `TransactionApplicationService`
+- Reduce the remaining Sonar-reported duplication in `settlespace-react/src/features/search/components/SearchBar.test.tsx` by consolidating the repeated test setup without obscuring intent
 
 ### 1. Dashboard / overview page
 **Why next:** improves the landing experience and gives users a useful summary immediately after login.
