@@ -51,6 +51,20 @@ function isManagedTransaction(transaction: Transaction, currentPersonId?: string
   return transaction.payerPersonId !== currentPersonId && transaction.payeePersonId !== currentPersonId;
 }
 
+function getManagedByLabel(transaction: Transaction, currentPersonId?: string): string | null {
+  const creatorPersonId = transaction.createdByPersonId;
+
+  if (!creatorPersonId || creatorPersonId === currentPersonId) {
+    return null;
+  }
+
+  if (creatorPersonId === transaction.payerPersonId || creatorPersonId === transaction.payeePersonId) {
+    return null;
+  }
+
+  return `${TRANSACTION_LIST_TEXT.MANAGED_BY} ${transaction.createdByDisplayName ?? creatorPersonId}`;
+}
+
 const TransactionList: React.FC<TransactionListProps> = ({
   transactions,
   currentPersonId,
@@ -95,6 +109,7 @@ const TransactionList: React.FC<TransactionListProps> = ({
       <Stack spacing={1.5}>
         {transactions.map((transaction) => {
           const transactionId = transaction.id;
+          const managedByLabel = getManagedByLabel(transaction, currentPersonId);
 
           return (
             <Paper key={transactionId} elevation={0} sx={listItemSurfaceSx}>
@@ -116,6 +131,11 @@ const TransactionList: React.FC<TransactionListProps> = ({
                   <Typography variant="body2" color={SECONDARY_TEXT_COLOR}>
                     {(transaction.payerDisplayName ?? transaction.payerPersonId)} paid {(transaction.payeeDisplayName ?? transaction.payeePersonId)}
                   </Typography>
+                  {managedByLabel && (
+                    <Typography variant="caption" color={SECONDARY_TEXT_COLOR}>
+                      {managedByLabel}
+                    </Typography>
+                  )}
                   <Typography variant="caption" color={SECONDARY_TEXT_COLOR}>
                     {formatDateDDMMYYYY(transaction.transactionDateUtc)}
                     {transaction.category ? ` • ${transaction.category}` : ''}

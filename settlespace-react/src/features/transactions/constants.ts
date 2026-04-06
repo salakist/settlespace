@@ -29,6 +29,7 @@ export const TRANSACTION_LIST_STYLE = {
 
 export const TRANSACTION_LIST_TEXT = {
   MANAGED: 'Managed',
+  MANAGED_BY: 'Managed by',
   EDIT: 'Edit',
   DELETE: 'Delete',
 } as const;
