@@ -15,7 +15,6 @@ Prioritized backlog for **planned / shelved product work**.
 **Scope**
 
 - Refactor transaction search business-policy helpers (`ApplyManagedByFilter` / `ApplyInvolvementFilter`) into a clearer domain policy/service home instead of keeping them inside `TransactionApplicationService`
-- Do a small frontend cleanup pass focused on low-value duplication that was not part of the earlier enums/constants review in `search`, `transactions`, and `persons`; target minor repeated UI labels, test fixture values, helper text, and IDs in the remaining frontend files, but avoid another large refactor or moving one-off literals into constants when it would hurt readability
 
 ### 1. Dashboard / overview page
 **Why next:** improves the landing experience and gives users a useful summary immediately after login.

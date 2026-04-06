@@ -8,6 +8,7 @@ import {
   seedAuthStorage,
   seedSuccessfulAuthResponses,
 } from '../features/auth/testHelpers';
+import { BRAND_HEADER_ALT_TEXT } from '../shared/components/constants';
 import { PersonRole } from '../shared/types';
 import { APP_TEST_VALUES } from './testConstants';
 
@@ -175,7 +176,7 @@ jest.mock('../features/auth/components/LoginPage', () => {
     default: ({ onLogin, onShowRegister, error }: { onLogin: (u: string, p: string) => void; onShowRegister: () => void; error?: string | null }) => (
       <div>
         <h1>Sign In</h1>
-        <button onClick={() => onLogin('john.doe', APP_TEST_VALUES.TEST_PASSWORD)}>Submit Login</button>
+        <button onClick={() => onLogin(APP_TEST_VALUES.TEST_USERNAME, APP_TEST_VALUES.TEST_PASSWORD)}>Submit Login</button>
         <button onClick={onShowRegister}>Go Register</button>
         {error ? <div>{error}</div> : null}
       </div>
@@ -304,7 +305,7 @@ test('hydrates auth identity for authenticated legacy sessions missing person me
 
   render(<App />);
 
-  expect(await screen.findByAltText(/SettleSpace header/i)).toBeInTheDocument();
+  expect(await screen.findByAltText(BRAND_HEADER_ALT_TEXT)).toBeInTheDocument();
   await waitFor(() => expect(mockPersonApi.getCurrent).toHaveBeenCalledTimes(1));
   expect(mockAuthStorage.setUsername).toHaveBeenCalledWith('John.Doe');
   expect(mockAuthStorage.setDisplayName).toHaveBeenCalledWith('John Doe');
@@ -334,7 +335,7 @@ test('supports login, directory actions, profile actions, and logout', async () 
 
   fireEvent.click(screen.getByRole('button', { name: /submit login/i }));
 
-  expect(await screen.findByAltText(/SettleSpace header/i)).toBeInTheDocument();
+  expect(await screen.findByAltText(BRAND_HEADER_ALT_TEXT)).toBeInTheDocument();
   await waitFor(() => expect(mockPersonApi.getAll).toHaveBeenCalled());
   expect(mockPersonApi.getCurrent).not.toHaveBeenCalled();
 

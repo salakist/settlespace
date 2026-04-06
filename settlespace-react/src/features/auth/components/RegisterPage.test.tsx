@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { AUTH_UI_TEXT } from '../constants';
 import RegisterPage from './RegisterPage';
 
 jest.mock('../../persons/components/PersonAddressEditor', () => ({
@@ -44,7 +45,7 @@ test('shows validation error for mismatched passwords', async () => {
   fireEvent.change(screen.getByLabelText(/Last Name/i), { target: { value: 'Doe' } });
   fireEvent.change(screen.getAllByLabelText(/Password/i)[0], { target: { value: 'Secret1!' } });
   fireEvent.change(screen.getByLabelText(/Confirm Password/i), { target: { value: 'Different1!' } });
-  fireEvent.submit(screen.getByRole('button', { name: /Register & Sign In/i }));
+  fireEvent.submit(screen.getByRole('button', { name: AUTH_UI_TEXT.REGISTER_BUTTON }));
 
   expect(await screen.findByText(/does not match/i)).toBeInTheDocument();
 });
@@ -66,7 +67,7 @@ test('submits sanitized payload and can go back to login', async () => {
   fireEvent.click(screen.getByRole('button', { name: /Inject Addresses/i }));
   fireEvent.change(screen.getByLabelText(/Confirm Password/i), { target: { value: 'Secret1!' } });
 
-  fireEvent.submit(screen.getByRole('button', { name: /Register & Sign In/i }));
+  fireEvent.submit(screen.getByRole('button', { name: AUTH_UI_TEXT.REGISTER_BUTTON }));
 
   await waitFor(() => expect(onRegister).toHaveBeenCalled());
   expect(onRegister).toHaveBeenCalledWith({
@@ -89,6 +90,6 @@ test('submits sanitized payload and can go back to login', async () => {
     ],
   });
 
-  fireEvent.click(screen.getByRole('button', { name: /^Login$/i }));
+  fireEvent.click(screen.getByRole('button', { name: AUTH_UI_TEXT.LOGIN_LINK }));
   expect(onShowLogin).toHaveBeenCalled();
 });

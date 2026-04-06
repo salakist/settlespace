@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { DEBT_SEARCH_TEXT } from '../constants';
 import { DebtDirection, DebtSummary } from '../types';
 import DebtsPage from './DebtsPage';
 
@@ -13,13 +14,14 @@ jest.mock('react-router-dom', () => ({
 }));
 
 jest.mock('./DebtSearchBar', () => {
-  const { DebtDirection } = jest.requireActual('../types');
+  const { DEBT_SEARCH_TEXT } = jest.requireActual('../constants') as typeof import('../constants');
+  const { DebtDirection } = jest.requireActual('../types') as typeof import('../types');
 
   return {
     __esModule: true,
     default: ({ onSearch }: { onSearch: (query: { freeText?: string; direction?: string }) => void }) => (
       <div>
-        <input aria-label="Debt search" placeholder="Search by counterparty name" readOnly />
+        <input aria-label={DEBT_SEARCH_TEXT.ARIA_LABEL} placeholder={DEBT_SEARCH_TEXT.DEFAULT_PLACEHOLDER} readOnly />
         <button onClick={() => onSearch({ freeText: 'Jane Doe', direction: DebtDirection.YouOweThem })}>Search debts</button>
       </div>
     ),
@@ -110,7 +112,7 @@ test('renders debt list and loads debts on mount', () => {
 
   expect(mockHook.loadDebts).toHaveBeenCalled();
   expect(screen.getByText(/debts list/i)).toBeInTheDocument();
-  expect(screen.getByPlaceholderText(/counterparty name/i)).toBeInTheDocument();
+  expect(screen.getByPlaceholderText(DEBT_SEARCH_TEXT.DEFAULT_PLACEHOLDER)).toBeInTheDocument();
 });
 
 test('forwards settlement, filtering, and details actions', () => {

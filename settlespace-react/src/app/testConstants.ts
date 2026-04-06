@@ -4,5 +4,6 @@ export const APP_TEST_ATTRIBUTES = {
 
 export const APP_TEST_VALUES = {
   MOCK_DATE_OF_BIRTH: '1990-01-01',
+  TEST_USERNAME: 'john.doe',
   TEST_PASSWORD: 'Secret!1',
 } as const;

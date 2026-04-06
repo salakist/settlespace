@@ -4,6 +4,7 @@ import {
   rejectUnauthorizedAction,
 } from '../../../shared/api/requestHandling';
 import { canUpdateOrDeleteTransaction } from '../../../shared/auth/permissions';
+import { SESSION_EXPIRED_MESSAGE } from '../../../shared/constants/messages';
 import { PersonRole, Transaction } from '../../../shared/types';
 import { transactionApi } from '../api';
 import { TransactionSearchQuery } from '../types';
@@ -30,7 +31,7 @@ export function useTransactions({ expireSession, currentPersonId, role }: UseTra
 
   const handleUnauthorized = useCallback(() => {
     clearTransactionsState();
-    expireSession('Your session expired. Please log in again.');
+    expireSession(SESSION_EXPIRED_MESSAGE);
   }, [clearTransactionsState, expireSession]);
 
   const handleSearch = useCallback(async (query: TransactionSearchQuery = {}) => {

@@ -8,7 +8,9 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { BRAND_HEADER_ALT_TEXT } from '../../../shared/components/constants';
 import { authCardSurfaceSx, BRAND_HEADER_SRC } from '../../../shared/theme/surfaceStyles';
+import { AUTH_UI_TEXT } from '../constants';
 
 interface LoginPageProps {
   onLogin: (username: string, password: string) => Promise<void>;
@@ -33,12 +35,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowRegister, error, l
           <Box
             component="img"
             src={BRAND_HEADER_SRC}
-            alt="SettleSpace header"
+            alt={BRAND_HEADER_ALT_TEXT}
             sx={{ width: '100%', maxWidth: 360, height: 'auto' }}
           />
 
           <Typography variant="h4" sx={{ fontWeight: 700, textAlign: 'center' }}>
-            Sign In
+            {AUTH_UI_TEXT.SIGN_IN_HEADING}
           </Typography>
 
           {error && <Alert severity="error" sx={{ width: '100%' }}>{error}</Alert>}
@@ -49,7 +51,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowRegister, error, l
                 label="Username"
                 value={username}
                 onChange={(event) => setUsername(event.target.value)}
-                placeholder="firstName.lastName"
+                placeholder={AUTH_UI_TEXT.USERNAME_PLACEHOLDER}
                 fullWidth
                 autoComplete="username"
                 required
@@ -64,10 +66,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onShowRegister, error, l
                 required
               />
               <Button type="submit" variant="contained" size="large" disabled={loading}>
-                {loading ? 'Signing In...' : 'Log In'}
+                {loading ? AUTH_UI_TEXT.LOGIN_BUTTON_LOADING : AUTH_UI_TEXT.LOGIN_BUTTON}
               </Button>
               <Button variant="text" onClick={onShowRegister} disabled={loading}>
-                Create Account
+                {AUTH_UI_TEXT.CREATE_ACCOUNT_LINK}
               </Button>
             </Stack>
           </Box>

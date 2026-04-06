@@ -1,5 +1,7 @@
 import React from 'react';
 import { act, render, waitFor } from '@testing-library/react';
+import { APP_TEST_VALUES } from '../../../app/testConstants';
+import { SESSION_EXPIRED_MESSAGE } from '../../../shared/constants/messages';
 import { PersonRole } from '../../../shared/types';
 import {
   AuthApiModule,
@@ -70,7 +72,7 @@ test('login saves session, updates auth state, and navigates to home', async () 
   const harness = createAuthHarness();
 
   await act(async () => {
-    const success = await harness.getHook().login('john.doe', 'Secret!1');
+    const success = await harness.getHook().login(APP_TEST_VALUES.TEST_USERNAME, APP_TEST_VALUES.TEST_PASSWORD);
     expect(success).toBe(true);
   });
 
@@ -103,7 +105,7 @@ test('register surfaces backend error message and returns false', async () => {
     const success = await harness.getHook().register({
       firstName: 'Jane',
       lastName: 'Doe',
-      password: 'Secret!1',
+      password: APP_TEST_VALUES.TEST_PASSWORD,
       addresses: [],
     });
     expect(success).toBe(false);
@@ -122,7 +124,7 @@ test('expireSession clears storage and redirects to login', () => {
 
   expect(authStorage.clearSession).toHaveBeenCalled();
   expect(harness.getHook().isAuthenticated).toBe(false);
-  expect(harness.getHook().authError).toBe('Your session expired. Please log in again.');
+  expect(harness.getHook().authError).toBe(SESSION_EXPIRED_MESSAGE);
   expect(mockNavigate).toHaveBeenCalledWith('/login');
 });
 

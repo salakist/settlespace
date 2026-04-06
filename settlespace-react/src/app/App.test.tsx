@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { BRAND_HEADER_ALT_TEXT } from '../shared/components/constants';
 import { PersonRole } from '../shared/types';
 import { APP_TEST_ATTRIBUTES } from './testConstants';
 
@@ -208,7 +209,7 @@ test('renders authenticated shell and calls handleLogout on logout click', () =>
 
   render(<App />);
 
-  expect(screen.getByAltText(/SettleSpace header/i)).toBeInTheDocument();
+  expect(screen.getByAltText(BRAND_HEADER_ALT_TEXT)).toBeInTheDocument();
   fireEvent.click(screen.getByRole('button', { name: /log out/i }));
 
   expect(handleLogout).toHaveBeenCalled();

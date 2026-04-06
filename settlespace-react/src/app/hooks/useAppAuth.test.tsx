@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, render } from '@testing-library/react';
+import { APP_TEST_VALUES } from '../testConstants';
 import { useAppAuth } from './useAppAuth';
 
 type AppAuthHookResult = ReturnType<typeof useAppAuth>;
@@ -33,15 +34,21 @@ test('handleLogin calls login', async () => {
   const harness = createHarness();
 
   await act(async () => {
-    await harness.getHook().handleLogin('john.doe', 'Secret!1');
+    await harness.getHook().handleLogin(APP_TEST_VALUES.TEST_USERNAME, APP_TEST_VALUES.TEST_PASSWORD);
   });
 
-  expect(mockOptions.login).toHaveBeenCalledWith('john.doe', 'Secret!1');
+  expect(mockOptions.login).toHaveBeenCalledWith(APP_TEST_VALUES.TEST_USERNAME, APP_TEST_VALUES.TEST_PASSWORD);
 });
 
 test('handleRegister calls register', async () => {
   const harness = createHarness();
-  const request = { firstName: 'Jane', lastName: 'Doe', password: 'Secret!1', dateOfBirth: '1990-01-01', addresses: [] };
+  const request = {
+    firstName: 'Jane',
+    lastName: 'Doe',
+    password: APP_TEST_VALUES.TEST_PASSWORD,
+    dateOfBirth: APP_TEST_VALUES.MOCK_DATE_OF_BIRTH,
+    addresses: [],
+  };
 
   await act(async () => {
     await harness.getHook().handleRegister(request);

@@ -17,6 +17,8 @@ import { APP_ROUTES, PRIMARY_TABS as PRIMARY_NAV_TABS } from './constants';
 import { personApi } from '../features/persons/api';
 import { logHandledError } from '../shared/api/requestHandling';
 import { canAccessPersonsPage } from '../shared/auth/permissions';
+import { BRAND_HEADER_ALT_TEXT } from '../shared/components/constants';
+import { SESSION_EXPIRED_MESSAGE } from '../shared/constants/messages';
 import { BRAND_HEADER_SRC } from '../shared/theme/surfaceStyles';
 
 function getPrimaryTabValue(pathname: string, tabs: readonly { value: string }[]): string | false {
@@ -145,7 +147,7 @@ function App() {
         }
       } catch (error) {
         if (typeof error === 'object' && error && 'response' in error && (error as { response?: { status?: number } }).response?.status === 401) {
-          expireSession('Your session expired. Please log in again.');
+          expireSession(SESSION_EXPIRED_MESSAGE);
           return;
         }
 
@@ -231,7 +233,7 @@ function App() {
             <Box
               component="img"
               src={BRAND_HEADER_SRC}
-              alt="SettleSpace header"
+              alt={BRAND_HEADER_ALT_TEXT}
               sx={{ width: { xs: '100%', sm: 320 }, maxWidth: '100%', height: 'auto' }}
             />
 

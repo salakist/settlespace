@@ -1,3 +1,5 @@
+export const BRAND_HEADER_ALT_TEXT = 'SettleSpace header';
+
 export const DATE_INPUT_DEFAULT_PLACEHOLDER = 'DD/MM/YYYY';
 
 export const DATE_INPUT_THEME_KEYS = {

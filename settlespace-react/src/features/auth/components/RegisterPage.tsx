@@ -8,10 +8,12 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
-import { authCardSurfaceSx, BRAND_HEADER_SRC } from '../../../shared/theme/surfaceStyles';
+import { BRAND_HEADER_ALT_TEXT } from '../../../shared/components/constants';
 import DateInputField from '../../../shared/components/DateInputField';
+import { authCardSurfaceSx, BRAND_HEADER_SRC } from '../../../shared/theme/surfaceStyles';
 import { Address } from '../../../shared/types';
 import PersonAddressEditor from '../../persons/components/PersonAddressEditor';
+import { AUTH_UI_TEXT } from '../constants';
 import { RegisterRequest } from '../types';
 
 interface RegisterPageProps {
@@ -67,12 +69,12 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
           <Box
             component="img"
             src={BRAND_HEADER_SRC}
-            alt="SettleSpace header"
+            alt={BRAND_HEADER_ALT_TEXT}
             sx={{ width: '100%', maxWidth: 420, height: 'auto' }}
           />
 
           <Typography variant="h4" sx={{ fontWeight: 700, textAlign: 'center' }}>
-            Register
+            {AUTH_UI_TEXT.REGISTER_HEADING}
           </Typography>
 
           {error && <Alert severity="error" sx={{ width: '100%' }}>{error}</Alert>}
@@ -116,7 +118,7 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
                   required
                 />
                 <Alert severity="info">
-                  Password rules: at least 8 characters, including uppercase, lowercase, number, and special character.
+                  {AUTH_UI_TEXT.PASSWORD_RULES_HELPER}
                 </Alert>
               </Stack>
               <TextField
@@ -143,10 +145,10 @@ const RegisterPage: React.FC<RegisterPageProps> = ({
               />
               <PersonAddressEditor addresses={addresses} onChange={setAddresses} disabled={loading} />
               <Button type="submit" variant="contained" size="large" disabled={loading}>
-                {loading ? 'Creating Account...' : 'Register & Sign In'}
+                {loading ? AUTH_UI_TEXT.REGISTER_BUTTON_LOADING : AUTH_UI_TEXT.REGISTER_BUTTON}
               </Button>
               <Button variant="text" onClick={onShowLogin} disabled={loading}>
-                Login
+                {AUTH_UI_TEXT.LOGIN_LINK}
               </Button>
             </Stack>
           </Box>
