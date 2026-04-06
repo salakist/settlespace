@@ -198,11 +198,12 @@ public class TransactionRepositoryTests
     public async Task SearchAsyncFilterWithManagedByReturnsMatchingTransactions()
     {
         var tx = BuildTransaction("tx-1");
+        tx.CreatedByPersonId = "user-3";
         var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
 
         var result = await repo.SearchAsync(new TransactionSearchFilter
         {
-            ManagedBy = ["user-1"]
+            ManagedBy = ["user-3"]
         });
 
         Assert.Single(result);

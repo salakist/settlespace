@@ -150,6 +150,74 @@ test('async suggestion parameters load results and add selected chips', async ()
   });
 });
 
+test('pressing Enter in async sub-input mode without a highlighted option keeps the autocomplete open', async () => {
+  const onSearch = jest.fn();
+  const getSuggestions = jest.fn(async () => [{
+    value: 'p2',
+    label: SEARCH_TEST_TEXT.JANE_SMITH,
+    group: SEARCH_TEST_TEXT.PEOPLE_GROUP,
+  }]);
+
+  render(
+    <SearchBar
+      onSearch={onSearch}
+      ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL}
+      parameters={buildInvolvedAsyncParameters(getSuggestions)}
+    />,
+  );
+
+  const input = screen.getByLabelText(SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL);
+  userEvent.type(input, 'Inv');
+  await clickOption(SEARCH_TEST_TEXT.INVOLVED_LABEL);
+
+  userEvent.type(input, 'Jane');
+  expect(await screen.findByRole('option', { name: SEARCH_TEST_TEXT.JANE_SMITH })).toBeInTheDocument();
+
+  fireEvent.keyDown(input, { key: 'Enter' });
+
+  expect(screen.getByRole('listbox')).toBeInTheDocument();
+  expect(input).toHaveValue('Jane');
+  expect(onSearch).not.toHaveBeenCalled();
+});
+
+test('pressing Enter in async sub-input mode with a highlighted option still selects it', async () => {
+  const onSearch = jest.fn();
+  const getSuggestions = jest.fn(async () => [{
+    value: 'p2',
+    label: SEARCH_TEST_TEXT.JANE_SMITH,
+    group: SEARCH_TEST_TEXT.PEOPLE_GROUP,
+  }]);
+
+  render(
+    <SearchBar
+      onSearch={onSearch}
+      ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL}
+      parameters={buildInvolvedAsyncParameters(getSuggestions)}
+    />,
+  );
+
+  const input = screen.getByLabelText(SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL);
+  userEvent.type(input, 'Inv');
+  await clickOption(SEARCH_TEST_TEXT.INVOLVED_LABEL);
+
+  userEvent.type(input, 'Jane');
+  expect(await screen.findByRole('option', { name: SEARCH_TEST_TEXT.JANE_SMITH })).toBeInTheDocument();
+
+  fireEvent.keyDown(input, { key: 'ArrowDown' });
+  fireEvent.keyDown(input, { key: 'Enter' });
+
+  await waitFor(() => expect(screen.queryByRole('listbox')).not.toBeInTheDocument());
+  expect(screen.getByText(`${SEARCH_TEST_TEXT.PEOPLE_GROUP}: ${SEARCH_TEST_TEXT.JANE_SMITH}`)).toBeInTheDocument();
+  expect(onSearch).toHaveBeenCalledWith({
+    filters: [{
+      param: 'involved',
+      value: 'p2',
+      label: SEARCH_TEST_TEXT.JANE_SMITH,
+      group: SEARCH_TEST_TEXT.PEOPLE_GROUP,
+    }],
+  });
+});
+
 test('supports hiding group headings in top-level filter autocomplete', async () => {
   const onSearch = jest.fn();
 

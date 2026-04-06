@@ -12,7 +12,7 @@ Prioritized backlog for **planned / shelved product work**.
 
 **Initial scope**
 
-- run full code sonar analysis and fix all passing issues
+- refactor transaction search business-policy helpers (`ApplyManagedByFilter` / `ApplyInvolvementFilter`) into a clearer domain policy/service home instead of keeping them inside `TransactionApplicationService`
 
 ### 1. Dashboard / overview page
 **Why next:** improves the landing experience and gives users a useful summary immediately after login.

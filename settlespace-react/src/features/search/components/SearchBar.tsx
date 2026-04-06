@@ -13,6 +13,7 @@ import { SearchBarProps } from '../types';
 import {
   filterAutocompleteOptions,
   getAutocompleteGroupLabel,
+  isAsyncSearchParameter,
 } from '../utils/searchHelpers';
 
 const SearchBar = <TParam extends string = string,>({
@@ -60,6 +61,43 @@ const SearchBar = <TParam extends string = string,>({
 
     if (!shouldOpen) {
       inputRef.current?.blur();
+    }
+  };
+
+  const handleInputKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (
+      pendingParameter
+      && isAsyncSearchParameter(pendingParameter)
+      && event.key === 'Enter'
+    ) {
+      const inputElement = event.target as HTMLInputElement | null;
+      const hasHighlightedOption = Boolean(
+        inputElement?.getAttribute('aria-activedescendant'),
+      );
+
+      if (!hasHighlightedOption) {
+        event.preventDefault();
+        event.stopPropagation();
+        (
+          event as React.KeyboardEvent<HTMLInputElement> & {
+            defaultMuiPrevented?: boolean;
+          }
+        ).defaultMuiPrevented = true;
+        setIsAutocompleteOpen(true);
+        return;
+      }
+    }
+
+    if (!pendingParameter) {
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      event.stopPropagation();
+      handleCancelPending();
+    } else if (event.key === 'Backspace' && !inputValue) {
+      event.preventDefault();
+      handleCancelPending();
     }
   };
 
@@ -185,19 +223,7 @@ const SearchBar = <TParam extends string = string,>({
                     } : {}),
                   },
                 }}
-                onKeyDown={(event) => {
-                  if (!pendingParameter) {
-                    return;
-                  }
-
-                  if (event.key === 'Escape') {
-                    event.stopPropagation();
-                    handleCancelPending();
-                  } else if (event.key === 'Backspace' && !inputValue) {
-                    event.preventDefault();
-                    handleCancelPending();
-                  }
-                }}
+                onKeyDown={handleInputKeyDown}
                 sx={{
                   '& .MuiOutlinedInput-root': {
                     ...(hasParameters

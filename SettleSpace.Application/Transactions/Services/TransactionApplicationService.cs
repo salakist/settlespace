@@ -80,7 +80,8 @@ namespace SettleSpace.Application.Transactions.Services
                 readable = _domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
             }
 
-            return ApplyInvolvementFilter(readable, loggedPersonId, query.Involvement);
+            var managedByFiltered = ApplyManagedByFilter(readable, query.ManagedBy);
+            return ApplyInvolvementFilter(managedByFiltered, loggedPersonId, query.Involvement);
         }
 
         public async Task<Transaction> GetTransactionByIdAsync(string id, string loggedPersonId, PersonRole loggedRole)
@@ -142,6 +143,32 @@ namespace SettleSpace.Application.Transactions.Services
                 transaction.TransactionDateUtc.ToString("O"),
                 transaction.Description,
                 transaction.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+
+        private static List<Transaction> ApplyManagedByFilter(
+            List<Transaction> transactions,
+            List<string>? managedBy)
+        {
+            if (managedBy is not { Count: > 0 })
+            {
+                return transactions;
+            }
+
+            var managedByIds = managedBy
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .ToHashSet(StringComparer.Ordinal);
+
+            if (managedByIds.Count == 0)
+            {
+                return transactions;
+            }
+
+            return transactions
+                .Where(t =>
+                    !string.IsNullOrWhiteSpace(t.CreatedByPersonId)
+                    && managedByIds.Contains(t.CreatedByPersonId)
+                    && !t.IsUserInvolved(t.CreatedByPersonId))
+                .ToList();
         }
 
         private static List<Transaction> ApplyInvolvementFilter(
