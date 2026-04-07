@@ -10,6 +10,8 @@ namespace SettleSpace.Domain.Transactions.Services
         void EnsureCanUpdate(Transaction transaction, string loggedPersonId, PersonRole loggedRole);
         void EnsureCanDelete(Transaction transaction, string loggedPersonId, PersonRole loggedRole);
         List<Transaction> FilterReadableTransactions(IEnumerable<Transaction> transactions, string loggedPersonId, PersonRole loggedRole);
+        List<Transaction> FilterByManagedBy(List<Transaction> transactions, List<string>? managedBy);
+        List<Transaction> FilterByInvolvement(List<Transaction> transactions, string loggedPersonId, InvolvementType? involvement);
     }
 }
 

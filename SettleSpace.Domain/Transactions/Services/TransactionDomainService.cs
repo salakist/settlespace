@@ -93,6 +93,44 @@ namespace SettleSpace.Domain.Transactions.Services
             return [.. transactions.Where(transaction => transaction.IsUserInvolved(loggedPersonId))];
         }
 
+        public List<Transaction> FilterByManagedBy(List<Transaction> transactions, List<string>? managedBy)
+        {
+            if (managedBy is not { Count: > 0 })
+            {
+                return transactions;
+            }
+
+            var managedByIds = managedBy
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .ToHashSet(StringComparer.Ordinal);
+
+            if (managedByIds.Count == 0)
+            {
+                return transactions;
+            }
+
+            return transactions
+                .Where(t =>
+                    !string.IsNullOrWhiteSpace(t.CreatedByPersonId)
+                    && managedByIds.Contains(t.CreatedByPersonId)
+                    && !t.IsUserInvolved(t.CreatedByPersonId))
+                .ToList();
+        }
+
+        public List<Transaction> FilterByInvolvement(List<Transaction> transactions, string loggedPersonId, InvolvementType? involvement)
+        {
+            return involvement switch
+            {
+                InvolvementType.Owned => transactions
+                    .Where(t => t.IsUserInvolved(loggedPersonId))
+                    .ToList(),
+                InvolvementType.Managed => transactions
+                    .Where(t => t.IsCreatedBy(loggedPersonId) && !t.IsUserInvolved(loggedPersonId))
+                    .ToList(),
+                _ => transactions,
+            };
+        }
+
         private static void EnsureLoggedPersonId(string loggedPersonId)
         {
             if (string.IsNullOrWhiteSpace(loggedPersonId))

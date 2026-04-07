@@ -15,6 +15,7 @@ Domain transactions context for transaction invariants, access rules, and reposi
 - `Entities/TransactionStatus.cs`
 - `ITransactionRepository.cs`
 - `TransactionSearchFilter.cs`
+- `InvolvementType.cs`
 - `Services/ITransactionDomainService.cs`
 - `Services/TransactionDomainService.cs`
 - `Exceptions/`

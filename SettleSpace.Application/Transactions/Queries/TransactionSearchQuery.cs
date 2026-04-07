@@ -1,5 +1,6 @@
 using SettleSpace.Domain.Transactions.Entities;
 using SettleSpace.Domain.Transactions.Exceptions;
+using SettleSpace.Domain.Transactions;
 
 namespace SettleSpace.Application.Transactions.Queries
 {
