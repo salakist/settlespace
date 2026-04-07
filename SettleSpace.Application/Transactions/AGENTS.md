@@ -15,7 +15,6 @@ Transactions API context for authenticated, user-scoped transaction CRUD.
 - `TransactionDto.cs`
 - `Commands/`
 - `Queries/TransactionSearchQuery.cs`
-- `Queries/InvolvementType.cs`
 - `Mapping/`
 - `Services/`
 

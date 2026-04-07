@@ -19,10 +19,14 @@ public class TransactionApplicationServiceTests
     private readonly Mock<ITransactionDomainService> _domainServiceMock = new();
     private readonly ITransactionMapper _mapper = new TransactionMapper();
     private readonly TransactionApplicationService _sut;
+    private readonly TransactionDomainService _realDomainService = new();
 
     public TransactionApplicationServiceTests()
     {
         _sut = new TransactionApplicationService(_personRepositoryMock.Object, _repositoryMock.Object, _domainServiceMock.Object, _mapper);
+        _domainServiceMock
+            .Setup(d => d.ApplySearchPolicy(It.IsAny<List<Transaction>>(), It.IsAny<string>(), It.IsAny<TransactionSearchPolicy>()))
+            .Returns((List<Transaction> t, string id, TransactionSearchPolicy p) => _realDomainService.ApplySearchPolicy(t, id, p));
     }
 
     [Fact]

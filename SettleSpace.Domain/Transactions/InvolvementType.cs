@@ -1,4 +1,4 @@
-namespace SettleSpace.Application.Transactions.Queries
+namespace SettleSpace.Domain.Transactions
 {
     public enum InvolvementType
     {
