@@ -25,11 +25,8 @@ public class TransactionApplicationServiceTests
     {
         _sut = new TransactionApplicationService(_personRepositoryMock.Object, _repositoryMock.Object, _domainServiceMock.Object, _mapper);
         _domainServiceMock
-            .Setup(d => d.FilterByManagedBy(It.IsAny<List<Transaction>>(), It.IsAny<List<string>>()))
-            .Returns((List<Transaction> t, List<string>? m) => _realDomainService.FilterByManagedBy(t, m));
-        _domainServiceMock
-            .Setup(d => d.FilterByInvolvement(It.IsAny<List<Transaction>>(), It.IsAny<string>(), It.IsAny<InvolvementType?>()))
-            .Returns((List<Transaction> t, string id, InvolvementType? inv) => _realDomainService.FilterByInvolvement(t, id, inv));
+            .Setup(d => d.ApplySearchPolicy(It.IsAny<List<Transaction>>(), It.IsAny<string>(), It.IsAny<TransactionSearchPolicy>()))
+            .Returns((List<Transaction> t, string id, TransactionSearchPolicy p) => _realDomainService.ApplySearchPolicy(t, id, p));
     }
 
     [Fact]

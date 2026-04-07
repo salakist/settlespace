@@ -93,7 +93,13 @@ namespace SettleSpace.Domain.Transactions.Services
             return [.. transactions.Where(transaction => transaction.IsUserInvolved(loggedPersonId))];
         }
 
-        public List<Transaction> FilterByManagedBy(List<Transaction> transactions, List<string>? managedBy)
+        public List<Transaction> ApplySearchPolicy(List<Transaction> transactions, string loggedPersonId, TransactionSearchPolicy policy)
+        {
+            var managedByFiltered = FilterByManagedBy(transactions, policy.ManagedBy);
+            return FilterByInvolvement(managedByFiltered, loggedPersonId, policy.Involvement);
+        }
+
+        private static List<Transaction> FilterByManagedBy(List<Transaction> transactions, List<string>? managedBy)
         {
             if (managedBy is not { Count: > 0 })
             {
@@ -117,7 +123,7 @@ namespace SettleSpace.Domain.Transactions.Services
                 .ToList();
         }
 
-        public List<Transaction> FilterByInvolvement(List<Transaction> transactions, string loggedPersonId, InvolvementType? involvement)
+        private static List<Transaction> FilterByInvolvement(List<Transaction> transactions, string loggedPersonId, InvolvementType? involvement)
         {
             return involvement switch
             {

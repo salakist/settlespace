@@ -131,7 +131,7 @@ public class TransactionDomainServiceTests
     }
 
     [Fact]
-    public void FilterByManagedByWithNullReturnsAllTransactions()
+    public void ApplySearchPolicyWithNullManagedByReturnsAllTransactions()
     {
         var transactions = new List<Transaction>
         {
@@ -139,50 +139,50 @@ public class TransactionDomainServiceTests
             BuildTransaction(id: "tx-2", payerPersonId: "payer-2", payeePersonId: "payee-2", createdByPersonId: "creator-2")
         };
 
-        var result = _sut.FilterByManagedBy(transactions, null);
+        var result = _sut.ApplySearchPolicy(transactions, "payer-1", new TransactionSearchPolicy());
 
         Assert.Equal(2, result.Count);
     }
 
     [Fact]
-    public void FilterByManagedByWithEmptyListReturnsAllTransactions()
+    public void ApplySearchPolicyWithEmptyManagedByReturnsAllTransactions()
     {
         var transactions = new List<Transaction>
         {
             BuildTransaction(id: "tx-1"),
         };
 
-        var result = _sut.FilterByManagedBy(transactions, []);
+        var result = _sut.ApplySearchPolicy(transactions, "payer-1", new TransactionSearchPolicy { ManagedBy = [] });
 
         Assert.Single(result);
     }
 
     [Fact]
-    public void FilterByManagedByExcludesTransactionsWhereCreatorIsAlsoInvolved()
+    public void ApplySearchPolicyManagedByExcludesTransactionsWhereCreatorIsAlsoInvolved()
     {
         var directlyInvolved = BuildTransaction(id: "tx-owned", payerPersonId: "person-1", payeePersonId: "person-2", createdByPersonId: "person-1");
         var externallyManaged = BuildTransaction(id: "tx-managed", payerPersonId: "person-3", payeePersonId: "person-4", createdByPersonId: "person-1");
 
-        var result = _sut.FilterByManagedBy([directlyInvolved, externallyManaged], ["person-1"]);
+        var result = _sut.ApplySearchPolicy([directlyInvolved, externallyManaged], "user-9", new TransactionSearchPolicy { ManagedBy = ["person-1"] });
 
         Assert.Single(result);
         Assert.Equal("tx-managed", result[0].Id);
     }
 
     [Fact]
-    public void FilterByManagedByOnlyIncludesMatchingCreators()
+    public void ApplySearchPolicyManagedByOnlyIncludesMatchingCreators()
     {
         var managed = BuildTransaction(id: "tx-1", payerPersonId: "payer-1", payeePersonId: "payee-1", createdByPersonId: "manager-1");
         var other = BuildTransaction(id: "tx-2", payerPersonId: "payer-2", payeePersonId: "payee-2", createdByPersonId: "other");
 
-        var result = _sut.FilterByManagedBy([managed, other], ["manager-1"]);
+        var result = _sut.ApplySearchPolicy([managed, other], "user-9", new TransactionSearchPolicy { ManagedBy = ["manager-1"] });
 
         Assert.Single(result);
         Assert.Equal("tx-1", result[0].Id);
     }
 
     [Fact]
-    public void FilterByInvolvementWithNullReturnsAllTransactions()
+    public void ApplySearchPolicyWithNullInvolvementReturnsAllTransactions()
     {
         var transactions = new List<Transaction>
         {
@@ -190,30 +190,30 @@ public class TransactionDomainServiceTests
             BuildTransaction(id: "tx-2", payerPersonId: "payer-2", payeePersonId: "payee-2", createdByPersonId: "creator-2")
         };
 
-        var result = _sut.FilterByInvolvement(transactions, "payer-1", null);
+        var result = _sut.ApplySearchPolicy(transactions, "payer-1", new TransactionSearchPolicy());
 
         Assert.Equal(2, result.Count);
     }
 
     [Fact]
-    public void FilterByInvolvementOwnedReturnsOnlyInvolvedTransactions()
+    public void ApplySearchPolicyOwnedInvolvementReturnsOnlyInvolvedTransactions()
     {
         var involved = BuildTransaction(id: "tx-involved", payerPersonId: "user-1", payeePersonId: "payee-1", createdByPersonId: "user-1");
         var managed = BuildTransaction(id: "tx-managed", payerPersonId: "payer-2", payeePersonId: "payee-2", createdByPersonId: "user-1");
 
-        var result = _sut.FilterByInvolvement([involved, managed], "user-1", InvolvementType.Owned);
+        var result = _sut.ApplySearchPolicy([involved, managed], "user-1", new TransactionSearchPolicy { Involvement = InvolvementType.Owned });
 
         Assert.Single(result);
         Assert.Equal("tx-involved", result[0].Id);
     }
 
     [Fact]
-    public void FilterByInvolvementManagedReturnsOnlyManagedTransactions()
+    public void ApplySearchPolicyManagedInvolvementReturnsOnlyManagedTransactions()
     {
         var involved = BuildTransaction(id: "tx-involved", payerPersonId: "user-1", payeePersonId: "payee-1", createdByPersonId: "user-1");
         var managed = BuildTransaction(id: "tx-managed", payerPersonId: "payer-2", payeePersonId: "payee-2", createdByPersonId: "user-1");
 
-        var result = _sut.FilterByInvolvement([involved, managed], "user-1", InvolvementType.Managed);
+        var result = _sut.ApplySearchPolicy([involved, managed], "user-1", new TransactionSearchPolicy { Involvement = InvolvementType.Managed });
 
         Assert.Single(result);
         Assert.Equal("tx-managed", result[0].Id);

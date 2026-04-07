@@ -80,8 +80,12 @@ namespace SettleSpace.Application.Transactions.Services
                 readable = _domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
             }
 
-            var managedByFiltered = _domainService.FilterByManagedBy(readable, query.ManagedBy);
-            return _domainService.FilterByInvolvement(managedByFiltered, loggedPersonId, query.Involvement);
+            var policy = new TransactionSearchPolicy
+            {
+                ManagedBy = query.ManagedBy,
+                Involvement = query.Involvement,
+            };
+            return _domainService.ApplySearchPolicy(readable, loggedPersonId, policy);
         }
 
         public async Task<Transaction> GetTransactionByIdAsync(string id, string loggedPersonId, PersonRole loggedRole)
