@@ -1,4 +1,6 @@
 using SettleSpace.Application.Transactions.Commands;
+using SettleSpace.Application.Transactions.Queries;
+using SettleSpace.Domain.Transactions;
 using SettleSpace.Domain.Transactions.Entities;
 
 namespace SettleSpace.Application.Transactions.Mapping
@@ -63,6 +65,26 @@ namespace SettleSpace.Application.Transactions.Mapping
                 UpdatedAtUtc = updatedAtUtc,
             };
         }
+
+        public TransactionSearchFilter ToSearchFilter(TransactionSearchQuery query) =>
+            new()
+            {
+                FreeText = query.FreeText?.Trim(),
+                Status = query.Status,
+                Category = query.Category,
+                Description = query.Description,
+                Involved = query.Involved,
+                ManagedBy = query.ManagedBy,
+                Payer = query.Payer,
+                Payee = query.Payee,
+            };
+
+        public TransactionSearchPolicy ToSearchPolicy(TransactionSearchQuery query) =>
+            new()
+            {
+                ManagedBy = query.ManagedBy,
+                Involvement = query.Involvement,
+            };
 
         private static string ResolvePersonDisplayName(
             IReadOnlyDictionary<string, string>? personDisplayNames,

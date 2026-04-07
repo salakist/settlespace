@@ -1,5 +1,6 @@
 using System.Text;
 using SettleSpace.Application.Authentication;
+using SettleSpace.Application.Authentication.Mapping;
 using SettleSpace.Application.Persons.Mapping;
 using SettleSpace.Application.Transactions.Mapping;
 using SettleSpace.Application.Authentication.Services;
@@ -63,6 +64,7 @@ builder.Services.AddScoped<IPersonMapper, PersonMapper>();
 builder.Services.AddScoped<IPersonDisplayNameResolver, PersonDisplayNameResolver>();
 builder.Services.AddScoped<ITransactionMapper, TransactionMapper>();
 builder.Services.AddScoped<IDebtMapper, DebtMapper>();
+builder.Services.AddScoped<IAuthMapper, AuthMapper>();
 builder.Services.AddScoped<IPersonApplicationService, PersonApplicationService>();
 builder.Services.AddScoped<ITransactionApplicationService, TransactionApplicationService>();
 builder.Services.AddScoped<IDebtApplicationService, DebtApplicationService>();

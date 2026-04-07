@@ -1,5 +1,7 @@
 using SettleSpace.Application.Transactions.Commands;
 using SettleSpace.Application.Transactions.Mapping;
+using SettleSpace.Application.Transactions.Queries;
+using SettleSpace.Domain.Transactions;
 using SettleSpace.Domain.Transactions.Entities;
 
 namespace SettleSpace.Application.Tests.Transactions.Mapping;
@@ -86,6 +88,72 @@ public class TransactionMapperTests
         Assert.Equal("tx-1", entity.Id);
         Assert.Equal(createdAt, entity.CreatedAtUtc);
         Assert.Equal("payer-1", entity.CreatedByPersonId);
+    }
+    [Fact]
+    public void ToSearchFilterMapsAllFieldsAndTrimsFreeText()
+    {
+        var statuses = new List<TransactionStatus> { TransactionStatus.Completed };
+        var involved = new List<string> { "person-1" };
+        var managedBy = new List<string> { "manager-1" };
+        var query = new TransactionSearchQuery
+        {
+            FreeText = "  taxi  ",
+            Status = statuses,
+            Category = "Transport",
+            Description = "Shared ride",
+            Involved = involved,
+            ManagedBy = managedBy,
+            Payer = "payer-1",
+            Payee = "payee-1",
+        };
+
+        var filter = _sut.ToSearchFilter(query);
+
+        Assert.Equal("taxi", filter.FreeText);
+        Assert.Same(statuses, filter.Status);
+        Assert.Equal("Transport", filter.Category);
+        Assert.Equal("Shared ride", filter.Description);
+        Assert.Same(involved, filter.Involved);
+        Assert.Same(managedBy, filter.ManagedBy);
+        Assert.Equal("payer-1", filter.Payer);
+        Assert.Equal("payee-1", filter.Payee);
+    }
+
+    [Fact]
+    public void ToSearchFilterWithNullFreeTextProducesNullFreeText()
+    {
+        var query = new TransactionSearchQuery { FreeText = null };
+
+        var filter = _sut.ToSearchFilter(query);
+
+        Assert.Null(filter.FreeText);
+    }
+
+    [Fact]
+    public void ToSearchPolicyMapsInvolvementAndManagedBy()
+    {
+        var managedBy = new List<string> { "manager-1" };
+        var query = new TransactionSearchQuery
+        {
+            ManagedBy = managedBy,
+            Involvement = InvolvementType.Managed,
+        };
+
+        var policy = _sut.ToSearchPolicy(query);
+
+        Assert.Same(managedBy, policy.ManagedBy);
+        Assert.Equal(InvolvementType.Managed, policy.Involvement);
+    }
+
+    [Fact]
+    public void ToSearchPolicyWithNullsProducesNullProperties()
+    {
+        var query = new TransactionSearchQuery();
+
+        var policy = _sut.ToSearchPolicy(query);
+
+        Assert.Null(policy.ManagedBy);
+        Assert.Null(policy.Involvement);
     }
 }
 

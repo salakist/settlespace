@@ -1,5 +1,6 @@
 using SettleSpace.Application.Authentication;
 using SettleSpace.Application.Authentication.Commands;
+using SettleSpace.Application.Authentication.Mapping;
 using SettleSpace.Application.Persons.Commands;
 using SettleSpace.Application.Authentication.Services;
 using SettleSpace.Application.Persons.Services;
@@ -55,7 +56,8 @@ public class AuthServiceTests
             settings,
             _passwordHashingServiceMock.Object,
             _personApplicationServiceMock.Object,
-            _passwordValidatorMock.Object);
+            _passwordValidatorMock.Object,
+            new AuthMapper());
     }
 
     [Fact]
