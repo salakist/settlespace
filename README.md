@@ -212,6 +212,36 @@ SettleSpace.Application/
 - `GET /api/debts/me/{counterpartyPersonId}` - detailed pair summary plus contributing transactions
 - `POST /api/debts/settlements` - create a compensating settlement transaction to reduce an outstanding balance
 
+### Error responses
+
+The backend now standardizes API errors with ASP.NET Core `ProblemDetails`. Controllers throw specific domain/auth exceptions, and `ExceptionHandlingMiddleware` translates them into a shared response shape.
+
+Example:
+
+```json
+{
+  "type": "/problems/validation-error",
+  "title": "Request validation failed",
+  "status": 400,
+  "detail": "Current password is invalid.",
+  "instance": "/api/auth/change-password",
+  "traceId": "00-..."
+}
+```
+
+Common `type` values:
+- `/problems/validation-error`
+- `/problems/invalid-credentials`
+- `/problems/unauthorized`
+- `/problems/forbidden`
+- `/problems/not-found`
+- `/problems/conflict`
+- `/problems/unexpected-error`
+
+Implementation note:
+- Controllers should throw specific exceptions rather than returning `Problem(...)` directly.
+- `SettleSpace.Application/Middleware/ExceptionHandlingMiddleware.cs` is the single source of truth for formatting backend errors.
+
 ---
 
 ## Unit Tests

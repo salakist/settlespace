@@ -7,9 +7,11 @@ Application middleware context for exception translation and pipeline behavior.
 - Own exception-to-HTTP translation behavior in middleware.
 - Keep domain and transaction exception mappings aligned with API contracts.
 - Keep middleware behavior testable in isolation.
+- Keep shared `ProblemDetails` formatting centralized here; controllers should throw specific exceptions instead of returning `Problem(...)` directly.
 
 ## Key files
 - `ExceptionHandlingMiddleware.cs`
+- `ApiProblemDetailsCatalog.cs`
 
 ## Commands
 - `dotnet test Tests/SettleSpace.Application.Tests/SettleSpace.Application.Tests.csproj --filter "FullyQualifiedName~ExceptionHandlingMiddleware"`
