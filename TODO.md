@@ -14,7 +14,7 @@ Prioritized backlog for **planned / shelved product work**.
 
 **Scope**
 
-- ~~Refactor transaction search business-policy helpers (`ApplyManagedByFilter` / `ApplyInvolvementFilter`) into a clearer domain policy/service home instead of keeping them inside `TransactionApplicationService`~~
+- Refactor repository tests away from test-only constructors (`PersonRepository` / `TransactionRepository`) by using a cleaner Mongo test seam or integration-test setup
 
 ### 1. Dashboard / overview page
 **Why next:** improves the landing experience and gives users a useful summary immediately after login.

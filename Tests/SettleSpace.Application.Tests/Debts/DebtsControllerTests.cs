@@ -7,6 +7,7 @@ using SettleSpace.Application.Debts;
 using SettleSpace.Application.Debts.Commands;
 using SettleSpace.Application.Debts.Mapping;
 using SettleSpace.Application.Debts.Services;
+using SettleSpace.Application.Transactions.Mapping;
 using SettleSpace.Domain.Debts.Entities;
 using SettleSpace.Domain.Persons.Entities;
 using System.Security.Claims;
@@ -28,7 +29,7 @@ public class DebtsControllerTests
 
         _controller = new DebtsController(
             _serviceMock.Object,
-            new DebtMapper(),
+            new DebtMapper(new TransactionMapper()),
             _personDisplayNameResolverMock.Object,
             _authServiceMock.Object);
     }

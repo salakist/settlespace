@@ -12,11 +12,6 @@ namespace SettleSpace.Application.Debts.Mapping
 
     public class DebtMapper(ITransactionMapper transactionMapper) : IDebtMapper
     {
-        public DebtMapper()
-            : this(new TransactionMapper())
-        {
-        }
-
         public DebtSummaryDto ToSummaryDto(DebtSummary entity, IReadOnlyDictionary<string, string>? personDisplayNames = null) =>
             new()
             {
