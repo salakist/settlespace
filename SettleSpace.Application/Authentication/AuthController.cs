@@ -1,9 +1,8 @@
 using SettleSpace.Application.Authentication.Commands;
 using SettleSpace.Application.Authentication.Services;
-using SettleSpace.Domain.Persons.Exceptions;
+using SettleSpace.Domain.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace SettleSpace.Application.Authentication
 {
@@ -21,13 +20,13 @@ namespace SettleSpace.Application.Authentication
         [AllowAnonymous]
         [HttpPost("login")]
         [ProducesResponseType(typeof(LoginResponseDto), 200)]
-        [ProducesResponseType(401)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<ActionResult<LoginResponseDto>> Login([FromBody] LoginCommand command)
         {
             var response = await _authService.LoginAsync(command);
             if (response is null)
             {
-                return Unauthorized(new { error = "Invalid username or password." });
+                throw new InvalidCredentialsException();
             }
 
             return Ok(response);
@@ -36,8 +35,8 @@ namespace SettleSpace.Application.Authentication
         [AllowAnonymous]
         [HttpPost("register")]
         [ProducesResponseType(typeof(LoginResponseDto), 200)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(409)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 409)]
         public async Task<ActionResult<LoginResponseDto>> Register([FromBody] RegisterCommand command)
         {
             var loginResponse = await _authService.RegisterAsync(command);
@@ -47,30 +46,19 @@ namespace SettleSpace.Application.Authentication
         [Authorize]
         [HttpPost("change-password")]
         [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordCommand command)
         {
-            var personId = User.FindFirstValue(CustomClaimTypes.PersonId);
-            if (string.IsNullOrWhiteSpace(personId))
+            var (personId, _) = _authService.ResolveAuthContext(User);
+
+            var changed = await _authService.ChangePasswordAsync(personId, command);
+            if (!changed)
             {
-                return Unauthorized(new { error = "Authentication context is missing." });
+                throw new InvalidCurrentPasswordException();
             }
 
-            try
-            {
-                var changed = await _authService.ChangePasswordAsync(personId, command);
-                if (!changed)
-                {
-                    return BadRequest(new { error = "Current password is invalid." });
-                }
-
-                return NoContent();
-            }
-            catch (WeakPasswordException ex)
-            {
-                return BadRequest(new { error = ex.Message });
-            }
+            return NoContent();
         }
     }
 }

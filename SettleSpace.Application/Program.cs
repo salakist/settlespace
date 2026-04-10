@@ -71,6 +71,11 @@ builder.Services.AddScoped<IDebtApplicationService, DebtApplicationService>();
 builder.Services.AddScoped<IDebtDomainService, DebtDomainService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+builder.Services.AddProblemDetails(options =>
+{
+    options.CustomizeProblemDetails = ApiProblemDetailsCatalog.CustomizeProblemDetails;
+});
+
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {

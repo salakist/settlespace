@@ -1,8 +1,11 @@
+using System.Text.Json;
 using SettleSpace.Application.Middleware;
 using SettleSpace.Domain.Auth;
 using SettleSpace.Domain.Persons.Exceptions;
 using SettleSpace.Domain.Transactions.Exceptions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -10,133 +13,219 @@ namespace SettleSpace.Application.Tests.Middleware;
 
 public class ExceptionHandlingMiddlewareTests
 {
-    private readonly HttpContext _context = new DefaultHttpContext();
+    private const string ProblemTypeBaseUri = "/problems";
+    private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
     private readonly IHostEnvironment _environment = new MockHostEnvironment();
 
     [Fact]
     public async Task AuthContextExceptionReturns401Unauthorized()
     {
-        var middleware = new ExceptionHandlingMiddleware(
-            _ => throw new AuthContextException(),
-            new MockLogger(),
-            _environment
-        );
+        var (statusCode, problem) = await InvokeAsync(new AuthContextException());
 
-        await middleware.InvokeAsync(_context);
+        Assert.Equal(StatusCodes.Status401Unauthorized, statusCode);
+        AssertProblem(
+            problem,
+            StatusCodes.Status401Unauthorized,
+            "Unauthorized",
+            $"{ProblemTypeBaseUri}/unauthorized",
+            "Authentication context is missing or invalid.");
+    }
 
-        Assert.Equal(StatusCodes.Status401Unauthorized, _context.Response.StatusCode);
+    [Fact]
+    public async Task InvalidCredentialsExceptionReturns401AuthenticationFailed()
+    {
+        var (statusCode, problem) = await InvokeAsync(new InvalidCredentialsException());
+
+        Assert.Equal(StatusCodes.Status401Unauthorized, statusCode);
+        AssertProblem(
+            problem,
+            StatusCodes.Status401Unauthorized,
+            "Authentication failed",
+            $"{ProblemTypeBaseUri}/invalid-credentials",
+            "Invalid username or password.");
     }
 
     [Fact]
     public async Task DuplicatePersonExceptionReturns409Conflict()
     {
-        var middleware = new ExceptionHandlingMiddleware(
-            _ => throw new DuplicatePersonException("John", "Doe"),
-            new MockLogger(),
-            _environment
-        );
+        var (statusCode, problem) = await InvokeAsync(new DuplicatePersonException("John", "Doe"));
 
-        await middleware.InvokeAsync(_context);
+        Assert.Equal(StatusCodes.Status409Conflict, statusCode);
+        AssertProblem(
+            problem,
+            StatusCodes.Status409Conflict,
+            "Conflict",
+            $"{ProblemTypeBaseUri}/conflict",
+            "A person with first name 'John' and last name 'Doe' already exists.");
+    }
 
-        Assert.Equal(StatusCodes.Status409Conflict, _context.Response.StatusCode);
+    [Fact]
+    public async Task InvalidCurrentPasswordExceptionReturns400BadRequest()
+    {
+        var (statusCode, problem) = await InvokeAsync(new InvalidCurrentPasswordException());
+
+        Assert.Equal(StatusCodes.Status400BadRequest, statusCode);
+        AssertProblem(
+            problem,
+            StatusCodes.Status400BadRequest,
+            "Request validation failed",
+            $"{ProblemTypeBaseUri}/validation-error",
+            "Current password is invalid.");
     }
 
     [Fact]
     public async Task WeakPasswordExceptionReturns400BadRequest()
     {
-        var middleware = new ExceptionHandlingMiddleware(
-            _ => throw new WeakPasswordException("Password must be at least 8 characters long."),
-            new MockLogger(),
-            _environment
-        );
+        var (statusCode, problem) = await InvokeAsync(new WeakPasswordException("Password must be at least 8 characters long."));
 
-        await middleware.InvokeAsync(_context);
-
-        Assert.Equal(StatusCodes.Status400BadRequest, _context.Response.StatusCode);
+        Assert.Equal(StatusCodes.Status400BadRequest, statusCode);
+        AssertProblem(
+            problem,
+            StatusCodes.Status400BadRequest,
+            "Request validation failed",
+            $"{ProblemTypeBaseUri}/validation-error",
+            "Weak password: Password must be at least 8 characters long.");
     }
 
     [Fact]
     public async Task UnauthorizedTransactionAccessExceptionReturns403Forbidden()
     {
-        var middleware = new ExceptionHandlingMiddleware(
-            _ => throw new UnauthorizedTransactionAccessException("Forbidden"),
-            new MockLogger(),
-            _environment
-        );
+        var (statusCode, problem) = await InvokeAsync(new UnauthorizedTransactionAccessException("Forbidden"));
 
-        await middleware.InvokeAsync(_context);
-
-        Assert.Equal(StatusCodes.Status403Forbidden, _context.Response.StatusCode);
+        Assert.Equal(StatusCodes.Status403Forbidden, statusCode);
+        AssertProblem(
+            problem,
+            StatusCodes.Status403Forbidden,
+            "Forbidden",
+            $"{ProblemTypeBaseUri}/forbidden",
+            "Forbidden");
     }
 
     [Fact]
     public async Task TransactionNotFoundExceptionReturns404NotFound()
     {
-        var middleware = new ExceptionHandlingMiddleware(
-            _ => throw new TransactionNotFoundException("tx-1"),
-            new MockLogger(),
-            _environment
-        );
+        var (statusCode, problem) = await InvokeAsync(new TransactionNotFoundException("tx-1"));
 
-        await middleware.InvokeAsync(_context);
-
-        Assert.Equal(StatusCodes.Status404NotFound, _context.Response.StatusCode);
+        Assert.Equal(StatusCodes.Status404NotFound, statusCode);
+        AssertProblem(
+            problem,
+            StatusCodes.Status404NotFound,
+            "Resource not found",
+            $"{ProblemTypeBaseUri}/not-found",
+            "Transaction with ID 'tx-1' not found.");
     }
 
     [Fact]
     public async Task InvalidTransactionExceptionReturns400BadRequest()
     {
-        var middleware = new ExceptionHandlingMiddleware(
-            _ => throw new InvalidTransactionException("Invalid"),
-            new MockLogger(),
-            _environment
-        );
+        var (statusCode, problem) = await InvokeAsync(new InvalidTransactionException("Invalid"));
 
-        await middleware.InvokeAsync(_context);
-
-        Assert.Equal(StatusCodes.Status400BadRequest, _context.Response.StatusCode);
+        Assert.Equal(StatusCodes.Status400BadRequest, statusCode);
+        AssertProblem(
+            problem,
+            StatusCodes.Status400BadRequest,
+            "Request validation failed",
+            $"{ProblemTypeBaseUri}/validation-error",
+            "Invalid");
     }
 
     [Fact]
     public async Task PersonNotFoundExceptionReturns404NotFound()
     {
-        var middleware = new ExceptionHandlingMiddleware(
-            _ => throw new PersonNotFoundException("person-1"),
-            new MockLogger(),
-            _environment
-        );
+        var (statusCode, problem) = await InvokeAsync(new PersonNotFoundException("person-1"));
 
-        await middleware.InvokeAsync(_context);
-
-        Assert.Equal(StatusCodes.Status404NotFound, _context.Response.StatusCode);
+        Assert.Equal(StatusCodes.Status404NotFound, statusCode);
+        AssertProblem(
+            problem,
+            StatusCodes.Status404NotFound,
+            "Resource not found",
+            $"{ProblemTypeBaseUri}/not-found",
+            "Person with ID 'person-1' not found.");
     }
 
     [Fact]
     public async Task InvalidPersonExceptionReturns400BadRequest()
     {
-        var middleware = new ExceptionHandlingMiddleware(
-            _ => throw new InvalidPersonException("Some person validation failed."),
-            new MockLogger(),
-            _environment
-        );
+        var (statusCode, problem) = await InvokeAsync(new InvalidPersonException("Some person validation failed."));
 
-        await middleware.InvokeAsync(_context);
-
-        Assert.Equal(StatusCodes.Status400BadRequest, _context.Response.StatusCode);
+        Assert.Equal(StatusCodes.Status400BadRequest, statusCode);
+        AssertProblem(
+            problem,
+            StatusCodes.Status400BadRequest,
+            "Request validation failed",
+            $"{ProblemTypeBaseUri}/validation-error",
+            "Some person validation failed.");
     }
 
     [Fact]
     public async Task UnhandledExceptionReturns500InternalServerError()
     {
+        var (statusCode, problem) = await InvokeAsync(new NotSupportedException("Unexpected error"));
+
+        Assert.Equal(StatusCodes.Status500InternalServerError, statusCode);
+        AssertProblem(
+            problem,
+            StatusCodes.Status500InternalServerError,
+            "An unexpected error occurred",
+            $"{ProblemTypeBaseUri}/unexpected-error",
+            "Unexpected error");
+    }
+
+    private async Task<(int StatusCode, ProblemDetails Problem)> InvokeAsync(Exception exception)
+    {
+        var context = CreateHttpContext();
         var middleware = new ExceptionHandlingMiddleware(
-            _ => throw new NotSupportedException("Unexpected error"),
+            _ => throw exception,
             new MockLogger(),
-            _environment
-        );
+            _environment,
+            CreateProblemDetailsService());
 
-        await middleware.InvokeAsync(_context);
+        await middleware.InvokeAsync(context);
+        var problem = await ReadProblemDetailsAsync(context);
 
-        Assert.Equal(StatusCodes.Status500InternalServerError, _context.Response.StatusCode);
+        return (context.Response.StatusCode, problem);
+    }
+
+    private static DefaultHttpContext CreateHttpContext()
+    {
+        var context = new DefaultHttpContext();
+        context.TraceIdentifier = "test-trace-id";
+        context.Request.Path = "/test/error";
+        context.Response.Body = new MemoryStream();
+        return context;
+    }
+
+    private static async Task<ProblemDetails> ReadProblemDetailsAsync(DefaultHttpContext context)
+    {
+        context.Response.Body.Position = 0;
+        var problem = await JsonSerializer.DeserializeAsync<ProblemDetails>(
+            context.Response.Body,
+            SerializerOptions);
+
+        Assert.NotNull(problem);
+        return problem!;
+    }
+
+    private static IProblemDetailsService CreateProblemDetailsService()
+    {
+        var services = new ServiceCollection();
+        services.AddProblemDetails(options =>
+        {
+            options.CustomizeProblemDetails = ApiProblemDetailsCatalog.CustomizeProblemDetails;
+        });
+
+        return services.BuildServiceProvider().GetRequiredService<IProblemDetailsService>();
+    }
+
+    private static void AssertProblem(ProblemDetails problem, int expectedStatus, string expectedTitle, string expectedType, string expectedDetail)
+    {
+        Assert.Equal(expectedStatus, problem.Status);
+        Assert.Equal(expectedTitle, problem.Title);
+        Assert.Equal(expectedType, problem.Type);
+        Assert.Equal(expectedDetail, problem.Detail);
+        Assert.Equal("/test/error", problem.Instance);
+        Assert.True(problem.Extensions.TryGetValue("traceId", out var traceId));
+        Assert.Equal("test-trace-id", traceId?.ToString());
     }
 
     private sealed class MockLogger : ILogger<ExceptionHandlingMiddleware>

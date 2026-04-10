@@ -1,6 +1,8 @@
 using SettleSpace.Application.Authentication;
 using SettleSpace.Application.Authentication.Commands;
 using SettleSpace.Application.Authentication.Services;
+using SettleSpace.Domain.Auth;
+using SettleSpace.Domain.Persons.Entities;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -43,15 +45,15 @@ public class AuthControllerTests
     }
 
     [Fact]
-    public async Task LoginWithInvalidCredentialsReturnsUnauthorized()
+    public async Task LoginWithInvalidCredentialsThrowsInvalidCredentialsException()
     {
         var request = new LoginCommand { Username = "john.doe", Password = "bad" };
 
         _authServiceMock.Setup(service => service.LoginAsync(request)).ReturnsAsync((LoginResponseDto?)null);
 
-        var result = await _controller.Login(request);
+        var exception = await Assert.ThrowsAsync<InvalidCredentialsException>(() => _controller.Login(request));
 
-        Assert.IsType<UnauthorizedObjectResult>(result.Result);
+        Assert.Equal("Invalid username or password.", exception.Message);
     }
 
     [Fact]
@@ -104,6 +106,9 @@ public class AuthControllerTests
         };
 
         _authServiceMock
+            .Setup(service => service.ResolveAuthContext(It.IsAny<ClaimsPrincipal>()))
+            .Returns(("1", PersonRole.USER));
+        _authServiceMock
             .Setup(service => service.ChangePasswordAsync("1", request))
             .ReturnsAsync(true);
 
@@ -113,7 +118,7 @@ public class AuthControllerTests
     }
 
     [Fact]
-    public async Task ChangePasswordWithInvalidCurrentPasswordReturnsBadRequest()
+    public async Task ChangePasswordWithInvalidCurrentPasswordThrowsInvalidCurrentPasswordException()
     {
         var request = new ChangePasswordCommand
         {
@@ -132,12 +137,16 @@ public class AuthControllerTests
         };
 
         _authServiceMock
+            .Setup(service => service.ResolveAuthContext(It.IsAny<ClaimsPrincipal>()))
+            .Returns(("1", PersonRole.USER));
+        _authServiceMock
             .Setup(service => service.ChangePasswordAsync("1", request))
             .ReturnsAsync(false);
 
-        var result = await _controller.ChangePassword(request);
+        var exception = await Assert.ThrowsAsync<InvalidCurrentPasswordException>(() => _controller.ChangePassword(request));
 
-        Assert.IsType<BadRequestObjectResult>(result);
+        Assert.Equal("Current password is invalid.", exception.Message);
     }
 }
+
 

@@ -3,6 +3,7 @@ using SettleSpace.Application.Persons.Mapping;
 using SettleSpace.Application.Persons.Services;
 using SettleSpace.Application.Persons.Commands;
 using SettleSpace.Application.Persons.DTOs;
+using SettleSpace.Domain.Persons.Exceptions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -42,7 +43,7 @@ namespace SettleSpace.Application.Persons
         /// <response code="401">If the caller is not authenticated.</response>
         [HttpGet]
         [ProducesResponseType(typeof(List<PersonDto>), 200)]
-        [ProducesResponseType(401)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<ActionResult<List<PersonDto>>> Get()
         {
             var (personId, personRole) = _authService.ResolveAuthContext(User);
@@ -60,8 +61,8 @@ namespace SettleSpace.Application.Persons
         /// <response code="401">If the caller is not authenticated.</response>
         [HttpGet("{id:length(24)}")]
         [ProducesResponseType(typeof(PersonDto), 200)]
-        [ProducesResponseType(404)]
-        [ProducesResponseType(401)]
+        [ProducesResponseType(typeof(ProblemDetails), 404)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<ActionResult<PersonDto>> Get(string id)
         {
             var (personId, personRole) = _authService.ResolveAuthContext(User);
@@ -69,7 +70,7 @@ namespace SettleSpace.Application.Persons
 
             if (person is null)
             {
-                return NotFound();
+                throw new PersonNotFoundException(id);
             }
 
             return Ok(_personMapper.ToDto(person));
@@ -84,7 +85,7 @@ namespace SettleSpace.Application.Persons
         /// <response code="401">If the caller is not authenticated.</response>
         [HttpGet("search/{query}")]
         [ProducesResponseType(typeof(List<PersonDto>), 200)]
-        [ProducesResponseType(401)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<ActionResult<List<PersonDto>>> SearchByQuery(string query)
         {
             var (personId, personRole) = _authService.ResolveAuthContext(User);
@@ -97,15 +98,15 @@ namespace SettleSpace.Application.Persons
         /// </summary>
         [HttpGet("me")]
         [ProducesResponseType(typeof(PersonDto), 200)]
-        [ProducesResponseType(401)]
-        [ProducesResponseType(404)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
+        [ProducesResponseType(typeof(ProblemDetails), 404)]
         public async Task<ActionResult<PersonDto>> GetCurrent()
         {
             var (personId, _) = _authService.ResolveAuthContext(User);
             var person = await _applicationService.GetPersonByIdAsync(personId);
             if (person is null)
             {
-                return NotFound();
+                throw new PersonNotFoundException(personId);
             }
 
             return Ok(_personMapper.ToDto(person));
@@ -122,9 +123,9 @@ namespace SettleSpace.Application.Persons
         /// <response code="401">If the caller is not authenticated.</response>
         [HttpPost]
         [ProducesResponseType(typeof(PersonDto), 201)]
-        [ProducesResponseType(409)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
+        [ProducesResponseType(typeof(ProblemDetails), 409)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<IActionResult> Post([FromBody] CreatePersonCommand command)
         {
             var (personId, personRole) = _authService.ResolveAuthContext(User);
@@ -144,10 +145,10 @@ namespace SettleSpace.Application.Persons
         /// <response code="401">If the caller is not authenticated.</response>
         [HttpPut("{id:length(24)}")]
         [ProducesResponseType(204)]
-        [ProducesResponseType(404)]
-        [ProducesResponseType(409)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
+        [ProducesResponseType(typeof(ProblemDetails), 404)]
+        [ProducesResponseType(typeof(ProblemDetails), 409)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<IActionResult> Update(string id, [FromBody] UpdatePersonCommand command)
         {
             var (personId, personRole) = _authService.ResolveAuthContext(User);
@@ -160,10 +161,10 @@ namespace SettleSpace.Application.Persons
         /// </summary>
         [HttpPut("me")]
         [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
-        [ProducesResponseType(404)]
-        [ProducesResponseType(409)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
+        [ProducesResponseType(typeof(ProblemDetails), 404)]
+        [ProducesResponseType(typeof(ProblemDetails), 409)]
         public async Task<IActionResult> UpdateCurrent([FromBody] UpdatePersonCommand command)
         {
             var (personId, _) = _authService.ResolveAuthContext(User);
@@ -180,8 +181,8 @@ namespace SettleSpace.Application.Persons
         /// <response code="401">If the caller is not authenticated.</response>
         [HttpDelete("{id:length(24)}")]
         [ProducesResponseType(204)]
-        [ProducesResponseType(404)]
-        [ProducesResponseType(401)]
+        [ProducesResponseType(typeof(ProblemDetails), 404)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<IActionResult> Delete(string id)
         {
             var (personId, personRole) = _authService.ResolveAuthContext(User);

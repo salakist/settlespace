@@ -33,7 +33,7 @@ namespace SettleSpace.Application.Debts
 
         [HttpGet("me")]
         [ProducesResponseType(typeof(List<DebtSummaryDto>), 200)]
-        [ProducesResponseType(401)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<ActionResult<List<DebtSummaryDto>>> GetCurrentUserDebts()
         {
             var (personId, _) = _authService.ResolveAuthContext(User);
@@ -46,7 +46,7 @@ namespace SettleSpace.Application.Debts
 
         [HttpGet("me/{counterpartyPersonId}")]
         [ProducesResponseType(typeof(List<DebtDetailsDto>), 200)]
-        [ProducesResponseType(401)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<ActionResult<List<DebtDetailsDto>>> GetCurrentUserDebtDetails(string counterpartyPersonId)
         {
             var (personId, _) = _authService.ResolveAuthContext(User);
@@ -63,8 +63,8 @@ namespace SettleSpace.Application.Debts
 
         [HttpPost("settlements")]
         [ProducesResponseType(typeof(DebtSettlementResultDto), 200)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<ActionResult<DebtSettlementResultDto>> Settle([FromBody] SettleDebtCommand command)
         {
             var (personId, _) = _authService.ResolveAuthContext(User);

@@ -34,8 +34,8 @@ namespace SettleSpace.Application.Transactions
 
         [HttpPost("search")]
         [ProducesResponseType(typeof(List<TransactionDto>), 200)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<ActionResult<List<TransactionDto>>> SearchTransactions([FromBody] TransactionSearchQuery query)
         {
             query.Validate();
@@ -49,9 +49,9 @@ namespace SettleSpace.Application.Transactions
 
         [HttpGet("{id:length(24)}")]
         [ProducesResponseType(typeof(TransactionDto), 200)]
-        [ProducesResponseType(401)]
-        [ProducesResponseType(403)]
-        [ProducesResponseType(404)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
+        [ProducesResponseType(typeof(ProblemDetails), 403)]
+        [ProducesResponseType(typeof(ProblemDetails), 404)]
         public async Task<ActionResult<TransactionDto>> GetById(string id)
         {
             var (personId, personRole) = _authService.ResolveAuthContext(User);
@@ -63,9 +63,9 @@ namespace SettleSpace.Application.Transactions
 
         [HttpPost]
         [ProducesResponseType(typeof(TransactionDto), 201)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
-        [ProducesResponseType(403)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
+        [ProducesResponseType(typeof(ProblemDetails), 403)]
         public async Task<IActionResult> Post([FromBody] CreateTransactionCommand command)
         {
             var (personId, personRole) = _authService.ResolveAuthContext(User);
@@ -77,10 +77,10 @@ namespace SettleSpace.Application.Transactions
 
         [HttpPut("{id:length(24)}")]
         [ProducesResponseType(204)]
-        [ProducesResponseType(400)]
-        [ProducesResponseType(401)]
-        [ProducesResponseType(403)]
-        [ProducesResponseType(404)]
+        [ProducesResponseType(typeof(ProblemDetails), 400)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
+        [ProducesResponseType(typeof(ProblemDetails), 403)]
+        [ProducesResponseType(typeof(ProblemDetails), 404)]
         public async Task<IActionResult> Update(string id, [FromBody] UpdateTransactionCommand command)
         {
             var (personId, personRole) = _authService.ResolveAuthContext(User);
@@ -91,9 +91,9 @@ namespace SettleSpace.Application.Transactions
 
         [HttpDelete("{id:length(24)}")]
         [ProducesResponseType(204)]
-        [ProducesResponseType(401)]
-        [ProducesResponseType(403)]
-        [ProducesResponseType(404)]
+        [ProducesResponseType(typeof(ProblemDetails), 401)]
+        [ProducesResponseType(typeof(ProblemDetails), 403)]
+        [ProducesResponseType(typeof(ProblemDetails), 404)]
         public async Task<IActionResult> Delete(string id)
         {
             var (personId, personRole) = _authService.ResolveAuthContext(User);

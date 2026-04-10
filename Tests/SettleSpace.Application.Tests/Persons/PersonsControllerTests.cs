@@ -6,6 +6,7 @@ using SettleSpace.Application.Persons.DTOs;
 using SettleSpace.Application.Persons.Mapping;
 using SettleSpace.Application.Persons.Services;
 using SettleSpace.Domain.Persons.Entities;
+using SettleSpace.Domain.Persons.Exceptions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -66,15 +67,15 @@ public class PersonsControllerTests
     }
 
     [Fact]
-    public async Task GetByIdPersonNotFoundReturnsNotFound()
+    public async Task GetByIdPersonNotFoundThrowsPersonNotFoundException()
     {
         _serviceMock.Setup(s => s.GetPersonByIdAsync(It.IsAny<string>(), "user-1", PersonRole.ADMIN))
                     .ReturnsAsync((Person?)null);
         SetUser("user-1", PersonRole.ADMIN);
 
-        var result = await _controller.Get("507f1f77bcf86cd799439011");
+        var exception = await Assert.ThrowsAsync<PersonNotFoundException>(() => _controller.Get("507f1f77bcf86cd799439011"));
 
-        Assert.IsType<NotFoundResult>(result.Result);
+        Assert.Equal("Person with ID '507f1f77bcf86cd799439011' not found.", exception.Message);
     }
 
     [Fact]
