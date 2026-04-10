@@ -94,17 +94,17 @@ namespace SettleSpace.Application.Persons.Services
                 (existingPerson, requestedRole) => _domainService.EnsureCanUpdateManagedPerson(loggedRole, loggedPersonId, existingPerson, requestedRole));
         }
 
-        public async Task DeletePersonAsync(DeletePersonCommand command, string loggedPersonId, PersonRole loggedRole)
+        public async Task DeletePersonAsync(string id, string loggedPersonId, PersonRole loggedRole)
         {
-            var person = await _repository.GetByIdAsync(command.Id);
+            var person = await _repository.GetByIdAsync(id);
             if (person == null)
             {
-                throw new PersonNotFoundException(command.Id);
+                throw new PersonNotFoundException(id);
             }
 
             _domainService.EnsureCanDeleteManagedPerson(loggedRole, person);
 
-            await _repository.DeleteAsync(command.Id);
+            await _repository.DeleteAsync(id);
         }
 
         private async Task<PersonRole> ResolveBootstrapAwareCreationRoleAsync(PersonRole? requestedRole)

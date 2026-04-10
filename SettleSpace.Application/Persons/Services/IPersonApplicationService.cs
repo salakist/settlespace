@@ -13,7 +13,7 @@ namespace SettleSpace.Application.Persons.Services
         Task<Person> CreatePersonAsync(CreatePersonCommand command, string loggedPersonId, PersonRole loggedRole);
         Task UpdatePersonAsync(string id, UpdatePersonCommand command);
         Task UpdatePersonAsync(string id, UpdatePersonCommand command, string loggedPersonId, PersonRole loggedRole);
-        Task DeletePersonAsync(DeletePersonCommand command, string loggedPersonId, PersonRole loggedRole);
+        Task DeletePersonAsync(string id, string loggedPersonId, PersonRole loggedRole);
     }
 }
 

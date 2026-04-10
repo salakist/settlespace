@@ -452,13 +452,12 @@ public class PersonApplicationServiceTests
     [Fact]
     public async Task DeletePersonAsyncManagedPersonDeletesAfterAuthorization()
     {
-        var command = new DeletePersonCommand { Id = "1" };
         var person = new Person { Id = "1", FirstName = "John", LastName = "Doe", Role = PersonRole.USER };
 
         _repositoryMock.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(person);
         _repositoryMock.Setup(r => r.DeleteAsync("1")).Returns(Task.CompletedTask);
 
-        await _sut.DeletePersonAsync(command, "manager-1", PersonRole.MANAGER);
+        await _sut.DeletePersonAsync("1", "manager-1", PersonRole.MANAGER);
 
         _domainServiceMock.Verify(d => d.EnsureCanDeleteManagedPerson(PersonRole.MANAGER, person), Times.Once);
         _repositoryMock.Verify(r => r.DeleteAsync("1"), Times.Once);
@@ -467,12 +466,10 @@ public class PersonApplicationServiceTests
     [Fact]
     public async Task DeletePersonAsyncManagedPersonNotFoundThrowsPersonNotFoundException()
     {
-        var command = new DeletePersonCommand { Id = "missing" };
-
         _repositoryMock.Setup(r => r.GetByIdAsync("missing")).ReturnsAsync((Person?)null);
 
         await Assert.ThrowsAsync<PersonNotFoundException>(
-            () => _sut.DeletePersonAsync(command, "admin-1", PersonRole.ADMIN));
+            () => _sut.DeletePersonAsync("missing", "admin-1", PersonRole.ADMIN));
     }
 }
 

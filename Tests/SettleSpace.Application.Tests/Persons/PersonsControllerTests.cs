@@ -149,7 +149,7 @@ public class PersonsControllerTests
     [Fact]
     public async Task DeleteExistingPersonReturnsNoContent()
     {
-        _serviceMock.Setup(s => s.DeletePersonAsync(It.IsAny<DeletePersonCommand>(), "user-1", PersonRole.ADMIN))
+        _serviceMock.Setup(s => s.DeletePersonAsync("507f1f77bcf86cd799439011", "user-1", PersonRole.ADMIN))
                     .Returns(Task.CompletedTask);
         SetUser("user-1", PersonRole.ADMIN);
 

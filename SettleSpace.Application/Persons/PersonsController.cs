@@ -185,7 +185,7 @@ namespace SettleSpace.Application.Persons
         public async Task<IActionResult> Delete(string id)
         {
             var (personId, personRole) = _authService.ResolveAuthContext(User);
-            await _applicationService.DeletePersonAsync(new DeletePersonCommand { Id = id }, personId, personRole);
+            await _applicationService.DeletePersonAsync(id, personId, personRole);
             return NoContent();
         }
     }

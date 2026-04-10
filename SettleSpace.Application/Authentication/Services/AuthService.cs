@@ -2,7 +2,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using SettleSpace.Application.Authentication.Commands;
-using SettleSpace.Application.Persons.Commands;
+using SettleSpace.Application.Authentication.Mapping;
 using SettleSpace.Application.Persons.Services;
 using SettleSpace.Domain.Auth;
 using SettleSpace.Domain.Persons;
@@ -19,19 +19,22 @@ namespace SettleSpace.Application.Authentication.Services
         private readonly IPasswordHashingService _passwordHashingService;
         private readonly IPersonApplicationService _personApplicationService;
         private readonly IPasswordValidator _passwordValidator;
+        private readonly IAuthMapper _authMapper;
 
         public AuthService(
             IPersonRepository personRepository,
             IOptions<AuthSettings> authOptions,
             IPasswordHashingService passwordHashingService,
             IPersonApplicationService personApplicationService,
-            IPasswordValidator passwordValidator)
+            IPasswordValidator passwordValidator,
+            IAuthMapper authMapper)
         {
             _personRepository = personRepository;
             _authSettings = authOptions.Value;
             _passwordHashingService = passwordHashingService;
             _personApplicationService = personApplicationService;
             _passwordValidator = passwordValidator;
+            _authMapper = authMapper;
         }
 
         public async Task<LoginResponseDto?> LoginAsync(LoginCommand command)
@@ -65,7 +68,6 @@ namespace SettleSpace.Application.Authentication.Services
             }
 
             var resolvedUsername = person.Username;
-            var displayName = person.DisplayName;
 
             var expiresAtUtc = DateTime.UtcNow.AddMinutes(_authSettings.TokenExpirationMinutes);
             var claims = new[]
@@ -89,35 +91,17 @@ namespace SettleSpace.Application.Authentication.Services
                 expires: expiresAtUtc,
                 signingCredentials: credentials);
 
-            return new LoginResponseDto
-            {
-                Token = new JwtSecurityTokenHandler().WriteToken(token),
-                Username = resolvedUsername,
-                PersonId = person.Id ?? string.Empty,
-                DisplayName = displayName,
-                Role = person.Role,
-                ExpiresAtUtc = expiresAtUtc
-            };
+            return _authMapper.ToLoginResponseDto(
+                person,
+                new JwtSecurityTokenHandler().WriteToken(token),
+                expiresAtUtc);
         }
 
         public async Task<LoginResponseDto> RegisterAsync(RegisterCommand command)
         {
-            var createdPerson = await _personApplicationService.CreatePersonAsync(new CreatePersonCommand
-            {
-                FirstName = command.FirstName,
-                LastName = command.LastName,
-                Password = command.Password,
-                PhoneNumber = command.PhoneNumber,
-                Email = command.Email,
-                DateOfBirth = command.DateOfBirth,
-                Addresses = command.Addresses
-            });
+            var createdPerson = await _personApplicationService.CreatePersonAsync(_authMapper.ToCreatePersonCommand(command));
 
-            var loginResponse = await LoginAsync(new LoginCommand
-            {
-                Username = createdPerson.Username,
-                Password = command.Password
-            });
+            var loginResponse = await LoginAsync(_authMapper.ToLoginCommand(createdPerson.Username, command.Password));
 
             return loginResponse ?? throw new InvalidOperationException("Registration succeeded but auto-login failed.");
         }

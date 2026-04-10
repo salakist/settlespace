@@ -31,26 +31,14 @@ namespace SettleSpace.Application.Transactions.Services
 
         public async Task<List<Transaction>> SearchTransactionsAsync(string loggedPersonId, PersonRole loggedRole, TransactionSearchQuery query)
         {
-            var freeText = query.FreeText?.Trim();
-            var filter = new TransactionSearchFilter
-            {
-                FreeText = freeText,
-                Status = query.Status,
-                Category = query.Category,
-                Description = query.Description,
-                Involved = query.Involved,
-                ManagedBy = query.ManagedBy,
-                Payer = query.Payer,
-                Payee = query.Payee,
-            };
-
+            var filter = _transactionMapper.ToSearchFilter(query);
             var transactionSearchTask = _repository.SearchAsync(filter);
 
             List<Transaction> readable;
 
-            if (!string.IsNullOrWhiteSpace(freeText))
+            if (!string.IsNullOrWhiteSpace(filter.FreeText))
             {
-                var personSearchTask = _personRepository.SearchAsync(freeText);
+                var personSearchTask = _personRepository.SearchAsync(filter.FreeText!);
                 await Task.WhenAll(transactionSearchTask, personSearchTask);
 
                 var matchedTransactions = transactionSearchTask.Result;
@@ -80,11 +68,7 @@ namespace SettleSpace.Application.Transactions.Services
                 readable = _domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
             }
 
-            var policy = new TransactionSearchPolicy
-            {
-                ManagedBy = query.ManagedBy,
-                Involvement = query.Involvement,
-            };
+            var policy = _transactionMapper.ToSearchPolicy(query);
             return _domainService.ApplySearchPolicy(readable, loggedPersonId, policy);
         }
 
