@@ -1,7 +1,6 @@
-namespace SettleSpace.Application.Transactions.Commands
+namespace SettleSpace.Application.Transactions.Commands;
+
+public class DeleteTransactionCommand
 {
-    public class DeleteTransactionCommand
-    {
-        public string Id { get; set; } = null!;
-    }
+    public string Id { get; set; } = null!;
 }

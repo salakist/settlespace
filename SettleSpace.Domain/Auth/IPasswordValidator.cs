@@ -1,7 +1,6 @@
-namespace SettleSpace.Domain.Auth
+namespace SettleSpace.Domain.Auth;
+
+public interface IPasswordValidator
 {
-    public interface IPasswordValidator
-    {
-        void Validate(string? password);
-    }
+    void Validate(string? password);
 }

@@ -1,7 +1,6 @@
 using Moq;
 using SettleSpace.Application.Persons.Services;
 using SettleSpace.Domain.Persons;
-using SettleSpace.Domain.Persons.Entities;
 
 namespace SettleSpace.Application.Tests.Persons.Services;
 

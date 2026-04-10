@@ -1,7 +1,6 @@
-namespace SettleSpace.Domain.Auth
+namespace SettleSpace.Domain.Auth;
+
+public interface IPasswordGenerator
 {
-    public interface IPasswordGenerator
-    {
-        string GeneratePassword();
-    }
+    string GeneratePassword();
 }

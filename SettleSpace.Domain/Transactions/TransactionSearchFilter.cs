@@ -1,16 +1,15 @@
 using SettleSpace.Domain.Transactions.Entities;
 
-namespace SettleSpace.Domain.Transactions
+namespace SettleSpace.Domain.Transactions;
+
+public record TransactionSearchFilter
 {
-    public record TransactionSearchFilter
-    {
-        public string? FreeText { get; init; }
-        public List<TransactionStatus>? Status { get; init; }
-        public string? Category { get; init; }
-        public string? Description { get; init; }
-        public List<string>? Involved { get; init; }
-        public List<string>? ManagedBy { get; init; }
-        public string? Payer { get; init; }
-        public string? Payee { get; init; }
-    }
+    public string? FreeText { get; init; }
+    public List<TransactionStatus>? Status { get; init; }
+    public string? Category { get; init; }
+    public string? Description { get; init; }
+    public List<string>? Involved { get; init; }
+    public List<string>? ManagedBy { get; init; }
+    public string? Payer { get; init; }
+    public string? Payee { get; init; }
 }

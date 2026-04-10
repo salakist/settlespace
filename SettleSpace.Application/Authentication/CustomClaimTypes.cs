@@ -1,8 +1,7 @@
-namespace SettleSpace.Application.Authentication
+namespace SettleSpace.Application.Authentication;
+
+public static class CustomClaimTypes
 {
-    public static class CustomClaimTypes
-    {
-        public const string PersonId = "person_id";
-        public const string PersonRole = "person_role";
-    }
+    public const string PersonId = "person_id";
+    public const string PersonRole = "person_role";
 }

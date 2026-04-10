@@ -119,7 +119,7 @@ public class PersonApplicationServiceTests
     [Fact]
     public async Task CreatePersonAsyncValidCommandCreatesAndReturnsPerson()
     {
-        var command  = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
+        var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
         Person? capturedPerson = null;
 
         _domainServiceMock
@@ -326,7 +326,7 @@ public class PersonApplicationServiceTests
     [Fact]
     public async Task UpdatePersonAsyncValidCommandUpdatesPerson()
     {
-        var command  = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
+        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
         var existing = new Person { Id = "1", FirstName = "John", LastName = "Doe", Password = "hashed::Old@Pass1" };
         Person? capturedPerson = null;
 
@@ -350,7 +350,7 @@ public class PersonApplicationServiceTests
     [Fact]
     public async Task UpdatePersonAsyncPreservesExistingPassword()
     {
-        var command  = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
+        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
         var existing = new Person { Id = "1", FirstName = "John", LastName = "Doe", Password = "hashed::Existing@Pass1" };
         var capturedPerson = (Person?)null;
 
@@ -398,7 +398,7 @@ public class PersonApplicationServiceTests
     [Fact]
     public async Task UpdatePersonAsyncNameTakenByAnotherPersonThrowsDuplicatePersonException()
     {
-        var command  = new UpdatePersonCommand { FirstName = "Jane", LastName = "Smith" };
+        var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Smith" };
         var existing = new Person { Id = "1", FirstName = "John", LastName = "Doe" };
 
         _repositoryMock.Setup(r => r.GetByIdAsync("1")).ReturnsAsync(existing);

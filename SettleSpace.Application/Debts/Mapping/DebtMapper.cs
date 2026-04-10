@@ -1,66 +1,65 @@
 using SettleSpace.Application.Transactions.Mapping;
 using SettleSpace.Domain.Debts.Entities;
 
-namespace SettleSpace.Application.Debts.Mapping
+namespace SettleSpace.Application.Debts.Mapping;
+
+public interface IDebtMapper
 {
-    public interface IDebtMapper
-    {
-        DebtSummaryDto ToSummaryDto(DebtSummary entity, IReadOnlyDictionary<string, string>? personDisplayNames = null);
-        DebtDetailsDto ToDetailsDto(DebtDetails entity, IReadOnlyDictionary<string, string>? personDisplayNames = null);
-        DebtSettlementResultDto ToSettlementResultDto(DebtSettlementResult entity, IReadOnlyDictionary<string, string>? personDisplayNames = null);
-    }
+    DebtSummaryDto ToSummaryDto(DebtSummary entity, IReadOnlyDictionary<string, string>? personDisplayNames = null);
+    DebtDetailsDto ToDetailsDto(DebtDetails entity, IReadOnlyDictionary<string, string>? personDisplayNames = null);
+    DebtSettlementResultDto ToSettlementResultDto(DebtSettlementResult entity, IReadOnlyDictionary<string, string>? personDisplayNames = null);
+}
 
-    public class DebtMapper(ITransactionMapper transactionMapper) : IDebtMapper
-    {
-        public DebtSummaryDto ToSummaryDto(DebtSummary entity, IReadOnlyDictionary<string, string>? personDisplayNames = null) =>
-            new()
-            {
-                CounterpartyPersonId = entity.CounterpartyPersonId,
-                CounterpartyDisplayName = ResolvePersonDisplayName(personDisplayNames, entity.CounterpartyPersonId),
-                CurrencyCode = entity.CurrencyCode,
-                NetAmount = entity.NetAmount,
-                Direction = entity.Direction,
-                TransactionCount = entity.TransactionCount,
-            };
-
-        public DebtDetailsDto ToDetailsDto(DebtDetails entity, IReadOnlyDictionary<string, string>? personDisplayNames = null) =>
-            new()
-            {
-                CounterpartyPersonId = entity.CounterpartyPersonId,
-                CounterpartyDisplayName = ResolvePersonDisplayName(personDisplayNames, entity.CounterpartyPersonId),
-                CurrencyCode = entity.CurrencyCode,
-                NetAmount = entity.NetAmount,
-                Direction = entity.Direction,
-                TransactionCount = entity.TransactionCount,
-                PaidByCurrentPerson = entity.PaidByCurrentPerson,
-                PaidByCounterparty = entity.PaidByCounterparty,
-                Transactions = [.. entity.Transactions.Select(transaction => transactionMapper.ToDto(transaction, personDisplayNames))],
-            };
-
-        public DebtSettlementResultDto ToSettlementResultDto(DebtSettlementResult entity, IReadOnlyDictionary<string, string>? personDisplayNames = null) =>
-            new()
-            {
-                SettlementTransactionId = entity.SettlementTransaction.Id,
-                CounterpartyPersonId = entity.CounterpartyPersonId,
-                CounterpartyDisplayName = ResolvePersonDisplayName(personDisplayNames, entity.CounterpartyPersonId),
-                CurrencyCode = entity.CurrencyCode,
-                SettledAmount = entity.SettledAmount,
-                RemainingNetAmount = entity.RemainingNetAmount,
-                Direction = entity.Direction,
-            };
-
-        private static string ResolvePersonDisplayName(
-            IReadOnlyDictionary<string, string>? personDisplayNames,
-            string personId)
+public class DebtMapper(ITransactionMapper transactionMapper) : IDebtMapper
+{
+    public DebtSummaryDto ToSummaryDto(DebtSummary entity, IReadOnlyDictionary<string, string>? personDisplayNames = null) =>
+        new()
         {
-            if (personDisplayNames != null
-                && personDisplayNames.TryGetValue(personId, out var displayName)
-                && !string.IsNullOrWhiteSpace(displayName))
-            {
-                return displayName;
-            }
+            CounterpartyPersonId = entity.CounterpartyPersonId,
+            CounterpartyDisplayName = ResolvePersonDisplayName(personDisplayNames, entity.CounterpartyPersonId),
+            CurrencyCode = entity.CurrencyCode,
+            NetAmount = entity.NetAmount,
+            Direction = entity.Direction,
+            TransactionCount = entity.TransactionCount,
+        };
 
-            return personId;
+    public DebtDetailsDto ToDetailsDto(DebtDetails entity, IReadOnlyDictionary<string, string>? personDisplayNames = null) =>
+        new()
+        {
+            CounterpartyPersonId = entity.CounterpartyPersonId,
+            CounterpartyDisplayName = ResolvePersonDisplayName(personDisplayNames, entity.CounterpartyPersonId),
+            CurrencyCode = entity.CurrencyCode,
+            NetAmount = entity.NetAmount,
+            Direction = entity.Direction,
+            TransactionCount = entity.TransactionCount,
+            PaidByCurrentPerson = entity.PaidByCurrentPerson,
+            PaidByCounterparty = entity.PaidByCounterparty,
+            Transactions = [.. entity.Transactions.Select(transaction => transactionMapper.ToDto(transaction, personDisplayNames))],
+        };
+
+    public DebtSettlementResultDto ToSettlementResultDto(DebtSettlementResult entity, IReadOnlyDictionary<string, string>? personDisplayNames = null) =>
+        new()
+        {
+            SettlementTransactionId = entity.SettlementTransaction.Id,
+            CounterpartyPersonId = entity.CounterpartyPersonId,
+            CounterpartyDisplayName = ResolvePersonDisplayName(personDisplayNames, entity.CounterpartyPersonId),
+            CurrencyCode = entity.CurrencyCode,
+            SettledAmount = entity.SettledAmount,
+            RemainingNetAmount = entity.RemainingNetAmount,
+            Direction = entity.Direction,
+        };
+
+    private static string ResolvePersonDisplayName(
+        IReadOnlyDictionary<string, string>? personDisplayNames,
+        string personId)
+    {
+        if (personDisplayNames != null
+            && personDisplayNames.TryGetValue(personId, out var displayName)
+            && !string.IsNullOrWhiteSpace(displayName))
+        {
+            return displayName;
         }
+
+        return personId;
     }
 }

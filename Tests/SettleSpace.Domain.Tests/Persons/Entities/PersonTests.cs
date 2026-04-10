@@ -55,7 +55,7 @@ public class PersonTests
     public void MatchesByFullNameSameNamesReturnsTrue()
     {
         var person = new Person { FirstName = "John", LastName = "Doe" };
-        var other  = new Person { FirstName = "John", LastName = "Doe" };
+        var other = new Person { FirstName = "John", LastName = "Doe" };
 
         Assert.True(person.MatchesByFullName(other));
     }
@@ -64,7 +64,7 @@ public class PersonTests
     public void MatchesByFullNameDifferentCaseReturnsTrue()
     {
         var person = new Person { FirstName = "John", LastName = "Doe" };
-        var other  = new Person { FirstName = "JOHN", LastName = "doe" };
+        var other = new Person { FirstName = "JOHN", LastName = "doe" };
 
         Assert.True(person.MatchesByFullName(other));
     }
@@ -73,7 +73,7 @@ public class PersonTests
     public void MatchesByFullNameDifferentFirstNameReturnsFalse()
     {
         var person = new Person { FirstName = "John", LastName = "Doe" };
-        var other  = new Person { FirstName = "Jane", LastName = "Doe" };
+        var other = new Person { FirstName = "Jane", LastName = "Doe" };
 
         Assert.False(person.MatchesByFullName(other));
     }
@@ -82,7 +82,7 @@ public class PersonTests
     public void MatchesByFullNameDifferentLastNameReturnsFalse()
     {
         var person = new Person { FirstName = "John", LastName = "Doe" };
-        var other  = new Person { FirstName = "John", LastName = "Smith" };
+        var other = new Person { FirstName = "John", LastName = "Smith" };
 
         Assert.False(person.MatchesByFullName(other));
     }

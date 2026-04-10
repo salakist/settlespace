@@ -1,8 +1,7 @@
-namespace SettleSpace.Domain.Transactions
+namespace SettleSpace.Domain.Transactions;
+
+public class TransactionSearchPolicy
 {
-    public class TransactionSearchPolicy
-    {
-        public List<string>? ManagedBy { get; init; }
-        public InvolvementType? Involvement { get; init; }
-    }
+    public List<string>? ManagedBy { get; init; }
+    public InvolvementType? Involvement { get; init; }
 }

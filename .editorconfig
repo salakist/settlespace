@@ -1,0 +1,8 @@
+root = true
+
+[*.cs]
+csharp_style_namespace_declarations = file_scoped:suggestion
+
+# Surface unnecessary using directives as non-blocking cosmetic diagnostics
+# in the same way as other suggestion-level style issues.
+dotnet_diagnostic.IDE0005.severity = suggestion

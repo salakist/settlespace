@@ -1,21 +1,20 @@
 using SettleSpace.Domain.Exceptions;
 
-namespace SettleSpace.Domain.Transactions.Exceptions
+namespace SettleSpace.Domain.Transactions.Exceptions;
+
+public class UnauthorizedTransactionAccessException : ForbiddenException
 {
-    public class UnauthorizedTransactionAccessException : ForbiddenException
+    public UnauthorizedTransactionAccessException()
     {
-        public UnauthorizedTransactionAccessException()
-        {
-        }
+    }
 
-        public UnauthorizedTransactionAccessException(string message)
-            : base(message)
-        {
-        }
+    public UnauthorizedTransactionAccessException(string message)
+        : base(message)
+    {
+    }
 
-        public UnauthorizedTransactionAccessException(string message, Exception innerException)
-            : base(message, innerException)
-        {
-        }
+    public UnauthorizedTransactionAccessException(string message, Exception innerException)
+        : base(message, innerException)
+    {
     }
 }

@@ -1,8 +1,7 @@
-namespace SettleSpace.Domain.Transactions
+namespace SettleSpace.Domain.Transactions;
+
+public enum InvolvementType
 {
-    public enum InvolvementType
-    {
-        Owned,
-        Managed,
-    }
+    Owned,
+    Managed,
 }

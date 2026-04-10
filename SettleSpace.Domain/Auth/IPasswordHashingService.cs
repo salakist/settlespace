@@ -1,9 +1,8 @@
-namespace SettleSpace.Domain.Auth
+namespace SettleSpace.Domain.Auth;
+
+public interface IPasswordHashingService
 {
-    public interface IPasswordHashingService
-    {
-        string HashPassword(string password);
-        bool VerifyPassword(string password, string passwordHash);
-        bool IsPasswordHash(string value);
-    }
+    string HashPassword(string password);
+    bool VerifyPassword(string password, string passwordHash);
+    bool IsPasswordHash(string value);
 }

@@ -41,7 +41,7 @@ public class PersonsControllerTests
 
         var result = await _controller.Get();
 
-        var ok   = Assert.IsType<OkObjectResult>(result.Result);
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
         var dtos = Assert.IsAssignableFrom<List<PersonDto>>(ok.Value);
         Assert.Single(dtos);
         Assert.Equal("John", dtos[0].FirstName);
@@ -61,7 +61,7 @@ public class PersonsControllerTests
 
         var result = await _controller.Get(person.Id!);
 
-        var ok  = Assert.IsType<OkObjectResult>(result.Result);
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
         var dto = Assert.IsType<PersonDto>(ok.Value);
         Assert.Equal("John", dto.FirstName);
     }
@@ -100,14 +100,14 @@ public class PersonsControllerTests
     public async Task PostValidCommandReturnsCreated()
     {
         var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
-        var person  = new Person { Id = "507f1f77bcf86cd799439011", FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
+        var person = new Person { Id = "507f1f77bcf86cd799439011", FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
         _serviceMock.Setup(s => s.CreatePersonAsync(command, "user-1", PersonRole.ADMIN)).ReturnsAsync(person);
         SetUser("user-1", PersonRole.ADMIN);
 
         var result = await _controller.Post(command);
 
         var created = Assert.IsType<CreatedAtActionResult>(result);
-        var dto     = Assert.IsType<PersonDto>(created.Value);
+        var dto = Assert.IsType<PersonDto>(created.Value);
         Assert.Equal(person.Id, dto.Id);
     }
 
@@ -118,7 +118,7 @@ public class PersonsControllerTests
     [Fact]
     public async Task UpdateValidCommandReturnsNoContent()
     {
-        var id      = "507f1f77bcf86cd799439011";
+        var id = "507f1f77bcf86cd799439011";
         var command = new UpdatePersonCommand { FirstName = "Jane", LastName = "Doe" };
         _serviceMock.Setup(s => s.UpdatePersonAsync(id, command, "user-1", PersonRole.ADMIN))
                     .Returns(Task.CompletedTask);
