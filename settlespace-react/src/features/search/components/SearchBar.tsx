@@ -25,6 +25,7 @@ const SearchBar = <TParam extends string = string,>({
   freeTextPlaceholder = SEARCH_PLACEHOLDERS.DEFAULT,
   dataTestId,
 }: SearchBarProps<TParam>) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [isAutocompleteOpen, setIsAutocompleteOpen] = useState(false);
   const [showAllOptions, setShowAllOptions] = useState(false);
@@ -59,8 +60,49 @@ const SearchBar = <TParam extends string = string,>({
     setShowAllOptions(shouldOpen);
     setIsAutocompleteOpen(shouldOpen);
 
-    if (!shouldOpen) {
+    if (shouldOpen) {
+      inputRef.current?.focus();
+    } else {
       inputRef.current?.blur();
+    }
+  };
+
+  const isTargetInsideSearchBar = (target: EventTarget | null) => (
+    target instanceof Node && Boolean(containerRef.current?.contains(target))
+  );
+
+  const handleAutocompleteClose = (
+    event: React.SyntheticEvent,
+    reason: string,
+  ) => {
+    if (reason === 'toggleInput' && isTargetInsideSearchBar(event.target)) {
+      return;
+    }
+
+    if (reason === 'blur') {
+      const nextFocusTarget = 'relatedTarget' in event
+        ? (event.relatedTarget as EventTarget | null)
+        : null;
+
+      if (
+        isTargetInsideSearchBar(nextFocusTarget)
+        || isTargetInsideSearchBar(document.activeElement)
+      ) {
+        return;
+      }
+    }
+
+    setIsAutocompleteOpen(false);
+    setShowAllOptions(false);
+  };
+
+  const handleInputFocus = () => {
+    if (
+      pendingParameter
+      && isAsyncSearchParameter(pendingParameter)
+      && Boolean(inputValue.trim())
+    ) {
+      setIsAutocompleteOpen(true);
     }
   };
 
@@ -111,6 +153,7 @@ const SearchBar = <TParam extends string = string,>({
         sx={{ gap: 1.5 }}
       >
         <Stack
+          ref={containerRef}
           direction="row"
           alignItems="center"
           sx={{
@@ -150,10 +193,7 @@ const SearchBar = <TParam extends string = string,>({
           <Autocomplete
             freeSolo
             open={isAutocompleteOpen && autocompleteOptions.length > 0}
-            onClose={() => {
-              setIsAutocompleteOpen(false);
-              setShowAllOptions(false);
-            }}
+            onClose={handleAutocompleteClose}
             options={autocompleteOptions}
             loading={loadingSuggestions}
             loadingText={SEARCH_BAR_TEXT.LOADING}
@@ -203,6 +243,7 @@ const SearchBar = <TParam extends string = string,>({
                 size="small"
                 placeholder={placeholder}
                 inputRef={inputRef}
+                onFocus={handleInputFocus}
                 slotProps={{
                   htmlInput: {
                     ...params.inputProps,

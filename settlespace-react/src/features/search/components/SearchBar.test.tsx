@@ -33,6 +33,10 @@ const INVOLVED_FILTER = {
   ...JANE_SUGGESTION,
 } as const;
 
+const ARIA_EXPANDED_ATTRIBUTE = 'aria-expanded';
+const SHOW_FILTERS_BUTTON_NAME = /show filters/i;
+const OUTSIDE_BUTTON_NAME = /outside/i;
+
 function renderSearchBarForTest({
   onSearch = jest.fn(),
   parameters,
@@ -136,15 +140,103 @@ test('the left filter button toggles the autocomplete open and closed', async ()
     parameters: buildStatusParameters(),
   });
 
-  const toggleButton = screen.getByRole('button', { name: /show filters/i });
+  const toggleButton = screen.getByRole('button', { name: SHOW_FILTERS_BUTTON_NAME });
 
   userEvent.click(toggleButton);
   expect(await screen.findByRole('option', { name: SEARCH_TEST_TEXT.PENDING_STATUS })).toBeInTheDocument();
   expect(screen.getByText(SEARCH_TEST_TEXT.STATUS_LABEL)).toBeInTheDocument();
-  await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'true'));
+  await waitFor(() => expect(input).toHaveAttribute(ARIA_EXPANDED_ATTRIBUTE, 'true'));
 
   userEvent.click(toggleButton);
-  await waitFor(() => expect(input).toHaveAttribute('aria-expanded', 'false'));
+  await waitFor(() => expect(input).toHaveAttribute(ARIA_EXPANDED_ATTRIBUTE, 'false'));
+});
+
+test('clicking the text input keeps the filter menu open after opening it from the button', async () => {
+  const { input } = renderSearchBarForTest({
+    onSearch: jest.fn(),
+    parameters: buildStatusParameters(),
+  });
+
+  userEvent.click(screen.getByRole('button', { name: SHOW_FILTERS_BUTTON_NAME }));
+  expect(await screen.findByRole('option', { name: SEARCH_TEST_TEXT.PENDING_STATUS })).toBeInTheDocument();
+
+  userEvent.click(input);
+
+  await waitFor(() => expect(input).toHaveAttribute(ARIA_EXPANDED_ATTRIBUTE, 'true'));
+  expect(screen.getByRole('option', { name: SEARCH_TEST_TEXT.PENDING_STATUS })).toBeInTheDocument();
+});
+
+test('clicking outside closes the filter menu after opening it from the button', async () => {
+  const onSearch = jest.fn();
+
+  render(
+    <>
+      <SearchBar
+        onSearch={onSearch}
+        ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL}
+        parameters={buildStatusParameters()}
+      />
+      <button type="button">Outside</button>
+    </>,
+  );
+
+  const input = screen.getByLabelText(SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL);
+
+  userEvent.click(screen.getByRole('button', { name: SHOW_FILTERS_BUTTON_NAME }));
+  expect(await screen.findByRole('option', { name: SEARCH_TEST_TEXT.PENDING_STATUS })).toBeInTheDocument();
+
+  userEvent.click(screen.getByRole('button', { name: OUTSIDE_BUTTON_NAME }));
+
+  await waitFor(() => expect(input).toHaveAttribute(ARIA_EXPANDED_ATTRIBUTE, 'false'));
+  await waitFor(() => expect(screen.queryByRole('listbox')).not.toBeInTheDocument());
+});
+
+test('re-clicking an async sub-input reopens suggestions after an outside close', async () => {
+  const getSuggestions = createStaticJaneSuggestions();
+
+  render(
+    <>
+      <SearchBar
+        onSearch={jest.fn()}
+        ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL}
+        parameters={buildInvolvedAsyncParameters(getSuggestions)}
+      />
+      <button type="button">Outside</button>
+    </>,
+  );
+
+  const input = screen.getByLabelText(SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL);
+
+  userEvent.type(input, 'Inv');
+  await clickOption(SEARCH_TEST_TEXT.INVOLVED_LABEL);
+  userEvent.type(input, 'Jane');
+  expect(await screen.findByRole('option', { name: SEARCH_TEST_TEXT.JANE_SMITH })).toBeInTheDocument();
+
+  userEvent.click(screen.getByRole('button', { name: OUTSIDE_BUTTON_NAME }));
+  await waitFor(() => expect(input).toHaveAttribute(ARIA_EXPANDED_ATTRIBUTE, 'false'));
+
+  userEvent.click(input);
+
+  await waitFor(() => expect(input).toHaveAttribute(ARIA_EXPANDED_ATTRIBUTE, 'true'));
+  expect(screen.getByRole('option', { name: SEARCH_TEST_TEXT.JANE_SMITH })).toBeInTheDocument();
+});
+
+test('clearing the input hides the filter menu even after it was opened from the button', async () => {
+  const { input } = renderSearchBarForTest({
+    onSearch: jest.fn(),
+    parameters: buildStatusParameters(),
+  });
+
+  userEvent.click(screen.getByRole('button', { name: SHOW_FILTERS_BUTTON_NAME }));
+  expect(await screen.findByRole('option', { name: SEARCH_TEST_TEXT.PENDING_STATUS })).toBeInTheDocument();
+
+  userEvent.type(input, 'Pend');
+  expect(await screen.findByRole('option', { name: SEARCH_TEST_TEXT.PENDING_STATUS })).toBeInTheDocument();
+
+  userEvent.clear(input);
+
+  await waitFor(() => expect(input).toHaveAttribute(ARIA_EXPANDED_ATTRIBUTE, 'false'));
+  await waitFor(() => expect(screen.queryByRole('listbox')).not.toBeInTheDocument());
 });
 
 test('selecting a fixed option adds a chip and triggers search', async () => {
