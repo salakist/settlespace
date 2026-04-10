@@ -29,4 +29,3 @@ namespace SettleSpace.Infrastructure.Serialization
         }
     }
 }
-

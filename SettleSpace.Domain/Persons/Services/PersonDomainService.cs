@@ -8,15 +8,8 @@ namespace SettleSpace.Domain.Persons.Services
     /// This service owns the business rule: no two persons may share the same
     /// first name and last name (case-insensitive).
     /// </summary>
-    public class PersonDomainService : IPersonDomainService
+    public class PersonDomainService(IPersonRepository repository) : IPersonDomainService
     {
-        private readonly IPersonRepository _repository;
-
-        public PersonDomainService(IPersonRepository repository)
-        {
-            _repository = repository;
-        }
-
         /// <summary>
         /// Ensures that no other person with the same full name (case-insensitive) exists.
         /// </summary>
@@ -31,7 +24,7 @@ namespace SettleSpace.Domain.Persons.Services
         /// </exception>
         public async Task EnsureUniqueAsync(string firstName, string lastName, string? excludeId = null)
         {
-            var existing = await _repository.FindByFullNameAsync(firstName, lastName);
+            var existing = await repository.FindByFullNameAsync(firstName, lastName);
 
             if (existing != null && existing.Id != excludeId)
             {
@@ -105,4 +98,3 @@ namespace SettleSpace.Domain.Persons.Services
         }
     }
 }
-

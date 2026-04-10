@@ -17,5 +17,3 @@ namespace SettleSpace.Application.Transactions.Commands
         public TransactionStatus Status { get; set; } = TransactionStatus.Completed;
     }
 }
-
-

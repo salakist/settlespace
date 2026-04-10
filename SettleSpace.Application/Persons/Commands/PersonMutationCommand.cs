@@ -16,4 +16,3 @@ namespace SettleSpace.Application.Persons.Commands
         public List<AddressCommand> Addresses { get; set; } = [];
     }
 }
-

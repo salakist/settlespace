@@ -20,10 +20,10 @@ public class PersonDisplayNameResolverTests
     {
         _personRepositoryMock
             .Setup(repository => repository.GetByIdsAsync(It.IsAny<List<string>>()))
-            .ReturnsAsync(new List<Person>
-            {
+            .ReturnsAsync(
+            [
                 new() { Id = "person-1", FirstName = " John ", LastName = " Doe " }
-            });
+            ]);
 
         var expectedIds = new[] { "person-1", "missing-person" };
 

@@ -12,4 +12,3 @@ namespace SettleSpace.Application.Authentication
         public DateTime ExpiresAtUtc { get; set; }
     }
 }
-

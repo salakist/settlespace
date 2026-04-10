@@ -59,12 +59,12 @@ function createStripState() {
   };
 }
 
-function consumeLineComment(state, current, index, result) {
+function consumeLineComment(state, current, _next, index, result) {
   if (!state.inLineComment) {
     return null;
   }
 
-  if (current === "\n") {
+  if (current === "\r" || current === "\n") {
     state.inLineComment = false;
     result.push(current);
   }

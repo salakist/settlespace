@@ -19,4 +19,3 @@ namespace SettleSpace.Domain.Transactions.Exceptions
         }
     }
 }
-

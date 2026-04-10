@@ -14,5 +14,3 @@ namespace SettleSpace.Domain.Transactions
         Task DeleteAsync(string id);
     }
 }
-
-

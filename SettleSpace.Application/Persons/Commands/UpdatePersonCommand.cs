@@ -3,9 +3,5 @@ namespace SettleSpace.Application.Persons.Commands
     /// <summary>
     /// Command to update an existing person.
     /// </summary>
-    public class UpdatePersonCommand : PersonMutationCommand
-    {
-    }
+    public class UpdatePersonCommand : PersonMutationCommand;
 }
-
-

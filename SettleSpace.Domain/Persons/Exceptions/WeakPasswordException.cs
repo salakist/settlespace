@@ -23,4 +23,3 @@ namespace SettleSpace.Domain.Persons.Exceptions
         }
     }
 }
-

@@ -26,7 +26,7 @@ public class TransactionsControllerTests
     {
         _personDisplayNameResolverMock
             .Setup(resolver => resolver.ResolveAsync(It.IsAny<List<string>>()))
-            .ReturnsAsync(new Dictionary<string, string>());
+            .ReturnsAsync([]);
 
         _controller = new TransactionsController(
             _serviceMock.Object,
@@ -85,7 +85,7 @@ public class TransactionsControllerTests
     {
         var query = new TransactionSearchQuery { FreeText = "dinner" };
         _serviceMock.Setup(s => s.SearchTransactionsAsync("user-1", PersonRole.USER, query))
-            .ReturnsAsync(new List<Transaction> { BuildTransaction("tx-1") });
+            .ReturnsAsync([BuildTransaction("tx-1")]);
         SetUser("user-1", PersonRole.USER);
 
         var result = await _controller.SearchTransactions(query);
@@ -100,7 +100,7 @@ public class TransactionsControllerTests
     {
         var query = new TransactionSearchQuery();
         _serviceMock.Setup(s => s.SearchTransactionsAsync("user-1", PersonRole.USER, query))
-            .ReturnsAsync(new List<Transaction>());
+            .ReturnsAsync([]);
         SetUser("user-1", PersonRole.USER);
 
         var result = await _controller.SearchTransactions(query);
@@ -137,11 +137,10 @@ public class TransactionsControllerTests
             HttpContext = new DefaultHttpContext
             {
                 User = new ClaimsPrincipal(new ClaimsIdentity(
-                    new[]
-                    {
+                    [
                         new Claim(CustomClaimTypes.PersonId, personId),
                         new Claim(CustomClaimTypes.PersonRole, role.ToString())
-                    },
+                    ],
                     "TestAuth"))
             }
         };

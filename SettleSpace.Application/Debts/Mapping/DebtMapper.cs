@@ -10,18 +10,11 @@ namespace SettleSpace.Application.Debts.Mapping
         DebtSettlementResultDto ToSettlementResultDto(DebtSettlementResult entity, IReadOnlyDictionary<string, string>? personDisplayNames = null);
     }
 
-    public class DebtMapper : IDebtMapper
+    public class DebtMapper(ITransactionMapper transactionMapper) : IDebtMapper
     {
-        private readonly ITransactionMapper _transactionMapper;
-
         public DebtMapper()
             : this(new TransactionMapper())
         {
-        }
-
-        public DebtMapper(ITransactionMapper transactionMapper)
-        {
-            _transactionMapper = transactionMapper;
         }
 
         public DebtSummaryDto ToSummaryDto(DebtSummary entity, IReadOnlyDictionary<string, string>? personDisplayNames = null) =>
@@ -46,7 +39,7 @@ namespace SettleSpace.Application.Debts.Mapping
                 TransactionCount = entity.TransactionCount,
                 PaidByCurrentPerson = entity.PaidByCurrentPerson,
                 PaidByCounterparty = entity.PaidByCounterparty,
-                Transactions = entity.Transactions.Select(transaction => _transactionMapper.ToDto(transaction, personDisplayNames)).ToList(),
+                Transactions = [.. entity.Transactions.Select(transaction => transactionMapper.ToDto(transaction, personDisplayNames))],
             };
 
         public DebtSettlementResultDto ToSettlementResultDto(DebtSettlementResult entity, IReadOnlyDictionary<string, string>? personDisplayNames = null) =>

@@ -78,10 +78,10 @@ public class TransactionApplicationServiceTests
         var query = new TransactionSearchQuery { FreeText = "taxi" };
         _personRepositoryMock.Setup(r => r.SearchAsync("taxi")).ReturnsAsync([]);
         _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.FreeText == "taxi")))
-            .ReturnsAsync(new List<Transaction> { BuildTransaction("tx-1") });
+            .ReturnsAsync([BuildTransaction("tx-1")]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
-            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => [.. transactions]);
 
         var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
 
@@ -93,10 +93,10 @@ public class TransactionApplicationServiceTests
     {
         var query = new TransactionSearchQuery();
         _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.FreeText == null)))
-            .ReturnsAsync(new List<Transaction> { BuildTransaction("tx-1") });
+            .ReturnsAsync([BuildTransaction("tx-1")]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
-            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => [.. transactions]);
 
         var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
 
@@ -125,7 +125,7 @@ public class TransactionApplicationServiceTests
             .ReturnsAsync([matchingTransaction]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
-            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => [.. transactions]);
 
         var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
 
@@ -147,7 +147,7 @@ public class TransactionApplicationServiceTests
             .ReturnsAsync([ownedTransaction, managedTransaction]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
-            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => [.. transactions]);
 
         var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
 
@@ -169,7 +169,7 @@ public class TransactionApplicationServiceTests
             .ReturnsAsync([ownedTransaction, managedTransaction]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
-            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => [.. transactions]);
 
         var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
 
@@ -191,7 +191,7 @@ public class TransactionApplicationServiceTests
             .ReturnsAsync([ownedTransaction, managedTransaction]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
-            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => [.. transactions]);
 
         var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
 
@@ -206,7 +206,7 @@ public class TransactionApplicationServiceTests
             .ReturnsAsync([BuildTransaction("tx-1")]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
-            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => [.. transactions]);
 
         var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
 
@@ -222,7 +222,7 @@ public class TransactionApplicationServiceTests
             .ReturnsAsync([BuildTransaction("tx-1")]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
-            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => [.. transactions]);
 
         var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
 
@@ -239,7 +239,7 @@ public class TransactionApplicationServiceTests
             .ReturnsAsync([BuildTransaction("tx-1")]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
-            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => [.. transactions]);
 
         var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
 
@@ -261,7 +261,7 @@ public class TransactionApplicationServiceTests
             .ReturnsAsync([managedTransaction]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
-            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => [.. transactions]);
 
         var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
 
@@ -287,7 +287,7 @@ public class TransactionApplicationServiceTests
             .ReturnsAsync([directlyInvolved, externallyManaged]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-9", PersonRole.USER))
-            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => [.. transactions]);
 
         var result = await _sut.SearchTransactionsAsync("user-9", PersonRole.USER, query);
 
@@ -303,7 +303,7 @@ public class TransactionApplicationServiceTests
             .ReturnsAsync([BuildTransaction("tx-1")]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
-            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => [.. transactions]);
 
         var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
 
@@ -319,7 +319,7 @@ public class TransactionApplicationServiceTests
             .ReturnsAsync([BuildTransaction("tx-1")]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
-            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => transactions.ToList());
+            .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => [.. transactions]);
 
         var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
 

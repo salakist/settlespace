@@ -36,7 +36,7 @@ namespace SettleSpace.Domain.Auth
             password.Append(SpecialCharacters[random.Next(SpecialCharacters.Length)]);
 
             // Add additional characters from a mixed pool to reach desired length
-            var allCharacters = Uppercase + Lowercase + Digits + SpecialCharacters;
+            const string allCharacters = Uppercase + Lowercase + Digits + SpecialCharacters;
             for (int i = password.Length; i < MinimumLength; i++)
             {
                 password.Append(allCharacters[random.Next(allCharacters.Length)]);
@@ -63,4 +63,3 @@ namespace SettleSpace.Domain.Auth
         }
     }
 }
-

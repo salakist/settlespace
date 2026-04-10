@@ -13,54 +13,37 @@ namespace SettleSpace.Application.Persons.Services
     /// Orchestrates domain logic and repository operations.
     /// Uniqueness rules are enforced by <see cref="PersonDomainService"/>.
     /// </summary>
-    public class PersonApplicationService : IPersonApplicationService
+    public class PersonApplicationService(
+        IPersonRepository repository,
+        IPersonDomainService domainService,
+        IPasswordHashingService passwordHashingService,
+        IPasswordValidator passwordValidator,
+        IPasswordGenerator passwordGenerator,
+        IPersonMapper personMapper) : IPersonApplicationService
     {
-        private readonly IPersonRepository _repository;
-        private readonly IPersonDomainService _domainService;
-        private readonly IPasswordHashingService _passwordHashingService;
-        private readonly IPasswordValidator _passwordValidator;
-        private readonly IPasswordGenerator _passwordGenerator;
-        private readonly IPersonMapper _personMapper;
-
-        public PersonApplicationService(
-            IPersonRepository repository,
-            IPersonDomainService domainService,
-            IPasswordHashingService passwordHashingService,
-            IPasswordValidator passwordValidator,
-            IPasswordGenerator passwordGenerator,
-            IPersonMapper personMapper)
-        {
-            _repository = repository;
-            _domainService = domainService;
-            _passwordHashingService = passwordHashingService;
-            _passwordValidator = passwordValidator;
-            _passwordGenerator = passwordGenerator;
-            _personMapper = personMapper;
-        }
-
         // Queries
 
         public async Task<List<Person>> GetPersonsAsync(string loggedPersonId, PersonRole loggedRole)
         {
-            _domainService.EnsureCanAccessDirectory(loggedRole);
-            return await _repository.GetAllAsync();
+            domainService.EnsureCanAccessDirectory(loggedRole);
+            return await repository.GetAllAsync();
         }
 
         public async Task<List<Person>> SearchPersonsAsync(string query, string loggedPersonId, PersonRole loggedRole)
         {
-            _domainService.EnsureCanAccessDirectory(loggedRole);
-            return await _repository.SearchAsync(query);
+            domainService.EnsureCanAccessDirectory(loggedRole);
+            return await repository.SearchAsync(query);
         }
 
         public async Task<Person?> GetPersonByIdAsync(string id)
         {
-            return await _repository.GetByIdAsync(id);
+            return await repository.GetByIdAsync(id);
         }
 
         public async Task<Person?> GetPersonByIdAsync(string id, string loggedPersonId, PersonRole loggedRole)
         {
-            _domainService.EnsureCanAccessDirectory(loggedRole);
-            return await _repository.GetByIdAsync(id);
+            domainService.EnsureCanAccessDirectory(loggedRole);
+            return await repository.GetByIdAsync(id);
         }
 
         // Commands
@@ -74,7 +57,7 @@ namespace SettleSpace.Application.Persons.Services
         public async Task<Person> CreatePersonAsync(CreatePersonCommand command, string loggedPersonId, PersonRole loggedRole)
         {
             var role = command.Role ?? PersonRole.USER;
-            _domainService.EnsureCanCreateManagedPerson(loggedRole, role);
+            domainService.EnsureCanCreateManagedPerson(loggedRole, role);
             return await CreatePersonCoreAsync(command, role);
         }
 
@@ -83,7 +66,7 @@ namespace SettleSpace.Application.Persons.Services
             await UpdatePersonCoreAsync(
                 id,
                 command,
-                (existingPerson, requestedRole) => _domainService.EnsureCanUpdateSelf(existingPerson, requestedRole));
+                (existingPerson, requestedRole) => domainService.EnsureCanUpdateSelf(existingPerson, requestedRole));
         }
 
         public async Task UpdatePersonAsync(string id, UpdatePersonCommand command, string loggedPersonId, PersonRole loggedRole)
@@ -91,20 +74,15 @@ namespace SettleSpace.Application.Persons.Services
             await UpdatePersonCoreAsync(
                 id,
                 command,
-                (existingPerson, requestedRole) => _domainService.EnsureCanUpdateManagedPerson(loggedRole, loggedPersonId, existingPerson, requestedRole));
+                (existingPerson, requestedRole) => domainService.EnsureCanUpdateManagedPerson(loggedRole, loggedPersonId, existingPerson, requestedRole));
         }
 
         public async Task DeletePersonAsync(string id, string loggedPersonId, PersonRole loggedRole)
         {
-            var person = await _repository.GetByIdAsync(id);
-            if (person == null)
-            {
-                throw new PersonNotFoundException(id);
-            }
+            var person = await repository.GetByIdAsync(id) ?? throw new PersonNotFoundException(id);
+            domainService.EnsureCanDeleteManagedPerson(loggedRole, person);
 
-            _domainService.EnsureCanDeleteManagedPerson(loggedRole, person);
-
-            await _repository.DeleteAsync(id);
+            await repository.DeleteAsync(id);
         }
 
         private async Task<PersonRole> ResolveBootstrapAwareCreationRoleAsync(PersonRole? requestedRole)
@@ -114,26 +92,26 @@ namespace SettleSpace.Application.Persons.Services
                 return requestedRole.Value;
             }
 
-            var existingPersons = await _repository.GetAllAsync() ?? [];
+            var existingPersons = await repository.GetAllAsync() ?? [];
             return existingPersons.Count == 0 ? PersonRole.ADMIN : PersonRole.USER;
         }
 
         private async Task<Person> CreatePersonCoreAsync(CreatePersonCommand command, PersonRole role)
         {
             var password = string.IsNullOrWhiteSpace(command.Password)
-                ? _passwordGenerator.GeneratePassword()
+                ? passwordGenerator.GeneratePassword()
                 : command.Password;
 
-            var newPerson = _personMapper.ToEntity(command, password, role);
+            var newPerson = personMapper.ToEntity(command, password, role);
 
             newPerson.Validate();
-            _passwordValidator.Validate(password);
+            passwordValidator.Validate(password);
 
-            await _domainService.EnsureUniqueAsync(newPerson.FirstName, newPerson.LastName);
+            await domainService.EnsureUniqueAsync(newPerson.FirstName, newPerson.LastName);
 
-            newPerson.Password = _passwordHashingService.HashPassword(password);
+            newPerson.Password = passwordHashingService.HashPassword(password);
 
-            return await _repository.AddAsync(newPerson);
+            return await repository.AddAsync(newPerson);
         }
 
         private async Task UpdatePersonCoreAsync(
@@ -146,24 +124,16 @@ namespace SettleSpace.Application.Persons.Services
                 throw new InvalidPersonException("Person ID is required for update.");
             }
 
-            var existingPerson = await _repository.GetByIdAsync(id);
-            if (existingPerson == null)
-            {
-                throw new PersonNotFoundException(id);
-            }
-
+            var existingPerson = await repository.GetByIdAsync(id) ?? throw new PersonNotFoundException(id);
             var requestedRole = command.Role ?? existingPerson.Role;
             ensureAuthorized(existingPerson, requestedRole);
 
-            var updatedPerson = _personMapper.ToEntity(id, command, existingPerson.Password, requestedRole);
+            var updatedPerson = personMapper.ToEntity(id, command, existingPerson.Password, requestedRole);
             updatedPerson.Validate();
 
-            await _domainService.EnsureUniqueAsync(updatedPerson.FirstName, updatedPerson.LastName, id);
+            await domainService.EnsureUniqueAsync(updatedPerson.FirstName, updatedPerson.LastName, id);
 
-            await _repository.UpdateAsync(id, updatedPerson);
+            await repository.UpdateAsync(id, updatedPerson);
         }
     }
 }
-
-
-

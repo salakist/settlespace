@@ -57,8 +57,8 @@ namespace SettleSpace.Domain.Auth
         private static bool TryParseHash(string? passwordHash, out int iterations, out byte[] salt, out byte[] hash)
         {
             iterations = 0;
-            salt = Array.Empty<byte>();
-            hash = Array.Empty<byte>();
+            salt = [];
+            hash = [];
 
             if (string.IsNullOrWhiteSpace(passwordHash))
             {

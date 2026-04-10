@@ -63,5 +63,3 @@ namespace SettleSpace.Domain.Persons
         Task DeleteAsync(string id);
     }
 }
-
-

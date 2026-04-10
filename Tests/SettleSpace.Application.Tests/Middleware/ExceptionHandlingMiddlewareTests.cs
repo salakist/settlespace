@@ -188,8 +188,10 @@ public class ExceptionHandlingMiddlewareTests
 
     private static DefaultHttpContext CreateHttpContext()
     {
-        var context = new DefaultHttpContext();
-        context.TraceIdentifier = "test-trace-id";
+        var context = new DefaultHttpContext
+        {
+            TraceIdentifier = "test-trace-id"
+        };
         context.Request.Path = "/test/error";
         context.Response.Body = new MemoryStream();
         return context;

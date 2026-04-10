@@ -21,5 +21,3 @@ namespace SettleSpace.Application.Transactions
         public DateTime UpdatedAtUtc { get; set; }
     }
 }
-
-

@@ -16,7 +16,3 @@ namespace SettleSpace.Application.Persons.Services
         Task DeletePersonAsync(string id, string loggedPersonId, PersonRole loggedRole);
     }
 }
-
-
-
-

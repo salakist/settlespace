@@ -9,4 +9,3 @@ namespace SettleSpace.Application.Authentication.Commands
         public string Password { get; set; } = string.Empty;
     }
 }
-

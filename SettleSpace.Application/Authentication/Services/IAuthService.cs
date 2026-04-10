@@ -12,4 +12,3 @@ namespace SettleSpace.Application.Authentication.Services
         (string PersonId, PersonRole Role) ResolveAuthContext(ClaimsPrincipal user);
     }
 }
-

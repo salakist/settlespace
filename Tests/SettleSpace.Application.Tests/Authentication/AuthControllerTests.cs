@@ -100,7 +100,7 @@ public class AuthControllerTests
             HttpContext = new DefaultHttpContext
             {
                 User = new ClaimsPrincipal(new ClaimsIdentity(
-                    new[] { new Claim(CustomClaimTypes.PersonId, "1") },
+                    [new Claim(CustomClaimTypes.PersonId, "1")],
                     "TestAuth"))
             }
         };
@@ -131,7 +131,7 @@ public class AuthControllerTests
             HttpContext = new DefaultHttpContext
             {
                 User = new ClaimsPrincipal(new ClaimsIdentity(
-                    new[] { new Claim(CustomClaimTypes.PersonId, "1") },
+                    [new Claim(CustomClaimTypes.PersonId, "1")],
                     "TestAuth"))
             }
         };

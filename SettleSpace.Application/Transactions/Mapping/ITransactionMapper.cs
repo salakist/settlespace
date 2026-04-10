@@ -14,6 +14,3 @@ namespace SettleSpace.Application.Transactions.Mapping
         Transaction ToEntity(string id, UpdateTransactionCommand command, string createdByPersonId, DateTime createdAtUtc);
     }
 }
-
-
-

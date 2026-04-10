@@ -6,4 +6,3 @@ namespace SettleSpace.Application.Authentication.Commands
         public string NewPassword { get; set; } = null!;
     }
 }
-

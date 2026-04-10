@@ -11,4 +11,3 @@ namespace SettleSpace.Application.Persons.DTOs
         public string Country { get; set; } = null!;
     }
 }
-

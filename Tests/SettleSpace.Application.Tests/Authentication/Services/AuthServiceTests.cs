@@ -272,10 +272,10 @@ public class AuthServiceTests
         var sut = CreateService();
         var user = BuildUser("person-1", PersonRole.MANAGER);
 
-        var result = sut.ResolveAuthContext(user);
+        var (PersonId, Role) = sut.ResolveAuthContext(user);
 
-        Assert.Equal("person-1", result.PersonId);
-        Assert.Equal(PersonRole.MANAGER, result.Role);
+        Assert.Equal("person-1", PersonId);
+        Assert.Equal(PersonRole.MANAGER, Role);
     }
 
     [Fact]
@@ -284,7 +284,7 @@ public class AuthServiceTests
         var sut = CreateService();
         var user = new ClaimsPrincipal(
             new ClaimsIdentity(
-                new[] { new Claim(CustomClaimTypes.PersonRole, PersonRole.USER.ToString()) },
+                [new Claim(CustomClaimTypes.PersonRole, PersonRole.USER.ToString())],
                 "TestAuth"));
 
         Assert.Throws<AuthContextException>(() => sut.ResolveAuthContext(user));
@@ -296,28 +296,26 @@ public class AuthServiceTests
         var sut = CreateService();
         var user = new ClaimsPrincipal(
             new ClaimsIdentity(
-                new[]
-                {
+                [
                     new Claim(CustomClaimTypes.PersonId, "person-1"),
                     new Claim(CustomClaimTypes.PersonRole, "NOT_A_ROLE")
-                },
+                ],
                 "TestAuth"));
 
-        var result = sut.ResolveAuthContext(user);
+        var (PersonId, Role) = sut.ResolveAuthContext(user);
 
-        Assert.Equal("person-1", result.PersonId);
-        Assert.Equal(PersonRole.USER, result.Role);
+        Assert.Equal("person-1", PersonId);
+        Assert.Equal(PersonRole.USER, Role);
     }
 
     private static ClaimsPrincipal BuildUser(string personId, PersonRole role)
     {
         return new ClaimsPrincipal(
             new ClaimsIdentity(
-                new[]
-                {
+                [
                     new Claim(CustomClaimTypes.PersonId, personId),
                     new Claim(CustomClaimTypes.PersonRole, role.ToString())
-                },
+                ],
                 "TestAuth"));
     }
 }

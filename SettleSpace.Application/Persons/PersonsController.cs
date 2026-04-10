@@ -13,28 +13,17 @@ namespace SettleSpace.Application.Persons
     /// Controller for managing persons in the database.
     /// Implements REST endpoints following DDD principles.
     /// </summary>
+    /// <remarks>
+    /// Initializes a new instance of the <see cref="PersonsController"/> class.
+    /// </remarks>
+    /// <param name="applicationService">The person application service.</param>
+    /// <param name="personMapper">The mapper from domain entities to DTOs.</param>
+    /// <param name="authService">The auth service used to resolve the caller identity from the request claims.</param>
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class PersonsController : ControllerBase
+    public class PersonsController(IPersonApplicationService applicationService, IPersonMapper personMapper, IAuthService authService) : ControllerBase
     {
-        private readonly IPersonApplicationService _applicationService;
-        private readonly IPersonMapper _personMapper;
-        private readonly IAuthService _authService;
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="PersonsController"/> class.
-        /// </summary>
-        /// <param name="applicationService">The person application service.</param>
-        /// <param name="personMapper">The mapper from domain entities to DTOs.</param>
-        /// <param name="authService">The auth service used to resolve the caller identity from the request claims.</param>
-        public PersonsController(IPersonApplicationService applicationService, IPersonMapper personMapper, IAuthService authService)
-        {
-            _applicationService = applicationService;
-            _personMapper = personMapper;
-            _authService = authService;
-        }
-
         /// <summary>
         /// Gets all persons.
         /// </summary>
@@ -46,9 +35,9 @@ namespace SettleSpace.Application.Persons
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<ActionResult<List<PersonDto>>> Get()
         {
-            var (personId, personRole) = _authService.ResolveAuthContext(User);
-            var persons = await _applicationService.GetPersonsAsync(personId, personRole);
-            return Ok(persons.Select(_personMapper.ToDto).ToList());
+            var (personId, personRole) = authService.ResolveAuthContext(User);
+            var persons = await applicationService.GetPersonsAsync(personId, personRole);
+            return Ok(persons.ConvertAll(personMapper.ToDto));
         }
 
         /// <summary>
@@ -65,15 +54,9 @@ namespace SettleSpace.Application.Persons
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<ActionResult<PersonDto>> Get(string id)
         {
-            var (personId, personRole) = _authService.ResolveAuthContext(User);
-            var person = await _applicationService.GetPersonByIdAsync(id, personId, personRole);
-
-            if (person is null)
-            {
-                throw new PersonNotFoundException(id);
-            }
-
-            return Ok(_personMapper.ToDto(person));
+            var (personId, personRole) = authService.ResolveAuthContext(User);
+            var person = await applicationService.GetPersonByIdAsync(id, personId, personRole) ?? throw new PersonNotFoundException(id);
+            return Ok(personMapper.ToDto(person));
         }
 
         /// <summary>
@@ -88,9 +71,9 @@ namespace SettleSpace.Application.Persons
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<ActionResult<List<PersonDto>>> SearchByQuery(string query)
         {
-            var (personId, personRole) = _authService.ResolveAuthContext(User);
-            var persons = await _applicationService.SearchPersonsAsync(query, personId, personRole);
-            return Ok(persons.Select(_personMapper.ToDto).ToList());
+            var (personId, personRole) = authService.ResolveAuthContext(User);
+            var persons = await applicationService.SearchPersonsAsync(query, personId, personRole);
+            return Ok(persons.ConvertAll(personMapper.ToDto));
         }
 
         /// <summary>
@@ -102,14 +85,9 @@ namespace SettleSpace.Application.Persons
         [ProducesResponseType(typeof(ProblemDetails), 404)]
         public async Task<ActionResult<PersonDto>> GetCurrent()
         {
-            var (personId, _) = _authService.ResolveAuthContext(User);
-            var person = await _applicationService.GetPersonByIdAsync(personId);
-            if (person is null)
-            {
-                throw new PersonNotFoundException(personId);
-            }
-
-            return Ok(_personMapper.ToDto(person));
+            var (personId, _) = authService.ResolveAuthContext(User);
+            var person = await applicationService.GetPersonByIdAsync(personId) ?? throw new PersonNotFoundException(personId);
+            return Ok(personMapper.ToDto(person));
         }
 
         /// <summary>
@@ -128,9 +106,9 @@ namespace SettleSpace.Application.Persons
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<IActionResult> Post([FromBody] CreatePersonCommand command)
         {
-            var (personId, personRole) = _authService.ResolveAuthContext(User);
-            var person = await _applicationService.CreatePersonAsync(command, personId, personRole);
-            return CreatedAtAction(nameof(Get), new { id = person.Id }, _personMapper.ToDto(person));
+            var (personId, personRole) = authService.ResolveAuthContext(User);
+            var person = await applicationService.CreatePersonAsync(command, personId, personRole);
+            return CreatedAtAction(nameof(Get), new { id = person.Id }, personMapper.ToDto(person));
         }
 
         /// <summary>
@@ -151,8 +129,8 @@ namespace SettleSpace.Application.Persons
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<IActionResult> Update(string id, [FromBody] UpdatePersonCommand command)
         {
-            var (personId, personRole) = _authService.ResolveAuthContext(User);
-            await _applicationService.UpdatePersonAsync(id, command, personId, personRole);
+            var (personId, personRole) = authService.ResolveAuthContext(User);
+            await applicationService.UpdatePersonAsync(id, command, personId, personRole);
             return NoContent();
         }
 
@@ -167,8 +145,8 @@ namespace SettleSpace.Application.Persons
         [ProducesResponseType(typeof(ProblemDetails), 409)]
         public async Task<IActionResult> UpdateCurrent([FromBody] UpdatePersonCommand command)
         {
-            var (personId, _) = _authService.ResolveAuthContext(User);
-            await _applicationService.UpdatePersonAsync(personId, command);
+            var (personId, _) = authService.ResolveAuthContext(User);
+            await applicationService.UpdatePersonAsync(personId, command);
             return NoContent();
         }
 
@@ -185,11 +163,9 @@ namespace SettleSpace.Application.Persons
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<IActionResult> Delete(string id)
         {
-            var (personId, personRole) = _authService.ResolveAuthContext(User);
-            await _applicationService.DeletePersonAsync(id, personId, personRole);
+            var (personId, personRole) = authService.ResolveAuthContext(User);
+            await applicationService.DeletePersonAsync(id, personId, personRole);
             return NoContent();
         }
     }
 }
-
-

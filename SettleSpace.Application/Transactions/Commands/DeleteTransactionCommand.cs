@@ -5,5 +5,3 @@ namespace SettleSpace.Application.Transactions.Commands
         public string Id { get; set; } = null!;
     }
 }
-
-

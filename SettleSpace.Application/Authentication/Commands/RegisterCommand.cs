@@ -13,4 +13,3 @@ namespace SettleSpace.Application.Authentication.Commands
         public List<AddressCommand> Addresses { get; set; } = [];
     }
 }
-

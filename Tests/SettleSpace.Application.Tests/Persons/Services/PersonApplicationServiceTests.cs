@@ -262,7 +262,7 @@ public class PersonApplicationServiceTests
         var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
         Person? capturedPerson = null;
 
-        _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Person>());
+        _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync([]);
         _domainServiceMock
             .Setup(d => d.EnsureUniqueAsync("John", "Doe", null))
             .Returns(Task.CompletedTask);
@@ -282,10 +282,10 @@ public class PersonApplicationServiceTests
         var command = new CreatePersonCommand { FirstName = "John", LastName = "Doe", Password = "Strong@Pass1" };
         Person? capturedPerson = null;
 
-        _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<Person>
-        {
+        _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(
+        [
             new() { Id = "existing", FirstName = "Existing", LastName = "User", Role = PersonRole.ADMIN }
-        });
+        ]);
         _domainServiceMock
             .Setup(d => d.EnsureUniqueAsync("John", "Doe", null))
             .Returns(Task.CompletedTask);

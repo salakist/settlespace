@@ -23,7 +23,7 @@ namespace SettleSpace.Application.Transactions.Queries
                 throw new InvalidTransactionSearchException("FreeText must not be empty or whitespace when provided.");
             }
 
-            if (Status is not null && Status.Count == 0)
+            if (Status?.Count == 0)
             {
                 throw new InvalidTransactionSearchException("Status list must not be empty when provided.");
             }

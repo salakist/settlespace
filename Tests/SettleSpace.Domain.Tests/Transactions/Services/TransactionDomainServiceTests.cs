@@ -109,7 +109,7 @@ public class TransactionDomainServiceTests
         var created = BuildTransaction(id: "tx-created", payerPersonId: "payer-1", payeePersonId: "payee-1", createdByPersonId: "manager-1");
         var unrelated = BuildTransaction(id: "tx-unrelated", payerPersonId: "payer-2", payeePersonId: "payee-2", createdByPersonId: "admin-1");
 
-        var result = _sut.FilterReadableTransactions(new[] { involved, created, unrelated }, "manager-1", PersonRole.MANAGER);
+        var result = _sut.FilterReadableTransactions([involved, created, unrelated], "manager-1", PersonRole.MANAGER);
 
         Assert.Equal(2, result.Count);
         Assert.Contains(result, transaction => transaction.Id == "tx-involved");

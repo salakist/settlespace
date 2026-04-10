@@ -19,5 +19,3 @@ namespace SettleSpace.Application.Persons.DTOs
         public List<AddressDto> Addresses { get; set; } = [];
     }
 }
-
-

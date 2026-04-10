@@ -12,36 +12,23 @@ namespace SettleSpace.Application.Debts
     [Authorize]
     [ApiController]
     [Route("api/[controller]")]
-    public class DebtsController : ControllerBase
+    public class DebtsController(
+        IDebtApplicationService applicationService,
+        IDebtMapper debtMapper,
+        IPersonDisplayNameResolver personDisplayNameResolver,
+        IAuthService authService) : ControllerBase
     {
-        private readonly IDebtApplicationService _applicationService;
-        private readonly IDebtMapper _debtMapper;
-        private readonly IPersonDisplayNameResolver _personDisplayNameResolver;
-        private readonly IAuthService _authService;
-
-        public DebtsController(
-            IDebtApplicationService applicationService,
-            IDebtMapper debtMapper,
-            IPersonDisplayNameResolver personDisplayNameResolver,
-            IAuthService authService)
-        {
-            _applicationService = applicationService;
-            _debtMapper = debtMapper;
-            _personDisplayNameResolver = personDisplayNameResolver;
-            _authService = authService;
-        }
-
         [HttpGet("me")]
         [ProducesResponseType(typeof(List<DebtSummaryDto>), 200)]
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<ActionResult<List<DebtSummaryDto>>> GetCurrentUserDebts()
         {
-            var (personId, _) = _authService.ResolveAuthContext(User);
-            var debts = await _applicationService.GetCurrentUserDebtSummariesAsync(personId);
-            var counterpartyPersonIds = debts.Select(debt => debt.CounterpartyPersonId).ToList();
-            var personDisplayNames = await _personDisplayNameResolver.ResolveAsync(counterpartyPersonIds);
+            var (personId, _) = authService.ResolveAuthContext(User);
+            var debts = await applicationService.GetCurrentUserDebtSummariesAsync(personId);
+            var counterpartyPersonIds = debts.ConvertAll(debt => debt.CounterpartyPersonId);
+            var personDisplayNames = await personDisplayNameResolver.ResolveAsync(counterpartyPersonIds);
 
-            return Ok(debts.Select(debt => _debtMapper.ToSummaryDto(debt, personDisplayNames)).ToList());
+            return Ok(debts.ConvertAll(debt => debtMapper.ToSummaryDto(debt, personDisplayNames)));
         }
 
         [HttpGet("me/{counterpartyPersonId}")]
@@ -49,16 +36,15 @@ namespace SettleSpace.Application.Debts
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<ActionResult<List<DebtDetailsDto>>> GetCurrentUserDebtDetails(string counterpartyPersonId)
         {
-            var (personId, _) = _authService.ResolveAuthContext(User);
-            var details = await _applicationService.GetCurrentUserDebtDetailsAsync(personId, counterpartyPersonId);
+            var (personId, _) = authService.ResolveAuthContext(User);
+            var details = await applicationService.GetCurrentUserDebtDetailsAsync(personId, counterpartyPersonId);
             var relatedPersonIds = details.ConvertAll(detail => detail.CounterpartyPersonId);
             relatedPersonIds.AddRange(details
                 .SelectMany(detail => detail.Transactions)
-                .SelectMany(transaction => transaction.GetRelatedPersonIds())
-                .ToList());
-            var personDisplayNames = await _personDisplayNameResolver.ResolveAsync(relatedPersonIds);
+                .SelectMany(transaction => transaction.GetRelatedPersonIds()));
+            var personDisplayNames = await personDisplayNameResolver.ResolveAsync(relatedPersonIds);
 
-            return Ok(details.Select(detail => _debtMapper.ToDetailsDto(detail, personDisplayNames)).ToList());
+            return Ok(details.ConvertAll(detail => debtMapper.ToDetailsDto(detail, personDisplayNames)));
         }
 
         [HttpPost("settlements")]
@@ -67,12 +53,11 @@ namespace SettleSpace.Application.Debts
         [ProducesResponseType(typeof(ProblemDetails), 401)]
         public async Task<ActionResult<DebtSettlementResultDto>> Settle([FromBody] SettleDebtCommand command)
         {
-            var (personId, _) = _authService.ResolveAuthContext(User);
-            var settlementResult = await _applicationService.SettleCurrentUserDebtAsync(personId, command);
-            var personDisplayNames = await _personDisplayNameResolver.ResolveAsync([settlementResult.CounterpartyPersonId]);
+            var (personId, _) = authService.ResolveAuthContext(User);
+            var settlementResult = await applicationService.SettleCurrentUserDebtAsync(personId, command);
+            var personDisplayNames = await personDisplayNameResolver.ResolveAsync([settlementResult.CounterpartyPersonId]);
 
-            return Ok(_debtMapper.ToSettlementResultDto(settlementResult, personDisplayNames));
+            return Ok(debtMapper.ToSettlementResultDto(settlementResult, personDisplayNames));
         }
-
     }
 }

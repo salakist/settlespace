@@ -8,5 +8,3 @@ namespace SettleSpace.Application.Persons.Commands
         public string? Password { get; set; }
     }
 }
-
-

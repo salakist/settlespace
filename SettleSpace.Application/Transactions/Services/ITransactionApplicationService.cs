@@ -14,6 +14,3 @@ namespace SettleSpace.Application.Transactions.Services
         Task DeleteTransactionAsync(string id, string loggedPersonId, PersonRole loggedRole);
     }
 }
-
-
-

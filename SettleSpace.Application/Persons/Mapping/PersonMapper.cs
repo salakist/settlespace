@@ -18,7 +18,7 @@ namespace SettleSpace.Application.Persons.Mapping
                 Email = entity.Email,
                 DateOfBirth = entity.DateOfBirth,
                 Role = entity.Role,
-                Addresses = entity.Addresses.Select(ToDto).ToList()
+                Addresses = [.. entity.Addresses.Select(ToDto)]
             };
 
         public Person ToEntity(CreatePersonCommand command, string password, PersonRole role) =>
@@ -38,7 +38,7 @@ namespace SettleSpace.Application.Persons.Mapping
                 Email = command.Email,
                 DateOfBirth = command.DateOfBirth,
                 Role = role,
-                Addresses = command.Addresses.Select(ToEntity).ToList()
+                Addresses = [.. command.Addresses.Select(ToEntity)]
             };
 
         private static AddressDto ToDto(Address address) =>
@@ -66,6 +66,3 @@ namespace SettleSpace.Application.Persons.Mapping
             };
     }
 }
-
-
-

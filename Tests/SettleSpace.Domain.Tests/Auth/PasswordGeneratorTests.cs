@@ -3,7 +3,7 @@ using System.Text.RegularExpressions;
 
 namespace SettleSpace.Domain.Tests.Auth;
 
-public class PasswordGeneratorTests
+public partial class PasswordGeneratorTests
 {
     private readonly PasswordGenerator _sut = new();
 
@@ -21,7 +21,7 @@ public class PasswordGeneratorTests
     {
         var password = _sut.GeneratePassword();
 
-        Assert.True(Regex.IsMatch(password, "[A-Z]"), "Password must contain at least one uppercase letter");
+        Assert.True(MyRegex().IsMatch(password), "Password must contain at least one uppercase letter");
     }
 
     [Fact]
@@ -29,7 +29,7 @@ public class PasswordGeneratorTests
     {
         var password = _sut.GeneratePassword();
 
-        Assert.True(Regex.IsMatch(password, "[a-z]"), "Password must contain at least one lowercase letter");
+        Assert.True(LowercaseRegex().IsMatch(password), "Password must contain at least one lowercase letter");
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class PasswordGeneratorTests
     {
         var password = _sut.GeneratePassword();
 
-        Assert.True(Regex.IsMatch(password, "[0-9]"), "Password must contain at least one digit");
+        Assert.True(DigitRegex().IsMatch(password), "Password must contain at least one digit");
     }
 
     [Fact]
@@ -45,7 +45,7 @@ public class PasswordGeneratorTests
     {
         var password = _sut.GeneratePassword();
 
-        Assert.True(Regex.IsMatch(password, "[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>?]"), 
+        Assert.True(SpecialCharacterRegex().IsMatch(password),
                     "Password must contain at least one special character");
     }
 
@@ -76,6 +76,18 @@ public class PasswordGeneratorTests
             passwordValidator.Validate(password);
         }
     }
+
+    [GeneratedRegex("[A-Z]")]
+    private static partial Regex MyRegex();
+
+    [GeneratedRegex("[a-z]")]
+    private static partial Regex LowercaseRegex();
+
+    [GeneratedRegex("[0-9]")]
+    private static partial Regex DigitRegex();
+
+    [GeneratedRegex("[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>?]")]
+    private static partial Regex SpecialCharacterRegex();
 }
 
 

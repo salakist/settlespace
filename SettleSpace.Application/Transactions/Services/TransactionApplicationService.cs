@@ -10,35 +10,22 @@ using SettleSpace.Domain.Transactions.Services;
 
 namespace SettleSpace.Application.Transactions.Services
 {
-    public class TransactionApplicationService : ITransactionApplicationService
+    public class TransactionApplicationService(
+        IPersonRepository personRepository,
+        ITransactionRepository repository,
+        ITransactionDomainService domainService,
+        ITransactionMapper transactionMapper) : ITransactionApplicationService
     {
-        private readonly IPersonRepository _personRepository;
-        private readonly ITransactionRepository _repository;
-        private readonly ITransactionDomainService _domainService;
-        private readonly ITransactionMapper _transactionMapper;
-
-        public TransactionApplicationService(
-            IPersonRepository personRepository,
-            ITransactionRepository repository,
-            ITransactionDomainService domainService,
-            ITransactionMapper transactionMapper)
-        {
-            _personRepository = personRepository;
-            _repository = repository;
-            _domainService = domainService;
-            _transactionMapper = transactionMapper;
-        }
-
         public async Task<List<Transaction>> SearchTransactionsAsync(string loggedPersonId, PersonRole loggedRole, TransactionSearchQuery query)
         {
-            var filter = _transactionMapper.ToSearchFilter(query);
-            var transactionSearchTask = _repository.SearchAsync(filter);
+            var filter = transactionMapper.ToSearchFilter(query);
+            var transactionSearchTask = repository.SearchAsync(filter);
 
             List<Transaction> readable;
 
             if (!string.IsNullOrWhiteSpace(filter.FreeText))
             {
-                var personSearchTask = _personRepository.SearchAsync(filter.FreeText!);
+                var personSearchTask = personRepository.SearchAsync(filter.FreeText!);
                 await Task.WhenAll(transactionSearchTask, personSearchTask);
 
                 var matchedTransactions = transactionSearchTask.Result;
@@ -50,7 +37,7 @@ namespace SettleSpace.Application.Transactions.Services
 
                 if (matchedPersonIds.Count > 0)
                 {
-                    var allFilteredTransactions = await _repository.SearchAsync(filter with { FreeText = null });
+                    var allFilteredTransactions = await repository.SearchAsync(filter with { FreeText = null });
 
                     matchedTransactions = [.. matchedTransactions
                         .Concat(allFilteredTransactions.Where(transaction =>
@@ -60,66 +47,51 @@ namespace SettleSpace.Application.Transactions.Services
                         .OrderByDescending(transaction => transaction.TransactionDateUtc)];
                 }
 
-                readable = _domainService.FilterReadableTransactions(matchedTransactions, loggedPersonId, loggedRole);
+                readable = domainService.FilterReadableTransactions(matchedTransactions, loggedPersonId, loggedRole);
             }
             else
             {
                 var transactions = await transactionSearchTask;
-                readable = _domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
+                readable = domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
             }
 
-            var policy = _transactionMapper.ToSearchPolicy(query);
-            return _domainService.ApplySearchPolicy(readable, loggedPersonId, policy);
+            var policy = transactionMapper.ToSearchPolicy(query);
+            return domainService.ApplySearchPolicy(readable, loggedPersonId, policy);
         }
 
         public async Task<Transaction> GetTransactionByIdAsync(string id, string loggedPersonId, PersonRole loggedRole)
         {
-            var transaction = await _repository.GetByIdAsync(id);
-            if (transaction == null)
-            {
-                throw new TransactionNotFoundException(id);
-            }
-
-            _domainService.EnsureCanRead(transaction, loggedPersonId, loggedRole);
+            var transaction = await repository.GetByIdAsync(id) ?? throw new TransactionNotFoundException(id);
+            domainService.EnsureCanRead(transaction, loggedPersonId, loggedRole);
             return transaction;
         }
 
         public async Task<Transaction> CreateTransactionAsync(string loggedPersonId, PersonRole loggedRole, CreateTransactionCommand command)
         {
-            var transaction = _transactionMapper.ToEntity(command, loggedPersonId);
-            _domainService.EnsureCanCreate(transaction, loggedPersonId, loggedRole);
+            var transaction = transactionMapper.ToEntity(command, loggedPersonId);
+            domainService.EnsureCanCreate(transaction, loggedPersonId, loggedRole);
             transaction.Validate();
 
-            return await _repository.AddAsync(transaction);
+            return await repository.AddAsync(transaction);
         }
 
         public async Task UpdateTransactionAsync(string id, string loggedPersonId, PersonRole loggedRole, UpdateTransactionCommand command)
         {
-            var existing = await _repository.GetByIdAsync(id);
-            if (existing == null)
-            {
-                throw new TransactionNotFoundException(id);
-            }
+            var existing = await repository.GetByIdAsync(id) ?? throw new TransactionNotFoundException(id);
+            domainService.EnsureCanUpdate(existing, loggedPersonId, loggedRole);
 
-            _domainService.EnsureCanUpdate(existing, loggedPersonId, loggedRole);
-
-            var updated = _transactionMapper.ToEntity(id, command, existing.CreatedByPersonId, existing.CreatedAtUtc);
-            _domainService.EnsureCanUpdate(updated, loggedPersonId, loggedRole);
+            var updated = transactionMapper.ToEntity(id, command, existing.CreatedByPersonId, existing.CreatedAtUtc);
+            domainService.EnsureCanUpdate(updated, loggedPersonId, loggedRole);
             updated.Validate();
 
-            await _repository.UpdateAsync(id, updated);
+            await repository.UpdateAsync(id, updated);
         }
 
         public async Task DeleteTransactionAsync(string id, string loggedPersonId, PersonRole loggedRole)
         {
-            var existing = await _repository.GetByIdAsync(id);
-            if (existing == null)
-            {
-                throw new TransactionNotFoundException(id);
-            }
-
-            _domainService.EnsureCanDelete(existing, loggedPersonId, loggedRole);
-            await _repository.DeleteAsync(id);
+            var existing = await repository.GetByIdAsync(id) ?? throw new TransactionNotFoundException(id);
+            domainService.EnsureCanDelete(existing, loggedPersonId, loggedRole);
+            await repository.DeleteAsync(id);
         }
 
         private static string BuildSearchResultKey(Transaction transaction)
@@ -134,6 +106,3 @@ namespace SettleSpace.Application.Transactions.Services
         }
     }
 }
-
-
-

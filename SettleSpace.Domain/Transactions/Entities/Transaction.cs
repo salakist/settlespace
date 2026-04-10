@@ -90,8 +90,6 @@ namespace SettleSpace.Domain.Transactions.Entities
             {
                 throw new InvalidTransactionException("TransactionDateUtc cannot be in the far future.");
             }
-
         }
     }
 }
-

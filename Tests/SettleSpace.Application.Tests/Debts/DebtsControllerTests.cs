@@ -24,7 +24,7 @@ public class DebtsControllerTests
     {
         _personDisplayNameResolverMock
             .Setup(resolver => resolver.ResolveAsync(It.IsAny<List<string>>()))
-            .ReturnsAsync(new Dictionary<string, string>());
+            .ReturnsAsync([]);
 
         _controller = new DebtsController(
             _serviceMock.Object,
@@ -161,11 +161,10 @@ public class DebtsControllerTests
             HttpContext = new DefaultHttpContext
             {
                 User = new ClaimsPrincipal(new ClaimsIdentity(
-                    new[]
-                    {
+                    [
                         new Claim(CustomClaimTypes.PersonId, personId),
                         new Claim(CustomClaimTypes.PersonRole, role.ToString())
-                    },
+                    ],
                     "TestAuth"))
             }
         };

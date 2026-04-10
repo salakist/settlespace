@@ -166,11 +166,10 @@ public class PersonsControllerTests
             HttpContext = new DefaultHttpContext
             {
                 User = new ClaimsPrincipal(new ClaimsIdentity(
-                    new[]
-                    {
+                    [
                         new Claim(CustomClaimTypes.PersonId, personId),
                         new Claim(CustomClaimTypes.PersonRole, role.ToString())
-                    },
+                    ],
                     "TestAuth"))
             }
         };

@@ -12,33 +12,24 @@ namespace SettleSpace.Application.Debts.Services
         Task<DebtSettlementResult> SettleCurrentUserDebtAsync(string loggedPersonId, SettleDebtCommand command);
     }
 
-    public class DebtApplicationService : IDebtApplicationService
+    public class DebtApplicationService(ITransactionRepository repository, IDebtDomainService domainService) : IDebtApplicationService
     {
-        private readonly ITransactionRepository _repository;
-        private readonly IDebtDomainService _domainService;
-
-        public DebtApplicationService(ITransactionRepository repository, IDebtDomainService domainService)
-        {
-            _repository = repository;
-            _domainService = domainService;
-        }
-
         public async Task<List<DebtSummary>> GetCurrentUserDebtSummariesAsync(string loggedPersonId)
         {
-            var transactions = await _repository.GetByInvolvedPersonIdAsync(loggedPersonId);
-            return _domainService.BuildDebtSummaries(transactions, loggedPersonId);
+            var transactions = await repository.GetByInvolvedPersonIdAsync(loggedPersonId);
+            return domainService.BuildDebtSummaries(transactions, loggedPersonId);
         }
 
         public async Task<List<DebtDetails>> GetCurrentUserDebtDetailsAsync(string loggedPersonId, string counterpartyPersonId)
         {
-            var transactions = await _repository.GetByInvolvedPersonIdAsync(loggedPersonId);
-            return _domainService.BuildDebtDetails(transactions, loggedPersonId, counterpartyPersonId);
+            var transactions = await repository.GetByInvolvedPersonIdAsync(loggedPersonId);
+            return domainService.BuildDebtDetails(transactions, loggedPersonId, counterpartyPersonId);
         }
 
         public async Task<DebtSettlementResult> SettleCurrentUserDebtAsync(string loggedPersonId, SettleDebtCommand command)
         {
-            var transactions = await _repository.GetByInvolvedPersonIdAsync(loggedPersonId);
-            var settlement = _domainService.CreateSettlement(
+            var transactions = await repository.GetByInvolvedPersonIdAsync(loggedPersonId);
+            var settlement = domainService.CreateSettlement(
                 transactions,
                 loggedPersonId,
                 command.CounterpartyPersonId,
@@ -46,7 +37,7 @@ namespace SettleSpace.Application.Debts.Services
                 command.CurrencyCode,
                 command.Description);
 
-            settlement.SettlementTransaction = await _repository.AddAsync(settlement.SettlementTransaction);
+            settlement.SettlementTransaction = await repository.AddAsync(settlement.SettlementTransaction);
             return settlement;
         }
     }

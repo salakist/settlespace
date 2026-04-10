@@ -11,6 +11,3 @@ namespace SettleSpace.Application.Persons.Mapping
         Person ToEntity(string id, UpdatePersonCommand command, string? existingPassword, PersonRole role);
     }
 }
-
-
-

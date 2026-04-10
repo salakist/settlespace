@@ -17,4 +17,3 @@ namespace SettleSpace.Domain.Transactions.Entities
         ];
     }
 }
-

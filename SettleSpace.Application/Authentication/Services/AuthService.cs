@@ -12,31 +12,14 @@ using Microsoft.IdentityModel.Tokens;
 
 namespace SettleSpace.Application.Authentication.Services
 {
-    public class AuthService : IAuthService
+    public class AuthService(
+        IPersonRepository personRepository,
+        IOptions<AuthSettings> authOptions,
+        IPasswordHashingService passwordHashingService,
+        IPersonApplicationService personApplicationService,
+        IPasswordValidator passwordValidator,
+        IAuthMapper authMapper) : IAuthService
     {
-        private readonly AuthSettings _authSettings;
-        private readonly IPersonRepository _personRepository;
-        private readonly IPasswordHashingService _passwordHashingService;
-        private readonly IPersonApplicationService _personApplicationService;
-        private readonly IPasswordValidator _passwordValidator;
-        private readonly IAuthMapper _authMapper;
-
-        public AuthService(
-            IPersonRepository personRepository,
-            IOptions<AuthSettings> authOptions,
-            IPasswordHashingService passwordHashingService,
-            IPersonApplicationService personApplicationService,
-            IPasswordValidator passwordValidator,
-            IAuthMapper authMapper)
-        {
-            _personRepository = personRepository;
-            _authSettings = authOptions.Value;
-            _passwordHashingService = passwordHashingService;
-            _personApplicationService = personApplicationService;
-            _passwordValidator = passwordValidator;
-            _authMapper = authMapper;
-        }
-
         public async Task<LoginResponseDto?> LoginAsync(LoginCommand command)
         {
             var (firstName, lastName) = ParseUsername(command.Username);
@@ -45,15 +28,15 @@ namespace SettleSpace.Application.Authentication.Services
                 return null;
             }
 
-            var person = await _personRepository.FindByFullNameAsync(firstName, lastName);
+            var person = await personRepository.FindByFullNameAsync(firstName, lastName);
             if (person is null || string.IsNullOrEmpty(person.Password))
             {
                 return null;
             }
 
-            var passwordIsHashed = _passwordHashingService.IsPasswordHash(person.Password);
+            var passwordIsHashed = passwordHashingService.IsPasswordHash(person.Password);
             var passwordMatches = passwordIsHashed
-                ? _passwordHashingService.VerifyPassword(command.Password, person.Password)
+                ? passwordHashingService.VerifyPassword(command.Password, person.Password)
                 : string.Equals(command.Password, person.Password, StringComparison.Ordinal);
 
             if (!passwordMatches)
@@ -63,13 +46,13 @@ namespace SettleSpace.Application.Authentication.Services
 
             if (!passwordIsHashed && !string.IsNullOrEmpty(person.Id))
             {
-                person.Password = _passwordHashingService.HashPassword(command.Password);
-                await _personRepository.UpdateAsync(person.Id, person);
+                person.Password = passwordHashingService.HashPassword(command.Password);
+                await personRepository.UpdateAsync(person.Id, person);
             }
 
             var resolvedUsername = person.Username;
 
-            var expiresAtUtc = DateTime.UtcNow.AddMinutes(_authSettings.TokenExpirationMinutes);
+            var expiresAtUtc = DateTime.UtcNow.AddMinutes(authOptions.Value.TokenExpirationMinutes);
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, resolvedUsername),
@@ -81,17 +64,17 @@ namespace SettleSpace.Application.Authentication.Services
             };
 
             var credentials = new SigningCredentials(
-                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_authSettings.JwtKey)),
+                new SymmetricSecurityKey(Encoding.UTF8.GetBytes(authOptions.Value.JwtKey)),
                 SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
-                issuer: _authSettings.Issuer,
-                audience: _authSettings.Audience,
+                issuer: authOptions.Value.Issuer,
+                audience: authOptions.Value.Audience,
                 claims: claims,
                 expires: expiresAtUtc,
                 signingCredentials: credentials);
 
-            return _authMapper.ToLoginResponseDto(
+            return authMapper.ToLoginResponseDto(
                 person,
                 new JwtSecurityTokenHandler().WriteToken(token),
                 expiresAtUtc);
@@ -99,23 +82,23 @@ namespace SettleSpace.Application.Authentication.Services
 
         public async Task<LoginResponseDto> RegisterAsync(RegisterCommand command)
         {
-            var createdPerson = await _personApplicationService.CreatePersonAsync(_authMapper.ToCreatePersonCommand(command));
+            var createdPerson = await personApplicationService.CreatePersonAsync(authMapper.ToCreatePersonCommand(command));
 
-            var loginResponse = await LoginAsync(_authMapper.ToLoginCommand(createdPerson.Username, command.Password));
+            var loginResponse = await LoginAsync(authMapper.ToLoginCommand(createdPerson.Username, command.Password));
 
             return loginResponse ?? throw new InvalidOperationException("Registration succeeded but auto-login failed.");
         }
 
         public async Task<bool> ChangePasswordAsync(string personId, ChangePasswordCommand command)
         {
-            var person = await _personRepository.GetByIdAsync(personId);
+            var person = await personRepository.GetByIdAsync(personId);
             if (person is null || string.IsNullOrEmpty(person.Password) || string.IsNullOrEmpty(person.Id))
             {
                 return false;
             }
 
-            var currentPasswordMatches = _passwordHashingService.IsPasswordHash(person.Password)
-                ? _passwordHashingService.VerifyPassword(command.CurrentPassword, person.Password)
+            var currentPasswordMatches = passwordHashingService.IsPasswordHash(person.Password)
+                ? passwordHashingService.VerifyPassword(command.CurrentPassword, person.Password)
                 : string.Equals(command.CurrentPassword, person.Password, StringComparison.Ordinal);
 
             if (!currentPasswordMatches)
@@ -123,10 +106,10 @@ namespace SettleSpace.Application.Authentication.Services
                 return false;
             }
 
-            _passwordValidator.Validate(command.NewPassword);
+            passwordValidator.Validate(command.NewPassword);
 
-            person.Password = _passwordHashingService.HashPassword(command.NewPassword);
-            await _personRepository.UpdateAsync(person.Id, person);
+            person.Password = passwordHashingService.HashPassword(command.NewPassword);
+            await personRepository.UpdateAsync(person.Id, person);
             return true;
         }
 
@@ -172,4 +155,3 @@ namespace SettleSpace.Application.Authentication.Services
         }
     }
 }
-

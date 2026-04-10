@@ -194,5 +194,3 @@ namespace SettleSpace.Domain.Persons.Entities
         }
     }
 }
-
-

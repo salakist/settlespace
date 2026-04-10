@@ -7,15 +7,8 @@ namespace SettleSpace.Application.Persons.Services
         Task<Dictionary<string, string>> ResolveAsync(List<string> personIds);
     }
 
-    public class PersonDisplayNameResolver : IPersonDisplayNameResolver
+    public class PersonDisplayNameResolver(IPersonRepository personRepository) : IPersonDisplayNameResolver
     {
-        private readonly IPersonRepository _personRepository;
-
-        public PersonDisplayNameResolver(IPersonRepository personRepository)
-        {
-            _personRepository = personRepository;
-        }
-
         public async Task<Dictionary<string, string>> ResolveAsync(List<string> personIds)
         {
             var distinctIds = personIds
@@ -28,7 +21,7 @@ namespace SettleSpace.Application.Persons.Services
                 return new Dictionary<string, string>(StringComparer.Ordinal);
             }
 
-            var people = await _personRepository.GetByIdsAsync(distinctIds);
+            var people = await personRepository.GetByIdsAsync(distinctIds);
             var resolvedNames = distinctIds.ToDictionary(id => id, id => id, StringComparer.Ordinal);
 
             foreach (var person in people)

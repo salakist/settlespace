@@ -6,36 +6,23 @@ namespace SettleSpace.Application.Middleware
     /// <summary>
     /// Global exception handling middleware that translates exceptions to shared ProblemDetails responses.
     /// </summary>
-    public class ExceptionHandlingMiddleware
+    public class ExceptionHandlingMiddleware(
+        RequestDelegate next,
+        ILogger<ExceptionHandlingMiddleware> logger,
+        IHostEnvironment environment,
+        IProblemDetailsService problemDetailsService)
     {
-        private readonly RequestDelegate _next;
-        private readonly ILogger<ExceptionHandlingMiddleware> _logger;
-        private readonly IHostEnvironment _environment;
-        private readonly IProblemDetailsService _problemDetailsService;
-
         private static readonly Action<ILogger, string, Exception?> UnhandledExceptionLog =
             LoggerMessage.Define<string>(
                 logLevel: LogLevel.Error,
                 eventId: new EventId(1, nameof(ExceptionHandlingMiddleware)),
                 formatString: "Unhandled exception while processing {Path}");
 
-        public ExceptionHandlingMiddleware(
-            RequestDelegate next,
-            ILogger<ExceptionHandlingMiddleware> logger,
-            IHostEnvironment environment,
-            IProblemDetailsService problemDetailsService)
-        {
-            _next = next;
-            _logger = logger;
-            _environment = environment;
-            _problemDetailsService = problemDetailsService;
-        }
-
         public async Task InvokeAsync(HttpContext context)
         {
             try
             {
-                await _next(context);
+                await next(context);
             }
             catch (Exception ex)
             {
@@ -45,7 +32,7 @@ namespace SettleSpace.Application.Middleware
 
         private async Task HandleExceptionAsync(HttpContext context, Exception exception)
         {
-            UnhandledExceptionLog(_logger, context.Request.Path, exception);
+            UnhandledExceptionLog(logger, context.Request.Path, exception);
 
             var statusCode = ResolveStatusCode(exception);
             context.Response.StatusCode = statusCode;
@@ -62,7 +49,7 @@ namespace SettleSpace.Application.Middleware
             };
             problemDetails.Extensions["traceId"] = context.TraceIdentifier;
 
-            var written = await _problemDetailsService.TryWriteAsync(new ProblemDetailsContext
+            var written = await problemDetailsService.TryWriteAsync(new ProblemDetailsContext
             {
                 HttpContext = context,
                 ProblemDetails = problemDetails,
@@ -77,7 +64,7 @@ namespace SettleSpace.Application.Middleware
 
         private bool ShouldExposeExceptionDetail(int statusCode)
         {
-            return statusCode != StatusCodes.Status500InternalServerError || _environment.IsDevelopment();
+            return statusCode != StatusCodes.Status500InternalServerError || environment.IsDevelopment();
         }
 
         private static int ResolveStatusCode(Exception exception)
@@ -94,4 +81,3 @@ namespace SettleSpace.Application.Middleware
         }
     }
 }
-

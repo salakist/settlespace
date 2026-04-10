@@ -61,4 +61,3 @@ namespace SettleSpace.Domain.Auth
         }
     }
 }
-

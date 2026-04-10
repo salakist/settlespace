@@ -44,7 +44,7 @@ public class TransactionRepositoryTests
     public async Task GetByIdAsyncExistingTransactionReturnsTransaction()
     {
         var tx = BuildTransaction("tx-1");
-        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+        var repo = new TransactionRepository(BuildCollectionMock([tx]).Object);
 
         var result = await repo.GetByIdAsync("tx-1");
 
@@ -55,7 +55,7 @@ public class TransactionRepositoryTests
     public async Task GetByInvolvedPersonIdAsyncReturnsTransactions()
     {
         var tx = BuildTransaction("tx-1");
-        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+        var repo = new TransactionRepository(BuildCollectionMock([tx]).Object);
 
         var result = await repo.GetByInvolvedPersonIdAsync("user-1");
 
@@ -94,7 +94,7 @@ public class TransactionRepositoryTests
     public async Task SearchByInvolvedPersonIdAsyncEmptyQueryReturnsInvolvedTransactions()
     {
         var tx = BuildTransaction("tx-1");
-        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+        var repo = new TransactionRepository(BuildCollectionMock([tx]).Object);
 
         var result = await repo.SearchByInvolvedPersonIdAsync("user-1", string.Empty);
 
@@ -105,7 +105,7 @@ public class TransactionRepositoryTests
     public async Task SearchAsyncFilterWithFreeTextReturnsMatchingTransactions()
     {
         var tx = BuildTransaction("tx-1");
-        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+        var repo = new TransactionRepository(BuildCollectionMock([tx]).Object);
 
         var result = await repo.SearchAsync(new TransactionSearchFilter { FreeText = "taxi" });
 
@@ -127,7 +127,7 @@ public class TransactionRepositoryTests
     public async Task SearchAsyncFilterWithStatusReturnsMatchingTransactions()
     {
         var tx = BuildTransaction("tx-1");
-        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+        var repo = new TransactionRepository(BuildCollectionMock([tx]).Object);
 
         var result = await repo.SearchAsync(new TransactionSearchFilter
         {
@@ -141,7 +141,7 @@ public class TransactionRepositoryTests
     public async Task SearchAsyncFilterWithStatusAndFreeTextCombinesBothFilters()
     {
         var tx = BuildTransaction("tx-1");
-        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+        var repo = new TransactionRepository(BuildCollectionMock([tx]).Object);
 
         var result = await repo.SearchAsync(new TransactionSearchFilter
         {
@@ -156,7 +156,7 @@ public class TransactionRepositoryTests
     public async Task SearchAsyncFilterWithCategoryReturnsMatchingTransactions()
     {
         var tx = BuildTransaction("tx-1");
-        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+        var repo = new TransactionRepository(BuildCollectionMock([tx]).Object);
 
         var result = await repo.SearchAsync(new TransactionSearchFilter
         {
@@ -170,7 +170,7 @@ public class TransactionRepositoryTests
     public async Task SearchAsyncFilterWithDescriptionReturnsMatchingTransactions()
     {
         var tx = BuildTransaction("tx-1");
-        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+        var repo = new TransactionRepository(BuildCollectionMock([tx]).Object);
 
         var result = await repo.SearchAsync(new TransactionSearchFilter
         {
@@ -184,7 +184,7 @@ public class TransactionRepositoryTests
     public async Task SearchAsyncFilterWithInvolvedReturnsMatchingTransactions()
     {
         var tx = BuildTransaction("tx-1");
-        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+        var repo = new TransactionRepository(BuildCollectionMock([tx]).Object);
 
         var result = await repo.SearchAsync(new TransactionSearchFilter
         {
@@ -199,7 +199,7 @@ public class TransactionRepositoryTests
     {
         var tx = BuildTransaction("tx-1");
         tx.CreatedByPersonId = "user-3";
-        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+        var repo = new TransactionRepository(BuildCollectionMock([tx]).Object);
 
         var result = await repo.SearchAsync(new TransactionSearchFilter
         {
@@ -213,7 +213,7 @@ public class TransactionRepositoryTests
     public async Task SearchAsyncFilterWithPayerReturnsMatchingTransactions()
     {
         var tx = BuildTransaction("tx-1");
-        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+        var repo = new TransactionRepository(BuildCollectionMock([tx]).Object);
 
         var result = await repo.SearchAsync(new TransactionSearchFilter
         {
@@ -227,7 +227,7 @@ public class TransactionRepositoryTests
     public async Task SearchAsyncFilterWithPayeeReturnsMatchingTransactions()
     {
         var tx = BuildTransaction("tx-1");
-        var repo = new TransactionRepository(BuildCollectionMock(new[] { tx }).Object);
+        var repo = new TransactionRepository(BuildCollectionMock([tx]).Object);
 
         var result = await repo.SearchAsync(new TransactionSearchFilter
         {

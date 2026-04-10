@@ -13,5 +13,3 @@ namespace SettleSpace.Domain.Transactions.Services
         List<Transaction> ApplySearchPolicy(List<Transaction> transactions, string loggedPersonId, TransactionSearchPolicy policy);
     }
 }
-
-

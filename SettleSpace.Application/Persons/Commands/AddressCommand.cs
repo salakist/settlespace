@@ -11,4 +11,3 @@ namespace SettleSpace.Application.Persons.Commands
         public string Country { get; set; } = null!;
     }
 }
-

@@ -12,4 +12,3 @@ namespace SettleSpace.Domain.Persons.Services
         void EnsureCanUpdateSelf(Person existingPerson, PersonRole requestedRole);
     }
 }
-

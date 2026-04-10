@@ -158,6 +158,3 @@ namespace SettleSpace.Infrastructure.Persons
         }
     }
 }
-
-
-

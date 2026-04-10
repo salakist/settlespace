@@ -107,6 +107,3 @@ namespace SettleSpace.Application.Transactions.Mapping
         }
     }
 }
-
-
-

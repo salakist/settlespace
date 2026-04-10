@@ -115,24 +115,19 @@ namespace SettleSpace.Domain.Transactions.Services
                 return transactions;
             }
 
-            return transactions
+            return [.. transactions
                 .Where(t =>
                     !string.IsNullOrWhiteSpace(t.CreatedByPersonId)
                     && managedByIds.Contains(t.CreatedByPersonId)
-                    && !t.IsUserInvolved(t.CreatedByPersonId))
-                .ToList();
+                    && !t.IsUserInvolved(t.CreatedByPersonId))];
         }
 
         private static List<Transaction> FilterByInvolvement(List<Transaction> transactions, string loggedPersonId, InvolvementType? involvement)
         {
             return involvement switch
             {
-                InvolvementType.Owned => transactions
-                    .Where(t => t.IsUserInvolved(loggedPersonId))
-                    .ToList(),
-                InvolvementType.Managed => transactions
-                    .Where(t => t.IsCreatedBy(loggedPersonId) && !t.IsUserInvolved(loggedPersonId))
-                    .ToList(),
+                InvolvementType.Owned => [.. transactions.Where(t => t.IsUserInvolved(loggedPersonId))],
+                InvolvementType.Managed => [.. transactions.Where(t => t.IsCreatedBy(loggedPersonId) && !t.IsUserInvolved(loggedPersonId))],
                 _ => transactions,
             };
         }
@@ -146,5 +141,3 @@ namespace SettleSpace.Domain.Transactions.Services
         }
     }
 }
-
-

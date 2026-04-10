@@ -82,7 +82,7 @@ public class PersonRepositoryTests
     public async Task GetByIdAsyncExistingPersonReturnsPerson()
     {
         var person = new Person { Id = "1", FirstName = "John", LastName = "Doe", Role = PersonRole.MANAGER };
-        var repo = CreateRepo(BuildCollectionMock(new[] { person }).Object);
+        var repo = CreateRepo(BuildCollectionMock([person]).Object);
 
         var result = await repo.GetByIdAsync("1");
 
@@ -95,7 +95,7 @@ public class PersonRepositoryTests
     [Fact]
     public async Task GetByIdAsyncUnknownIdReturnsNull()
     {
-        var repo = CreateRepo(BuildCollectionMock(Enumerable.Empty<Person>()).Object);
+        var repo = CreateRepo(BuildCollectionMock([]).Object);
 
         var result = await repo.GetByIdAsync("nonexistent");
 
@@ -207,7 +207,7 @@ public class PersonRepositoryTests
     public async Task FindByFullNameAsyncExistingPersonReturnsPerson()
     {
         var person = new Person { Id = "1", FirstName = "John", LastName = "Doe" };
-        var repo = CreateRepo(BuildCollectionMock(new[] { person }).Object);
+        var repo = CreateRepo(BuildCollectionMock([person]).Object);
 
         var result = await repo.FindByFullNameAsync("John", "Doe");
 
@@ -219,7 +219,7 @@ public class PersonRepositoryTests
     [Fact]
     public async Task FindByFullNameAsyncNoPersonReturnsNull()
     {
-        var repo = CreateRepo(BuildCollectionMock(Enumerable.Empty<Person>()).Object);
+        var repo = CreateRepo(BuildCollectionMock([]).Object);
 
         var result = await repo.FindByFullNameAsync("Nobody", "Here");
 
