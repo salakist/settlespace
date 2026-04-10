@@ -2,6 +2,8 @@
 #
 # Runs the full-base quality gates across the repository:
 #   1. C# build + analyzers on the full solution
+#      - warnings/errors remain blocking
+#      - info/suggestion cosmetic diagnostics are surfaced as non-blocking warnings
 #   2. C# coverage on the full production codebase (threshold: 80%)
 #   3. React/TS ESLint on the full frontend source tree
 #   4. Repo JS/MJS ESLint on the full scripts tree
@@ -37,13 +39,38 @@ New-Item -ItemType Directory -Path (Join-Path $CSharpCoverageRoot "application")
 
 Write-Header "[1/5] C# full-base build + code-smell analysis"
 Write-Host "Isolated .NET artifacts: $DotNetArtifactsRoot" -ForegroundColor DarkGray
-dotnet build SettleSpace.sln -t:Rebuild --artifacts-path $DotNetArtifactsRoot /p:TreatWarningsAsErrors=true /nr:false
-if ($LASTEXITCODE -ne 0) {
+$buildOutput = @(dotnet build SettleSpace.sln -t:Rebuild --artifacts-path $DotNetArtifactsRoot /p:TreatWarningsAsErrors=true /nr:false 2>&1)
+$buildExitCode = $LASTEXITCODE
+$buildLines = @($buildOutput | ForEach-Object { $_.ToString() })
+$blockingDiagnostics = Get-DotNetDiagnosticLines -OutputLines $buildLines -AllowedSeverities @("warning", "error")
+
+if ($buildExitCode -ne 0) {
+    if ($blockingDiagnostics.Count -gt 0) {
+        $blockingDiagnostics | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+    }
+
     Write-Host ""
-    Write-Host "[FAIL] Full-base C# build has analyzer violations." -ForegroundColor Red
+    Write-Host "[FAIL] Full-base C# build has blocking analyzer violations." -ForegroundColor Red
     $Failed = $true
 } else {
     Write-Host "[PASS] Full-base C# build passed." -ForegroundColor Green
+}
+
+if ($buildExitCode -eq 0) {
+    $cosmeticResult = Invoke-DotNetFormatDiagnostics -RepoRoot $RepoRoot
+
+    if ($cosmeticResult.TechnicalFailure) {
+        Write-Host "[FAIL] dotnet format could not evaluate full-base .NET cosmetic diagnostics." -ForegroundColor Red
+        $Failed = $true
+    } else {
+        Show-DotNetDiagnosticReport `
+            -Title "Full-base .NET cosmetic diagnostics are present (non-blocking)." `
+            -Diagnostics $cosmeticResult.Diagnostics `
+            -EmptyMessage "No non-blocking .NET cosmetic diagnostics in the full solution." `
+            -FollowUpNote "Agents should fix these on touched files or note a short deferral reason. Do not suppress or ignore them."
+    }
+} else {
+    Write-Host "[SKIP] Full-base .NET cosmetic diagnostics were skipped because the build did not complete." -ForegroundColor Yellow
 }
 
 Write-Header "[2/5] C# full-base coverage (threshold: 80%)"

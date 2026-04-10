@@ -1,7 +1,9 @@
 # scripts/checks/run-checks.ps1
 #
 # Runs the changed-code quality gates used by agents and git hooks:
-#   1. C# build + analyzers, filtered to diagnostics in changed C# files
+#   1. C# build + analyzers on changed C# files
+#      - warnings/errors remain blocking
+#      - info/suggestion cosmetic diagnostics are surfaced as non-blocking warnings
 #   2. C# coverage on changed production C# files (threshold: 80%)
 #   3. React/TS ESLint on changed frontend files
 #   4. Repo JS/MJS ESLint on changed script files
@@ -63,33 +65,38 @@ if ($changedCSharpFiles.Count -eq 0) {
     # Route build outputs to an isolated artifacts folder so the gate can run while the app stack is up.
     $buildOutput = @(dotnet build SettleSpace.sln -t:Rebuild --artifacts-path $DotNetArtifactsRoot /nr:false 2>&1)
     $buildExitCode = $LASTEXITCODE
-    $diagnosticLines = @($buildOutput | ForEach-Object { $_.ToString() } | Where-Object { $_ -match ': (warning|error) [A-Za-z]{2,}\d+:' })
-    $changedDiagnostics = @()
+    $buildLines = @($buildOutput | ForEach-Object { $_.ToString() })
+    $blockingDiagnosticLines = Get-DotNetDiagnosticLines -OutputLines $buildLines -AllowedSeverities @("warning", "error")
+    $changedBlockingDiagnostics = Get-FileScopedDiagnostics -DiagnosticLines $blockingDiagnosticLines -Files $changedCSharpFiles -RepoRoot $RepoRoot
 
-    foreach ($line in $diagnosticLines) {
-        $lowerLine = $line.ToLowerInvariant()
-        foreach ($file in $changedCSharpFiles) {
-            $relativeNeedle = $file.ToLowerInvariant().Replace('/', '\')
-            $absoluteNeedle = (Join-Path $RepoRoot $file.Replace('/', '\')).ToLowerInvariant()
-            if ($lowerLine.Contains($relativeNeedle) -or $lowerLine.Contains($absoluteNeedle)) {
-                $changedDiagnostics += $line
-                break
-            }
-        }
-    }
-
-    $changedDiagnostics = Get-UniqueLines $changedDiagnostics
-
-    if ($changedDiagnostics.Count -gt 0) {
-        $changedDiagnostics | ForEach-Object { Write-Host $_ -ForegroundColor Red }
+    if ($changedBlockingDiagnostics.Count -gt 0) {
+        $changedBlockingDiagnostics | ForEach-Object { Write-Host $_ -ForegroundColor Red }
         Write-Host ""
-        Write-Host "[FAIL] Changed C# files introduced analyzer or compiler violations." -ForegroundColor Red
+        Write-Host "[FAIL] Changed C# files introduced blocking analyzer or compiler violations." -ForegroundColor Red
         $Failed = $true
     } elseif ($buildExitCode -ne 0) {
         Write-Host "[FAIL] Solution build failed outside the changed-file filter. Commit is blocked until the repository builds cleanly." -ForegroundColor Red
         $Failed = $true
     } else {
-        Write-Host "[PASS] No analyzer/compiler violations in changed C# files." -ForegroundColor Green
+        Write-Host "[PASS] No blocking analyzer/compiler violations in changed C# files." -ForegroundColor Green
+    }
+
+    if ($buildExitCode -eq 0) {
+        $cosmeticResult = Invoke-DotNetFormatDiagnostics -RepoRoot $RepoRoot -IncludeFiles $changedCSharpFiles
+
+        if ($cosmeticResult.TechnicalFailure) {
+            Write-Host "[FAIL] dotnet format could not evaluate non-blocking .NET cosmetic diagnostics." -ForegroundColor Red
+            $Failed = $true
+        } else {
+            $changedCosmeticDiagnostics = Get-FileScopedDiagnostics -DiagnosticLines $cosmeticResult.Diagnostics -Files $changedCSharpFiles -RepoRoot $RepoRoot
+            Show-DotNetDiagnosticReport `
+                -Title "Changed C# files have non-blocking .NET cosmetic diagnostics." `
+                -Diagnostics $changedCosmeticDiagnostics `
+                -EmptyMessage "No non-blocking .NET cosmetic diagnostics in changed C# files." `
+                -FollowUpNote "Agents should fix these on touched files or note a short deferral reason. Do not suppress or ignore them."
+        }
+    } else {
+        Write-Host "[SKIP] Non-blocking .NET cosmetic diagnostics were skipped because the solution build did not complete." -ForegroundColor Yellow
     }
 }
 

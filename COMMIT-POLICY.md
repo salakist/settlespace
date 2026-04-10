@@ -29,7 +29,11 @@ routing, see root `AGENTS.md`. For general contributor setup and runbook guidanc
    - Run `./scripts/checks/run-checks-debug.ps1` and keep the log path.
    - `./scripts/checks/run-full-checks-debug.ps1` also satisfies Step 1 when broader validation
      is requested.
-   - Never bypass hooks with `--no-verify`.
+   - Non-blocking cosmetic diagnostics reported by the gate still require handling: fix them in
+     touched files or state a short deferral reason in chat.
+   - Do not hide cosmetic diagnostics with `NoWarn`, `#pragma warning disable`, or similar
+     suppression unless that decision is explicitly requested.
+   - Never bypass hooks with `--no-verify`. 
 2. **Step 2 — Documentation alignment**
    - Update only documentation relevant to the current change set.
 
