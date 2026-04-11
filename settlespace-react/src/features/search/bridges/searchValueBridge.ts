@@ -23,6 +23,12 @@ export interface TextSingleFieldConfig<TQuery, TParam extends string>
   queryKey: Extract<keyof TQuery, string>;
 }
 
+export interface TextMultiFieldConfig<TQuery, TParam extends string>
+  extends SearchBridgeBaseFieldConfig<TQuery, TParam> {
+  kind: 'text-multi';
+  queryKey: Extract<keyof TQuery, string>;
+}
+
 interface LookupFieldConfig<TQuery, TParam extends string>
   extends SearchBridgeBaseFieldConfig<TQuery, TParam> {
   options: SearchBridgeOptionsSource;
@@ -70,6 +76,7 @@ export interface CustomSearchBridgeFieldConfig<TQuery, TParam extends string, TC
 
 export type SearchBridgeFieldConfig<TQuery, TParam extends string, TContext = undefined> =
   | TextSingleFieldConfig<TQuery, TParam>
+  | TextMultiFieldConfig<TQuery, TParam>
   | LookupSingleFieldConfig<TQuery, TParam>
   | LookupMultiFieldConfig<TQuery, TParam>
   | ResolvedSingleFieldConfig<TQuery, TParam, TContext>
@@ -150,6 +157,18 @@ export function buildTextSearchFilter<TParam extends string = string>(
   group: string,
 ): AppliedSearchFilter<TParam> {
   return { param, value, label: value, group };
+}
+
+export function buildTextSearchFilters<TParam extends string = string>(
+  param: TParam,
+  values: readonly string[] | undefined,
+  group: string,
+): AppliedSearchFilter<TParam>[] {
+  if (!values?.length) {
+    return [];
+  }
+
+  return values.map((value) => buildTextSearchFilter(param, value, group));
 }
 
 export function buildLookupSearchFilter<TParam extends string = string>(
@@ -250,6 +269,12 @@ function buildFiltersForField<TQuery, TParam extends string, TContext>(
         ? [buildTextSearchFilter(field.param, value, field.group)]
         : [];
     }
+    case 'text-multi':
+      return buildTextSearchFilters(
+        field.param,
+        readQueryStringValues(query, field.queryKey),
+        field.group,
+      );
     case 'lookup-single': {
       const value = readQueryValue(query, field.queryKey);
       const filter = buildLookupSearchFilter(
@@ -324,6 +349,7 @@ function applyFieldToQuery<TQuery, TParam extends string, TContext>(
       }
       return;
     }
+    case 'text-multi':
     case 'resolved-multi': {
       const nextValues = getFilterValues(filters, field.param);
       if (nextValues.length > 0) {

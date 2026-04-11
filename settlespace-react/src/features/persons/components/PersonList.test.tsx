@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react';
+import { PersonRole } from '../../../shared/types';
 import PersonList from './PersonList';
 
 test('renders empty state', () => {
@@ -22,7 +23,7 @@ test('renders person actions from a single menu', () => {
   const onDelete = jest.fn();
   const onViewTransactions = jest.fn();
   const onViewDebts = jest.fn();
-  const person = { id: '1', firstName: 'John', lastName: 'Doe' };
+  const person = { id: '1', firstName: 'John', lastName: 'Doe', role: PersonRole.User, addresses: [] };
 
   render(
     <PersonList
@@ -38,6 +39,8 @@ test('renders person actions from a single menu', () => {
       onViewDebts={onViewDebts}
     />,
   );
+
+  expect(screen.getByText('User')).toBeInTheDocument();
 
   fireEvent.click(screen.getByRole('button', { name: /open actions for john doe/i }));
 

@@ -4,7 +4,7 @@ import { Chip, IconButton, Menu, MenuItem, Paper, Stack, Typography } from '@mui
 import { Person, PersonRole } from '../../../shared/types';
 import { listItemSurfaceSx } from '../../../shared/theme/surfaceStyles';
 import SearchResultsAlert from '../../search/components/SearchResultsAlert';
-import { PERSON_LIST_TEXT } from '../constants';
+import { formatPersonRoleLabel, PERSON_LIST_TEXT } from '../constants';
 
 interface PersonListProps {
   persons: Person[];
@@ -109,7 +109,11 @@ const PersonList: React.FC<PersonListProps> = ({
                       <Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
                         <Typography variant="subtitle1">{displayName}</Typography>
                         {person.role && (
-                          <Chip label={person.role} size="small" color={getRoleColor(person.role)} />
+                          <Chip
+                            label={formatPersonRoleLabel(person.role)}
+                            size="small"
+                            color={getRoleColor(person.role)}
+                          />
                         )}
                       </Stack>
                       {secondaryDetails && (

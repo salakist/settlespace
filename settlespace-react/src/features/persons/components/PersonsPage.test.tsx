@@ -13,9 +13,9 @@ jest.mock('react-router-dom', () => ({
 
 jest.mock('./PersonSearchBar', () => ({
   __esModule: true,
-  default: ({ onSearch, action }: { onSearch: (query: string) => void; action?: React.ReactNode }) => (
+  default: ({ onSearch, action }: { onSearch: (query: { freeText?: string }) => void; action?: React.ReactNode }) => (
     <>
-      <button onClick={() => onSearch('test')}>Search</button>
+      <button onClick={() => onSearch({ freeText: 'test' })}>Search</button>
       {action}
     </>
   ),
@@ -126,7 +126,7 @@ test('calls onSearch when search is triggered', () => {
 
   fireEvent.click(screen.getByRole('button', { name: /search/i }));
 
-  expect(onSearch).toHaveBeenCalledWith('test');
+  expect(onSearch).toHaveBeenCalledWith({ freeText: 'test' });
 });
 
 test('calls onAdd when create button is clicked', () => {

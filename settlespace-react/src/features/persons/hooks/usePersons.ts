@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { personApi } from '../api';
+import { isEmptyPersonSearchQuery, PersonSearchQuery } from '../search/personSearchTypes';
 import {
   handleRequestError,
   rejectUnauthorizedAction,
@@ -81,15 +82,15 @@ export function usePersons({ expireSession, currentPersonId, role }: UsePersonsO
     }
   }, [handleUnauthorized, normalizePerson]);
 
-  const handleSearch = useCallback(async (query: string) => {
-    if (!query.trim()) {
+  const handleSearch = useCallback(async (query: PersonSearchQuery) => {
+    if (isEmptyPersonSearchQuery(query)) {
       await loadPersons();
       return;
     }
 
     try {
       setLoading(true);
-      const response = await personApi.search(query);
+      const response = await personApi.searchStructured(query);
       const normalizedPersons = response.data.map(normalizePerson);
       setPersons(normalizedPersons);
       primePersonDirectory(normalizedPersons);

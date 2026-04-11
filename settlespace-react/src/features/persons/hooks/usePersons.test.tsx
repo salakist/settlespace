@@ -8,6 +8,7 @@ jest.mock('../api', () => ({
   personApi: {
     getAll: jest.fn(),
     search: jest.fn(),
+    searchStructured: jest.fn(),
     create: jest.fn(),
     update: jest.fn(),
     delete: jest.fn(),
@@ -18,6 +19,7 @@ const { personApi } = jest.requireMock('../api') as {
   personApi: {
     getAll: jest.Mock;
     search: jest.Mock;
+    searchStructured: jest.Mock;
     create: jest.Mock;
     update: jest.Mock;
     delete: jest.Mock;
@@ -57,6 +59,9 @@ beforeEach(() => {
     data: [{ id: 'p1', firstName: 'John', lastName: 'Doe', dateOfBirth: '1990-01-01T12:00:00Z', addresses: undefined }],
   });
   personApi.search.mockResolvedValue({
+    data: [{ id: 'p2', firstName: 'Jane', lastName: 'Doe', dateOfBirth: '1980-05-20T00:00:00Z', addresses: undefined }],
+  });
+  personApi.searchStructured.mockResolvedValue({
     data: [{ id: 'p2', firstName: 'Jane', lastName: 'Doe', dateOfBirth: '1980-05-20T00:00:00Z', addresses: undefined }],
   });
   personApi.create.mockResolvedValue({});
@@ -99,14 +104,15 @@ test('loadPersons unauthorized triggers expireSession callback', async () => {
   expect(harness.getHook().persons).toEqual([]);
 });
 
-test('handleSearch with empty query falls back to loadPersons', async () => {
+test('handleSearch with an empty structured query falls back to loadPersons', async () => {
   const harness = createPersonsHarness();
 
   await act(async () => {
-    await harness.getHook().handleSearch('');
+    await harness.getHook().handleSearch({});
   });
 
   expect(personApi.getAll).toHaveBeenCalled();
+  expect(personApi.searchStructured).not.toHaveBeenCalled();
 });
 
 test('handleSave uses create for new person and update for existing person', async () => {
@@ -204,13 +210,14 @@ test('loadPersons non-401 error sets error state', async () => {
   expect(harness.getHook().persons).toEqual([]);
 });
 
-test('handleSearch returns results for non-empty query', async () => {
+test('handleSearch returns results for a non-empty structured query', async () => {
   const harness = createPersonsHarness();
 
   await act(async () => {
-    await harness.getHook().handleSearch('Jane');
+    await harness.getHook().handleSearch({ freeText: 'Jane' });
   });
 
+  expect(personApi.searchStructured).toHaveBeenCalledWith({ freeText: 'Jane' });
   await waitFor(() => {
     expect(harness.getHook().persons).toEqual([
       {
@@ -226,22 +233,22 @@ test('handleSearch returns results for non-empty query', async () => {
 });
 
 test('handleSearch unauthorized triggers expireSession', async () => {
-  personApi.search.mockRejectedValueOnce({ response: { status: 401 } });
+  personApi.searchStructured.mockRejectedValueOnce({ response: { status: 401 } });
   const harness = createPersonsHarness();
 
   await act(async () => {
-    await harness.getHook().handleSearch('query');
+    await harness.getHook().handleSearch({ freeText: 'query' });
   });
 
   expect(harness.expireSession).toHaveBeenCalledWith(SESSION_EXPIRED_MESSAGE);
 });
 
 test('handleSearch non-401 error sets error state', async () => {
-  personApi.search.mockRejectedValueOnce(new Error('Search error'));
+  personApi.searchStructured.mockRejectedValueOnce(new Error('Search error'));
   const harness = createPersonsHarness();
 
   await act(async () => {
-    await harness.getHook().handleSearch('fail');
+    await harness.getHook().handleSearch({ freeText: 'fail' });
   });
 
   expect(harness.getHook().error).toBe('Search failed');

@@ -3,6 +3,7 @@ import { Alert, Button, CircularProgress, Stack } from '@mui/material';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Person, PersonRole } from '../../../shared/types';
 import ConfirmationDialog from '../../../shared/components/ConfirmationDialog';
+import { PersonSearchQuery } from '../search/personSearchTypes';
 import PersonSearchBar from './PersonSearchBar';
 import PersonForm from './PersonForm';
 import PersonList from './PersonList';
@@ -20,7 +21,7 @@ type PersonsPageProps = {
   canEditRole: boolean;
   defaultCreateRole: PersonRole;
   onAdd: () => void;
-  onSearch: (query: string) => void;
+  onSearch: (query: PersonSearchQuery) => void;
   onSave: (person: Omit<Person, 'id'>) => Promise<void>;
   onCancel: () => void;
   onEdit: (person: Person) => void;

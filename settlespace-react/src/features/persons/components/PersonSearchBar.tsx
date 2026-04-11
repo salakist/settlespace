@@ -1,38 +1,41 @@
 import React, { useMemo } from 'react';
 import SearchBar from '../../search/components/SearchBar';
-import { GenericSearchValue } from '../../search/types';
+import { PERSON_SEARCH_TEXT } from '../constants';
+import {
+  buildPersonSearchParameters,
+  PersonSearchParam,
+} from '../search/personSearchConfig';
+import {
+  EMPTY_PERSON_SEARCH_QUERY,
+  fromPersonSearchValue,
+  toPersonSearchValue,
+} from '../search/personSearchBridge';
+import { PersonSearchQuery } from '../search/personSearchTypes';
 
 interface PersonSearchBarProps {
-  onSearch: (query: string) => void;
+  onSearch: (query: PersonSearchQuery) => void;
   placeholder?: string;
-  initialQuery?: string;
+  initialQuery?: PersonSearchQuery;
   action?: React.ReactNode;
   ariaLabel?: string;
 }
 
-function buildInitialValue(initialQuery: string): GenericSearchValue {
-  const trimmedQuery = initialQuery.trim();
-
-  return {
-    filters: [],
-    ...(trimmedQuery ? { freeText: trimmedQuery } : {}),
-  };
-}
-
 const PersonSearchBar: React.FC<PersonSearchBarProps> = ({
   onSearch,
-  placeholder = 'Search by first or last name',
-  initialQuery = '',
+  placeholder = PERSON_SEARCH_TEXT.DEFAULT_PLACEHOLDER,
+  initialQuery = EMPTY_PERSON_SEARCH_QUERY,
   action,
-  ariaLabel = 'Search',
+  ariaLabel = PERSON_SEARCH_TEXT.ARIA_LABEL,
 }) => {
-  const initialValue = useMemo(() => buildInitialValue(initialQuery), [initialQuery]);
+  const initialValue = useMemo(() => toPersonSearchValue(initialQuery), [initialQuery]);
+  const parameters = useMemo(() => buildPersonSearchParameters(), []);
 
   return (
-    <SearchBar
-      onSearch={(value) => onSearch(value.freeText ?? '')}
+    <SearchBar<PersonSearchParam>
+      onSearch={(value) => onSearch(fromPersonSearchValue(value))}
       initialValue={initialValue}
       action={action}
+      parameters={parameters}
       ariaLabel={ariaLabel}
       freeTextPlaceholder={placeholder}
     />

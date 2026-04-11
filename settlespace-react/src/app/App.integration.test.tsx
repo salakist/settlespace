@@ -50,6 +50,7 @@ jest.mock('../features/persons/api', () => ({
     updateCurrent: jest.fn(),
     delete: jest.fn(),
     search: jest.fn(),
+    searchStructured: jest.fn(),
   },
 }));
 
@@ -91,6 +92,7 @@ const { personApi: mockPersonApi } = jest.requireMock('../features/persons/api')
     updateCurrent: jest.Mock;
     delete: jest.Mock;
     search: jest.Mock;
+    searchStructured: jest.Mock;
   };
 };
 
@@ -120,10 +122,10 @@ const App = require('./App').default;
 
 jest.mock('../features/persons/components/PersonSearchBar', () => ({
   __esModule: true,
-  default: ({ onSearch, action }: { onSearch: (query: string) => void; action?: React.ReactNode }) => (
+  default: ({ onSearch, action }: { onSearch: (query: { freeText?: string }) => void; action?: React.ReactNode }) => (
     <div>
-      <button onClick={() => onSearch('john')}>Search John</button>
-      <button onClick={() => onSearch('')}>Search Empty</button>
+      <button onClick={() => onSearch({ freeText: 'john' })}>Search John</button>
+      <button onClick={() => onSearch({})}>Search Empty</button>
       {action}
     </div>
   ),
@@ -279,6 +281,7 @@ beforeEach(() => {
   mockPersonApi.updateCurrent.mockResolvedValue({});
   mockPersonApi.delete.mockResolvedValue({});
   mockPersonApi.search.mockResolvedValue({ data: [] });
+  mockPersonApi.searchStructured.mockResolvedValue({ data: [] });
   mockTransactionApi.search.mockResolvedValue({ data: [] });
   mockTransactionApi.create.mockResolvedValue({});
   mockTransactionApi.update.mockResolvedValue({});
@@ -345,7 +348,7 @@ test('supports login, directory actions, profile actions, and logout', async () 
   expect(mockPersonApi.getCurrent).not.toHaveBeenCalled();
 
   fireEvent.click(screen.getAllByRole('button', { name: /Search John/i })[0]);
-  await waitFor(() => expect(mockPersonApi.search).toHaveBeenCalledWith('john'));
+  await waitFor(() => expect(mockPersonApi.searchStructured).toHaveBeenCalledWith({ freeText: 'john' }));
 
   fireEvent.click(screen.getAllByRole('button', { name: /Search Empty/i })[0]);
   await waitFor(() => expect(mockPersonApi.getAll).toHaveBeenCalled());

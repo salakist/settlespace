@@ -16,6 +16,7 @@ enum SampleParam {
   Status = 'status',
   Priority = 'priority',
   Category = 'category',
+  Tag = 'tag',
   Owner = 'owner',
   Reviewer = 'reviewer',
   Special = 'special',
@@ -26,6 +27,7 @@ type SampleQuery = {
   status?: string[];
   priority?: string;
   category?: string;
+  tags?: string[];
   owner?: string;
   reviewers?: string[];
   specialOwner?: string;
@@ -69,6 +71,12 @@ function createSampleBridge() {
         param: SampleParam.Category,
         queryKey: 'category',
         group: 'Category',
+      },
+      {
+        kind: 'text-multi',
+        param: SampleParam.Tag,
+        queryKey: 'tags',
+        group: 'Tag',
       },
       {
         kind: 'resolved-single',
@@ -126,6 +134,8 @@ const sampleBridgeFilters: AppliedSearchFilter<SampleParam>[] = [
   createExpectedFilter(SampleParam.Status, 'Completed', 'Completed', 'Status'),
   createExpectedFilter(SampleParam.Priority, 'high', 'High', 'Priority'),
   createExpectedFilter(SampleParam.Category, 'Travel', 'Travel', 'Category'),
+  createExpectedFilter(SampleParam.Tag, 'urgent', 'urgent', 'Tag'),
+  createExpectedFilter(SampleParam.Tag, 'home', 'home', 'Tag'),
   createExpectedFilter(SampleParam.Owner, 'p1', 'Jane Doe', 'Owner'),
   createExpectedFilter(SampleParam.Reviewer, 'p2', 'Sam Smith', 'Reviewer'),
   createExpectedFilter(SampleParam.Special, 'p3', 'Special p3', 'Special'),
@@ -193,6 +203,7 @@ test('createSearchValueBridge maps queries to GenericSearchValue with declarativ
     status: ['Pending', 'Completed'],
     priority: 'high',
     category: 'Travel',
+    tags: ['urgent', 'home'],
     owner: 'p1',
     reviewers: ['p2'],
     specialOwner: 'p3',
@@ -213,6 +224,7 @@ test('createSearchValueBridge maps GenericSearchValue back to a query and suppor
     status: ['Pending', 'Completed'],
     priority: 'high',
     category: 'Travel',
+    tags: ['urgent', 'home'],
     owner: 'p1',
     reviewers: ['p2'],
     specialOwner: 'p3',
