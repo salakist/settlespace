@@ -49,6 +49,7 @@ When editing any script in this folder:
 ## Commands
 ```powershell
 .\scripts\start-stack.ps1
+.\scripts\start-stack.ps1 -OpenBrowser
 .\scripts\start-stack.ps1 -RestartRunning
 .\scripts\stop-stack.ps1
 .\scripts\stop-stack.ps1 -Force

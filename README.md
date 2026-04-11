@@ -574,11 +574,14 @@ From the repository root, you can launch or stop both app ends with the repo scr
 
 ```powershell
 .\scripts\start-stack.ps1
+.\scripts\start-stack.ps1 -OpenBrowser
 .\scripts\stop-stack.ps1
 ```
 
 Notes:
 - `start-stack.ps1` checks whether the backend and frontend are already running and reports what it started vs. what was already up.
+- By default, the frontend dev server is started with browser auto-launch disabled.
+- Use `.\scripts\start-stack.ps1 -OpenBrowser` to open both the frontend and the backend Swagger UI automatically after startup completes.
 - If one or both are already running, it asks once whether you want to restart the detected component(s).
 - `stop-stack.ps1` asks once for confirmation before stopping the detected component(s).
 - Use `.\scripts\stop-stack.ps1 -Force` to skip the confirmation prompt.

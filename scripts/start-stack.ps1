@@ -3,7 +3,8 @@ param(
     [int[]]$BackendPorts = @(5279, 7239),
     [int]$FrontendPort = 3000,
     [switch]$RestartRunning,
-    [switch]$NoPrompt
+    [switch]$NoPrompt,
+    [switch]$OpenBrowser
 )
 
 Set-StrictMode -Version Latest
@@ -192,13 +193,27 @@ function Start-Component {
     }
 }
 
+function Open-ComponentUrls {
+    param([pscustomobject[]]$Components)
+
+    foreach ($component in $Components) {
+        try {
+            Start-Process -FilePath $component.Url -ErrorAction Stop | Out-Null
+            Write-Host "[open] Opened $($component.Name): $($component.Url)" -ForegroundColor Cyan
+        }
+        catch {
+            Write-Host "[warn] Could not open $($component.Name) in the browser: $($component.Url). $($_.Exception.Message)" -ForegroundColor Yellow
+        }
+    }
+}
+
 Write-Header 'Start SettleSpace full stack'
 
 $components = @(
     [pscustomobject]@{
         Name             = 'Backend'
         Ports            = $BackendPorts
-        Url              = "http://localhost:$($BackendPorts[0])"
+        Url              = "http://localhost:$($BackendPorts[0])/swagger"
         WorkingDirectory = $RepoRoot
         CommandName      = 'dotnet'
         LaunchCommand    = "dotnet run --project '$($BackendProjectPath.Replace("'", "''"))'"
@@ -209,7 +224,7 @@ $components = @(
         Url              = "http://localhost:$FrontendPort"
         WorkingDirectory = $FrontendRoot
         CommandName      = 'npm'
-        LaunchCommand    = 'npm start'
+        LaunchCommand    = '$env:BROWSER = ''none''; npm start'
     }
 )
 
@@ -311,6 +326,12 @@ if ($issues.Count -gt 0) {
 
 if ($started.Count -eq 0 -and $restarted.Count -eq 0) {
     Write-Host 'No new processes were started because the requested stack parts were already running.' -ForegroundColor Yellow
+}
+
+if ($OpenBrowser.IsPresent) {
+    Write-Host ''
+    Write-Host '[action] Opening the frontend and backend Swagger UI in your default browser...' -ForegroundColor Cyan
+    Open-ComponentUrls -Components $components
 }
 
 Write-Host ''
