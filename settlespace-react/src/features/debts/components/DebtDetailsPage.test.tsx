@@ -35,6 +35,16 @@ jest.mock('./DebtSettlementDrawer', () => ({
   default: ({ open }: { open: boolean }) => (open ? <div>Settlement Drawer</div> : null),
 }));
 
+jest.mock('./DebtProgressChart', () => ({
+  __esModule: true,
+  default: () => (
+    <div>
+      <div>Debt progression</div>
+      <div>Positive values mean they owe you. Negative values mean you owe them.</div>
+    </div>
+  ),
+}));
+
 beforeEach(() => {
   jest.clearAllMocks();
   mockHook.loadDebtDetails.mockResolvedValue({
@@ -90,6 +100,8 @@ test('loads and renders debt details with underlying transactions', async () => 
   expect(screen.getByText('01/04/2026 · Food')).toBeInTheDocument();
   expect(await screen.findByText(/Taxi/i)).toBeInTheDocument();
   expect(screen.getByText(/John Doe paid Jane Doe/i)).toBeInTheDocument();
+  expect(screen.getByText(/Debt progression/i)).toBeInTheDocument();
+  expect(screen.getByText(/Positive values mean they owe you/i)).toBeInTheDocument();
   expect(screen.getByText(/completed transactions:/i)).toBeInTheDocument();
 
   const buttonLabels = screen.getAllByRole('button')

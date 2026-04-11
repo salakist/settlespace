@@ -133,6 +133,11 @@ jest.mock('../features/transactions/components/TransactionsPage', () => ({
   default: () => <div>Transactions Page</div>,
 }));
 
+jest.mock('../features/debts/components/DebtProgressChart', () => ({
+  __esModule: true,
+  default: () => <div>Debt progression</div>,
+}));
+
 jest.mock('../features/persons/components/PersonForm', () => {
   const APP_TEST_VALUES = mockGetAppTestValues();
 

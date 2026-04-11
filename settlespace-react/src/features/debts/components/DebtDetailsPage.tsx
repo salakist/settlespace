@@ -8,6 +8,7 @@ import { panelSurfaceSx, listItemSurfaceSx } from '../../../shared/theme/surface
 import { formatDateDDMMYYYY } from '../../../shared/utils/dateFormatting';
 import { DEBT_DIRECTION_LABELS, DEBT_LIST_TEXT } from '../constants';
 import { useDebts } from '../hooks/useDebts';
+import DebtProgressChart from './DebtProgressChart';
 import DebtSettlementDrawer from './DebtSettlementDrawer';
 
 type DebtDetailsPageProps = {
@@ -170,6 +171,14 @@ const DebtDetailsPage: React.FC<DebtDetailsPageProps> = ({ expireSession }) => {
             </Stack>
           </Stack>
         </Paper>
+
+        {transactions.length > 0 && displayedDetail && (
+          <DebtProgressChart
+            transactions={displayedDetail.transactions}
+            counterpartyPersonId={displayedDetail.counterpartyPersonId}
+            currencyCode={displayedDetail.currencyCode}
+          />
+        )}
 
         {transactions.length === 0 ? (
           <Alert severity="info">No completed transactions are currently contributing to this balance.</Alert>
