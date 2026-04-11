@@ -7,29 +7,52 @@ import { buildDebtProgressData, formatDebtProgressTickLabel } from './debtProgre
 jest.mock('@mui/x-charts', () => ({
   __esModule: true,
   ChartsReferenceLine: () => <div data-testid="zero-reference-line" />,
-  LineChart: ({ children, height, series, xAxis, yAxis }: any) => (
-    <div data-testid="mock-line-chart" data-height={height}>
-      <svg>
-        <path data-testid="mock-zero-line" style={{ strokeDasharray: '4 4' }} />
-      </svg>
-      <div>
-        {yAxis?.[0]?.valueFormatter?.(yAxis?.[0]?.min)}
-        {yAxis?.[0]?.valueFormatter?.(0)}
-        {yAxis?.[0]?.valueFormatter?.(yAxis?.[0]?.max)}
+  LineChart: ({ children, height, series, slots, xAxis, yAxis }: any) => {
+    const TooltipSlot = slots?.tooltip;
+
+    return (
+      <div data-testid="mock-line-chart" data-height={height}>
+        <svg>
+          <path data-testid="mock-zero-line" style={{ strokeDasharray: '4 4' }} />
+        </svg>
+        <div>
+          {yAxis?.[0]?.valueFormatter?.(yAxis?.[0]?.min)}
+          {yAxis?.[0]?.valueFormatter?.(0)}
+          {yAxis?.[0]?.valueFormatter?.(yAxis?.[0]?.max)}
+        </div>
+        <div>
+          {xAxis?.[0]?.data?.map((value: Date, index: number) => (
+            <span key={`tick-${index}`}>{xAxis[0].valueFormatter?.(value, { location: 'tick' })}</span>
+          ))}
+        </div>
+        <div>
+          {series?.flatMap((seriesEntry: any, seriesIndex: number) => (
+            seriesEntry?.data?.map((value: number | null, index: number) => (
+              <span key={`value-${seriesIndex}-${index}`} data-series-color={seriesEntry.color}>
+                {seriesEntry.valueFormatter?.(value, { dataIndex: index })}
+              </span>
+            ))
+          ))}
+        </div>
+        {TooltipSlot ? <TooltipSlot /> : null}
+        {children}
       </div>
-      <div>
-        {xAxis?.[0]?.data?.map((value: Date, index: number) => (
-          <span key={`tick-${index}`}>{xAxis[0].valueFormatter?.(value, { location: 'tick' })}</span>
-        ))}
-      </div>
-      <div>
-        {series?.[0]?.data?.map((value: number, index: number) => (
-          <span key={`value-${index}`}>{series[0].valueFormatter?.(value, { dataIndex: index })}</span>
-        ))}
-      </div>
-      {children}
-    </div>
+    );
+  },
+}));
+
+jest.mock('@mui/x-charts/ChartsTooltip', () => ({
+  __esModule: true,
+  ChartsTooltipContainer: ({ children }: { children: React.ReactNode }) => (
+    <div data-testid="mock-tooltip-container">{children}</div>
   ),
+  useAxisTooltip: jest.fn(() => ({
+    axisFormattedValue: '01/04/2026',
+    seriesItems: [{
+      color: '#42a5f5',
+      formattedValue: '€7.50 current balance · +€20.00 change · Dinner',
+    }],
+  })),
 }));
 
 describe('buildDebtProgressData', () => {
@@ -139,12 +162,10 @@ describe('buildDebtProgressData', () => {
 
     expect(screen.getByText('Debt progression')).toBeInTheDocument();
     expect(screen.getByText(/Positive values mean they owe you/i)).toBeInTheDocument();
-    expect(screen.getByTestId('mock-line-chart')).toHaveAttribute('data-height', '300');
-    expect(screen.getByText('Settled')).toBeInTheDocument();
-    expect(screen.getByText(/Starting balance/i)).toBeInTheDocument();
-    expect(screen.getByText(/change.*Taxi/i)).toBeInTheDocument();
+    expect(screen.getByTestId('mock-line-chart')).toHaveAttribute('data-height', '328');
+    expect(screen.getAllByText(/Starting balance/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/change.*Taxi/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/current balance.*Dinner/i)).toBeInTheDocument();
-    expect(resizeObserverObserve).toHaveBeenCalled();
   });
 
   test('renders nothing when the transaction history is empty', () => {

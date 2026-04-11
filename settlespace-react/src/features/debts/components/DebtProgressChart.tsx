@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useMemo } from 'react';
 import { Box, Paper, Stack, Typography, useTheme } from '@mui/material';
 import { alpha } from '@mui/material/styles';
 import { ChartsReferenceLine, LineChart } from '@mui/x-charts';
@@ -58,67 +58,99 @@ const DebtProgressChart: React.FC<DebtProgressChartProps> = ({
     () => buildDebtProgressData(transactions, counterpartyPersonId),
     [counterpartyPersonId, transactions],
   );
-  const chartContainerRef = useRef<HTMLDivElement | null>(null);
-  const [settledLabelTop, setSettledLabelTop] = useState<number | null>(null);
-
-  const balances = points.map((point) => point.balance);
-  const minBalance = Math.min(0, ...balances);
-  const maxBalance = Math.max(0, ...balances);
-  const firstPointTimestamp = points[0]?.timestamp.getTime() ?? 0;
-  const firstTransactionTimestamp = points[1]?.timestamp ?? points[0]?.timestamp ?? new Date();
-  const lastPointTimestamp = points[points.length - 1]?.timestamp ?? new Date();
-  const chartHeight = 300;
-  const chartMargin = { bottom: 36, left: 8, right: 88, top: 16 };
-  const plotHeight = chartHeight - chartMargin.top - chartMargin.bottom;
-  const zeroLineTop = maxBalance === minBalance
-    ? chartMargin.top + (plotHeight / 2)
-    : chartMargin.top + ((maxBalance / (maxBalance - minBalance)) * plotHeight);
-
-  useLayoutEffect(() => {
-    const chartContainer = chartContainerRef.current;
-
-    if (points.length === 0) {
-      setSettledLabelTop(null);
-      return undefined;
+  const chartPoints = useMemo(() => {
+    if (points.length <= 1) {
+      return points;
     }
 
-    if (!chartContainer || typeof ResizeObserver === 'undefined') {
-      return undefined;
-    }
-
-    const updateSettledLabelTop = () => {
-      const svgRoot = chartContainer.querySelector('svg');
-      const referenceLine = svgRoot
-        ? Array.from(svgRoot.querySelectorAll('path, line')).find((element) => {
-            const strokeDasharray = window.getComputedStyle(element).strokeDasharray;
-            return strokeDasharray !== 'none' && strokeDasharray !== '';
-          }) as SVGGraphicsElement | undefined
-        : undefined;
-
-      if (!referenceLine) {
-        setSettledLabelTop(null);
-        return;
+    return points.reduce<typeof points>((accumulator, point, index) => {
+      if (index === 0) {
+        accumulator.push(point);
+        return accumulator;
       }
 
-      const containerRect = chartContainer.getBoundingClientRect();
-      const lineRect = referenceLine.getBoundingClientRect();
-      setSettledLabelTop(lineRect.top - containerRect.top);
-    };
+      const previousPoint = points[index - 1];
+      const crossedZero = previousPoint.balance !== 0
+        && point.balance !== 0
+        && Math.sign(previousPoint.balance) !== Math.sign(point.balance);
 
-    const frameId = window.requestAnimationFrame(updateSettledLabelTop);
-    const resizeObserver = new ResizeObserver(() => {
-      window.requestAnimationFrame(updateSettledLabelTop);
-    });
+      if (crossedZero) {
+        const balanceDelta = point.balance - previousPoint.balance;
+        const zeroRatio = balanceDelta === 0
+          ? 0.5
+          : Math.abs(previousPoint.balance / balanceDelta);
+        const crossingTimestamp = new Date(
+          previousPoint.timestamp.getTime()
+            + ((point.timestamp.getTime() - previousPoint.timestamp.getTime()) * zeroRatio),
+        );
 
-    resizeObserver.observe(chartContainer);
-    window.addEventListener('resize', updateSettledLabelTop);
+        accumulator.push({
+          balance: 0,
+          delta: 0,
+          description: 'Settled crossing',
+          label: formatDateDDMMYYYY(crossingTimestamp.toISOString()) || 'Settled crossing',
+          pointType: 'transaction',
+          timestamp: crossingTimestamp,
+        });
+      }
 
-    return () => {
-      window.cancelAnimationFrame(frameId);
-      resizeObserver.disconnect();
-      window.removeEventListener('resize', updateSettledLabelTop);
-    };
+      accumulator.push(point);
+      return accumulator;
+    }, []);
   }, [points]);
+
+  const balances = chartPoints.map((point) => point.balance);
+  const negativeBalances = chartPoints.map((point, index) => {
+    if (point.balance < 0) {
+      return point.balance;
+    }
+
+    if (point.balance !== 0) {
+      return null;
+    }
+
+    const previousBalance = chartPoints[index - 1]?.balance ?? 0;
+    const nextBalance = chartPoints[index + 1]?.balance ?? 0;
+    const touchesNegativeSegment = previousBalance < 0 || nextBalance < 0;
+
+    return touchesNegativeSegment ? 0 : null;
+  });
+  const minBalance = Math.min(0, ...balances);
+  const maxBalance = Math.max(0, ...balances);
+  const axisPadding = Math.max((maxBalance - minBalance) * 0.08, 12);
+  const displayMinBalance = minBalance - axisPadding;
+  const displayMaxBalance = maxBalance + (axisPadding * 0.35);
+  const firstPointTimestamp = chartPoints[0]?.timestamp.getTime() ?? 0;
+  const firstTransactionTimestamp = chartPoints[1]?.timestamp ?? chartPoints[0]?.timestamp ?? new Date();
+  const lastPointTimestamp = chartPoints[chartPoints.length - 1]?.timestamp ?? new Date();
+  const chartHeight = 328;
+  const chartMargin = { bottom: 36, left: 8, right: 20, top: 12 };
+
+  const formatPointValue = (value: number | null, dataIndex?: number): string => {
+    if (value == null) {
+      return '';
+    }
+
+    const point = typeof dataIndex === 'number' ? chartPoints[dataIndex] : undefined;
+
+    if (!point) {
+      return formatCurrency(value, currencyCode);
+    }
+
+    if (point.pointType === 'start') {
+      return `${formatCurrency(point.balance, currencyCode)} · ${point.description}`;
+    }
+
+    if (point.delta === 0 && point.balance === 0) {
+      return `${formatCurrency(0, currencyCode)} · ${point.description}`;
+    }
+
+    return [
+      `${formatCurrency(point.balance, currencyCode)} current balance`,
+      `${formatSignedCurrency(point.delta, currencyCode)} change`,
+      point.description,
+    ].join(' · ');
+  };
 
   if (points.length === 0) {
     return null;
@@ -135,9 +167,8 @@ const DebtProgressChart: React.FC<DebtProgressChartProps> = ({
         </div>
 
         <Box
-          ref={chartContainerRef}
           sx={{
-            left: { md: '-27px', xs: 0 },
+            left: { md: '-23px', xs: 0 },
             position: 'relative',
             width: '100%',
           }}
@@ -146,10 +177,10 @@ const DebtProgressChart: React.FC<DebtProgressChartProps> = ({
               height={chartHeight}
               xAxis={[
               {
-                data: points.map((point) => point.timestamp),
+                data: chartPoints.map((point) => point.timestamp),
                 domainLimit: 'strict',
                 max: lastPointTimestamp,
-                min: points[0].timestamp,
+                min: chartPoints[0].timestamp,
                 scaleType: 'time',
                 tickNumber: 5,
                 valueFormatter: (value: Date, context) => {
@@ -173,8 +204,8 @@ const DebtProgressChart: React.FC<DebtProgressChartProps> = ({
             ]}
             yAxis={[
               {
-                max: maxBalance,
-                min: minBalance,
+                max: displayMaxBalance,
+                min: displayMinBalance,
                 tickNumber: 6,
                 width: 96,
                 valueFormatter: (value: number) => formatCurrency(value, currencyCode, { trimWholeNumbers: true }),
@@ -185,24 +216,30 @@ const DebtProgressChart: React.FC<DebtProgressChartProps> = ({
                 color: theme.palette.primary.light,
                 curve: 'linear',
                 data: balances,
-                label: 'Net balance',
+                label: 'Balance',
                 showMark: false,
                 valueFormatter: (value, context) => {
-                  const point = points[context.dataIndex];
+                  const point = chartPoints[context.dataIndex];
+                  const belongsToNegativeSegment = negativeBalances[context.dataIndex] != null;
 
-                  if (!point) {
-                    return value == null ? '' : formatCurrency(value, currencyCode);
-                  }
+                  return point != null && (point.balance < 0 || (point.balance === 0 && belongsToNegativeSegment))
+                    ? null as unknown as string
+                    : formatPointValue(value, context.dataIndex);
+                },
+              },
+              {
+                color: theme.palette.error.main,
+                curve: 'linear',
+                data: negativeBalances,
+                label: 'Balance',
+                showMark: false,
+                valueFormatter: (value, context) => {
+                  const point = chartPoints[context.dataIndex];
+                  const belongsToNegativeSegment = negativeBalances[context.dataIndex] != null;
 
-                  if (point.pointType === 'start') {
-                    return `${formatCurrency(point.balance, currencyCode)} · ${point.description}`;
-                  }
-
-                  return [
-                    `${formatCurrency(point.balance, currencyCode)} current balance`,
-                    `${formatSignedCurrency(point.delta, currencyCode)} change`,
-                    point.description,
-                  ].join(' · ');
+                  return point != null && (point.balance < 0 || (point.balance === 0 && belongsToNegativeSegment))
+                    ? formatPointValue(value, context.dataIndex)
+                    : null as unknown as string;
                 },
               },
             ]}
@@ -237,39 +274,7 @@ const DebtProgressChart: React.FC<DebtProgressChartProps> = ({
                 strokeDasharray: '4 4',
               }}
             />
-            </LineChart>
-          <Box
-            sx={{
-              alignItems: 'center',
-              display: 'flex',
-              gap: 1,
-              pointerEvents: 'none',
-              position: 'absolute',
-              right: 12,
-              top: settledLabelTop ?? zeroLineTop,
-              transform: 'translateY(-50%)',
-            }}
-          >
-            <Box
-              sx={{
-                borderTop: `1px dashed ${alpha(theme.palette.text.secondary, 0.6)}`,
-                width: 12,
-              }}
-            />
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{
-                backgroundColor: alpha(theme.palette.background.paper, 0.6),
-                borderRadius: 1,
-                lineHeight: 1,
-                px: 0.5,
-                py: 0.125,
-              }}
-            >
-              Settled
-            </Typography>
-          </Box>
+          </LineChart>
         </Box>
       </Stack>
     </Paper>
