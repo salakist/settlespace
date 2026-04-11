@@ -1,5 +1,6 @@
 using SettleSpace.Application.Persons.Commands;
 using SettleSpace.Application.Persons.Mapping;
+using SettleSpace.Application.Persons.Queries;
 using SettleSpace.Domain.Auth;
 using SettleSpace.Domain.Persons.Entities;
 using SettleSpace.Domain.Persons.Exceptions;
@@ -33,6 +34,13 @@ public class PersonApplicationService(
     {
         domainService.EnsureCanAccessDirectory(loggedRole);
         return await repository.SearchAsync(query);
+    }
+
+    public async Task<List<Person>> SearchPersonsAsync(string loggedPersonId, PersonRole loggedRole, PersonSearchQuery query)
+    {
+        domainService.EnsureCanAccessDirectory(loggedRole);
+        var filter = personMapper.ToSearchFilter(query);
+        return await repository.SearchAsync(filter);
     }
 
     public async Task<Person?> GetPersonByIdAsync(string id)

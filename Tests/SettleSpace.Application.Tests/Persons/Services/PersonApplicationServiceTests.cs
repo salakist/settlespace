@@ -1,5 +1,6 @@
 using SettleSpace.Application.Persons.Commands;
 using SettleSpace.Application.Persons.Mapping;
+using SettleSpace.Application.Persons.Queries;
 using SettleSpace.Application.Persons.Services;
 using SettleSpace.Domain.Persons.Entities;
 using SettleSpace.Domain.Persons;
@@ -98,6 +99,37 @@ public class PersonApplicationServiceTests
 
         Assert.Equal(persons, result);
         _domainServiceMock.Verify(d => d.EnsureCanAccessDirectory(PersonRole.MANAGER), Times.Once);
+    }
+
+    [Fact]
+    public async Task SearchPersonsAsyncStructuredQueryDelegatesToTypedRepositorySearch()
+    {
+        var persons = new List<Person>
+        {
+            new() { Id = "1", FirstName = "John", LastName = "Doe", Role = PersonRole.USER }
+        };
+        var query = new PersonSearchQuery
+        {
+            FirstName = ["John", "Jane"],
+            Role = [PersonRole.USER]
+        };
+
+        _repositoryMock
+            .Setup(r => r.SearchAsync(It.Is<PersonSearchFilter>(filter =>
+                filter.FirstName != null
+                && filter.FirstName.Count == 2
+                && filter.FirstName[0] == "John"
+                && filter.FirstName[1] == "Jane"
+                && filter.Role != null
+                && filter.Role.Count == 1
+                && filter.Role[0] == PersonRole.USER)))
+            .ReturnsAsync(persons);
+
+        var result = await _sut.SearchPersonsAsync("manager-1", PersonRole.MANAGER, query);
+
+        Assert.Equal(persons, result);
+        _domainServiceMock.Verify(d => d.EnsureCanAccessDirectory(PersonRole.MANAGER), Times.Once);
+        _repositoryMock.Verify(r => r.SearchAsync(It.IsAny<PersonSearchFilter>()), Times.Once);
     }
 
     [Fact]

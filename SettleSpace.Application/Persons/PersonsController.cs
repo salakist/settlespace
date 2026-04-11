@@ -2,6 +2,7 @@ using SettleSpace.Application.Authentication.Services;
 using SettleSpace.Application.Persons.Mapping;
 using SettleSpace.Application.Persons.Services;
 using SettleSpace.Application.Persons.Commands;
+using SettleSpace.Application.Persons.Queries;
 using SettleSpace.Application.Persons.DTOs;
 using SettleSpace.Domain.Persons.Exceptions;
 using Microsoft.AspNetCore.Authorization;
@@ -57,6 +58,26 @@ public class PersonsController(IPersonApplicationService applicationService, IPe
         var (personId, personRole) = authService.ResolveAuthContext(User);
         var person = await applicationService.GetPersonByIdAsync(id, personId, personRole) ?? throw new PersonNotFoundException(id);
         return Ok(personMapper.ToDto(person));
+    }
+
+    /// <summary>
+    /// Searches persons using the structured search contract.
+    /// </summary>
+    /// <param name="query">The typed person search query.</param>
+    /// <returns>A list of persons matching the supplied structured filters.</returns>
+    /// <response code="200">Returns the matching persons.</response>
+    /// <response code="400">If the search query is invalid.</response>
+    /// <response code="401">If the caller is not authenticated.</response>
+    [HttpPost("search")]
+    [ProducesResponseType(typeof(List<PersonDto>), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), 400)]
+    [ProducesResponseType(typeof(ProblemDetails), 401)]
+    public async Task<ActionResult<List<PersonDto>>> SearchPersons([FromBody] PersonSearchQuery query)
+    {
+        query.Validate();
+        var (personId, personRole) = authService.ResolveAuthContext(User);
+        var persons = await applicationService.SearchPersonsAsync(personId, personRole, query);
+        return Ok(persons.ConvertAll(personMapper.ToDto));
     }
 
     /// <summary>

@@ -1,6 +1,8 @@
 using SettleSpace.Application.Persons.Commands;
 using SettleSpace.Application.Persons.DTOs;
+using SettleSpace.Application.Persons.Queries;
 using SettleSpace.Domain.Persons.Entities;
+using SettleSpace.Domain.Persons;
 
 namespace SettleSpace.Application.Persons.Mapping;
 
@@ -19,6 +21,23 @@ public class PersonMapper : IPersonMapper
             DateOfBirth = entity.DateOfBirth,
             Role = entity.Role,
             Addresses = [.. entity.Addresses.Select(ToDto)]
+        };
+
+    public PersonSearchFilter ToSearchFilter(PersonSearchQuery query) =>
+        new()
+        {
+            FreeText = query.FreeText?.Trim(),
+            FirstName = TrimValues(query.FirstName),
+            LastName = TrimValues(query.LastName),
+            PhoneNumber = TrimValues(query.PhoneNumber),
+            Email = TrimValues(query.Email),
+            DateOfBirth = query.DateOfBirth,
+            Role = query.Role,
+            Address = TrimValues(query.Address),
+            PostalCode = TrimValues(query.PostalCode),
+            City = TrimValues(query.City),
+            StateOrRegion = TrimValues(query.StateOrRegion),
+            Country = TrimValues(query.Country),
         };
 
     public Person ToEntity(CreatePersonCommand command, string password, PersonRole role) =>
@@ -52,6 +71,12 @@ public class PersonMapper : IPersonMapper
             StateOrRegion = address.StateOrRegion,
             Country = address.Country
         };
+
+    private static List<string>? TrimValues(List<string>? values) =>
+        values?
+            .Select(value => value.Trim())
+            .Where(value => value.Length > 0)
+            .ToList();
 
     private static Address ToEntity(AddressCommand command) =>
         new()

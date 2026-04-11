@@ -35,6 +35,13 @@ public interface IPersonRepository
     Task<List<Person>> SearchAsync(string query);
 
     /// <summary>
+    /// Searches for persons using the structured search filter contract.
+    /// </summary>
+    /// <param name="filter">The structured search filter.</param>
+    /// <returns>A list of matching persons.</returns>
+    Task<List<Person>> SearchAsync(PersonSearchFilter filter);
+
+    /// <summary>
     /// Finds a person by case-insensitive full name match.
     /// </summary>
     /// <param name="firstName">The first name to search for.</param>

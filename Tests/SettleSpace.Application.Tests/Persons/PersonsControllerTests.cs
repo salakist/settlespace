@@ -4,6 +4,7 @@ using SettleSpace.Application.Persons;
 using SettleSpace.Application.Persons.Commands;
 using SettleSpace.Application.Persons.DTOs;
 using SettleSpace.Application.Persons.Mapping;
+using SettleSpace.Application.Persons.Queries;
 using SettleSpace.Application.Persons.Services;
 using SettleSpace.Domain.Persons.Entities;
 using SettleSpace.Domain.Persons.Exceptions;
@@ -90,6 +91,25 @@ public class PersonsControllerTests
         var ok = Assert.IsType<OkObjectResult>(result.Result);
         var dto = Assert.IsType<PersonDto>(ok.Value);
         Assert.Equal(person.Id, dto.Id);
+    }
+
+    [Fact]
+    public async Task SearchPersonsReturnsOkWithMappedDtos()
+    {
+        var query = new PersonSearchQuery { FreeText = "John" };
+        var persons = new List<Person>
+        {
+            new() { Id = "1", FirstName = "John", LastName = "Doe", Role = PersonRole.USER }
+        };
+        _serviceMock.Setup(s => s.SearchPersonsAsync("user-1", PersonRole.ADMIN, query)).ReturnsAsync(persons);
+        SetUser("user-1", PersonRole.ADMIN);
+
+        var result = await _controller.SearchPersons(query);
+
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        var dtos = Assert.IsAssignableFrom<List<PersonDto>>(ok.Value);
+        Assert.Single(dtos);
+        Assert.Equal("John", dtos[0].FirstName);
     }
 
     // -----------------------------------------------------------------------

@@ -1,3 +1,4 @@
+using SettleSpace.Domain.Persons;
 using SettleSpace.Domain.Persons.Entities;
 using SettleSpace.Infrastructure.Persons;
 using Moq;
@@ -200,6 +201,64 @@ public class PersonRepositoryTests
         Assert.Contains("$and", rendered, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("John", rendered, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Doe", rendered, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task SearchAsyncFilterWithoutCriteriaReturnsAllPersons()
+    {
+        var persons = new List<Person>
+        {
+            new() { Id = "1", FirstName = "John", LastName = "Doe", Role = PersonRole.USER },
+            new() { Id = "2", FirstName = "Jane", LastName = "Smith", Role = PersonRole.ADMIN }
+        };
+        var repo = CreateRepo(BuildCollectionMock(persons).Object);
+
+        var result = await repo.SearchAsync(new PersonSearchFilter());
+
+        Assert.Equal(2, result.Count);
+    }
+
+    [Fact]
+    public async Task SearchAsyncFilterBuildsOrWithinFieldAndAndAcrossFields()
+    {
+        FilterDefinition<Person>? capturedFilter = null;
+        var matching = new List<Person>
+        {
+            new() { Id = "1", FirstName = "John", LastName = "Doe", Role = PersonRole.USER }
+        };
+        var mock = new Mock<IMongoCollection<Person>>();
+        mock.Setup(c => c.FindAsync(
+                It.IsAny<FilterDefinition<Person>>(),
+                It.IsAny<FindOptions<Person, Person>>(),
+                It.IsAny<CancellationToken>()))
+            .Callback((FilterDefinition<Person> filter, FindOptions<Person, Person>? _, CancellationToken _) => capturedFilter = filter)
+            .ReturnsAsync(BuildCursor(matching));
+
+        var repo = CreateRepo(mock.Object);
+
+        var result = await repo.SearchAsync(new PersonSearchFilter
+        {
+            FirstName = ["John", "Jane"],
+            Role = [PersonRole.USER],
+            Country = ["France", "Belgium"]
+        });
+
+        Assert.Single(result);
+        Assert.NotNull(capturedFilter);
+
+        var serializer = BsonSerializer.SerializerRegistry.GetSerializer<Person>();
+        var rendered = capturedFilter!.Render(new RenderArgs<Person>(serializer, BsonSerializer.SerializerRegistry)).ToString();
+
+        Assert.Contains("$and", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("$or", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("firstName", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("role", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("addresses", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("country", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("John", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Jane", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("France", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Belgium", rendered, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>Finds person by full name with existing person returns the person.</summary>

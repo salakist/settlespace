@@ -1,0 +1,36 @@
+meta {
+  name: Search Structured
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/persons/search
+  body: json
+  auth: bearer
+}
+
+headers {
+  Content-Type: application/json
+}
+
+auth:bearer {
+  token: {{token}}
+}
+
+body:json {
+  {
+    "freeText": "{{query}}",
+    "firstName": ["John", "Jane"],
+    "lastName": ["Doe"],
+    "phoneNumber": ["+33"],
+    "email": ["john@"],
+    "dateOfBirth": ["1990-01-15"],
+    "role": ["USER"],
+    "address": ["Main Street"],
+    "postalCode": ["75001"],
+    "city": ["Paris"],
+    "stateOrRegion": ["Ile-de-France"],
+    "country": ["France"]
+  }
+}

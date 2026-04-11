@@ -112,23 +112,17 @@ public class PersonRepository : IPersonRepository
             return await GetAllAsync();
         }
 
-        var searchTerms = query.Trim()
-            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return await SearchAsync(new PersonSearchFilter { FreeText = query });
+    }
+
+    public async Task<List<Person>> SearchAsync(PersonSearchFilter filter)
+    {
+        ArgumentNullException.ThrowIfNull(filter);
 
         var builder = Builders<Person>.Filter;
-        var perTermFilters = searchTerms.Select(term =>
-        {
-            var escapedTerm = Regex.Escape(term);
-            var regex = new BsonRegularExpression($".*{escapedTerm}.*", "i");
+        var composedFilter = BuildSearchFilter(filter, builder);
 
-            return builder.Regex(p => p.FirstName, regex) | builder.Regex(p => p.LastName, regex);
-        }).ToList();
-
-        var filter = perTermFilters.Count == 1
-            ? perTermFilters[0]
-            : builder.And(perTermFilters);
-
-        return await _personsCollection.Find(filter).ToListAsync();
+        return await _personsCollection.Find(composedFilter).ToListAsync();
     }
 
     public async Task<Person?> FindByFullNameAsync(string firstName, string lastName)
@@ -154,5 +148,125 @@ public class PersonRepository : IPersonRepository
     public async Task DeleteAsync(string id)
     {
         await _personsCollection.DeleteOneAsync(x => x.Id == id);
+    }
+
+    private static FilterDefinition<Person> BuildSearchFilter(
+        PersonSearchFilter filter,
+        FilterDefinitionBuilder<Person> builder)
+    {
+        var conditions = new List<FilterDefinition<Person>>();
+
+        if (!string.IsNullOrWhiteSpace(filter.FreeText))
+        {
+            conditions.Add(BuildFreeTextFilter(filter.FreeText, builder));
+        }
+
+        AddRegexListCondition(conditions, builder, filter.FirstName, regex => builder.Regex(person => person.FirstName, regex));
+        AddRegexListCondition(conditions, builder, filter.LastName, regex => builder.Regex(person => person.LastName, regex));
+        AddRegexListCondition(conditions, builder, filter.PhoneNumber, regex => builder.Regex(person => person.PhoneNumber, regex));
+        AddRegexListCondition(conditions, builder, filter.Email, regex => builder.Regex(person => person.Email, regex));
+
+        if (filter.DateOfBirth is { Count: > 0 })
+        {
+            conditions.Add(builder.In(person => person.DateOfBirth, filter.DateOfBirth.Select(date => (DateOnly?)date)));
+        }
+
+        if (filter.Role is { Count: > 0 })
+        {
+            conditions.Add(builder.In(person => person.Role, filter.Role));
+        }
+
+        AddAddressRegexCondition(
+            conditions,
+            builder,
+            filter.Address,
+            regex =>
+            {
+                var addressBuilder = Builders<Address>.Filter;
+                return builder.ElemMatch(
+                    person => person.Addresses,
+                    addressBuilder.Regex(address => address.StreetLine1, regex)
+                    | addressBuilder.Regex(address => address.StreetLine2, regex));
+            });
+        AddAddressRegexCondition(
+            conditions,
+            builder,
+            filter.PostalCode,
+            regex => builder.ElemMatch(person => person.Addresses, Builders<Address>.Filter.Regex(address => address.PostalCode, regex)));
+        AddAddressRegexCondition(
+            conditions,
+            builder,
+            filter.City,
+            regex => builder.ElemMatch(person => person.Addresses, Builders<Address>.Filter.Regex(address => address.City, regex)));
+        AddAddressRegexCondition(
+            conditions,
+            builder,
+            filter.StateOrRegion,
+            regex => builder.ElemMatch(person => person.Addresses, Builders<Address>.Filter.Regex(address => address.StateOrRegion, regex)));
+        AddAddressRegexCondition(
+            conditions,
+            builder,
+            filter.Country,
+            regex => builder.ElemMatch(person => person.Addresses, Builders<Address>.Filter.Regex(address => address.Country, regex)));
+
+        return conditions.Count == 0
+            ? builder.Empty
+            : builder.And(conditions);
+    }
+
+    private static FilterDefinition<Person> BuildFreeTextFilter(string freeText, FilterDefinitionBuilder<Person> builder)
+    {
+        var searchTerms = freeText.Trim()
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
+        var perTermFilters = searchTerms.Select(term =>
+        {
+            var regex = BuildContainsRegex(term);
+            return builder.Regex(person => person.FirstName, regex) | builder.Regex(person => person.LastName, regex);
+        }).ToList();
+
+        return perTermFilters.Count == 1
+            ? perTermFilters[0]
+            : builder.And(perTermFilters);
+    }
+
+    private static void AddRegexListCondition(
+        List<FilterDefinition<Person>> conditions,
+        FilterDefinitionBuilder<Person> builder,
+        List<string>? values,
+        Func<BsonRegularExpression, FilterDefinition<Person>> buildCondition)
+    {
+        if (values is not { Count: > 0 })
+        {
+            return;
+        }
+
+        var fieldFilters = values
+            .Where(value => !string.IsNullOrWhiteSpace(value))
+            .Select(BuildContainsRegex)
+            .Select(buildCondition)
+            .ToList();
+
+        if (fieldFilters.Count == 0)
+        {
+            return;
+        }
+
+        conditions.Add(fieldFilters.Count == 1 ? fieldFilters[0] : builder.Or(fieldFilters));
+    }
+
+    private static void AddAddressRegexCondition(
+        List<FilterDefinition<Person>> conditions,
+        FilterDefinitionBuilder<Person> builder,
+        List<string>? values,
+        Func<BsonRegularExpression, FilterDefinition<Person>> buildCondition)
+    {
+        AddRegexListCondition(conditions, builder, values, buildCondition);
+    }
+
+    private static BsonRegularExpression BuildContainsRegex(string value)
+    {
+        var escapedTerm = Regex.Escape(value.Trim());
+        return new BsonRegularExpression($".*{escapedTerm}.*", "i");
     }
 }
