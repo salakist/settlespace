@@ -19,11 +19,17 @@ export const PERSON_SEARCH_TEXT = {
   ARIA_LABEL: 'Search people',
   DEFAULT_PLACEHOLDER: 'Search or filter people...',
   TEXT_VALUE_PLACEHOLDER: 'Type a value...',
+  ADDRESS_VALUE_PLACEHOLDER: 'Type street line 1 or 2...',
   FIRST_NAME_LABEL: 'First Name',
   LAST_NAME_LABEL: 'Last Name',
   PHONE_NUMBER_LABEL: 'Phone Number',
   EMAIL_LABEL: 'Email',
   ROLE_LABEL: 'Role',
+  ADDRESS_LABEL: 'Address',
+  POSTAL_CODE_LABEL: 'Postal Code',
+  CITY_LABEL: 'City',
+  STATE_OR_REGION_LABEL: 'State or Region',
+  COUNTRY_LABEL: 'Country',
 } as const;
 
 export const PERSON_LIST_TEXT = {

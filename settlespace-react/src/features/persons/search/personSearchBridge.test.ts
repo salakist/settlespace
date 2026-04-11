@@ -4,7 +4,21 @@ import {
   fromPersonSearchValue,
   toPersonSearchValue,
 } from './personSearchBridge';
-import { buildRoleOptions, PersonSearchParam } from './personSearchConfig';
+import {
+  buildPersonSearchParameters,
+  buildRoleOptions,
+  PersonSearchParam,
+} from './personSearchConfig';
+
+const STREET_PLACEHOLDER = 'Type street line 1 or 2...';
+const SEARCH_FREE_TEXT = 'john';
+const LAST_NAME_DOE = 'Doe';
+const LAST_NAME_SMITH = 'Smith';
+const EMAIL_FRAGMENT = 'john@';
+const STREET_MAIN = 'Main Street';
+const CITY_PARIS = 'Paris';
+const COUNTRY_FRANCE = 'France';
+const COUNTRY_BELGIUM = 'Belgium';
 
 test('buildRoleOptions exposes PascalCase labels for all supported person roles', () => {
   expect(buildRoleOptions()).toEqual([
@@ -14,29 +28,52 @@ test('buildRoleOptions exposes PascalCase labels for all supported person roles'
   ]);
 });
 
-test('person search bridge round-trips core structured filters', () => {
+test('buildPersonSearchParameters includes the address filters with explicit placeholder copy', () => {
+  expect(buildPersonSearchParameters()).toEqual(expect.arrayContaining([
+    expect.objectContaining({
+      param: PersonSearchParam.Address,
+      placeholder: STREET_PLACEHOLDER,
+    }),
+    expect.objectContaining({ param: PersonSearchParam.PostalCode }),
+    expect.objectContaining({ param: PersonSearchParam.City }),
+    expect.objectContaining({ param: PersonSearchParam.StateOrRegion }),
+    expect.objectContaining({ param: PersonSearchParam.Country }),
+  ]));
+});
+
+test('person search bridge round-trips core and address structured filters', () => {
   const searchValue = toPersonSearchValue({
-    freeText: 'john',
-    lastName: ['Doe', 'Smith'],
-    email: ['john@'],
+    freeText: SEARCH_FREE_TEXT,
+    lastName: [LAST_NAME_DOE, LAST_NAME_SMITH],
+    email: [EMAIL_FRAGMENT],
     role: [PersonRole.User],
+    address: [STREET_MAIN],
+    city: [CITY_PARIS],
+    country: [COUNTRY_FRANCE, COUNTRY_BELGIUM],
   });
 
   expect(searchValue).toEqual({
-    freeText: 'john',
+    freeText: SEARCH_FREE_TEXT,
     filters: [
-      { param: PersonSearchParam.LastName, value: 'Doe', label: 'Doe', group: 'Last Name' },
-      { param: PersonSearchParam.LastName, value: 'Smith', label: 'Smith', group: 'Last Name' },
-      { param: PersonSearchParam.Email, value: 'john@', label: 'john@', group: 'Email' },
+      { param: PersonSearchParam.LastName, value: LAST_NAME_DOE, label: LAST_NAME_DOE, group: 'Last Name' },
+      { param: PersonSearchParam.LastName, value: LAST_NAME_SMITH, label: LAST_NAME_SMITH, group: 'Last Name' },
+      { param: PersonSearchParam.Email, value: EMAIL_FRAGMENT, label: EMAIL_FRAGMENT, group: 'Email' },
       { param: PersonSearchParam.Role, value: PersonRole.User, label: 'User', group: 'Role' },
+      { param: PersonSearchParam.Address, value: STREET_MAIN, label: STREET_MAIN, group: 'Address' },
+      { param: PersonSearchParam.City, value: CITY_PARIS, label: CITY_PARIS, group: 'City' },
+      { param: PersonSearchParam.Country, value: COUNTRY_FRANCE, label: COUNTRY_FRANCE, group: 'Country' },
+      { param: PersonSearchParam.Country, value: COUNTRY_BELGIUM, label: COUNTRY_BELGIUM, group: 'Country' },
     ],
   });
 
   expect(fromPersonSearchValue(searchValue)).toEqual({
-    freeText: 'john',
-    lastName: ['Doe', 'Smith'],
-    email: ['john@'],
+    freeText: SEARCH_FREE_TEXT,
+    lastName: [LAST_NAME_DOE, LAST_NAME_SMITH],
+    email: [EMAIL_FRAGMENT],
     role: [PersonRole.User],
+    address: [STREET_MAIN],
+    city: [CITY_PARIS],
+    country: [COUNTRY_FRANCE, COUNTRY_BELGIUM],
   });
 });
 

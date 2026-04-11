@@ -13,6 +13,11 @@ export enum PersonSearchParam {
   PhoneNumber = 'phoneNumber',
   Email = 'email',
   Role = 'role',
+  Address = 'address',
+  PostalCode = 'postalCode',
+  City = 'city',
+  StateOrRegion = 'stateOrRegion',
+  Country = 'country',
 }
 
 export function buildRoleOptions(): SearchSuggestionOption[] {
@@ -26,13 +31,14 @@ export function buildRoleOptions(): SearchSuggestionOption[] {
 function buildTextParameter(
   param: PersonSearchParam,
   label: string,
+  placeholder: string = PERSON_SEARCH_TEXT.TEXT_VALUE_PLACEHOLDER,
 ): SearchParameterConfig<PersonSearchParam> {
   return {
     param,
     label,
     kind: SearchParameterKind.TextInput,
     selectionMode: SearchSelectionMode.Multiple,
-    placeholder: PERSON_SEARCH_TEXT.TEXT_VALUE_PLACEHOLDER,
+    placeholder,
     showGroupLabel: false,
   };
 }
@@ -41,8 +47,6 @@ export function buildPersonSearchParameters(): SearchParameterConfig<PersonSearc
   return [
     buildTextParameter(PersonSearchParam.FirstName, PERSON_SEARCH_TEXT.FIRST_NAME_LABEL),
     buildTextParameter(PersonSearchParam.LastName, PERSON_SEARCH_TEXT.LAST_NAME_LABEL),
-    buildTextParameter(PersonSearchParam.PhoneNumber, PERSON_SEARCH_TEXT.PHONE_NUMBER_LABEL),
-    buildTextParameter(PersonSearchParam.Email, PERSON_SEARCH_TEXT.EMAIL_LABEL),
     {
       param: PersonSearchParam.Role,
       label: PERSON_SEARCH_TEXT.ROLE_LABEL,
@@ -51,5 +55,16 @@ export function buildPersonSearchParameters(): SearchParameterConfig<PersonSearc
       showGroupLabel: false,
       options: buildRoleOptions(),
     },
+    buildTextParameter(PersonSearchParam.PhoneNumber, PERSON_SEARCH_TEXT.PHONE_NUMBER_LABEL),
+    buildTextParameter(PersonSearchParam.Email, PERSON_SEARCH_TEXT.EMAIL_LABEL),
+    buildTextParameter(
+      PersonSearchParam.Address,
+      PERSON_SEARCH_TEXT.ADDRESS_LABEL,
+      PERSON_SEARCH_TEXT.ADDRESS_VALUE_PLACEHOLDER,
+    ),
+    buildTextParameter(PersonSearchParam.PostalCode, PERSON_SEARCH_TEXT.POSTAL_CODE_LABEL),
+    buildTextParameter(PersonSearchParam.City, PERSON_SEARCH_TEXT.CITY_LABEL),
+    buildTextParameter(PersonSearchParam.StateOrRegion, PERSON_SEARCH_TEXT.STATE_OR_REGION_LABEL),
+    buildTextParameter(PersonSearchParam.Country, PERSON_SEARCH_TEXT.COUNTRY_LABEL),
   ];
 }

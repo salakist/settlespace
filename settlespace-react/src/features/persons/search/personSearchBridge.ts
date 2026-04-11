@@ -52,6 +52,36 @@ const personSearchBridge = createSearchValueBridge<PersonSearchQuery, PersonSear
       options: buildRoleOptions,
       parse: (value) => parsePersonRole(value) ?? undefined,
     },
+    {
+      kind: MULTI_TEXT_FIELD_KIND,
+      param: PersonSearchParam.Address,
+      queryKey: 'address',
+      group: PERSON_SEARCH_TEXT.ADDRESS_LABEL,
+    },
+    {
+      kind: MULTI_TEXT_FIELD_KIND,
+      param: PersonSearchParam.PostalCode,
+      queryKey: 'postalCode',
+      group: PERSON_SEARCH_TEXT.POSTAL_CODE_LABEL,
+    },
+    {
+      kind: MULTI_TEXT_FIELD_KIND,
+      param: PersonSearchParam.City,
+      queryKey: 'city',
+      group: PERSON_SEARCH_TEXT.CITY_LABEL,
+    },
+    {
+      kind: MULTI_TEXT_FIELD_KIND,
+      param: PersonSearchParam.StateOrRegion,
+      queryKey: 'stateOrRegion',
+      group: PERSON_SEARCH_TEXT.STATE_OR_REGION_LABEL,
+    },
+    {
+      kind: MULTI_TEXT_FIELD_KIND,
+      param: PersonSearchParam.Country,
+      queryKey: 'country',
+      group: PERSON_SEARCH_TEXT.COUNTRY_LABEL,
+    },
   ],
 });
 
