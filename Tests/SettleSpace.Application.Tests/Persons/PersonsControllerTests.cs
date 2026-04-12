@@ -150,6 +150,21 @@ public class PersonsControllerTests
         await Assert.ThrowsAsync<InvalidPersonSearchException>(() => _controller.SearchPersons(query));
     }
 
+    [Fact]
+    public async Task SearchPersonsWithBothExactAndRangeDateFiltersReturnsBadRequest()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        // Cannot mix exact dates with range — invalid
+        var query = new PersonSearchQuery
+        {
+            DateOfBirth = [today.AddYears(-30)],
+            DateOfBirthBefore = today.AddYears(-25),
+        };
+        SetUser("user-1", PersonRole.ADMIN);
+
+        await Assert.ThrowsAsync<InvalidPersonSearchException>(() => _controller.SearchPersons(query));
+    }
+
     // -----------------------------------------------------------------------
     // POST
     // -----------------------------------------------------------------------

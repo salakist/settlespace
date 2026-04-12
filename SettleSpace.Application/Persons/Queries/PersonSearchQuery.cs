@@ -31,6 +31,7 @@ public class PersonSearchQuery
         ValidateDateScalar(nameof(DateOfBirthBefore), DateOfBirthBefore);
         ValidateDateScalar(nameof(DateOfBirthAfter), DateOfBirthAfter);
         ValidateDateRangeConsistency(DateOfBirthBefore, DateOfBirthAfter);
+        ValidateDateOfBirthMutualExclusion(DateOfBirth, DateOfBirthBefore, DateOfBirthAfter);
         ValidateRoleList(Role);
         ValidateStringList(nameof(Address), Address);
         ValidateStringList(nameof(PostalCode), PostalCode);
@@ -132,6 +133,22 @@ public class PersonSearchQuery
         {
             throw new InvalidPersonSearchException(
                 "DateOfBirthBefore must be greater than or equal to DateOfBirthAfter.");
+        }
+    }
+
+    private static void ValidateDateOfBirthMutualExclusion(
+        List<DateOnly>? exactDates,
+        DateOnly? dateOfBirthBefore,
+        DateOnly? dateOfBirthAfter)
+    {
+        var hasExactDates = exactDates is not null && exactDates.Count > 0;
+        var hasRangeBounds = dateOfBirthBefore is not null || dateOfBirthAfter is not null;
+
+        if (hasExactDates && hasRangeBounds)
+        {
+            throw new InvalidPersonSearchException(
+                "Cannot use exact DateOfBirth with DateOfBirthBefore or DateOfBirthAfter. " +
+                "Use either exact date(s) or a date range, but not both.");
         }
     }
 }
