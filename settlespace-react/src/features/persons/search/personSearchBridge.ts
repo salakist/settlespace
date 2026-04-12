@@ -1,6 +1,7 @@
 import { parsePersonRole } from '../../../shared/types';
 import { createSearchValueBridge } from '../../search/bridges/searchValueBridge';
 import { GenericSearchValue } from '../../search/types';
+import { formatDateSearchLabel } from '../../search/utils/searchHelpers';
 import { PERSON_SEARCH_TEXT } from '../constants';
 import { buildRoleOptions, PersonSearchParam } from './personSearchConfig';
 import { PersonSearchQuery } from './personSearchTypes';
@@ -51,6 +52,13 @@ const personSearchBridge = createSearchValueBridge<PersonSearchQuery, PersonSear
       group: PERSON_SEARCH_TEXT.ROLE_LABEL,
       options: buildRoleOptions,
       parse: (value) => parsePersonRole(value) ?? undefined,
+    },
+    {
+      kind: 'resolved-multi',
+      param: PersonSearchParam.DateOfBirth,
+      queryKey: 'dateOfBirth',
+      group: PERSON_SEARCH_TEXT.DATE_OF_BIRTH_LABEL,
+      resolveLabel: (value) => formatDateSearchLabel(value),
     },
     {
       kind: MULTI_TEXT_FIELD_KIND,

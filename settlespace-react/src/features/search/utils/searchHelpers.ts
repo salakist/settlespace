@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { SEARCH_PLACEHOLDERS } from '../constants';
 import {
   AppliedSearchFilter,
@@ -7,6 +9,10 @@ import {
   SearchParameterKind,
   SearchSelectionMode,
 } from '../types';
+
+const SEARCH_DATE_FORMATS = ['YYYY-MM-DD', 'DD/MM/YYYY'];
+
+dayjs.extend(customParseFormat);
 
 export interface AutocompleteSearchOption<TParam extends string = string>
   extends AppliedSearchFilter<TParam> {
@@ -37,11 +43,33 @@ export function isAsyncSearchParameter<TParam extends string = string>(
   return parameter?.kind === SearchParameterKind.AsyncSuggestions;
 }
 
+export function isDateInputSearchParameter<TParam extends string = string>(
+  parameter: SearchParameterConfig<TParam> | null,
+): boolean {
+  return parameter?.kind === SearchParameterKind.DateInput;
+}
+
+export function normalizeDateSearchValue(value: string): string | undefined {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return undefined;
+  }
+
+  const parsed = dayjs(trimmed, SEARCH_DATE_FORMATS, true);
+  return parsed.isValid() ? parsed.format('YYYY-MM-DD') : undefined;
+}
+
+export function formatDateSearchLabel(value: string): string {
+  const parsed = dayjs(value, SEARCH_DATE_FORMATS, true);
+  return parsed.isValid() ? parsed.format('DD/MM/YYYY') : value;
+}
+
 export function isInputSearchParameter<TParam extends string = string>(
   parameter: SearchParameterConfig<TParam> | null,
 ): boolean {
   return parameter?.kind === SearchParameterKind.TextInput
-    || parameter?.kind === SearchParameterKind.AsyncSuggestions;
+    || parameter?.kind === SearchParameterKind.AsyncSuggestions
+    || parameter?.kind === SearchParameterKind.DateInput;
 }
 
 export function buildAvailableOptions<TParam extends string = string>(
@@ -161,6 +189,10 @@ export function getInputPlaceholder<TParam extends string = string>(
 
   if (pendingParameter?.kind === SearchParameterKind.AsyncSuggestions) {
     return pendingParameter.placeholder ?? SEARCH_PLACEHOLDERS.ASYNC_SUGGESTIONS;
+  }
+
+  if (pendingParameter?.kind === SearchParameterKind.DateInput) {
+    return pendingParameter.placeholder ?? SEARCH_PLACEHOLDERS.DATE_INPUT;
   }
 
   return freeTextPlaceholder;

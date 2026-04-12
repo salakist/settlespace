@@ -1,5 +1,6 @@
 import { getEnumValues, PersonRole } from '../../../shared/types';
 import { formatPersonRoleLabel, PERSON_SEARCH_TEXT } from '../constants';
+import { SEARCH_PLACEHOLDERS } from '../../search/constants';
 import {
   SearchParameterConfig,
   SearchParameterKind,
@@ -13,6 +14,7 @@ export enum PersonSearchParam {
   PhoneNumber = 'phoneNumber',
   Email = 'email',
   Role = 'role',
+  DateOfBirth = 'dateOfBirth',
   Address = 'address',
   PostalCode = 'postalCode',
   City = 'city',
@@ -43,6 +45,20 @@ function buildTextParameter(
   };
 }
 
+function buildDateParameter(
+  param: PersonSearchParam,
+  label: string,
+): SearchParameterConfig<PersonSearchParam> {
+  return {
+    param,
+    label,
+    kind: SearchParameterKind.DateInput,
+    selectionMode: SearchSelectionMode.Multiple,
+    placeholder: SEARCH_PLACEHOLDERS.DATE_INPUT,
+    showGroupLabel: false,
+  };
+}
+
 export function buildPersonSearchParameters(): SearchParameterConfig<PersonSearchParam>[] {
   return [
     buildTextParameter(PersonSearchParam.FirstName, PERSON_SEARCH_TEXT.FIRST_NAME_LABEL),
@@ -57,6 +73,7 @@ export function buildPersonSearchParameters(): SearchParameterConfig<PersonSearc
     },
     buildTextParameter(PersonSearchParam.PhoneNumber, PERSON_SEARCH_TEXT.PHONE_NUMBER_LABEL),
     buildTextParameter(PersonSearchParam.Email, PERSON_SEARCH_TEXT.EMAIL_LABEL),
+    buildDateParameter(PersonSearchParam.DateOfBirth, PERSON_SEARCH_TEXT.DATE_OF_BIRTH_LABEL),
     buildTextParameter(
       PersonSearchParam.Address,
       PERSON_SEARCH_TEXT.ADDRESS_LABEL,

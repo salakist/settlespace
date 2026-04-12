@@ -2,6 +2,7 @@ export const SEARCH_PLACEHOLDERS = {
   DEFAULT: 'Search...',
   TEXT_INPUT: 'Type a value...',
   ASYNC_SUGGESTIONS: 'Type to search...',
+  DATE_INPUT: 'DD/MM/YYYY',
 } as const;
 
 export const SEARCH_BAR_TEXT = {
@@ -19,4 +20,5 @@ export const SEARCH_TEST_IDS = {
 
 export const SEARCH_LAYOUT = {
   INPUT_PADDING_RIGHT: '72px',
+  DATE_INPUT_PADDING_RIGHT: '104px',
 } as const;

@@ -4,6 +4,7 @@ export enum SearchParameterKind {
   Fixed = 'fixed',
   TextInput = 'text-input',
   AsyncSuggestions = 'async-suggestions',
+  DateInput = 'date-input',
 }
 
 export enum SearchSelectionMode {
@@ -51,10 +52,16 @@ export interface AsyncSearchParameterConfig<TParam extends string = string>
   getSuggestions: (input: string) => Promise<SearchSuggestionOption[]>;
 }
 
+export interface DateInputSearchParameterConfig<TParam extends string = string>
+  extends BaseSearchParameterConfig<TParam> {
+  kind: SearchParameterKind.DateInput;
+}
+
 export type SearchParameterConfig<TParam extends string = string> =
   | FixedSearchParameterConfig<TParam>
   | TextInputSearchParameterConfig<TParam>
-  | AsyncSearchParameterConfig<TParam>;
+  | AsyncSearchParameterConfig<TParam>
+  | DateInputSearchParameterConfig<TParam>;
 
 export interface GenericSearchValue<TParam extends string = string> {
   freeText?: string;

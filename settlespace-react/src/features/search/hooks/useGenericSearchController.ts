@@ -9,10 +9,13 @@ import {
   applyFilterSelection,
   AutocompleteSearchOption,
   buildAvailableOptions,
+  formatDateSearchLabel,
   getAutocompleteOptions,
   getInputPlaceholder,
   getSelectionMode,
   isAsyncSearchParameter,
+  isDateInputSearchParameter,
+  normalizeDateSearchValue,
   normalizeSearchValue,
 } from '../utils/searchHelpers';
 
@@ -120,10 +123,20 @@ export function useGenericSearchController<TParam extends string = string>({
       return;
     }
 
+    const normalizedValue = isDateInputSearchParameter(pendingParameter)
+      ? normalizeDateSearchValue(trimmed)
+      : trimmed;
+
+    if (!normalizedValue) {
+      return;
+    }
+
     const nextFilter: AppliedSearchFilter<TParam> = {
       param: pendingParameter.param,
-      value: trimmed,
-      label: trimmed,
+      value: normalizedValue,
+      label: isDateInputSearchParameter(pendingParameter)
+        ? formatDateSearchLabel(normalizedValue)
+        : trimmed,
       group: pendingParameter.label,
     };
     const nextFilters = applyFilterSelection(

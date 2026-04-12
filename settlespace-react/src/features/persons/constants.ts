@@ -25,6 +25,7 @@ export const PERSON_SEARCH_TEXT = {
   PHONE_NUMBER_LABEL: 'Phone Number',
   EMAIL_LABEL: 'Email',
   ROLE_LABEL: 'Role',
+  DATE_OF_BIRTH_LABEL: 'Date of Birth',
   ADDRESS_LABEL: 'Address',
   POSTAL_CODE_LABEL: 'Postal Code',
   CITY_LABEL: 'City',

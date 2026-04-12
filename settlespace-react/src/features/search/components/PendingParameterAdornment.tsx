@@ -2,6 +2,7 @@ import React from 'react';
 import { Chip, IconButton, Stack } from '@mui/material';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import EventIcon from '@mui/icons-material/Event';
 import { SEARCH_BAR_TEXT, SEARCH_TEST_IDS } from '../constants';
 import { SearchParameterConfig } from '../types';
 import { isAsyncSearchParameter } from '../utils/searchHelpers';
@@ -28,6 +29,8 @@ interface PendingParameterActionsProps<TParam extends string> {
   inputValue: string;
   onCancel: () => void;
   onConfirm: () => void;
+  showCalendarButton?: boolean;
+  onOpenCalendar?: () => void;
 }
 
 export const PendingParameterActions = <TParam extends string = string,>({
@@ -35,6 +38,8 @@ export const PendingParameterActions = <TParam extends string = string,>({
   inputValue,
   onCancel,
   onConfirm,
+  showCalendarButton = false,
+  onOpenCalendar,
 }: PendingParameterActionsProps<TParam>) => (
   <Stack
     direction="row"
@@ -44,8 +49,19 @@ export const PendingParameterActions = <TParam extends string = string,>({
       right: 8,
       top: '50%',
       transform: 'translateY(-50%)',
+      alignItems: 'center',
     }}
   >
+    {showCalendarButton && (
+      <IconButton
+        size="small"
+        aria-label="Open calendar"
+        onClick={onOpenCalendar}
+        tabIndex={-1}
+      >
+        <EventIcon sx={{ fontSize: ACTION_ICON_SIZE }} />
+      </IconButton>
+    )}
     <IconButton
       size="small"
       aria-label={SEARCH_BAR_TEXT.CANCEL_FILTER_ARIA_LABEL}

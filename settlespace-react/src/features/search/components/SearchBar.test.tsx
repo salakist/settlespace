@@ -2,7 +2,7 @@ import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import SearchBar from './SearchBar';
-import { SEARCH_PLACEHOLDERS } from '../constants';
+import { SEARCH_PLACEHOLDERS, SEARCH_TEST_IDS } from '../constants';
 import {
   SearchParameterConfig,
   SearchParameterKind,
@@ -32,6 +32,14 @@ const INVOLVED_FILTER = {
   param: 'involved',
   ...JANE_SUGGESTION,
 } as const;
+
+const DATE_OF_BIRTH_LABEL = 'Date of Birth';
+const DATE_PARAM_PROMPT = 'Date';
+const OPEN_CALENDAR_ARIA_LABEL = 'Open calendar';
+const CANCEL_FILTER_ARIA_LABEL = 'Cancel filter';
+const CONFIRM_FILTER_ARIA_LABEL = 'Confirm filter';
+const DATE_ACTIONS_ARIA_LABEL_REGEX = /open calendar|cancel filter|confirm filter/i;
+const ARIA_LABEL_ATTRIBUTE = 'aria-label';
 
 const ARIA_EXPANDED_ATTRIBUTE = 'aria-expanded';
 const SHOW_FILTERS_BUTTON_NAME = /show filters/i;
@@ -82,6 +90,17 @@ function buildInvolvedAsyncParameters(
     placeholder: SEARCH_PLACEHOLDERS.ASYNC_SUGGESTIONS,
     getSuggestions,
     debounceMs: 0,
+  }];
+}
+
+function buildDateParameters(): SearchParameterConfig[] {
+  return [{
+    param: 'dateOfBirth',
+    label: DATE_OF_BIRTH_LABEL,
+    kind: SearchParameterKind.DateInput,
+    selectionMode: SearchSelectionMode.Multiple,
+    placeholder: SEARCH_PLACEHOLDERS.DATE_INPUT,
+    showGroupLabel: false,
   }];
 }
 
@@ -308,6 +327,95 @@ test('supports hiding group headings in top-level filter autocomplete', async ()
 
   expect(await screen.findByRole('option', { name: SEARCH_TEST_TEXT.PENDING_STATUS })).toBeInTheDocument();
   expect(screen.queryByText(SEARCH_TEST_TEXT.STATUS_LABEL)).not.toBeInTheDocument();
+});
+
+test('date input parameters switch the pending filter to the shared date placeholder', async () => {
+  const { input } = renderSearchBarForTest({
+    onSearch: jest.fn(),
+    parameters: buildDateParameters(),
+  });
+
+  userEvent.type(input, DATE_PARAM_PROMPT);
+  await clickOption(DATE_OF_BIRTH_LABEL);
+
+  expect(screen.getByPlaceholderText(SEARCH_PLACEHOLDERS.DATE_INPUT)).toBeInTheDocument();
+  expect(screen.getByTestId(SEARCH_TEST_IDS.PENDING_PARAMETER_CHIP)).toHaveTextContent(DATE_OF_BIRTH_LABEL);
+});
+
+test('date input remains focusable after clicking pending chip and confirm button', async () => {
+  render(
+    <>
+      <SearchBar
+        onSearch={jest.fn()}
+        ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL}
+        parameters={buildDateParameters()}
+      />
+      <button type="button">Outside</button>
+    </>,
+  );
+
+  const input = screen.getByLabelText(SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL);
+  await userEvent.type(input, DATE_PARAM_PROMPT);
+  await clickOption(DATE_OF_BIRTH_LABEL);
+
+  const dateInput = screen.getByLabelText(SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL);
+  const confirmButton = screen.getByRole('button', { name: /confirm filter/i });
+
+  await userEvent.type(dateInput, '03/02');
+  await userEvent.click(screen.getByRole('button', { name: OUTSIDE_BUTTON_NAME }));
+  await userEvent.click(confirmButton);
+  await userEvent.click(dateInput);
+  await userEvent.type(dateInput, '/2001');
+
+  expect(dateInput).toHaveValue('03/02/2001');
+  expect(confirmButton).toBeEnabled();
+});
+
+test('date input stays editable after blur, chip click, and refocus', async () => {
+  render(
+    <>
+      <SearchBar
+        onSearch={jest.fn()}
+        ariaLabel={SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL}
+        parameters={buildDateParameters()}
+      />
+      <button type="button">Outside</button>
+    </>,
+  );
+
+  const input = screen.getByLabelText(SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL);
+  await userEvent.type(input, DATE_PARAM_PROMPT);
+  await clickOption(DATE_OF_BIRTH_LABEL);
+
+  const dateInput = screen.getByLabelText(SEARCH_TEST_TEXT.GENERIC_ARIA_LABEL);
+  await userEvent.type(dateInput, '03');
+  await userEvent.click(screen.getByRole('button', { name: OUTSIDE_BUTTON_NAME }));
+  await userEvent.click(screen.getByTestId(SEARCH_TEST_IDS.PENDING_PARAMETER_CHIP));
+  await userEvent.click(dateInput);
+  await userEvent.type(dateInput, '/02/2001');
+
+  expect(dateInput).toHaveValue('03/02/2001');
+});
+
+test('date input keeps the calendar picker button visible with cancel and confirm actions', async () => {
+  const { input } = renderSearchBarForTest({
+    onSearch: jest.fn(),
+    parameters: buildDateParameters(),
+  });
+
+  await userEvent.type(input, DATE_PARAM_PROMPT);
+  await clickOption(DATE_OF_BIRTH_LABEL);
+
+  const actionButtons = screen
+    .getAllByRole('button')
+    // eslint-disable-next-line sonarjs/no-duplicate-string
+    .filter((button) => DATE_ACTIONS_ARIA_LABEL_REGEX.test(button.getAttribute(ARIA_LABEL_ATTRIBUTE) ?? ''));
+
+  expect(actionButtons.map((button) => button.getAttribute(ARIA_LABEL_ATTRIBUTE))).toEqual([
+    OPEN_CALENDAR_ARIA_LABEL,
+    CANCEL_FILTER_ARIA_LABEL,
+    CONFIRM_FILTER_ARIA_LABEL,
+  ]);
 });
 
 test('does not show group headings while entering an async parameter value', async () => {
