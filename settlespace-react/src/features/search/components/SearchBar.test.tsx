@@ -507,3 +507,66 @@ test('bidirectional conflictsWith removes opposing conflicting chips', async () 
   // and A is blocked by B's conflictsWith, the menu should be empty)
   await waitFor(() => expect(screen.queryByRole('option')).not.toBeInTheDocument());
 });
+
+test('non-conflicting range parameters can be selected together', async () => {
+  const onSearch = jest.fn();
+  const RANGE_PARAMS_GROUP = 'Types';
+  const END_OPTION_LABEL = 'End Option';
+
+  // Set up params where two range params only conflict with an exact param
+  const rangeParams: SearchParameterConfig[] = [
+    {
+      param: 'exactValue',
+      label: 'Exact',
+      kind: SearchParameterKind.Fixed,
+      selectionMode: SearchSelectionMode.Single,
+      showGroupLabel: false,
+      options: [{ value: 'exact', label: 'Exact Option', group: RANGE_PARAMS_GROUP }],
+      conflictsWith: ['rangeStart', 'rangeEnd'],
+    },
+    {
+      param: 'rangeStart',
+      label: 'Range Start',
+      kind: SearchParameterKind.Fixed,
+      selectionMode: SearchSelectionMode.Multiple,
+      showGroupLabel: false,
+      options: [{ value: 'start', label: 'Start Option', group: RANGE_PARAMS_GROUP }],
+      conflictsWith: ['exactValue'],
+    },
+    {
+      param: 'rangeEnd',
+      label: 'Range End',
+      kind: SearchParameterKind.Fixed,
+      selectionMode: SearchSelectionMode.Multiple,
+      showGroupLabel: false,
+      options: [{ value: 'end', label: END_OPTION_LABEL, group: RANGE_PARAMS_GROUP }],
+      conflictsWith: ['exactValue'],
+    },
+  ];
+
+  renderSearchBarForTest({ onSearch, parameters: rangeParams });
+
+  // Select Range Start
+  userEvent.click(screen.getByRole('button', { name: SHOW_FILTERS_BUTTON_NAME }));
+  await clickOption('Start Option');
+  expect(screen.getByText(`${RANGE_PARAMS_GROUP}: Start Option`)).toBeInTheDocument();
+
+  // Range End should still be available (no mutual conflict)
+  userEvent.click(screen.getByRole('button', { name: SHOW_FILTERS_BUTTON_NAME }));
+  expect(await screen.findByRole('option', { name: END_OPTION_LABEL })).toBeInTheDocument();
+
+  // Select Range End
+  await clickOption(END_OPTION_LABEL);
+  expect(screen.getByText(`${RANGE_PARAMS_GROUP}: ${END_OPTION_LABEL}`)).toBeInTheDocument();
+
+  // Both chips should be present
+  expect(screen.getByText(`${RANGE_PARAMS_GROUP}: Start Option`)).toBeInTheDocument();
+  expect(screen.getByText(`${RANGE_PARAMS_GROUP}: ${END_OPTION_LABEL}`)).toBeInTheDocument();
+
+  // Exact Option should not be available (blocked by both range params)
+  userEvent.click(screen.getByRole('button', { name: SHOW_FILTERS_BUTTON_NAME }));
+  await waitFor(() => {
+    expect(screen.queryByRole('option', { name: 'Exact Option' }))
+      .not.toBeInTheDocument();
+  });
+});

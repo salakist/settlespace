@@ -49,12 +49,12 @@ test('buildPersonSearchParameters includes the address filters with explicit pla
     expect.objectContaining({
       param: PersonSearchParam.DateOfBirthBefore,
       placeholder: DATE_PLACEHOLDER,
-      conflictsWith: expect.arrayContaining([PersonSearchParam.DateOfBirth, PersonSearchParam.DateOfBirthAfter]),
+      conflictsWith: [PersonSearchParam.DateOfBirth],
     }),
     expect.objectContaining({
       param: PersonSearchParam.DateOfBirthAfter,
       placeholder: DATE_PLACEHOLDER,
-      conflictsWith: expect.arrayContaining([PersonSearchParam.DateOfBirth, PersonSearchParam.DateOfBirthBefore]),
+      conflictsWith: [PersonSearchParam.DateOfBirth],
     }),
     expect.objectContaining({ param: PersonSearchParam.PostalCode }),
     expect.objectContaining({ param: PersonSearchParam.City }),

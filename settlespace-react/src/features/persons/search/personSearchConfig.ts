@@ -88,11 +88,11 @@ export function buildPersonSearchParameters(): SearchParameterConfig<PersonSearc
     }),
     buildDateParameter(PersonSearchParam.DateOfBirthBefore, PERSON_SEARCH_TEXT.DATE_OF_BIRTH_BEFORE_LABEL, {
       selectionMode: SearchSelectionMode.Single,
-      conflictsWith: [PersonSearchParam.DateOfBirth, PersonSearchParam.DateOfBirthAfter],
+      conflictsWith: [PersonSearchParam.DateOfBirth],
     }),
     buildDateParameter(PersonSearchParam.DateOfBirthAfter, PERSON_SEARCH_TEXT.DATE_OF_BIRTH_AFTER_LABEL, {
       selectionMode: SearchSelectionMode.Single,
-      conflictsWith: [PersonSearchParam.DateOfBirth, PersonSearchParam.DateOfBirthBefore],
+      conflictsWith: [PersonSearchParam.DateOfBirth],
     }),
     buildTextParameter(
       PersonSearchParam.Address,
