@@ -79,7 +79,17 @@ export function buildAvailableOptions<TParam extends string = string>(
   const activeKeys = new Set(activeFilters.map((filter) => `${filter.param}:${filter.value}`));
   const activeParams = new Set(activeFilters.map((filter) => filter.param));
 
+  const blockedParams = new Set<TParam>();
+  activeFilters.forEach((filter) => {
+    const config = parameters.find((p) => p.param === filter.param);
+    config?.conflictsWith?.forEach((blocked) => blockedParams.add(blocked));
+  });
+
   return parameters.flatMap((parameter) => {
+    if (blockedParams.has(parameter.param)) {
+      return [];
+    }
+
     const showGroupLabel = parameter.showGroupLabel ?? true;
 
     if (parameter.kind !== SearchParameterKind.Fixed) {
@@ -145,6 +155,7 @@ export function applyFilterSelection<TParam extends string = string>(
   activeFilters: AppliedSearchFilter<TParam>[],
   nextFilter: AppliedSearchFilter<TParam>,
   selectionMode: SearchSelectionMode,
+  parameters: SearchParameterConfig<TParam>[] = [],
 ): AppliedSearchFilter<TParam>[] {
   const normalizedFilter: AppliedSearchFilter<TParam> = {
     param: nextFilter.param,
@@ -153,14 +164,23 @@ export function applyFilterSelection<TParam extends string = string>(
     group: nextFilter.group,
   };
 
-  if (selectionMode !== SearchSelectionMode.Single) {
-    return [...activeFilters, normalizedFilter];
-  }
+  const incomingConfig = parameters.find((p) => p.param === normalizedFilter.param);
+  const conflictsWithIncoming = new Set(incomingConfig?.conflictsWith ?? []);
 
-  return [
-    ...activeFilters.filter((filter) => filter.param !== normalizedFilter.param),
-    normalizedFilter,
-  ];
+  const filtersWithoutConflicts = activeFilters.filter((filter) => {
+    if (conflictsWithIncoming.has(filter.param)) {
+      return false;
+    }
+    const existingConfig = parameters.find((p) => p.param === filter.param);
+    return !existingConfig?.conflictsWith?.includes(normalizedFilter.param);
+  });
+
+  return selectionMode === SearchSelectionMode.Single
+    ? [
+      ...filtersWithoutConflicts.filter((filter) => filter.param !== normalizedFilter.param),
+      normalizedFilter,
+    ]
+    : [...filtersWithoutConflicts, normalizedFilter];
 }
 
 export function getAutocompleteOptions<TParam extends string = string>(

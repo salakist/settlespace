@@ -32,6 +32,8 @@ public class PersonMapper : IPersonMapper
             PhoneNumber = TrimValues(query.PhoneNumber),
             Email = TrimValues(query.Email),
             DateOfBirth = query.DateOfBirth,
+            DateOfBirthBefore = query.DateOfBirthBefore,
+            DateOfBirthAfter = query.DateOfBirthAfter,
             Role = query.Role,
             Address = TrimValues(query.Address),
             PostalCode = TrimValues(query.PostalCode),

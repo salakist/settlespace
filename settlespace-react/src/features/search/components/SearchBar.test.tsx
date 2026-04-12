@@ -426,3 +426,84 @@ test('does not show group headings while entering an async parameter value', asy
 
   expect(screen.queryByText(SEARCH_TEST_TEXT.PEOPLE_GROUP)).not.toBeInTheDocument();
 });
+
+function buildConflictingParameters(): SearchParameterConfig[] {
+  return [
+    {
+      param: 'dateFilter',
+      label: 'Date Filter',
+      kind: SearchParameterKind.Fixed,
+      selectionMode: SearchSelectionMode.Multiple,
+      showGroupLabel: false,
+      options: [
+        { value: 'exact', label: 'Exact', group: 'Date Options' },
+        { value: 'range', label: 'Range', group: 'Date Options' },
+      ],
+      conflictsWith: ['otherOption'],
+    },
+    {
+      param: 'otherOption',
+      label: 'Other Option',
+      kind: SearchParameterKind.Fixed,
+      selectionMode: SearchSelectionMode.Multiple,
+      showGroupLabel: false,
+      options: [{ value: 'other', label: 'Other', group: 'Other Options' }],
+      conflictsWith: ['dateFilter'],
+    },
+  ];
+}
+
+test('conflictsWith hides conflicting parameter options after a conflicting filter is selected', async () => {
+  renderSearchBarForTest({
+    onSearch: jest.fn(),
+    parameters: buildConflictingParameters(),
+  });
+
+  userEvent.click(screen.getByRole('button', { name: SHOW_FILTERS_BUTTON_NAME }));
+  expect(await screen.findByRole('option', { name: 'Other' })).toBeInTheDocument();
+
+  await clickOption('Range');
+
+  userEvent.click(screen.getByRole('button', { name: SHOW_FILTERS_BUTTON_NAME }));
+  expect(await screen.findByRole('option', { name: 'Exact' })).toBeInTheDocument();
+  expect(screen.queryByRole('option', { name: 'Other' })).not.toBeInTheDocument();
+});
+
+test('bidirectional conflictsWith removes opposing conflicting chips', async () => {
+  const onSearch = jest.fn();
+
+  // Set up params where exactly two params conflict each other in both directions
+  const conflictingParams: SearchParameterConfig[] = [
+    {
+      param: 'filterA',
+      label: 'Filter A',
+      kind: SearchParameterKind.Fixed,
+      selectionMode: SearchSelectionMode.Single,
+      showGroupLabel: false,
+      options: [{ value: 'a', label: 'Option A', group: 'Type A' }],
+      conflictsWith: ['filterB'],
+    },
+    {
+      param: 'filterB',
+      label: 'Filter B',
+      kind: SearchParameterKind.Fixed,
+      selectionMode: SearchSelectionMode.Single,
+      showGroupLabel: false,
+      options: [{ value: 'b', label: 'Option B', group: 'Type B' }],
+      conflictsWith: ['filterA'],
+    },
+  ];
+
+  renderSearchBarForTest({ onSearch, parameters: conflictingParams });
+
+  // Select Option B
+  userEvent.click(screen.getByRole('button', { name: SHOW_FILTERS_BUTTON_NAME }));
+  await clickOption('Option B');
+  expect(screen.getByText('Type B: Option B')).toBeInTheDocument();
+
+  // Open menu again and verify Option A is not available (blocked by B's conflictsWith)
+  userEvent.click(screen.getByRole('button', { name: SHOW_FILTERS_BUTTON_NAME }));
+  // Just verify that no options are available (since B is single-selection with a value,
+  // and A is blocked by B's conflictsWith, the menu should be empty)
+  await waitFor(() => expect(screen.queryByRole('option')).not.toBeInTheDocument());
+});

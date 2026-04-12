@@ -98,7 +98,7 @@ export function useGenericSearchController<TParam extends string = string>({
       }
 
       const parameter = parameters.find((candidate) => candidate.param === option.param);
-      const nextFilters = applyFilterSelection(activeFilters, option, getSelectionMode(parameter));
+      const nextFilters = applyFilterSelection(activeFilters, option, getSelectionMode(parameter), parameters);
 
       setActiveFilters(nextFilters);
       setPendingParam(null);
@@ -143,13 +143,14 @@ export function useGenericSearchController<TParam extends string = string>({
       activeFilters,
       nextFilter,
       getSelectionMode(pendingParameter),
+      parameters,
     );
 
     setActiveFilters(nextFilters);
     setInputValue('');
     setPendingParam(null);
     emitSearch(nextFilters, '');
-  }, [activeFilters, emitSearch, inputValue, pendingParameter]);
+  }, [activeFilters, emitSearch, inputValue, pendingParameter, parameters]);
 
   const handleSubmit = useCallback((event: React.SyntheticEvent) => {
     event.preventDefault();

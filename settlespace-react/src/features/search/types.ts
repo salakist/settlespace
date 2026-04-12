@@ -31,6 +31,7 @@ export interface BaseSearchParameterConfig<TParam extends string = string> {
   selectionMode?: SearchSelectionMode;
   placeholder?: string;
   showGroupLabel?: boolean;
+  conflictsWith?: TParam[];
 }
 
 export interface FixedSearchParameterConfig<TParam extends string = string>

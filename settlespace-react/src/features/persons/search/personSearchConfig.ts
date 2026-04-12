@@ -15,6 +15,8 @@ export enum PersonSearchParam {
   Email = 'email',
   Role = 'role',
   DateOfBirth = 'dateOfBirth',
+  DateOfBirthBefore = 'dateOfBirthBefore',
+  DateOfBirthAfter = 'dateOfBirthAfter',
   Address = 'address',
   PostalCode = 'postalCode',
   City = 'city',
@@ -48,14 +50,22 @@ function buildTextParameter(
 function buildDateParameter(
   param: PersonSearchParam,
   label: string,
+  {
+    selectionMode = SearchSelectionMode.Multiple,
+    conflictsWith,
+  }: {
+    selectionMode?: SearchSelectionMode;
+    conflictsWith?: PersonSearchParam[];
+  } = {},
 ): SearchParameterConfig<PersonSearchParam> {
   return {
     param,
     label,
     kind: SearchParameterKind.DateInput,
-    selectionMode: SearchSelectionMode.Multiple,
+    selectionMode,
     placeholder: SEARCH_PLACEHOLDERS.DATE_INPUT,
     showGroupLabel: false,
+    ...(conflictsWith ? { conflictsWith } : {}),
   };
 }
 
@@ -73,7 +83,17 @@ export function buildPersonSearchParameters(): SearchParameterConfig<PersonSearc
     },
     buildTextParameter(PersonSearchParam.PhoneNumber, PERSON_SEARCH_TEXT.PHONE_NUMBER_LABEL),
     buildTextParameter(PersonSearchParam.Email, PERSON_SEARCH_TEXT.EMAIL_LABEL),
-    buildDateParameter(PersonSearchParam.DateOfBirth, PERSON_SEARCH_TEXT.DATE_OF_BIRTH_LABEL),
+    buildDateParameter(PersonSearchParam.DateOfBirth, PERSON_SEARCH_TEXT.DATE_OF_BIRTH_LABEL, {
+      conflictsWith: [PersonSearchParam.DateOfBirthBefore, PersonSearchParam.DateOfBirthAfter],
+    }),
+    buildDateParameter(PersonSearchParam.DateOfBirthBefore, PERSON_SEARCH_TEXT.DATE_OF_BIRTH_BEFORE_LABEL, {
+      selectionMode: SearchSelectionMode.Single,
+      conflictsWith: [PersonSearchParam.DateOfBirth, PersonSearchParam.DateOfBirthAfter],
+    }),
+    buildDateParameter(PersonSearchParam.DateOfBirthAfter, PERSON_SEARCH_TEXT.DATE_OF_BIRTH_AFTER_LABEL, {
+      selectionMode: SearchSelectionMode.Single,
+      conflictsWith: [PersonSearchParam.DateOfBirth, PersonSearchParam.DateOfBirthBefore],
+    }),
     buildTextParameter(
       PersonSearchParam.Address,
       PERSON_SEARCH_TEXT.ADDRESS_LABEL,

@@ -8,6 +8,8 @@ export interface PersonSearchQuery {
   email?: string[];
   role?: PersonRole[];
   dateOfBirth?: string[];
+  dateOfBirthBefore?: string;
+  dateOfBirthAfter?: string;
   address?: string[];
   postalCode?: string[];
   city?: string[];
@@ -27,6 +29,8 @@ export function isEmptyPersonSearchQuery(query: PersonSearchQuery): boolean {
     && !hasValues(query.email)
     && !hasValues(query.role)
     && !hasValues(query.dateOfBirth)
+    && !query.dateOfBirthBefore
+    && !query.dateOfBirthAfter
     && !hasValues(query.address)
     && !hasValues(query.postalCode)
     && !hasValues(query.city)

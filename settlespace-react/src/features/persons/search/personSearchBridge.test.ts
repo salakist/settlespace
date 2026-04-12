@@ -18,6 +18,10 @@ const LAST_NAME_SMITH = 'Smith';
 const EMAIL_FRAGMENT = 'john@';
 const DATE_OF_BIRTH_ISO = '2001-02-03';
 const DATE_OF_BIRTH_LABEL = '03/02/2001';
+const DATE_BEFORE_ISO = '2001-12-31';
+const DATE_BEFORE_LABEL = '31/12/2001';
+const DATE_AFTER_ISO = '1990-01-15';
+const DATE_AFTER_LABEL = '15/01/1990';
 const STREET_MAIN = 'Main Street';
 const CITY_PARIS = 'Paris';
 const COUNTRY_FRANCE = 'France';
@@ -40,6 +44,17 @@ test('buildPersonSearchParameters includes the address filters with explicit pla
     expect.objectContaining({
       param: PersonSearchParam.DateOfBirth,
       placeholder: DATE_PLACEHOLDER,
+      conflictsWith: expect.arrayContaining([PersonSearchParam.DateOfBirthBefore, PersonSearchParam.DateOfBirthAfter]),
+    }),
+    expect.objectContaining({
+      param: PersonSearchParam.DateOfBirthBefore,
+      placeholder: DATE_PLACEHOLDER,
+      conflictsWith: expect.arrayContaining([PersonSearchParam.DateOfBirth, PersonSearchParam.DateOfBirthAfter]),
+    }),
+    expect.objectContaining({
+      param: PersonSearchParam.DateOfBirthAfter,
+      placeholder: DATE_PLACEHOLDER,
+      conflictsWith: expect.arrayContaining([PersonSearchParam.DateOfBirth, PersonSearchParam.DateOfBirthBefore]),
     }),
     expect.objectContaining({ param: PersonSearchParam.PostalCode }),
     expect.objectContaining({ param: PersonSearchParam.City }),
@@ -89,4 +104,23 @@ test('person search bridge round-trips core, date, and address structured filter
 
 test('empty person query maps to an empty search value', () => {
   expect(toPersonSearchValue(EMPTY_PERSON_SEARCH_QUERY)).toEqual({ filters: [] });
+});
+
+test('person search bridge round-trips date of birth range scalar filters', () => {
+  const searchValue = toPersonSearchValue({
+    dateOfBirthBefore: DATE_BEFORE_ISO,
+    dateOfBirthAfter: DATE_AFTER_ISO,
+  });
+
+  expect(searchValue).toEqual({
+    filters: [
+      { param: PersonSearchParam.DateOfBirthBefore, value: DATE_BEFORE_ISO, label: DATE_BEFORE_LABEL, group: 'Date of Birth Before' },
+      { param: PersonSearchParam.DateOfBirthAfter, value: DATE_AFTER_ISO, label: DATE_AFTER_LABEL, group: 'Date of Birth After' },
+    ],
+  });
+
+  expect(fromPersonSearchValue(searchValue)).toEqual({
+    dateOfBirthBefore: DATE_BEFORE_ISO,
+    dateOfBirthAfter: DATE_AFTER_ISO,
+  });
 });

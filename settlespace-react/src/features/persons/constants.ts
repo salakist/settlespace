@@ -26,6 +26,8 @@ export const PERSON_SEARCH_TEXT = {
   EMAIL_LABEL: 'Email',
   ROLE_LABEL: 'Role',
   DATE_OF_BIRTH_LABEL: 'Date of Birth',
+  DATE_OF_BIRTH_BEFORE_LABEL: 'Date of Birth Before',
+  DATE_OF_BIRTH_AFTER_LABEL: 'Date of Birth After',
   ADDRESS_LABEL: 'Address',
   POSTAL_CODE_LABEL: 'Postal Code',
   CITY_LABEL: 'City',

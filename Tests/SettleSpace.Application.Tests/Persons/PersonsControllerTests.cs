@@ -112,6 +112,44 @@ public class PersonsControllerTests
         Assert.Equal("John", dtos[0].FirstName);
     }
 
+    [Fact]
+    public async Task SearchPersonsWithDateRangeQueryReturnsOk()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var query = new PersonSearchQuery
+        {
+            DateOfBirthBefore = today.AddYears(-18),
+            DateOfBirthAfter  = today.AddYears(-65),
+        };
+        var persons = new List<Person>
+        {
+            new() { Id = "1", FirstName = "Alice", LastName = "Smith", Role = PersonRole.USER }
+        };
+        _serviceMock.Setup(s => s.SearchPersonsAsync("user-1", PersonRole.ADMIN, query)).ReturnsAsync(persons);
+        SetUser("user-1", PersonRole.ADMIN);
+
+        var result = await _controller.SearchPersons(query);
+
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
+        var dtos = Assert.IsAssignableFrom<List<PersonDto>>(ok.Value);
+        Assert.Single(dtos);
+    }
+
+    [Fact]
+    public async Task SearchPersonsWithInvalidDateRangeReturnsBadRequest()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        // Before is earlier than After — invalid
+        var query = new PersonSearchQuery
+        {
+            DateOfBirthBefore = today.AddYears(-65),
+            DateOfBirthAfter  = today.AddYears(-18),
+        };
+        SetUser("user-1", PersonRole.ADMIN);
+
+        await Assert.ThrowsAsync<InvalidPersonSearchException>(() => _controller.SearchPersons(query));
+    }
+
     // -----------------------------------------------------------------------
     // POST
     // -----------------------------------------------------------------------

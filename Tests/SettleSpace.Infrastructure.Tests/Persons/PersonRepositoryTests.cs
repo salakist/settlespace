@@ -261,6 +261,76 @@ public class PersonRepositoryTests
         Assert.Contains("Belgium", rendered, StringComparison.OrdinalIgnoreCase);
     }
 
+    [Fact]
+    public async Task SearchAsyncFilterWithDateOfBirthBeforeBuildsLteFilter()
+    {
+        FilterDefinition<Person>? capturedFilter = null;
+        var cutoff = new DateOnly(2000, 1, 1);
+        var mock = new Mock<IMongoCollection<Person>>();
+        mock.Setup(c => c.FindAsync(
+                It.IsAny<FilterDefinition<Person>>(),
+                It.IsAny<FindOptions<Person, Person>>(),
+                It.IsAny<CancellationToken>()))
+            .Callback((FilterDefinition<Person> filter, FindOptions<Person, Person>? _, CancellationToken _) => capturedFilter = filter)
+            .ReturnsAsync(BuildCursor([]));
+
+        var repo = CreateRepo(mock.Object);
+        await repo.SearchAsync(new PersonSearchFilter { DateOfBirthBefore = cutoff });
+
+        Assert.NotNull(capturedFilter);
+        var serializer = BsonSerializer.SerializerRegistry.GetSerializer<Person>();
+        var rendered = capturedFilter!.Render(new RenderArgs<Person>(serializer, BsonSerializer.SerializerRegistry)).ToString();
+        Assert.Contains("$lte", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("dateOfBirth", rendered, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task SearchAsyncFilterWithDateOfBirthAfterBuildsGteFilter()
+    {
+        FilterDefinition<Person>? capturedFilter = null;
+        var cutoff = new DateOnly(1990, 6, 15);
+        var mock = new Mock<IMongoCollection<Person>>();
+        mock.Setup(c => c.FindAsync(
+                It.IsAny<FilterDefinition<Person>>(),
+                It.IsAny<FindOptions<Person, Person>>(),
+                It.IsAny<CancellationToken>()))
+            .Callback((FilterDefinition<Person> filter, FindOptions<Person, Person>? _, CancellationToken _) => capturedFilter = filter)
+            .ReturnsAsync(BuildCursor([]));
+
+        var repo = CreateRepo(mock.Object);
+        await repo.SearchAsync(new PersonSearchFilter { DateOfBirthAfter = cutoff });
+
+        Assert.NotNull(capturedFilter);
+        var serializer = BsonSerializer.SerializerRegistry.GetSerializer<Person>();
+        var rendered = capturedFilter!.Render(new RenderArgs<Person>(serializer, BsonSerializer.SerializerRegistry)).ToString();
+        Assert.Contains("$gte", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("dateOfBirth", rendered, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public async Task SearchAsyncFilterWithDateRangeBuildsBothConditions()
+    {
+        FilterDefinition<Person>? capturedFilter = null;
+        var before = new DateOnly(2005, 12, 31);
+        var after  = new DateOnly(1990, 1, 1);
+        var mock = new Mock<IMongoCollection<Person>>();
+        mock.Setup(c => c.FindAsync(
+                It.IsAny<FilterDefinition<Person>>(),
+                It.IsAny<FindOptions<Person, Person>>(),
+                It.IsAny<CancellationToken>()))
+            .Callback((FilterDefinition<Person> filter, FindOptions<Person, Person>? _, CancellationToken _) => capturedFilter = filter)
+            .ReturnsAsync(BuildCursor([]));
+
+        var repo = CreateRepo(mock.Object);
+        await repo.SearchAsync(new PersonSearchFilter { DateOfBirthBefore = before, DateOfBirthAfter = after });
+
+        Assert.NotNull(capturedFilter);
+        var serializer = BsonSerializer.SerializerRegistry.GetSerializer<Person>();
+        var rendered = capturedFilter!.Render(new RenderArgs<Person>(serializer, BsonSerializer.SerializerRegistry)).ToString();
+        Assert.Contains("$lte", rendered, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("$gte", rendered, StringComparison.OrdinalIgnoreCase);
+    }
+
     /// <summary>Finds person by full name with existing person returns the person.</summary>
     [Fact]
     public async Task FindByFullNameAsyncExistingPersonReturnsPerson()

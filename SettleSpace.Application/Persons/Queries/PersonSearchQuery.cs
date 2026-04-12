@@ -11,6 +11,8 @@ public class PersonSearchQuery
     public List<string>? PhoneNumber { get; set; }
     public List<string>? Email { get; set; }
     public List<DateOnly>? DateOfBirth { get; set; }
+    public DateOnly? DateOfBirthBefore { get; set; }
+    public DateOnly? DateOfBirthAfter { get; set; }
     public List<PersonRole>? Role { get; set; }
     public List<string>? Address { get; set; }
     public List<string>? PostalCode { get; set; }
@@ -26,6 +28,9 @@ public class PersonSearchQuery
         ValidateStringList(nameof(PhoneNumber), PhoneNumber);
         ValidateStringList(nameof(Email), Email);
         ValidateDateList(DateOfBirth);
+        ValidateDateScalar(nameof(DateOfBirthBefore), DateOfBirthBefore);
+        ValidateDateScalar(nameof(DateOfBirthAfter), DateOfBirthAfter);
+        ValidateDateRangeConsistency(DateOfBirthBefore, DateOfBirthAfter);
         ValidateRoleList(Role);
         ValidateStringList(nameof(Address), Address);
         ValidateStringList(nameof(PostalCode), PostalCode);
@@ -99,6 +104,34 @@ public class PersonSearchQuery
         if (dates.Any(date => date > today))
         {
             throw new InvalidPersonSearchException("DateOfBirth must not be in the future.");
+        }
+    }
+
+    private static void ValidateDateScalar(string propertyName, DateOnly? date)
+    {
+        if (date is null)
+        {
+            return;
+        }
+
+        if (date == default)
+        {
+            throw new InvalidPersonSearchException($"{propertyName} must be a valid date when provided.");
+        }
+
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        if (date > today)
+        {
+            throw new InvalidPersonSearchException($"{propertyName} must not be in the future.");
+        }
+    }
+
+    private static void ValidateDateRangeConsistency(DateOnly? before, DateOnly? after)
+    {
+        if (before is not null && after is not null && before < after)
+        {
+            throw new InvalidPersonSearchException(
+                "DateOfBirthBefore must be greater than or equal to DateOfBirthAfter.");
         }
     }
 }

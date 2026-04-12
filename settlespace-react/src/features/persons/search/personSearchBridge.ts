@@ -61,6 +61,20 @@ const personSearchBridge = createSearchValueBridge<PersonSearchQuery, PersonSear
       resolveLabel: (value) => formatDateSearchLabel(value),
     },
     {
+      kind: 'resolved-single',
+      param: PersonSearchParam.DateOfBirthBefore,
+      queryKey: 'dateOfBirthBefore',
+      group: PERSON_SEARCH_TEXT.DATE_OF_BIRTH_BEFORE_LABEL,
+      resolveLabel: (value) => formatDateSearchLabel(value),
+    },
+    {
+      kind: 'resolved-single',
+      param: PersonSearchParam.DateOfBirthAfter,
+      queryKey: 'dateOfBirthAfter',
+      group: PERSON_SEARCH_TEXT.DATE_OF_BIRTH_AFTER_LABEL,
+      resolveLabel: (value) => formatDateSearchLabel(value),
+    },
+    {
       kind: MULTI_TEXT_FIELD_KIND,
       param: PersonSearchParam.Address,
       queryKey: 'address',

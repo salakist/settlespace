@@ -171,6 +171,16 @@ public class PersonRepository : IPersonRepository
             conditions.Add(builder.In(person => person.DateOfBirth, filter.DateOfBirth.Select(date => (DateOnly?)date)));
         }
 
+        if (filter.DateOfBirthBefore is not null)
+        {
+            conditions.Add(builder.Lte(person => person.DateOfBirth, (DateOnly?)filter.DateOfBirthBefore));
+        }
+
+        if (filter.DateOfBirthAfter is not null)
+        {
+            conditions.Add(builder.Gte(person => person.DateOfBirth, (DateOnly?)filter.DateOfBirthAfter));
+        }
+
         if (filter.Role is { Count: > 0 })
         {
             conditions.Add(builder.In(person => person.Role, filter.Role));
