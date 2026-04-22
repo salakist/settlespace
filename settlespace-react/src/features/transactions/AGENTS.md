@@ -7,7 +7,8 @@ Implemented.
 Transactions feature provides UI and state management for user-scoped transaction CRUD.
 
 ## Responsibilities
-- `src/features/transactions/components/TransactionsPage.tsx` — page composition and orchestration.
+- `src/features/transactions/components/TransactionsRoutePage.tsx` — route container; owns URL search params, data loading, and `usePersonDirectory`.
+- `src/features/transactions/components/TransactionsPage.tsx` — presentational page; receives all state/callbacks as props; owns route-local concerns (form toggle, delete confirmation, navigate on save/cancel).
 - `src/features/transactions/components/TransactionSearchBar.tsx` — multi-parameter search with chip-based filters and person autocomplete.
 - `src/features/transactions/components/TransactionList.tsx` — transaction list rendering.
 - `src/features/transactions/components/TransactionForm.tsx` — create/update transaction form.
@@ -17,6 +18,7 @@ Transactions feature provides UI and state management for user-scoped transactio
 - `src/features/transactions/components/*.test.tsx` and `src/features/transactions/hooks/useTransactions.test.tsx` — component and hook tests. When inline `jest.mock()` factories need shared transaction constants, prefer `jest.requireActual()` inside the factory rather than `mock* = SOME_CONST` alias duplication.
 
 ## Key files
+- `src/features/transactions/components/TransactionsRoutePage.tsx`
 - `src/features/transactions/components/TransactionsPage.tsx`
 - `src/features/transactions/components/TransactionSearchBar.tsx`
 - `src/features/transactions/components/TransactionList.tsx`

@@ -8,7 +8,7 @@ import RegisterPage from '../features/auth/components/RegisterPage';
 import HomePage from '../features/home/components/HomePage';
 import PersonsRoutePage from '../features/persons/components/PersonsRoutePage';
 import ProfileRoutePage from '../features/profile/components/ProfileRoutePage';
-import TransactionsPage from '../features/transactions/components/TransactionsPage';
+import TransactionsRoutePage from '../features/transactions/components/TransactionsRoutePage';
 import DebtsPage from '../features/debts/components/DebtsPage';
 import DebtDetailsPage from '../features/debts/components/DebtDetailsPage';
 import { useAuth } from '../features/auth/hooks/useAuth';
@@ -216,8 +216,8 @@ function App() {
   const primaryTabValue = getPrimaryTabValue(location.pathname, primaryTabs);
   const currentDisplayName = displayName || username;
 
-  const transactionsPageElement = (
-    <TransactionsPage
+  const transactionsRoutePageElement = (
+    <TransactionsRoutePage
       currentPersonId={personId || undefined}
       role={role}
       expireSession={expireSession}
@@ -360,9 +360,9 @@ function App() {
                 />
               )}
             />
-            <Route path={APP_ROUTES.TRANSACTIONS} element={transactionsPageElement} />
-            <Route path={APP_ROUTES.TRANSACTION_CREATE} element={transactionsPageElement} />
-            <Route path={APP_ROUTES.TRANSACTION_EDIT} element={transactionsPageElement} />
+            <Route path={APP_ROUTES.TRANSACTIONS} element={transactionsRoutePageElement} />
+            <Route path={APP_ROUTES.TRANSACTION_CREATE} element={transactionsRoutePageElement} />
+            <Route path={APP_ROUTES.TRANSACTION_EDIT} element={transactionsRoutePageElement} />
             <Route
               path={APP_ROUTES.DEBTS}
               element={(

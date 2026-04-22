@@ -128,7 +128,6 @@ export function useTransactions({ expireSession, currentPersonId, role }: UseTra
   }, []);
 
   return {
-    clearTransactionsState,
     editingTransaction,
     error,
     handleCancel,

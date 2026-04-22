@@ -1,25 +1,17 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { APP_ROUTES } from '../../../app/constants';
-import { PersonRole, TransactionStatus } from '../../../shared/types';
+import { PersonRole, Transaction, TransactionStatus } from '../../../shared/types';
 import TransactionsPage from './TransactionsPage';
 import {
   DEFAULT_TRANSACTION_TEST_PERSONS,
   TRANSACTION_PAGE_TEST_TEXT,
   TRANSACTION_TEST_VALUES,
+  TRANSACTION_TEST_TEXT,
 } from '../testConstants';
 
 const DEFAULT_PERSONS = [DEFAULT_TRANSACTION_TEST_PERSONS[0]];
 const mockNavigate = jest.fn();
-const renderTransactionsPage = (persons = DEFAULT_PERSONS) => render(
-  <TransactionsPage
-    persons={persons}
-    currentPersonId={TRANSACTION_TEST_VALUES.CURRENT_PERSON_ID}
-    role={PersonRole.User}
-    expireSession={jest.fn()}
-  />,
-);
-const mockSetSearchParams = jest.fn();
 
 jest.mock('react-router-dom', () => {
   const { APP_ROUTES } = jest.requireActual('../../../app/constants') as typeof import('../../../app/constants');
@@ -28,27 +20,8 @@ jest.mock('react-router-dom', () => {
     useNavigate: () => mockNavigate,
     useLocation: () => ({ pathname: APP_ROUTES.TRANSACTIONS }),
     useParams: () => ({}),
-    useSearchParams: () => [new URLSearchParams(''), mockSetSearchParams],
   };
 });
-
-const mockHook = {
-  editingTransaction: undefined,
-  error: null as string | null,
-  handleCancel: jest.fn(),
-  handleDelete: jest.fn(),
-  handleEdit: jest.fn(),
-  handleSave: jest.fn(),
-  handleSearch: jest.fn(),
-  loading: false,
-  showCreateForm: jest.fn(),
-  showForm: false,
-  transactions: [] as Array<Record<string, unknown>>,
-};
-
-jest.mock('../hooks/useTransactions', () => ({
-  useTransactions: () => mockHook,
-}));
 
 jest.mock('./TransactionSearchBar', () => ({
   __esModule: true,
@@ -102,105 +75,146 @@ jest.mock('./TransactionForm', () => {
   };
 });
 
-test('renders list and loads transactions on mount', () => {
-  renderTransactionsPage();
+const defaultProps = {
+  transactions: [] as Transaction[],
+  persons: DEFAULT_PERSONS,
+  loading: false,
+  error: null as string | null,
+  personsLoading: false,
+  personsError: null as string | null,
+  showForm: false,
+  editingTransaction: undefined,
+  currentPersonId: TRANSACTION_TEST_VALUES.CURRENT_PERSON_ID,
+  role: PersonRole.User,
+  initialQuery: {},
+  listPath: APP_ROUTES.TRANSACTIONS,
+  canManage: jest.fn(() => true),
+  onSearch: jest.fn(),
+  onSave: jest.fn().mockResolvedValue(undefined),
+  onCancel: jest.fn(),
+  onEdit: jest.fn(),
+  onDelete: jest.fn(),
+  onAdd: jest.fn(),
+};
 
-  expect(mockHook.handleSearch).toHaveBeenCalledWith({});
-  expect(screen.getByText(/transaction list/i)).toBeInTheDocument();
+beforeEach(() => {
+  mockNavigate.mockClear();
 });
 
-test('forwards search and create actions', () => {
-  renderTransactionsPage();
+test('renders transaction list', () => {
+  render(<TransactionsPage {...defaultProps} />);
+
+  expect(screen.getByText(TRANSACTION_PAGE_TEST_TEXT.LIST_TITLE)).toBeInTheDocument();
+});
+
+test('calls onSearch when search is triggered', () => {
+  const onSearch = jest.fn();
+  render(<TransactionsPage {...defaultProps} onSearch={onSearch} />);
 
   fireEvent.click(screen.getByRole('button', { name: /search/i }));
+
+  expect(onSearch).toHaveBeenCalledWith({ freeText: 'test' });
+});
+
+test('calls onAdd and navigates to create route when Create Transaction is clicked', () => {
+  const onAdd = jest.fn();
+  render(<TransactionsPage {...defaultProps} onAdd={onAdd} />);
+
   fireEvent.click(screen.getByRole('button', { name: /create transaction/i }));
 
-  expect(mockSetSearchParams).toHaveBeenCalled();
-  expect(mockHook.showCreateForm).toHaveBeenCalled();
+  expect(onAdd).toHaveBeenCalled();
   expect(mockNavigate).toHaveBeenCalledWith(APP_ROUTES.TRANSACTION_CREATE);
 });
 
-test('shows loading spinner when loading is true', () => {
-  mockHook.loading = true;
-
-  renderTransactionsPage([]);
+test('shows loading spinner when loading is true and no transactions', () => {
+  render(<TransactionsPage {...defaultProps} loading={true} persons={[]} />);
 
   expect(screen.getByRole('progressbar')).toBeInTheDocument();
   expect(screen.queryByText(TRANSACTION_PAGE_TEST_TEXT.LIST_TITLE)).not.toBeInTheDocument();
-  mockHook.loading = false;
 });
 
-test('shows progress bar with list when re-searching with existing data', () => {
-  mockHook.loading = true;
-  mockHook.transactions = [{ id: 'tx-1' }];
-
-  renderTransactionsPage([]);
+test('shows progress bar with list when re-searching with existing transactions', () => {
+  render(
+    <TransactionsPage
+      {...defaultProps}
+      loading={true}
+      transactions={[{ id: 'tx-1' }] as unknown as Transaction[]}
+      persons={[]}
+    />,
+  );
 
   expect(screen.getByRole('progressbar')).toBeInTheDocument();
   expect(screen.getByText(TRANSACTION_PAGE_TEST_TEXT.LIST_TITLE)).toBeInTheDocument();
-  mockHook.loading = false;
-  mockHook.transactions = [];
 });
 
 test('shows error alert when error is set', () => {
-  mockHook.error = TRANSACTION_PAGE_TEST_TEXT.GENERIC_ERROR;
-
-  renderTransactionsPage([]);
+  render(<TransactionsPage {...defaultProps} error={TRANSACTION_PAGE_TEST_TEXT.GENERIC_ERROR} />);
 
   expect(screen.getByRole('alert')).toBeInTheDocument();
-  expect(screen.getByText('Something went wrong')).toBeInTheDocument();
-  mockHook.error = null;
+  expect(screen.getByText(TRANSACTION_PAGE_TEST_TEXT.GENERIC_ERROR)).toBeInTheDocument();
 });
 
 test('renders only the transaction form when showForm is true', () => {
-  mockHook.showForm = true;
-
-  renderTransactionsPage();
+  render(<TransactionsPage {...defaultProps} showForm={true} />);
 
   expect(screen.getByText(TRANSACTION_PAGE_TEST_TEXT.FORM_TITLE)).toBeInTheDocument();
   expect(screen.queryByRole('button', { name: /search/i })).not.toBeInTheDocument();
-  expect(screen.queryByRole('button', { name: /add transaction/i })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /create transaction/i })).not.toBeInTheDocument();
   expect(screen.queryByText(TRANSACTION_PAGE_TEST_TEXT.LIST_TITLE)).not.toBeInTheDocument();
-  mockHook.showForm = false;
 });
 
-test('saves the form and returns to the list route', async () => {
-  mockHook.showForm = true;
-
-  renderTransactionsPage();
+test('saves the form and navigates to listPath', async () => {
+  const onSave = jest.fn().mockResolvedValue(undefined);
+  render(
+    <TransactionsPage
+      {...defaultProps}
+      showForm={true}
+      onSave={onSave}
+      listPath="/transactions?status=Completed"
+    />,
+  );
 
   fireEvent.click(screen.getByRole('button', { name: /save transaction/i }));
 
-  await waitFor(() => expect(mockHook.handleSave).toHaveBeenCalled());
-  expect(mockNavigate).toHaveBeenCalledWith(APP_ROUTES.TRANSACTIONS);
-  mockHook.showForm = false;
+  await waitFor(() => expect(onSave).toHaveBeenCalled());
+  expect(mockNavigate).toHaveBeenCalledWith('/transactions?status=Completed');
 });
 
-test('cancels the form and returns to the list route', () => {
-  mockHook.showForm = true;
-
-  renderTransactionsPage();
+test('cancels the form and navigates to listPath', () => {
+  const onCancel = jest.fn();
+  render(
+    <TransactionsPage
+      {...defaultProps}
+      showForm={true}
+      onCancel={onCancel}
+      listPath="/transactions?status=Completed"
+    />,
+  );
 
   fireEvent.click(screen.getByRole('button', { name: /cancel transaction/i }));
 
-  expect(mockHook.handleCancel).toHaveBeenCalled();
-  expect(mockNavigate).toHaveBeenCalledWith(APP_ROUTES.TRANSACTIONS);
-  mockHook.showForm = false;
+  expect(onCancel).toHaveBeenCalled();
+  expect(mockNavigate).toHaveBeenCalledWith('/transactions?status=Completed');
 });
 
-test('confirms deletion in a modal before calling handleDelete', () => {
-  mockHook.transactions = [{
-    id: 'tx-1',
-    payerPersonId: 'p1',
-    payeePersonId: 'p2',
-    amount: 18,
-    currencyCode: 'EUR',
-    transactionDateUtc: '2026-03-29T00:00:00Z',
-    description: 'Dinner',
-    status: TransactionStatus.Completed,
-  }];
-
-  renderTransactionsPage();
+test('confirms deletion in a modal before calling onDelete', () => {
+  const onDelete = jest.fn();
+  render(
+    <TransactionsPage
+      {...defaultProps}
+      transactions={[{
+        id: 'tx-1',
+        payerPersonId: 'p1',
+        payeePersonId: 'p2',
+        amount: 18,
+        currencyCode: 'EUR',
+        transactionDateUtc: '2026-03-29T00:00:00Z',
+        description: TRANSACTION_TEST_TEXT.DINNER,
+        status: TransactionStatus.Completed,
+      }] as Transaction[]}
+      onDelete={onDelete}
+    />,
+  );
 
   fireEvent.click(screen.getByRole('button', { name: /delete transaction/i }));
 
@@ -209,7 +223,5 @@ test('confirms deletion in a modal before calling handleDelete', () => {
   expect(within(dialog).getAllByRole('button').map((button) => button.textContent)).toEqual(['Delete', 'Cancel']);
 
   fireEvent.click(within(dialog).getByRole('button', { name: /^delete$/i }));
-  expect(mockHook.handleDelete).toHaveBeenCalledWith('tx-1');
-
-  mockHook.transactions = [];
+  expect(onDelete).toHaveBeenCalledWith('tx-1');
 });
