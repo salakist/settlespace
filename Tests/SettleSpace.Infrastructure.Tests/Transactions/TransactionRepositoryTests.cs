@@ -113,6 +113,36 @@ public class TransactionRepositoryTests
     }
 
     [Fact]
+    public async Task SearchAsyncFilterWithFreeTextAndPersonIdsIncludesPersonIdMatches()
+    {
+        var tx = BuildTransaction("tx-1");
+        var repo = new TransactionRepository(BuildCollectionMock([tx]).Object);
+
+        var result = await repo.SearchAsync(new TransactionSearchFilter
+        {
+            FreeText = "john",
+            FreeTextPersonIds = ["person-1", "person-2"]
+        });
+
+        Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task SearchAsyncFilterWithFreeTextAndEmptyPersonIdsUsesTextFilterOnly()
+    {
+        var tx = BuildTransaction("tx-1");
+        var repo = new TransactionRepository(BuildCollectionMock([tx]).Object);
+
+        var result = await repo.SearchAsync(new TransactionSearchFilter
+        {
+            FreeText = "taxi",
+            FreeTextPersonIds = []
+        });
+
+        Assert.Single(result);
+    }
+
+    [Fact]
     public async Task SearchAsyncFilterWithNullFreeTextReturnsAllTransactions()
     {
         var transactions = new[] { BuildTransaction("tx-1"), BuildTransaction("tx-2") };

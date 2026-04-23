@@ -73,7 +73,8 @@ public class TransactionApplicationServiceTests
     {
         var query = new TransactionSearchQuery { FreeText = "taxi" };
         _personRepositoryMock.Setup(r => r.SearchAsync("taxi")).ReturnsAsync([]);
-        _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.FreeText == "taxi")))
+        _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f =>
+                f.FreeText == "taxi" && f.FreeTextPersonIds == null)))
             .ReturnsAsync([BuildTransaction("tx-1")]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
@@ -115,9 +116,10 @@ public class TransactionApplicationServiceTests
                     Password = "hashed"
                 }
             ]);
-        _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.FreeText == "john")))
-            .ReturnsAsync([]);
-        _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.FreeText == null)))
+        _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f =>
+                f.FreeText == "john" &&
+                f.FreeTextPersonIds != null &&
+                f.FreeTextPersonIds.Contains("user-1"))))
             .ReturnsAsync([matchingTransaction]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))

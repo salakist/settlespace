@@ -15,6 +15,7 @@ public record TransactionSearchFilter
     public string? Payee { get; init; }
     public InvolvementType? Involvement { get; init; }
     public string? InvolvementPersonId { get; init; }
+    public List<string>? FreeTextPersonIds { get; init; }
 
     public void Validate()
     {

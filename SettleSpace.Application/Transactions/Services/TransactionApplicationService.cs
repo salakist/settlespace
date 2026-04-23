@@ -20,36 +20,20 @@ public class TransactionApplicationService(
     {
         var filter = transactionMapper.ToSearchFilter(query, loggedPersonId);
         filter.Validate();
-        var transactionSearchTask = repository.SearchAsync(filter);
 
         if (!string.IsNullOrWhiteSpace(filter.FreeText))
         {
-            var personSearchTask = personRepository.SearchAsync(filter.FreeText!);
-            await Task.WhenAll(transactionSearchTask, personSearchTask);
-
-            var matchedTransactions = transactionSearchTask.Result;
-            var matchedPersonIds = personSearchTask.Result
+            var personIds = (await personRepository.SearchAsync(filter.FreeText))
                 .Select(person => person.Id)
                 .Where(id => !string.IsNullOrWhiteSpace(id))
                 .Cast<string>()
-                .ToHashSet(StringComparer.Ordinal);
+                .ToList();
 
-            if (matchedPersonIds.Count > 0)
-            {
-                var allFilteredTransactions = await repository.SearchAsync(filter with { FreeText = null });
-
-                matchedTransactions = [.. matchedTransactions
-                    .Concat(allFilteredTransactions.Where(transaction =>
-                        matchedPersonIds.Contains(transaction.PayerPersonId) ||
-                        matchedPersonIds.Contains(transaction.PayeePersonId)))
-                    .DistinctBy(BuildSearchResultKey)
-                    .OrderByDescending(transaction => transaction.TransactionDateUtc)];
-            }
-
-            return domainService.FilterReadableTransactions(matchedTransactions, loggedPersonId, loggedRole);
+            if (personIds.Count > 0)
+                filter = filter with { FreeTextPersonIds = personIds };
         }
 
-        var transactions = await transactionSearchTask;
+        var transactions = await repository.SearchAsync(filter);
         return domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
     }
 
@@ -86,16 +70,5 @@ public class TransactionApplicationService(
         var existing = await repository.GetByIdAsync(id) ?? throw new TransactionNotFoundException(id);
         domainService.EnsureCanDelete(existing, loggedPersonId, loggedRole);
         await repository.DeleteAsync(id);
-    }
-
-    private static string BuildSearchResultKey(Transaction transaction)
-    {
-        return transaction.Id ?? string.Join("|",
-            transaction.PayerPersonId,
-            transaction.PayeePersonId,
-            transaction.CreatedByPersonId,
-            transaction.TransactionDateUtc.ToString("O"),
-            transaction.Description,
-            transaction.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture));
     }
 }

@@ -134,7 +134,19 @@ public class TransactionRepository : ITransactionRepository
         {
             var escapedText = Regex.Escape(filter.FreeText.Trim());
             var regex = new BsonRegularExpression($".*{escapedText}.*", "i");
-            conditions.Add(builder.Regex(t => t.Description, regex) | builder.Regex(t => t.Category, regex));
+            var textMatch = builder.Regex(t => t.Description, regex) | builder.Regex(t => t.Category, regex);
+
+            if (filter.FreeTextPersonIds is { Count: > 0 })
+            {
+                var personMatch =
+                    builder.In(t => t.PayerPersonId, filter.FreeTextPersonIds) |
+                    builder.In(t => t.PayeePersonId, filter.FreeTextPersonIds);
+                conditions.Add(textMatch | personMatch);
+            }
+            else
+            {
+                conditions.Add(textMatch);
+            }
         }
 
         if (filter.Status is { Count: > 0 })
