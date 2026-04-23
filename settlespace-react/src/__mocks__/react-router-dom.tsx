@@ -10,7 +10,9 @@ const mockSetSearchParams = jest.fn((nextParams?: string | URLSearchParams | str
     return;
   }
 
-  mockSearchParams = new URLSearchParams(nextParams);
+  mockSearchParams = new URLSearchParams(
+    nextParams instanceof URLSearchParams ? nextParams.toString() : (nextParams as string),
+  );
 });
 
 export const BrowserRouter = ({ children }: { children: React.ReactNode }) => <>{children}</>;
@@ -56,6 +58,7 @@ export const __resetRouterMocks = () => {
 
 export const __mockNavigate = mockNavigate;
 export const __mockSetSearchParams = mockSetSearchParams;
+
 
 
 

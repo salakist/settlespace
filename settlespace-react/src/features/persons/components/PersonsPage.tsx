@@ -3,6 +3,7 @@ import { Alert, Button, CircularProgress, Stack } from '@mui/material';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Person, PersonRole } from '../../../shared/types';
 import ConfirmationDialog from '../../../shared/components/ConfirmationDialog';
+import { EMPTY_PERSON_SEARCH_QUERY } from '../search/personSearchBridge';
 import { PersonSearchQuery } from '../search/personSearchTypes';
 import PersonSearchBar from './PersonSearchBar';
 import PersonForm from './PersonForm';
@@ -22,6 +23,8 @@ type PersonsPageProps = {
   defaultCreateRole: PersonRole;
   onAdd: () => void;
   onSearch: (query: PersonSearchQuery) => void;
+  initialQuery?: PersonSearchQuery;
+  listPath?: string;
   onSave: (person: Omit<Person, 'id'>) => Promise<void>;
   onCancel: () => void;
   onEdit: (person: Person) => void;
@@ -50,6 +53,8 @@ const PersonsPage: React.FC<PersonsPageProps> = ({
   onCancel,
   onEdit,
   onDelete,
+  initialQuery = EMPTY_PERSON_SEARCH_QUERY,
+  listPath = '/persons',
 }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -168,12 +173,12 @@ const PersonsPage: React.FC<PersonsPageProps> = ({
 
   const handleCancelAndClose = () => {
     onCancel();
-    navigate('/persons');
+    navigate(listPath);
   };
 
   const handleSaveAndClose = async (person: Omit<Person, 'id'>) => {
     await onSave(person);
-    navigate('/persons');
+    navigate(listPath);
   };
 
   return (
@@ -181,6 +186,7 @@ const PersonsPage: React.FC<PersonsPageProps> = ({
       {!displayForm && (
         <PersonSearchBar
           onSearch={onSearch}
+          initialQuery={initialQuery}
           action={(
             <Button
               variant="contained"

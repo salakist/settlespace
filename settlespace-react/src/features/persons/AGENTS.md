@@ -16,7 +16,7 @@ Persons feature provides persons CRUD UI, search flow, and feature-level state b
 - The legacy string `GET /persons/search/{query}` path remains only for cross-feature consumers such as transaction person suggestions; do not route the persons directory back through that compatibility endpoint.
 - `src/features/persons/hooks/` owns persons domain behavior (`usePersons`) and shared person-details form utilities reused by profile.
 - Role-selection UI should derive options directly from `PersonRole` via `getEnumValues()`; do not reintroduce mirrored role arrays such as `PERSON_ROLE_VALUES`.
-- The full persons directory is route-scoped: load it when `/persons`-related routes are active rather than from the app shell.
+- The full persons directory is route-scoped: `PersonsRoutePage` activates on `/persons*` routes, uses `useUrlSearchQuery` with `parsePersonSearchQuery`/`serializePersonSearchQuery` to sync typed query ↔ URL, and drives `handleSearch` on both route activation and user-initiated searches.
 - Keep persons behavior tests close to hooks/components; keep app shell tests focused on composition. When a Jest module factory needs shared person test constants, prefer `jest.requireActual()` inside the factory over one-off `mock*` constant aliases.
 
 ## Key files
@@ -30,6 +30,7 @@ Persons feature provides persons CRUD UI, search flow, and feature-level state b
 - `search/personSearchTypes.ts`
 - `search/personSearchConfig.ts`
 - `search/personSearchBridge.ts`
+- `search/personSearchUrl.ts`
 - `hooks/personDetailsFormUtils.ts`
 - `hooks/usePersonDirectory.ts`
 - `hooks/usePersons.ts`

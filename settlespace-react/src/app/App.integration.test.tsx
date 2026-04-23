@@ -130,7 +130,7 @@ jest.mock('../features/persons/components/PersonSearchBar', () => ({
     </div>
   ),
 }));
-jest.mock('../features/transactions/components/TransactionsPage', () => ({
+jest.mock('../features/transactions/components/TransactionsRoutePage', () => ({
   __esModule: true,
   default: () => <div>Transactions Page</div>,
 }));

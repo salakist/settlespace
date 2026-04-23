@@ -73,6 +73,8 @@ const defaultProps = {
   canDelete: jest.fn(() => true),
   canEditRole: true,
   defaultCreateRole: PersonRole.User,
+  initialQuery: {},
+  listPath: '/persons',
   onAdd: jest.fn(),
   onSearch: jest.fn(),
   onSave: jest.fn().mockResolvedValue(undefined),
@@ -210,4 +212,21 @@ test('confirms deletion in a modal before calling onDelete', () => {
 
   fireEvent.click(within(dialog).getByRole('button', { name: /^delete$/i }));
   expect(onDelete).toHaveBeenCalledWith('p1');
+});
+
+test('cancelling the form navigates to a custom listPath', () => {
+  const onCancel = jest.fn();
+  render(
+    <PersonsPage
+      {...defaultProps}
+      showForm={true}
+      onCancel={onCancel}
+      listPath="/persons?firstName=John"
+    />,
+  );
+
+  fireEvent.click(screen.getByRole('button', { name: /cancel/i }));
+
+  expect(onCancel).toHaveBeenCalled();
+  expect(mockNavigate).toHaveBeenCalledWith('/persons?firstName=John');
 });

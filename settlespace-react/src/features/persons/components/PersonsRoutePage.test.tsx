@@ -1,19 +1,24 @@
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { PersonRole } from '../../../shared/types';
-import TransactionsRoutePage from './TransactionsRoutePage';
+import PersonsRoutePage from './PersonsRoutePage';
 
 const mockHandleSearch = jest.fn();
 const mockSetQueryToUrl = jest.fn();
 
-jest.mock('../../search/hooks/useUrlSearchQuery', () => ({
-  __esModule: true,
-  default: () => [{ status: ['Completed'] }, mockSetQueryToUrl],
+jest.mock('react-router-dom', () => ({
+  useLocation: () => ({ pathname: '/persons' }),
+  Navigate: () => null,
 }));
 
-jest.mock('../hooks/useTransactions', () => ({
-  useTransactions: () => ({
-    editingTransaction: undefined,
+jest.mock('../../search/hooks/useUrlSearchQuery', () => ({
+  __esModule: true,
+  default: () => [{ firstName: ['John'] }, mockSetQueryToUrl],
+}));
+
+jest.mock('../hooks/usePersons', () => ({
+  usePersons: () => ({
+    editingPerson: undefined,
     error: null,
     handleCancel: jest.fn(),
     handleDelete: jest.fn(),
@@ -21,21 +26,14 @@ jest.mock('../hooks/useTransactions', () => ({
     handleSave: jest.fn(),
     handleSearch: mockHandleSearch,
     loading: false,
+    persons: [],
+    saveLoading: false,
     showCreateForm: jest.fn(),
     showForm: false,
-    transactions: [],
   }),
 }));
 
-jest.mock('../../persons/hooks/usePersonDirectory', () => ({
-  usePersonDirectory: () => ({
-    error: null,
-    loading: false,
-    persons: [],
-  }),
-}));
-
-jest.mock('./TransactionsPage', () => ({
+jest.mock('./PersonsPage', () => ({
   __esModule: true,
   default: ({ onSearch }: { onSearch: (query: Record<string, unknown>) => void }) => (
     <button onClick={() => onSearch({ freeText: 'hello' })}>Search</button>
@@ -49,25 +47,25 @@ beforeEach(() => {
 
 test('calls handleSearch with query from useUrlSearchQuery on mount', async () => {
   render(
-    <TransactionsRoutePage
+    <PersonsRoutePage
       currentPersonId="p1"
-      role={PersonRole.User}
+      role={PersonRole.Admin}
       expireSession={jest.fn()}
     />,
   );
 
   await waitFor(() =>
     expect(mockHandleSearch).toHaveBeenCalledWith(
-      expect.objectContaining({ status: ['Completed'] }),
+      expect.objectContaining({ firstName: ['John'] }),
     ),
   );
 });
 
 test('calls setQueryToUrl when onSearch fires', () => {
   render(
-    <TransactionsRoutePage
+    <PersonsRoutePage
       currentPersonId="p1"
-      role={PersonRole.User}
+      role={PersonRole.Admin}
       expireSession={jest.fn()}
     />,
   );

@@ -7,7 +7,7 @@ Implemented.
 Transactions feature provides UI and state management for user-scoped transaction CRUD.
 
 ## Responsibilities
-- `src/features/transactions/components/TransactionsRoutePage.tsx` — route container; owns URL search params, data loading, and `usePersonDirectory`.
+- `src/features/transactions/components/TransactionsRoutePage.tsx` — route container; uses `useUrlSearchQuery` with `parseTransactionSearchQuery`/`serializeTransactionSearchQuery` to sync typed query ↔ URL; owns data loading and `usePersonDirectory`.
 - `src/features/transactions/components/TransactionsPage.tsx` — presentational page; receives all state/callbacks as props; owns route-local concerns (form toggle, delete confirmation, navigate on save/cancel).
 - `src/features/transactions/components/TransactionSearchBar.tsx` — multi-parameter search with chip-based filters and person autocomplete.
 - `src/features/transactions/components/TransactionList.tsx` — transaction list rendering.
@@ -26,6 +26,7 @@ Transactions feature provides UI and state management for user-scoped transactio
 - `src/features/transactions/hooks/useTransactions.ts`
 - `src/features/transactions/search/transactionSearchConfig.ts`
 - `src/features/transactions/search/transactionSearchBridge.ts`
+- `src/features/transactions/search/transactionSearchUrl.ts`
 - `src/features/transactions/api.ts`
 - `src/features/transactions/types.ts`
 

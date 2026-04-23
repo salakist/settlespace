@@ -13,6 +13,7 @@ Search feature provides the shared, domain-agnostic frontend search UI and state
 - `src/features/search/hooks/useAsyncSuggestions.ts` — debounced async-suggestion loading with stale-request protection.
 - `src/features/search/utils/searchHelpers.ts` — pure helper logic for option visibility, placeholder selection, and filter normalization.
 - `src/features/search/bridges/searchValueBridge.ts` — reusable helpers plus the declarative `createSearchValueBridge(...)` factory for mapping typed query objects to/from `GenericSearchValue` filter lists.
+- `src/features/search/hooks/useUrlSearchQuery.ts` — generic hook that wraps `useSearchParams` with a parse/serialize pair to sync a typed query object ↔ URL search params. Used by route containers (`PersonsRoutePage`, `TransactionsRoutePage`) to drive search from the URL.
 - `src/features/search/types.ts` owns the finite search enums and shared type contract (`SearchParameterKind`, `SearchSelectionMode`, parameter config interfaces, emitted values).
 - `src/features/search/constants.ts` owns only search UI text, placeholders, layout tokens, and test IDs; do not reintroduce enum-wrapper mirrors such as `SEARCH_PARAMETER_KINDS` or `SEARCH_SELECTION_MODES` there.
 - Keep this feature domain-agnostic: reusable query/filter conversion mechanics may live here, but backend DTO mapping, URL serialization, enum parsing, and feature-specific query semantics stay in the consuming feature wrapper.
@@ -38,6 +39,7 @@ Search feature provides the shared, domain-agnostic frontend search UI and state
 - `components/SearchResultsAlert.tsx`
 - `hooks/useGenericSearchController.ts`
 - `hooks/useAsyncSuggestions.ts`
+- `hooks/useUrlSearchQuery.ts`
 - `utils/searchHelpers.ts`
 - `bridges/searchValueBridge.ts`
 - `types.ts`

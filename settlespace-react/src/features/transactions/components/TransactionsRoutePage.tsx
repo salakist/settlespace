@@ -1,14 +1,13 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { canUpdateOrDeleteTransaction } from '../../../shared/auth/permissions';
 import { usePersonDirectory } from '../../persons/hooks/usePersonDirectory';
 import { PersonRole, Transaction } from '../../../shared/types';
-import {
-  parseTransactionInvolvement,
-  parseTransactionStatus,
-  TransactionSearchQuery,
-} from '../types';
 import { useTransactions } from '../hooks/useTransactions';
+import useUrlSearchQuery from '../../search/hooks/useUrlSearchQuery';
+import {
+  parseTransactionSearchQuery,
+  serializeTransactionSearchQuery,
+} from '../search/transactionSearchUrl';
 import TransactionsPage from './TransactionsPage';
 
 type TransactionsRoutePageProps = {
@@ -18,7 +17,10 @@ type TransactionsRoutePageProps = {
 };
 
 const TransactionsRoutePage: React.FC<TransactionsRoutePageProps> = ({ currentPersonId, role, expireSession }) => {
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchQuery, setQueryToUrl] = useUrlSearchQuery(
+    parseTransactionSearchQuery,
+    serializeTransactionSearchQuery,
+  );
 
   const {
     error: personsError,
@@ -40,111 +42,20 @@ const TransactionsRoutePage: React.FC<TransactionsRoutePageProps> = ({ currentPe
     transactions,
   } = useTransactions({ expireSession, currentPersonId, role });
 
-  const searchQueryFromUrl = useMemo<TransactionSearchQuery>(() => {
-    const query: TransactionSearchQuery = {};
-    const freeText = searchParams.get('freeText')?.trim();
-    if (freeText) {
-      query.freeText = freeText;
-    }
-    const statuses = searchParams.getAll('status')
-      .map((status) => parseTransactionStatus(status))
-      .filter((status): status is NonNullable<typeof status> => status !== null);
-    if (statuses.length > 0) {
-      query.status = statuses;
-    }
-    const involvement = parseTransactionInvolvement(searchParams.get('involvement'));
-    if (involvement) {
-      query.involvement = involvement;
-    }
-    const category = searchParams.get('category');
-    if (category) {
-      query.category = category;
-    }
-    const description = searchParams.get('description');
-    if (description) {
-      query.description = description;
-    }
-    const involved = searchParams.getAll('involved');
-    if (involved.length > 0) {
-      query.involved = involved;
-    }
-    const managedBy = searchParams.getAll('managedBy');
-    if (managedBy.length > 0) {
-      query.managedBy = managedBy;
-    }
-    const payer = searchParams.get('payer');
-    if (payer) {
-      query.payer = payer;
-    }
-    const payee = searchParams.get('payee');
-    if (payee) {
-      query.payee = payee;
-    }
-    return query;
-  }, [searchParams]);
-
   const listPath = useMemo(() => {
-    const params = searchParams.toString();
+    const params = serializeTransactionSearchQuery(searchQuery).toString();
     return params ? `/transactions?${params}` : '/transactions';
-  }, [searchParams]);
+  }, [searchQuery]);
 
   useEffect(() => {
     const loadPage = async () => {
-      await handleSearch(searchQueryFromUrl);
+      await handleSearch(searchQuery);
     };
 
     Promise.resolve(loadPage()).catch((loadError) => {
       console.error(loadError);
     });
-  }, [handleSearch, searchQueryFromUrl]);
-
-  const handleSearchChange = useCallback((query: TransactionSearchQuery) => {
-    const nextParams = new URLSearchParams();
-
-    if (query.freeText) {
-      nextParams.set('freeText', query.freeText);
-    }
-
-    if (query.status) {
-      for (const status of query.status) {
-        nextParams.append('status', status);
-      }
-    }
-
-    if (query.involvement) {
-      nextParams.set('involvement', query.involvement);
-    }
-
-    if (query.category) {
-      nextParams.set('category', query.category);
-    }
-
-    if (query.description) {
-      nextParams.set('description', query.description);
-    }
-
-    if (query.involved) {
-      for (const personId of query.involved) {
-        nextParams.append('involved', personId);
-      }
-    }
-
-    if (query.managedBy) {
-      for (const personId of query.managedBy) {
-        nextParams.append('managedBy', personId);
-      }
-    }
-
-    if (query.payer) {
-      nextParams.set('payer', query.payer);
-    }
-
-    if (query.payee) {
-      nextParams.set('payee', query.payee);
-    }
-
-    setSearchParams(nextParams);
-  }, [setSearchParams]);
+  }, [handleSearch, searchQuery]);
 
   const canManageTransaction = useCallback(
     (transaction: Transaction) => canUpdateOrDeleteTransaction(role, currentPersonId, transaction),
@@ -163,10 +74,10 @@ const TransactionsRoutePage: React.FC<TransactionsRoutePageProps> = ({ currentPe
       editingTransaction={editingTransaction}
       currentPersonId={currentPersonId}
       role={role}
-      initialQuery={searchQueryFromUrl}
+      initialQuery={searchQuery}
       listPath={listPath}
       canManage={canManageTransaction}
-      onSearch={handleSearchChange}
+      onSearch={setQueryToUrl}
       onSave={handleSave}
       onCancel={handleCancel}
       onEdit={handleEdit}
