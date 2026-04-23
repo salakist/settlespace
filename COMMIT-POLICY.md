@@ -36,6 +36,9 @@ routing, see root `AGENTS.md`. For general contributor setup and runbook guidanc
    - Never bypass hooks with `--no-verify`. 
 2. **Step 2 — Documentation alignment**
    - Update only documentation relevant to the current change set.
+   - Documentation includes AGENTS files for any context whose key files, responsibilities, or
+     dependencies changed, plus any other source listed under "Documentation source of truth" in
+     root `AGENTS.md`.
 
 ## Checklist to state before `git commit`
 

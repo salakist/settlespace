@@ -8,7 +8,7 @@ Transactions API context for authenticated, user-scoped transaction CRUD.
 - Own transaction commands, search query model, and transaction response DTOs.
 - Own transaction mapping between commands, domain models, and DTO responses.
 - Own application-service orchestration and authorization checks for transactions.
-- Own search query validation and search-to-filter orchestration via `POST /transactions/search`.
+- Own search-to-filter orchestration via `POST /transactions/search`; validation is delegated to `TransactionSearchFilter.Validate()` in the domain.
 
 ## Key files
 - `TransactionsController.cs`

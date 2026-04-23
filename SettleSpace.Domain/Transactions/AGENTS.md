@@ -8,6 +8,7 @@ Domain transactions context for transaction invariants, access rules, and reposi
 - Define transaction repository interface.
 - Define transaction search filter domain model.
 - Define and implement transaction authorization/involvement domain rules.
+- Own search filter validation via `TransactionSearchFilter.Validate()`.
 - Define transaction-specific domain exceptions.
 
 ## Key files
@@ -16,7 +17,6 @@ Domain transactions context for transaction invariants, access rules, and reposi
 - `ITransactionRepository.cs`
 - `TransactionSearchFilter.cs`
 - `InvolvementType.cs`
-- `TransactionSearchPolicy.cs`
 - `Services/ITransactionDomainService.cs`
 - `Services/TransactionDomainService.cs`
 - `Exceptions/`
