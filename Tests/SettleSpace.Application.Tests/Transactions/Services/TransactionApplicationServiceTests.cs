@@ -19,14 +19,10 @@ public class TransactionApplicationServiceTests
     private readonly Mock<ITransactionDomainService> _domainServiceMock = new();
     private readonly ITransactionMapper _mapper = new TransactionMapper();
     private readonly TransactionApplicationService _sut;
-    private readonly TransactionDomainService _realDomainService = new();
 
     public TransactionApplicationServiceTests()
     {
         _sut = new TransactionApplicationService(_personRepositoryMock.Object, _repositoryMock.Object, _domainServiceMock.Object, _mapper);
-        _domainServiceMock
-            .Setup(d => d.ApplySearchPolicy(It.IsAny<List<Transaction>>(), It.IsAny<string>(), It.IsAny<TransactionSearchPolicy>()))
-            .Returns((List<Transaction> t, string id, TransactionSearchPolicy p) => _realDomainService.ApplySearchPolicy(t, id, p));
     }
 
     [Fact]
@@ -134,17 +130,12 @@ public class TransactionApplicationServiceTests
     }
 
     [Fact]
-    public async Task SearchTransactionsAsyncWithOwnedInvolvementReturnsOnlyInvolvedTransactions()
+    public async Task SearchTransactionsAsyncWithOwnedInvolvementPassesInvolvementToFilter()
     {
-        var ownedTransaction = BuildTransaction("tx-owned");
-        var managedTransaction = BuildTransaction("tx-managed");
-        managedTransaction.PayerPersonId = "user-3";
-        managedTransaction.PayeePersonId = "user-4";
-        managedTransaction.CreatedByPersonId = "user-1";
-
         var query = new TransactionSearchQuery { Involvement = InvolvementType.Owned };
-        _repositoryMock.Setup(r => r.SearchAsync(It.IsAny<TransactionSearchFilter>()))
-            .ReturnsAsync([ownedTransaction, managedTransaction]);
+        _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f =>
+                f.Involvement == InvolvementType.Owned && f.InvolvementPersonId == "user-1")))
+            .ReturnsAsync([BuildTransaction("tx-owned")]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
             .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => [.. transactions]);
@@ -152,21 +143,17 @@ public class TransactionApplicationServiceTests
         var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
 
         Assert.Single(result);
-        Assert.Equal("tx-owned", result[0].Id);
+        _repositoryMock.Verify(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f =>
+            f.Involvement == InvolvementType.Owned && f.InvolvementPersonId == "user-1")), Times.Once);
     }
 
     [Fact]
-    public async Task SearchTransactionsAsyncWithManagedInvolvementReturnsOnlyManagedTransactions()
+    public async Task SearchTransactionsAsyncWithManagedInvolvementPassesInvolvementToFilter()
     {
-        var ownedTransaction = BuildTransaction("tx-owned");
-        var managedTransaction = BuildTransaction("tx-managed");
-        managedTransaction.PayerPersonId = "user-3";
-        managedTransaction.PayeePersonId = "user-4";
-        managedTransaction.CreatedByPersonId = "user-1";
-
         var query = new TransactionSearchQuery { Involvement = InvolvementType.Managed };
-        _repositoryMock.Setup(r => r.SearchAsync(It.IsAny<TransactionSearchFilter>()))
-            .ReturnsAsync([ownedTransaction, managedTransaction]);
+        _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f =>
+                f.Involvement == InvolvementType.Managed && f.InvolvementPersonId == "user-1")))
+            .ReturnsAsync([BuildTransaction("tx-managed")]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-1", PersonRole.USER))
             .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => [.. transactions]);
@@ -174,7 +161,8 @@ public class TransactionApplicationServiceTests
         var result = await _sut.SearchTransactionsAsync("user-1", PersonRole.USER, query);
 
         Assert.Single(result);
-        Assert.Equal("tx-managed", result[0].Id);
+        _repositoryMock.Verify(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f =>
+            f.Involvement == InvolvementType.Managed && f.InvolvementPersonId == "user-1")), Times.Once);
     }
 
     [Fact]
@@ -270,21 +258,16 @@ public class TransactionApplicationServiceTests
     }
 
     [Fact]
-    public async Task SearchTransactionsAsyncWithManagedByExcludesTransactionsWhereCreatorIsAlsoInvolved()
+    public async Task SearchTransactionsAsyncWithManagedByPassesManagedByToFilter()
     {
-        var directlyInvolved = BuildTransaction("tx-owned");
-        directlyInvolved.CreatedByPersonId = "person-1";
-        directlyInvolved.PayerPersonId = "person-1";
-        directlyInvolved.PayeePersonId = "person-2";
-
         var externallyManaged = BuildTransaction("tx-managed");
         externallyManaged.CreatedByPersonId = "person-1";
         externallyManaged.PayerPersonId = "person-3";
         externallyManaged.PayeePersonId = "person-4";
 
         var query = new TransactionSearchQuery { ManagedBy = ["person-1"] };
-        _repositoryMock.Setup(r => r.SearchAsync(It.IsAny<TransactionSearchFilter>()))
-            .ReturnsAsync([directlyInvolved, externallyManaged]);
+        _repositoryMock.Setup(r => r.SearchAsync(It.Is<TransactionSearchFilter>(f => f.ManagedBy != null && f.ManagedBy.Contains("person-1"))))
+            .ReturnsAsync([externallyManaged]);
         _domainServiceMock
             .Setup(d => d.FilterReadableTransactions(It.IsAny<IEnumerable<Transaction>>(), "user-9", PersonRole.USER))
             .Returns((IEnumerable<Transaction> transactions, string _, PersonRole _) => [.. transactions]);

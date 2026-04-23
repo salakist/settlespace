@@ -24,7 +24,6 @@ public class TransactionsController(
     [ProducesResponseType(typeof(ProblemDetails), 401)]
     public async Task<ActionResult<List<TransactionDto>>> SearchTransactions([FromBody] TransactionSearchQuery query)
     {
-        query.Validate();
         var (personId, personRole) = authService.ResolveAuthContext(User);
         var transactions = await applicationService.SearchTransactionsAsync(personId, personRole, query);
         var relatedPersonIds = transactions.SelectMany(transaction => transaction.GetRelatedPersonIds()).ToList();

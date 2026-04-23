@@ -199,11 +199,46 @@ public class TransactionRepositoryTests
     {
         var tx = BuildTransaction("tx-1");
         tx.CreatedByPersonId = "user-3";
+        tx.PayerPersonId = "user-5";
+        tx.PayeePersonId = "user-6";
         var repo = new TransactionRepository(BuildCollectionMock([tx]).Object);
 
         var result = await repo.SearchAsync(new TransactionSearchFilter
         {
             ManagedBy = ["user-3"]
+        });
+
+        Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task SearchAsyncFilterWithOwnedInvolvementReturnsMatchingTransactions()
+    {
+        var tx = BuildTransaction("tx-1");
+        var repo = new TransactionRepository(BuildCollectionMock([tx]).Object);
+
+        var result = await repo.SearchAsync(new TransactionSearchFilter
+        {
+            Involvement = InvolvementType.Owned,
+            InvolvementPersonId = "user-1"
+        });
+
+        Assert.Single(result);
+    }
+
+    [Fact]
+    public async Task SearchAsyncFilterWithManagedInvolvementReturnsMatchingTransactions()
+    {
+        var tx = BuildTransaction("tx-1");
+        tx.CreatedByPersonId = "user-3";
+        tx.PayerPersonId = "user-5";
+        tx.PayeePersonId = "user-6";
+        var repo = new TransactionRepository(BuildCollectionMock([tx]).Object);
+
+        var result = await repo.SearchAsync(new TransactionSearchFilter
+        {
+            Involvement = InvolvementType.Managed,
+            InvolvementPersonId = "user-3"
         });
 
         Assert.Single(result);

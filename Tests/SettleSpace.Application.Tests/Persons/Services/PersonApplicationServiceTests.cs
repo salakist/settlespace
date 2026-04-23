@@ -133,6 +133,36 @@ public class PersonApplicationServiceTests
     }
 
     [Fact]
+    public async Task SearchPersonsAsyncWithInvalidDateRangeThrowsInvalidPersonSearchException()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var query = new PersonSearchQuery
+        {
+            DateOfBirthBefore = today.AddYears(-65),
+            DateOfBirthAfter = today.AddYears(-18),
+        };
+        _domainServiceMock.Setup(d => d.EnsureCanAccessDirectory(PersonRole.ADMIN));
+
+        await Assert.ThrowsAsync<InvalidPersonSearchException>(
+            () => _sut.SearchPersonsAsync("admin-1", PersonRole.ADMIN, query));
+    }
+
+    [Fact]
+    public async Task SearchPersonsAsyncWithExactAndRangeDateFiltersThrowsInvalidPersonSearchException()
+    {
+        var today = DateOnly.FromDateTime(DateTime.UtcNow);
+        var query = new PersonSearchQuery
+        {
+            DateOfBirth = [today.AddYears(-30)],
+            DateOfBirthBefore = today.AddYears(-25),
+        };
+        _domainServiceMock.Setup(d => d.EnsureCanAccessDirectory(PersonRole.ADMIN));
+
+        await Assert.ThrowsAsync<InvalidPersonSearchException>(
+            () => _sut.SearchPersonsAsync("admin-1", PersonRole.ADMIN, query));
+    }
+
+    [Fact]
     public async Task GetPersonByIdAsyncWithContextChecksAccessBeforeLoading()
     {
         var person = new Person { Id = "1", FirstName = "John", LastName = "Doe", Role = PersonRole.USER };

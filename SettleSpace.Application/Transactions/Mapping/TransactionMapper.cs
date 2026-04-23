@@ -27,7 +27,7 @@ public class TransactionMapper : ITransactionMapper
             UpdatedAtUtc = entity.UpdatedAtUtc,
         };
 
-    public TransactionSearchFilter ToSearchFilter(TransactionSearchQuery query)
+    public TransactionSearchFilter ToSearchFilter(TransactionSearchQuery query, string loggedPersonId)
     {
         var freeText = query.FreeText?.Trim();
 
@@ -41,15 +41,8 @@ public class TransactionMapper : ITransactionMapper
             ManagedBy = query.ManagedBy,
             Payer = query.Payer,
             Payee = query.Payee,
-        };
-    }
-
-    public TransactionSearchPolicy ToSearchPolicy(TransactionSearchQuery query)
-    {
-        return new TransactionSearchPolicy
-        {
-            ManagedBy = query.ManagedBy,
             Involvement = query.Involvement,
+            InvolvementPersonId = loggedPersonId,
         };
     }
 

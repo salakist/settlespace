@@ -93,45 +93,6 @@ public class TransactionDomainService : ITransactionDomainService
         return [.. transactions.Where(transaction => transaction.IsUserInvolved(loggedPersonId))];
     }
 
-    public List<Transaction> ApplySearchPolicy(List<Transaction> transactions, string loggedPersonId, TransactionSearchPolicy policy)
-    {
-        var managedByFiltered = FilterByManagedBy(transactions, policy.ManagedBy);
-        return FilterByInvolvement(managedByFiltered, loggedPersonId, policy.Involvement);
-    }
-
-    private static List<Transaction> FilterByManagedBy(List<Transaction> transactions, List<string>? managedBy)
-    {
-        if (managedBy is not { Count: > 0 })
-        {
-            return transactions;
-        }
-
-        var managedByIds = managedBy
-            .Where(id => !string.IsNullOrWhiteSpace(id))
-            .ToHashSet(StringComparer.Ordinal);
-
-        if (managedByIds.Count == 0)
-        {
-            return transactions;
-        }
-
-        return [.. transactions
-            .Where(t =>
-                !string.IsNullOrWhiteSpace(t.CreatedByPersonId)
-                && managedByIds.Contains(t.CreatedByPersonId)
-                && !t.IsUserInvolved(t.CreatedByPersonId))];
-    }
-
-    private static List<Transaction> FilterByInvolvement(List<Transaction> transactions, string loggedPersonId, InvolvementType? involvement)
-    {
-        return involvement switch
-        {
-            InvolvementType.Owned => [.. transactions.Where(t => t.IsUserInvolved(loggedPersonId))],
-            InvolvementType.Managed => [.. transactions.Where(t => t.IsCreatedBy(loggedPersonId) && !t.IsUserInvolved(loggedPersonId))],
-            _ => transactions,
-        };
-    }
-
     private static void EnsureLoggedPersonId(string loggedPersonId)
     {
         if (string.IsNullOrWhiteSpace(loggedPersonId))

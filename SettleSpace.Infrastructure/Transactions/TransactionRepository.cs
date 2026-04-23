@@ -165,7 +165,31 @@ public class TransactionRepository : ITransactionRepository
 
         if (filter.ManagedBy is { Count: > 0 })
         {
-            conditions.Add(builder.In(t => t.CreatedByPersonId, filter.ManagedBy));
+            var managedByIds = filter.ManagedBy
+                .Where(id => !string.IsNullOrWhiteSpace(id))
+                .ToList();
+            if (managedByIds.Count > 0)
+            {
+                conditions.Add(
+                    builder.In(t => t.CreatedByPersonId, managedByIds) &
+                    builder.Nin(t => t.PayerPersonId, managedByIds) &
+                    builder.Nin(t => t.PayeePersonId, managedByIds));
+            }
+        }
+
+        if (filter.Involvement is not null && !string.IsNullOrWhiteSpace(filter.InvolvementPersonId))
+        {
+            var pid = filter.InvolvementPersonId;
+            conditions.Add(filter.Involvement switch
+            {
+                InvolvementType.Owned =>
+                    builder.Eq(t => t.PayerPersonId, pid) | builder.Eq(t => t.PayeePersonId, pid),
+                InvolvementType.Managed =>
+                    builder.Eq(t => t.CreatedByPersonId, pid) &
+                    builder.Ne(t => t.PayerPersonId, pid) &
+                    builder.Ne(t => t.PayeePersonId, pid),
+                _ => builder.Empty
+            });
         }
 
         if (!string.IsNullOrWhiteSpace(filter.Payer))

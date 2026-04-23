@@ -40,6 +40,7 @@ public class PersonApplicationService(
     {
         domainService.EnsureCanAccessDirectory(loggedRole);
         var filter = personMapper.ToSearchFilter(query);
+        filter.Validate();
         return await repository.SearchAsync(filter);
     }
 

@@ -74,7 +74,6 @@ public class PersonsController(IPersonApplicationService applicationService, IPe
     [ProducesResponseType(typeof(ProblemDetails), 401)]
     public async Task<ActionResult<List<PersonDto>>> SearchPersons([FromBody] PersonSearchQuery query)
     {
-        query.Validate();
         var (personId, personRole) = authService.ResolveAuthContext(User);
         var persons = await applicationService.SearchPersonsAsync(personId, personRole, query);
         return Ok(persons.ConvertAll(personMapper.ToDto));

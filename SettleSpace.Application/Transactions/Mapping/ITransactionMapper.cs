@@ -8,8 +8,7 @@ namespace SettleSpace.Application.Transactions.Mapping;
 public interface ITransactionMapper
 {
     TransactionDto ToDto(Transaction entity, IReadOnlyDictionary<string, string>? personDisplayNames = null);
-    TransactionSearchFilter ToSearchFilter(TransactionSearchQuery query);
-    TransactionSearchPolicy ToSearchPolicy(TransactionSearchQuery query);
+    TransactionSearchFilter ToSearchFilter(TransactionSearchQuery query, string loggedPersonId);
     Transaction ToEntity(CreateTransactionCommand command, string createdByPersonId);
     Transaction ToEntity(string id, UpdateTransactionCommand command, string createdByPersonId, DateTime createdAtUtc);
 }

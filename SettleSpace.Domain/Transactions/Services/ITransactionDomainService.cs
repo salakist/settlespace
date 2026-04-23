@@ -10,5 +10,4 @@ public interface ITransactionDomainService
     void EnsureCanUpdate(Transaction transaction, string loggedPersonId, PersonRole loggedRole);
     void EnsureCanDelete(Transaction transaction, string loggedPersonId, PersonRole loggedRole);
     List<Transaction> FilterReadableTransactions(IEnumerable<Transaction> transactions, string loggedPersonId, PersonRole loggedRole);
-    List<Transaction> ApplySearchPolicy(List<Transaction> transactions, string loggedPersonId, TransactionSearchPolicy policy);
 }

@@ -18,10 +18,9 @@ public class TransactionApplicationService(
 {
     public async Task<List<Transaction>> SearchTransactionsAsync(string loggedPersonId, PersonRole loggedRole, TransactionSearchQuery query)
     {
-        var filter = transactionMapper.ToSearchFilter(query);
+        var filter = transactionMapper.ToSearchFilter(query, loggedPersonId);
+        filter.Validate();
         var transactionSearchTask = repository.SearchAsync(filter);
-
-        List<Transaction> readable;
 
         if (!string.IsNullOrWhiteSpace(filter.FreeText))
         {
@@ -47,16 +46,11 @@ public class TransactionApplicationService(
                     .OrderByDescending(transaction => transaction.TransactionDateUtc)];
             }
 
-            readable = domainService.FilterReadableTransactions(matchedTransactions, loggedPersonId, loggedRole);
-        }
-        else
-        {
-            var transactions = await transactionSearchTask;
-            readable = domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
+            return domainService.FilterReadableTransactions(matchedTransactions, loggedPersonId, loggedRole);
         }
 
-        var policy = transactionMapper.ToSearchPolicy(query);
-        return domainService.ApplySearchPolicy(readable, loggedPersonId, policy);
+        var transactions = await transactionSearchTask;
+        return domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
     }
 
     public async Task<Transaction> GetTransactionByIdAsync(string id, string loggedPersonId, PersonRole loggedRole)
