@@ -25,12 +25,17 @@ type TransactionsPageProps = {
   role: PersonRole | null;
   initialQuery: TransactionSearchQuery;
   listPath: string;
-  canManage: (transaction: Transaction) => boolean;
+  canUpdate: (transaction: Transaction) => boolean;
+  canDelete: (transaction: Transaction) => boolean;
+  canConfirm: (transaction: Transaction) => boolean;
+  canRefuse: (transaction: Transaction) => boolean;
   onSearch: (query: TransactionSearchQuery) => void;
   onSave: (transaction: Omit<Transaction, 'id' | 'createdByPersonId' | 'createdAtUtc' | 'updatedAtUtc'>) => Promise<void>;
   onCancel: () => void;
   onEdit: (transaction: Transaction) => void;
   onDelete: (id: string) => void;
+  onConfirm: (id: string) => void;
+  onRefuse: (id: string) => void;
   onAdd: () => void;
 };
 
@@ -47,12 +52,17 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
   role,
   initialQuery,
   listPath,
-  canManage,
+  canUpdate,
+  canDelete,
+  canConfirm,
+  canRefuse,
   onSearch,
   onSave,
   onCancel,
   onEdit,
   onDelete,
+  onConfirm,
+  onRefuse,
   onAdd,
 }) => {
   const navigate = useNavigate();
@@ -203,9 +213,14 @@ const TransactionsPage: React.FC<TransactionsPageProps> = ({
             <TransactionList
               transactions={transactions}
               currentPersonId={currentPersonId}
-              canManage={canManage}
+              canUpdate={canUpdate}
+              canDelete={canDelete}
+              canConfirm={canConfirm}
+              canRefuse={canRefuse}
               onEdit={handleEditNavigate}
               onDelete={handleDeleteRequest}
+              onConfirm={onConfirm}
+              onRefuse={onRefuse}
             />
           </Stack>
         )

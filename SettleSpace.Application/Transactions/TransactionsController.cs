@@ -74,4 +74,26 @@ public class TransactionsController(
 
         return NoContent();
     }
+
+    [HttpPost("{id:length(24)}/confirm")]
+    [ProducesResponseType(typeof(TransactionDto), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), 401)]
+    [ProducesResponseType(typeof(ProblemDetails), 403)]
+    [ProducesResponseType(typeof(ProblemDetails), 404)]
+    public async Task<ActionResult<TransactionDto>> Confirm(string id)
+    {
+        var (personId, personRole) = authService.ResolveAuthContext(User);
+        return Ok(await applicationService.ConfirmTransactionAsync(id, personId, personRole));
+    }
+
+    [HttpPost("{id:length(24)}/refuse")]
+    [ProducesResponseType(typeof(TransactionDto), 200)]
+    [ProducesResponseType(typeof(ProblemDetails), 401)]
+    [ProducesResponseType(typeof(ProblemDetails), 403)]
+    [ProducesResponseType(typeof(ProblemDetails), 404)]
+    public async Task<ActionResult<TransactionDto>> Refuse(string id)
+    {
+        var (personId, personRole) = authService.ResolveAuthContext(User);
+        return Ok(await applicationService.RefuseTransactionAsync(id, personId, personRole));
+    }
 }

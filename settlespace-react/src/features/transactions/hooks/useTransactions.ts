@@ -3,7 +3,10 @@ import {
   handleRequestError,
   rejectUnauthorizedAction,
 } from '../../../shared/api/requestHandling';
-import { canUpdateOrDeleteTransaction } from '../../../shared/auth/permissions';
+import {
+  canDeleteTransaction,
+  canUpdateTransaction,
+} from '../../../shared/auth/permissions';
 import { SESSION_EXPIRED_MESSAGE } from '../../../shared/constants/messages';
 import { PersonRole, Transaction } from '../../../shared/types';
 import { transactionApi } from '../api';
@@ -82,7 +85,7 @@ export function useTransactions({ expireSession, currentPersonId, role }: UseTra
 
   const handleEdit = useCallback((transaction: Transaction) => {
     if (rejectUnauthorizedAction(
-      canUpdateOrDeleteTransaction(role, currentPersonId, transaction),
+      canUpdateTransaction(role, currentPersonId, transaction),
       setError,
       'You are not allowed to edit this transaction.',
     )) {
@@ -96,7 +99,7 @@ export function useTransactions({ expireSession, currentPersonId, role }: UseTra
   const handleDelete = useCallback(async (id: string) => {
     const target = transactions.find((transaction) => transaction.id === id);
     if (target && rejectUnauthorizedAction(
-      canUpdateOrDeleteTransaction(role, currentPersonId, target),
+      canDeleteTransaction(role, currentPersonId, target),
       setError,
       'You are not allowed to delete this transaction.',
     )) {
@@ -127,12 +130,50 @@ export function useTransactions({ expireSession, currentPersonId, role }: UseTra
     setShowForm(true);
   }, []);
 
+  const handleConfirm = useCallback(async (id: string) => {
+    try {
+      const response = await transactionApi.confirm(id);
+      setTransactions((prev) =>
+        prev.map((t) => (t.id === id ? response.data : t)),
+      );
+      setError(null);
+    } catch (err) {
+      handleRequestError({
+        error: err,
+        onUnauthorized: handleUnauthorized,
+        setError,
+        fallbackMessage: 'Failed to confirm transaction',
+        forbiddenMessage: 'You are not allowed to confirm this transaction.',
+      });
+    }
+  }, [handleUnauthorized]);
+
+  const handleRefuse = useCallback(async (id: string) => {
+    try {
+      const response = await transactionApi.refuse(id);
+      setTransactions((prev) =>
+        prev.map((t) => (t.id === id ? response.data : t)),
+      );
+      setError(null);
+    } catch (err) {
+      handleRequestError({
+        error: err,
+        onUnauthorized: handleUnauthorized,
+        setError,
+        fallbackMessage: 'Failed to refuse transaction',
+        forbiddenMessage: 'You are not allowed to refuse this transaction.',
+      });
+    }
+  }, [handleUnauthorized]);
+
   return {
     editingTransaction,
     error,
     handleCancel,
+    handleConfirm,
     handleDelete,
     handleEdit,
+    handleRefuse,
     handleSave,
     handleSearch,
     loading,

@@ -69,6 +69,7 @@ export interface Transaction {
   description: string;
   category?: string;
   status: TransactionStatus;
+  confirmedByPersonIds?: string[];
   createdAtUtc?: string;
   updatedAtUtc?: string;
 }

@@ -17,6 +17,7 @@ public class TransactionDto
     public string Description { get; set; } = null!;
     public string? Category { get; set; }
     public TransactionStatus Status { get; set; }
+    public List<string> ConfirmedByPersonIds { get; set; } = [];
     public DateTime CreatedAtUtc { get; set; }
     public DateTime UpdatedAtUtc { get; set; }
 }

@@ -145,6 +145,77 @@ public class TransactionTests
         Assert.Equal(["payer-1", "payee-1", "payer-1"], result);
     }
 
+    [Fact]
+    public void InitializeConfirmationsWhenCreatorIsPayerAddsPayerToList()
+    {
+        var transaction = BuildValidTransaction();
+
+        transaction.InitializeConfirmations("payer-1");
+
+        Assert.Single(transaction.ConfirmedByPersonIds);
+        Assert.Contains("payer-1", transaction.ConfirmedByPersonIds);
+    }
+
+    [Fact]
+    public void InitializeConfirmationsWhenCreatorIsPayeeAddsPayeeToList()
+    {
+        var transaction = BuildValidTransaction();
+
+        transaction.InitializeConfirmations("payee-1");
+
+        Assert.Single(transaction.ConfirmedByPersonIds);
+        Assert.Contains("payee-1", transaction.ConfirmedByPersonIds);
+    }
+
+    [Fact]
+    public void InitializeConfirmationsWhenCreatorNotInvolvedLeavesListEmpty()
+    {
+        var transaction = BuildValidTransaction();
+        transaction.CreatedByPersonId = "manager-1";
+
+        transaction.InitializeConfirmations("manager-1");
+
+        Assert.Empty(transaction.ConfirmedByPersonIds);
+    }
+
+    [Fact]
+    public void InitializeConfirmationsClearsExistingConfirmations()
+    {
+        var transaction = BuildValidTransaction();
+        transaction.ConfirmedByPersonIds = ["payer-1", "payee-1"];
+
+        transaction.InitializeConfirmations("manager-1");
+
+        Assert.Empty(transaction.ConfirmedByPersonIds);
+    }
+
+    [Fact]
+    public void IsFullyConfirmedReturnsTrueWhenBothPayerAndPayeeConfirmed()
+    {
+        var transaction = BuildValidTransaction();
+        transaction.ConfirmedByPersonIds = ["payer-1", "payee-1"];
+
+        Assert.True(transaction.IsFullyConfirmed());
+    }
+
+    [Fact]
+    public void IsFullyConfirmedReturnsFalseWhenOnlyPayerConfirmed()
+    {
+        var transaction = BuildValidTransaction();
+        transaction.ConfirmedByPersonIds = ["payer-1"];
+
+        Assert.False(transaction.IsFullyConfirmed());
+    }
+
+    [Fact]
+    public void IsFullyConfirmedReturnsFalseWhenNoOneConfirmed()
+    {
+        var transaction = BuildValidTransaction();
+        transaction.ConfirmedByPersonIds = [];
+
+        Assert.False(transaction.IsFullyConfirmed());
+    }
+
     private static Transaction BuildValidTransaction() =>
         new()
         {

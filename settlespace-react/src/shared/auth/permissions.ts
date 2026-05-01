@@ -1,4 +1,4 @@
-import { Person, PersonRole, Transaction } from '../types';
+import { Person, PersonRole, Transaction, TransactionStatus } from '../types';
 
 export function canAccessPersonsPage(role: PersonRole | null): boolean {
   return role === PersonRole.Admin || role === PersonRole.Manager;
@@ -83,7 +83,31 @@ export function canCreateTransaction(role: PersonRole | null, currentPersonId: s
   return payerPersonId === currentPersonId || payeePersonId === currentPersonId;
 }
 
-export function canUpdateOrDeleteTransaction(role: PersonRole | null, currentPersonId: string | undefined, transaction: Transaction): boolean {
+export function canUpdateTransaction(role: PersonRole | null, currentPersonId: string | undefined, transaction: Transaction): boolean {
+  if (role === PersonRole.Admin) {
+    return true;
+  }
+
+  if (!currentPersonId) {
+    return false;
+  }
+
+  if (transaction.createdByPersonId !== currentPersonId) {
+    return false;
+  }
+
+  if (role === PersonRole.User) {
+    return transaction.status === TransactionStatus.Pending;
+  }
+
+  return true;
+}
+
+export function canDeleteTransaction(role: PersonRole | null, currentPersonId: string | undefined, transaction: Transaction): boolean {
+  if (role === PersonRole.User) {
+    return false;
+  }
+
   if (role === PersonRole.Admin) {
     return true;
   }
@@ -93,4 +117,32 @@ export function canUpdateOrDeleteTransaction(role: PersonRole | null, currentPer
   }
 
   return transaction.createdByPersonId === currentPersonId;
+}
+
+export function canUpdateOrDeleteTransaction(role: PersonRole | null, currentPersonId: string | undefined, transaction: Transaction): boolean {
+  return canUpdateTransaction(role, currentPersonId, transaction) || canDeleteTransaction(role, currentPersonId, transaction);
+}
+
+export function canConfirmTransaction(role: PersonRole | null, currentPersonId: string | undefined, transaction: Transaction): boolean {
+  if (!currentPersonId) {
+    return false;
+  }
+
+  if (transaction.status !== TransactionStatus.Pending) {
+    return false;
+  }
+
+  const involved =
+    transaction.payerPersonId === currentPersonId ||
+    transaction.payeePersonId === currentPersonId;
+
+  if (!involved) {
+    return false;
+  }
+
+  return !(transaction.confirmedByPersonIds ?? []).includes(currentPersonId);
+}
+
+export function canRefuseTransaction(role: PersonRole | null, currentPersonId: string | undefined, transaction: Transaction): boolean {
+  return canConfirmTransaction(role, currentPersonId, transaction);
 }

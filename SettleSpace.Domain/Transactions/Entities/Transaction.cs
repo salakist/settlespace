@@ -19,7 +19,8 @@ public partial class Transaction
     public DateTime TransactionDateUtc { get; set; }
     public string Description { get; set; } = null!;
     public string? Category { get; set; }
-    public TransactionStatus Status { get; set; } = TransactionStatus.Completed;
+    public TransactionStatus Status { get; set; } = TransactionStatus.Pending;
+    public List<string> ConfirmedByPersonIds { get; set; } = [];
     public DateTime CreatedAtUtc { get; set; }
     public DateTime UpdatedAtUtc { get; set; }
 
@@ -32,6 +33,21 @@ public partial class Transaction
     public bool IsCreatedBy(string personId)
     {
         return string.Equals(CreatedByPersonId, personId, StringComparison.Ordinal);
+    }
+
+    public void InitializeConfirmations(string creatorPersonId)
+    {
+        ConfirmedByPersonIds = [];
+        if (IsUserInvolved(creatorPersonId))
+        {
+            ConfirmedByPersonIds.Add(creatorPersonId);
+        }
+    }
+
+    public bool IsFullyConfirmed()
+    {
+        return ConfirmedByPersonIds.Contains(PayerPersonId, StringComparer.Ordinal) &&
+               ConfirmedByPersonIds.Contains(PayeePersonId, StringComparer.Ordinal);
     }
 
     public List<string> GetRelatedPersonIds()

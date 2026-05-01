@@ -35,6 +35,7 @@ public class TransactionRepository : ITransactionRepository
                 cm.MapMember(t => t.Status)
                     .SetElementName("status")
                     .SetSerializer(new EnumSerializer<TransactionStatus>(BsonType.String));
+                cm.MapMember(t => t.ConfirmedByPersonIds).SetElementName("confirmedByPersonIds");
                 cm.MapMember(t => t.CreatedAtUtc).SetElementName("createdAtUtc");
                 cm.MapMember(t => t.UpdatedAtUtc).SetElementName("updatedAtUtc");
             });

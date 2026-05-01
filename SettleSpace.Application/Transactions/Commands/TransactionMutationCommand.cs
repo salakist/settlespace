@@ -14,5 +14,5 @@ public abstract class TransactionMutationCommand
     public DateTime TransactionDateUtc { get; set; }
     public string Description { get; set; } = null!;
     public string? Category { get; set; }
-    public TransactionStatus Status { get; set; } = TransactionStatus.Completed;
+    public TransactionStatus? Status { get; set; }
 }

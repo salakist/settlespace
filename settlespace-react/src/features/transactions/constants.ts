@@ -1,7 +1,7 @@
 import { TransactionStatus } from '../../shared/types';
 
 export const DEFAULT_TRANSACTION_CURRENCY = 'EUR';
-export const DEFAULT_TRANSACTION_STATUS = TransactionStatus.Completed;
+export const DEFAULT_TRANSACTION_STATUS = TransactionStatus.Pending;
 
 export const TRANSACTION_SEARCH_TEXT = {
   ARIA_LABEL: 'Transaction search',
@@ -32,4 +32,6 @@ export const TRANSACTION_LIST_TEXT = {
   MANAGED_BY: 'Managed by',
   EDIT: 'Edit',
   DELETE: 'Delete',
+  CONFIRM: 'Confirm',
+  REFUSE: 'Refuse',
 } as const;

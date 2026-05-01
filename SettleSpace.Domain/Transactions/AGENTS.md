@@ -10,6 +10,8 @@ Domain transactions context for transaction invariants, access rules, and reposi
 - Define and implement transaction authorization/involvement domain rules.
 - Own search filter validation via `TransactionSearchFilter.Validate()`.
 - Define transaction-specific domain exceptions.
+- `Transaction.ConfirmedByPersonIds` tracks which involved parties have confirmed; `InitializeConfirmations(creatorPersonId)` seeds it at creation/reset; `IsFullyConfirmed()` returns true when both payer and payee are present.
+- `TransactionDomainService` guards: `EnsureCanUpdate` (USER: Pending only), `EnsureCanDelete` (USER: never; MANAGER: creator only), `EnsureCanConfirm`/`EnsureCanRefuse` (must be Pending, involved, not already confirmed).
 
 ## Key files
 - `Entities/Transaction.cs`

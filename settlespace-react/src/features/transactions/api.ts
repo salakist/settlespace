@@ -10,4 +10,6 @@ export const transactionApi = {
   update: (id: string, transaction: Omit<Transaction, 'id' | 'createdByPersonId' | 'createdAtUtc' | 'updatedAtUtc'>) =>
     apiClient.put(`/transactions/${id}`, transaction),
   delete: (id: string) => apiClient.delete(`/transactions/${id}`),
+  confirm: (id: string) => apiClient.post<Transaction>(`/transactions/${id}/confirm`, {}),
+  refuse: (id: string) => apiClient.post<Transaction>(`/transactions/${id}/refuse`, {}),
 };

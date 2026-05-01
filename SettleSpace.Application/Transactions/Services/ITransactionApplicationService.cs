@@ -11,4 +11,6 @@ public interface ITransactionApplicationService
     Task<TransactionDto> CreateTransactionAsync(string loggedPersonId, PersonRole loggedRole, CreateTransactionCommand command);
     Task UpdateTransactionAsync(string id, string loggedPersonId, PersonRole loggedRole, UpdateTransactionCommand command);
     Task DeleteTransactionAsync(string id, string loggedPersonId, PersonRole loggedRole);
+    Task<TransactionDto> ConfirmTransactionAsync(string id, string loggedPersonId, PersonRole loggedRole);
+    Task<TransactionDto> RefuseTransactionAsync(string id, string loggedPersonId, PersonRole loggedRole);
 }

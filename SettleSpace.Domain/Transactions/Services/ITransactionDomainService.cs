@@ -9,5 +9,7 @@ public interface ITransactionDomainService
     void EnsureCanRead(Transaction transaction, string loggedPersonId, PersonRole loggedRole);
     void EnsureCanUpdate(Transaction transaction, string loggedPersonId, PersonRole loggedRole);
     void EnsureCanDelete(Transaction transaction, string loggedPersonId, PersonRole loggedRole);
+    void EnsureCanConfirm(Transaction transaction, string loggedPersonId);
+    void EnsureCanRefuse(Transaction transaction, string loggedPersonId);
     List<Transaction> FilterReadableTransactions(IEnumerable<Transaction> transactions, string loggedPersonId, PersonRole loggedRole);
 }

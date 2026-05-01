@@ -193,18 +193,20 @@ const TransactionForm: React.FC<TransactionFormProps> = ({
             fullWidth
           />
 
-          <TextField
-            select
-            label="Status"
-            value={status}
-            onChange={(event) => setStatus(parseTransactionStatus(event.target.value) ?? DEFAULT_TRANSACTION_STATUS)}
-            fullWidth
-            required
-          >
-            {getEnumValues(TransactionStatus).map((value) => (
-              <MenuItem key={value} value={value}>{value}</MenuItem>
-            ))}
-          </TextField>
+          {role === PersonRole.Admin && (
+            <TextField
+              select
+              label="Status"
+              value={status}
+              onChange={(event) => setStatus(parseTransactionStatus(event.target.value) ?? DEFAULT_TRANSACTION_STATUS)}
+              fullWidth
+              required
+            >
+              {getEnumValues(TransactionStatus).map((value) => (
+                <MenuItem key={value} value={value}>{value}</MenuItem>
+              ))}
+            </TextField>
+          )}
 
           {!transaction && !canCreateWithParticipants && (
             <Alert severity="warning">

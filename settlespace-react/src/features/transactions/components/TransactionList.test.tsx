@@ -13,9 +13,14 @@ test('renders empty state when there are no transactions', () => {
   render(
     <TransactionList
       transactions={[]}
-      canManage={() => true}
+      canUpdate={() => true}
+      canDelete={() => true}
+      canConfirm={() => false}
+      canRefuse={() => false}
       onEdit={jest.fn()}
       onDelete={jest.fn()}
+      onConfirm={jest.fn()}
+      onRefuse={jest.fn()}
     />,
   );
 
@@ -45,9 +50,14 @@ test('renders transactions, highlights managed rows, and calls edit/delete callb
         },
       ]}
       currentPersonId="p3"
-      canManage={() => true}
+      canUpdate={() => true}
+      canDelete={() => true}
+      canConfirm={() => false}
+      canRefuse={() => false}
       onEdit={onEdit}
       onDelete={onDelete}
+      onConfirm={jest.fn()}
+      onRefuse={jest.fn()}
     />,
   );
 
@@ -87,9 +97,14 @@ test('shows who manages a transaction for other involved people when the creator
         },
       ]}
       currentPersonId="p1"
-      canManage={() => false}
+      canUpdate={() => false}
+      canDelete={() => false}
+      canConfirm={() => false}
+      canRefuse={() => false}
       onEdit={jest.fn()}
       onDelete={jest.fn()}
+      onConfirm={jest.fn()}
+      onRefuse={jest.fn()}
     />,
   );
 
@@ -117,11 +132,86 @@ test('does not show the managed-by line when the creator is already the payer or
         },
       ]}
       currentPersonId="p1"
-      canManage={() => false}
+      canUpdate={() => false}
+      canDelete={() => false}
+      canConfirm={() => false}
+      canRefuse={() => false}
       onEdit={jest.fn()}
       onDelete={jest.fn()}
+      onConfirm={jest.fn()}
+      onRefuse={jest.fn()}
     />,
   );
 
   expect(screen.queryByText(new RegExp(`managed by ${TEST_TRANSACTION_TEXT.PAYEE_NAME}`, 'i'))).not.toBeInTheDocument();
+});
+
+test('hides the actions menu button when no actions are available', () => {
+  render(
+    <TransactionList
+      transactions={[
+        {
+          id: 't4',
+          payerPersonId: 'p1',
+          payeePersonId: 'p2',
+          createdByPersonId: 'p3',
+          amount: 10,
+          currencyCode: 'EUR',
+          transactionDateUtc: '2026-04-01T00:00:00Z',
+          description: 'No actions',
+          status: TransactionStatus.Completed,
+        },
+      ]}
+      canUpdate={() => false}
+      canDelete={() => false}
+      canConfirm={() => false}
+      canRefuse={() => false}
+      onEdit={jest.fn()}
+      onDelete={jest.fn()}
+      onConfirm={jest.fn()}
+      onRefuse={jest.fn()}
+    />,
+  );
+
+  expect(screen.queryByRole('button', { name: /open actions/i })).not.toBeInTheDocument();
+});
+
+test('shows confirm and refuse menu items when canConfirm and canRefuse return true', () => {
+  const onConfirm = jest.fn();
+  const onRefuse = jest.fn();
+
+  render(
+    <TransactionList
+      transactions={[
+        {
+          id: 't5',
+          payerPersonId: 'p1',
+          payeePersonId: 'p2',
+          createdByPersonId: 'p1',
+          amount: 30,
+          currencyCode: 'EUR',
+          transactionDateUtc: '2026-04-02T00:00:00Z',
+          description: 'Groceries',
+          status: TransactionStatus.Pending,
+          confirmedByPersonIds: ['p1'],
+        },
+      ]}
+      currentPersonId="p2"
+      canUpdate={() => false}
+      canDelete={() => false}
+      canConfirm={() => true}
+      canRefuse={() => true}
+      onEdit={jest.fn()}
+      onDelete={jest.fn()}
+      onConfirm={onConfirm}
+      onRefuse={onRefuse}
+    />,
+  );
+
+  fireEvent.click(screen.getByRole('button', { name: /open actions for groceries/i }));
+  expect(screen.getByRole('menuitem', { name: /^confirm$/i })).toBeInTheDocument();
+  expect(screen.getByRole('menuitem', { name: /^refuse$/i })).toBeInTheDocument();
+
+  fireEvent.click(screen.getByRole('menuitem', { name: /^confirm$/i }));
+  expect(onConfirm).toHaveBeenCalledWith('t5');
 });

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
-import { Chip, IconButton, Menu, MenuItem, Paper, Stack, Typography } from '@mui/material';
+import { Box, Chip, IconButton, Menu, MenuItem, Paper, Stack, Typography } from '@mui/material';
 import { Transaction, TransactionStatus } from '../../../shared/types';
 import { listItemSurfaceSx } from '../../../shared/theme/surfaceStyles';
 import { formatDateDDMMYYYY } from '../../../shared/utils/dateFormatting';
@@ -10,9 +10,14 @@ import { TRANSACTION_LIST_STYLE, TRANSACTION_LIST_TEXT } from '../constants';
 type TransactionListProps = {
   transactions: Transaction[];
   currentPersonId?: string;
-  canManage: (transaction: Transaction) => boolean;
+  canUpdate: (transaction: Transaction) => boolean;
+  canDelete: (transaction: Transaction) => boolean;
+  canConfirm: (transaction: Transaction) => boolean;
+  canRefuse: (transaction: Transaction) => boolean;
   onEdit: (transaction: Transaction) => void;
   onDelete: (id: string) => void;
+  onConfirm: (id: string) => void;
+  onRefuse: (id: string) => void;
 };
 
 function formatCurrency(amount: number, currencyCode: string): string {
@@ -68,9 +73,14 @@ function getManagedByLabel(transaction: Transaction, currentPersonId?: string): 
 const TransactionList: React.FC<TransactionListProps> = ({
   transactions,
   currentPersonId,
-  canManage,
+  canUpdate,
+  canDelete,
+  canConfirm,
+  canRefuse,
   onEdit,
   onDelete,
+  onConfirm,
+  onRefuse,
 }) => {
   const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
   const [activeTransaction, setActiveTransaction] = useState<Transaction | null>(null);
@@ -100,6 +110,22 @@ const TransactionList: React.FC<TransactionListProps> = ({
 
     handleCloseMenu();
   };
+
+  const handleConfirmAction = () => {
+    if (activeTransaction?.id) {
+      onConfirm(activeTransaction.id);
+    }
+
+    handleCloseMenu();
+  };
+
+  const handleRefuseAction = () => {
+    if (activeTransaction?.id) {
+      onRefuse(activeTransaction.id);
+    }
+
+    handleCloseMenu();
+  };
   if (transactions.length === 0) {
     return <SearchResultsAlert entityName="transactions" />;
   }
@@ -110,6 +136,11 @@ const TransactionList: React.FC<TransactionListProps> = ({
         {transactions.map((transaction) => {
           const transactionId = transaction.id;
           const managedByLabel = getManagedByLabel(transaction, currentPersonId);
+          const hasAnyAction =
+            canUpdate(transaction) ||
+            canDelete(transaction) ||
+            canConfirm(transaction) ||
+            canRefuse(transaction);
 
           return (
             <Paper key={transactionId} elevation={0} sx={listItemSurfaceSx}>
@@ -149,12 +180,16 @@ const TransactionList: React.FC<TransactionListProps> = ({
                   >
                     {formatCurrency(transaction.amount, transaction.currencyCode)}
                   </Typography>
-                  <IconButton
-                    aria-label={`Open actions for ${transaction.description}`}
-                    onClick={(event) => handleOpenMenu(event, transaction)}
-                  >
-                    <MoreVertIcon />
-                  </IconButton>
+                  {hasAnyAction ? (
+                    <IconButton
+                      aria-label={`Open actions for ${transaction.description}`}
+                      onClick={(event) => handleOpenMenu(event, transaction)}
+                    >
+                      <MoreVertIcon />
+                    </IconButton>
+                  ) : (
+                    <Box sx={{ width: 40, flexShrink: 0 }} />
+                  )}
                 </Stack>
               </Stack>
             </Paper>
@@ -163,15 +198,26 @@ const TransactionList: React.FC<TransactionListProps> = ({
       </Stack>
 
       <Menu anchorEl={menuAnchor} open={Boolean(menuAnchor)} onClose={handleCloseMenu}>
-        <MenuItem onClick={handleEditAction} disabled={!activeTransaction || !canManage(activeTransaction)}>
-          {TRANSACTION_LIST_TEXT.EDIT}
-        </MenuItem>
-        <MenuItem
-          onClick={handleDeleteAction}
-          disabled={!activeTransaction?.id || !activeTransaction || !canManage(activeTransaction)}
-        >
-          {TRANSACTION_LIST_TEXT.DELETE}
-        </MenuItem>
+        {activeTransaction && canUpdate(activeTransaction) && (
+          <MenuItem onClick={handleEditAction}>
+            {TRANSACTION_LIST_TEXT.EDIT}
+          </MenuItem>
+        )}
+        {activeTransaction && canDelete(activeTransaction) && (
+          <MenuItem onClick={handleDeleteAction}>
+            {TRANSACTION_LIST_TEXT.DELETE}
+          </MenuItem>
+        )}
+        {activeTransaction && canConfirm(activeTransaction) && (
+          <MenuItem onClick={handleConfirmAction}>
+            {TRANSACTION_LIST_TEXT.CONFIRM}
+          </MenuItem>
+        )}
+        {activeTransaction && canRefuse(activeTransaction) && (
+          <MenuItem onClick={handleRefuseAction}>
+            {TRANSACTION_LIST_TEXT.REFUSE}
+          </MenuItem>
+        )}
       </Menu>
     </>
   );

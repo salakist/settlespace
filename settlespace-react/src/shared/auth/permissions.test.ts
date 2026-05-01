@@ -1,12 +1,16 @@
 import {
   canAccessPersonsPage,
+  canConfirmTransaction,
   canCreatePerson,
   canCreateTransaction,
   canDeletePerson,
+  canDeleteTransaction,
   canEditRole,
   canReadTransaction,
+  canRefuseTransaction,
   canUpdateOrDeleteTransaction,
   canUpdatePerson,
+  canUpdateTransaction,
 } from './permissions';
 import { Person, PersonRole, Transaction, TransactionStatus } from '../types';
 
@@ -153,14 +157,88 @@ describe('permissions', () => {
     expect(canCreateTransaction(PersonRole.User, undefined, 'user-1', 'payee-1')).toBe(false);
   });
 
-  test('canUpdateOrDeleteTransaction allows admins and creators only', () => {
+  test('canUpdateOrDeleteTransaction returns true if canUpdate or canDelete is true', () => {
+    const pendingOwn = createTransaction({ createdByPersonId: 'user-1', status: TransactionStatus.Pending });
+    const completedOwn = createTransaction({ createdByPersonId: 'user-1', status: TransactionStatus.Completed });
+    const othersTransaction = createTransaction({ createdByPersonId: 'user-2', status: TransactionStatus.Completed });
+
+    expect(canUpdateOrDeleteTransaction(PersonRole.Admin, undefined, othersTransaction)).toBe(true);
+    expect(canUpdateOrDeleteTransaction(PersonRole.Manager, 'user-1', completedOwn)).toBe(true);
+    expect(canUpdateOrDeleteTransaction(PersonRole.User, 'user-1', pendingOwn)).toBe(true);
+    expect(canUpdateOrDeleteTransaction(PersonRole.User, 'user-1', completedOwn)).toBe(false);
+    expect(canUpdateOrDeleteTransaction(PersonRole.User, undefined, pendingOwn)).toBe(false);
+  });
+
+  test('canUpdateTransaction allows admins always, managers and users only when creator, users only on Pending', () => {
+    const pendingOwn = createTransaction({ createdByPersonId: 'user-1', status: TransactionStatus.Pending });
+    const completedOwn = createTransaction({ createdByPersonId: 'user-1', status: TransactionStatus.Completed });
+    const pendingOthers = createTransaction({ createdByPersonId: 'user-2', status: TransactionStatus.Pending });
+
+    expect(canUpdateTransaction(PersonRole.Admin, undefined, completedOwn)).toBe(true);
+    expect(canUpdateTransaction(PersonRole.Manager, 'user-1', pendingOwn)).toBe(true);
+    expect(canUpdateTransaction(PersonRole.Manager, 'user-1', completedOwn)).toBe(true);
+    expect(canUpdateTransaction(PersonRole.Manager, 'user-1', pendingOthers)).toBe(false);
+    expect(canUpdateTransaction(PersonRole.User, 'user-1', pendingOwn)).toBe(true);
+    expect(canUpdateTransaction(PersonRole.User, 'user-1', completedOwn)).toBe(false);
+    expect(canUpdateTransaction(PersonRole.User, 'user-2', pendingOwn)).toBe(false);
+    expect(canUpdateTransaction(PersonRole.User, undefined, pendingOwn)).toBe(false);
+  });
+
+  test('canDeleteTransaction blocks users always, allows managers and admins by creator rule', () => {
     const ownTransaction = createTransaction({ createdByPersonId: 'user-1' });
     const othersTransaction = createTransaction({ createdByPersonId: 'user-2' });
 
-    expect(canUpdateOrDeleteTransaction(PersonRole.Admin, undefined, othersTransaction)).toBe(true);
-    expect(canUpdateOrDeleteTransaction(PersonRole.Manager, 'user-1', ownTransaction)).toBe(true);
-    expect(canUpdateOrDeleteTransaction(PersonRole.User, 'user-1', ownTransaction)).toBe(true);
-    expect(canUpdateOrDeleteTransaction(PersonRole.User, 'user-1', othersTransaction)).toBe(false);
-    expect(canUpdateOrDeleteTransaction(PersonRole.User, undefined, ownTransaction)).toBe(false);
+    expect(canDeleteTransaction(PersonRole.Admin, undefined, othersTransaction)).toBe(true);
+    expect(canDeleteTransaction(PersonRole.Manager, 'user-1', ownTransaction)).toBe(true);
+    expect(canDeleteTransaction(PersonRole.Manager, 'user-1', othersTransaction)).toBe(false);
+    expect(canDeleteTransaction(PersonRole.User, 'user-1', ownTransaction)).toBe(false);
+    expect(canDeleteTransaction(PersonRole.User, undefined, ownTransaction)).toBe(false);
+  });
+
+  test('canConfirmTransaction allows involved, pending, not-yet-confirmed persons only', () => {
+    const pending = createTransaction({
+      payerPersonId: 'payer-1',
+      payeePersonId: 'payee-1',
+      status: TransactionStatus.Pending,
+      confirmedByPersonIds: [],
+    });
+    const pendingPayerConfirmed = createTransaction({
+      payerPersonId: 'payer-1',
+      payeePersonId: 'payee-1',
+      status: TransactionStatus.Pending,
+      confirmedByPersonIds: ['payer-1'],
+    });
+    const completed = createTransaction({
+      payerPersonId: 'payer-1',
+      payeePersonId: 'payee-1',
+      status: TransactionStatus.Completed,
+      confirmedByPersonIds: [],
+    });
+
+    expect(canConfirmTransaction(PersonRole.User, 'payee-1', pending)).toBe(true);
+    expect(canConfirmTransaction(PersonRole.User, 'payer-1', pending)).toBe(true);
+    expect(canConfirmTransaction(PersonRole.User, 'payer-1', pendingPayerConfirmed)).toBe(false);
+    expect(canConfirmTransaction(PersonRole.User, 'other-1', pending)).toBe(false);
+    expect(canConfirmTransaction(PersonRole.User, 'payee-1', completed)).toBe(false);
+    expect(canConfirmTransaction(PersonRole.User, undefined, pending)).toBe(false);
+  });
+
+  test('canRefuseTransaction has same rules as canConfirmTransaction', () => {
+    const pending = createTransaction({
+      payerPersonId: 'payer-1',
+      payeePersonId: 'payee-1',
+      status: TransactionStatus.Pending,
+      confirmedByPersonIds: [],
+    });
+    const alreadyConfirmedByPayer = createTransaction({
+      payerPersonId: 'payer-1',
+      payeePersonId: 'payee-1',
+      status: TransactionStatus.Pending,
+      confirmedByPersonIds: ['payer-1'],
+    });
+
+    expect(canRefuseTransaction(PersonRole.User, 'payee-1', pending)).toBe(true);
+    expect(canRefuseTransaction(PersonRole.User, 'payer-1', alreadyConfirmedByPayer)).toBe(false);
+    expect(canRefuseTransaction(PersonRole.User, 'other-1', pending)).toBe(false);
   });
 });

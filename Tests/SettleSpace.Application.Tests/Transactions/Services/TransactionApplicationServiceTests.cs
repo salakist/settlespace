@@ -346,7 +346,221 @@ public class TransactionApplicationServiceTests
         _repositoryMock.Verify(r => r.UpdateAsync("tx-1", It.Is<Transaction>(t => t.CurrencyCode == "USD")), Times.Once);
     }
 
-    private static Transaction BuildTransaction(string id) =>
+    [Fact]
+    public async Task CreateTransactionAsyncUserRoleForcesPendingStatus()
+    {
+        var command = new CreateTransactionCommand
+        {
+            PayerPersonId = "user-1",
+            PayeePersonId = "user-2",
+            Amount = 10m,
+            CurrencyCode = "EUR",
+            TransactionDateUtc = DateTime.UtcNow,
+            Description = "Lunch",
+            Status = TransactionStatus.Completed,
+        };
+
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Transaction>()))
+            .ReturnsAsync((Transaction tx) => tx);
+
+        var result = await _sut.CreateTransactionAsync("user-1", PersonRole.USER, command);
+
+        Assert.Equal(TransactionStatus.Pending, result.Status);
+    }
+
+    [Fact]
+    public async Task CreateTransactionAsyncAdminRoleUsesCommandStatus()
+    {
+        var command = new CreateTransactionCommand
+        {
+            PayerPersonId = "user-1",
+            PayeePersonId = "user-2",
+            Amount = 10m,
+            CurrencyCode = "EUR",
+            TransactionDateUtc = DateTime.UtcNow,
+            Description = "Lunch",
+            Status = TransactionStatus.Completed,
+        };
+
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Transaction>()))
+            .ReturnsAsync((Transaction tx) => tx);
+
+        var result = await _sut.CreateTransactionAsync("admin-1", PersonRole.ADMIN, command);
+
+        Assert.Equal(TransactionStatus.Completed, result.Status);
+    }
+
+    [Fact]
+    public async Task CreateTransactionAsyncCreatorInvolvedAutoConfirmsCreator()
+    {
+        var command = new CreateTransactionCommand
+        {
+            PayerPersonId = "user-1",
+            PayeePersonId = "user-2",
+            Amount = 10m,
+            CurrencyCode = "EUR",
+            TransactionDateUtc = DateTime.UtcNow,
+            Description = "Lunch",
+        };
+
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Transaction>()))
+            .ReturnsAsync((Transaction tx) => tx);
+
+        var result = await _sut.CreateTransactionAsync("user-1", PersonRole.USER, command);
+
+        Assert.Contains("user-1", result.ConfirmedByPersonIds);
+    }
+
+    [Fact]
+    public async Task CreateTransactionAsyncManagerNotInvolvedConfirmedByPersonIdsEmpty()
+    {
+        var command = new CreateTransactionCommand
+        {
+            PayerPersonId = "user-1",
+            PayeePersonId = "user-2",
+            Amount = 10m,
+            CurrencyCode = "EUR",
+            TransactionDateUtc = DateTime.UtcNow,
+            Description = "Lunch",
+        };
+
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Transaction>()))
+            .ReturnsAsync((Transaction tx) => tx);
+
+        var result = await _sut.CreateTransactionAsync("manager-1", PersonRole.MANAGER, command);
+
+        Assert.Empty(result.ConfirmedByPersonIds);
+    }
+
+    [Fact]
+    public async Task UpdateTransactionAsyncUserRolePreservesExistingStatus()
+    {
+        var existing = BuildTransaction("tx-1", TransactionStatus.Pending);
+        var command = new UpdateTransactionCommand
+        {
+            PayerPersonId = "user-1",
+            PayeePersonId = "user-2",
+            Amount = 15m,
+            CurrencyCode = "EUR",
+            TransactionDateUtc = DateTime.UtcNow,
+            Description = "Updated",
+            Status = TransactionStatus.Completed,
+        };
+
+        _repositoryMock.Setup(r => r.GetByIdAsync("tx-1")).ReturnsAsync(existing);
+        _repositoryMock.Setup(r => r.UpdateAsync("tx-1", It.IsAny<Transaction>())).Returns(Task.CompletedTask);
+
+        await _sut.UpdateTransactionAsync("tx-1", "user-1", PersonRole.USER, command);
+
+        _repositoryMock.Verify(r => r.UpdateAsync("tx-1", It.Is<Transaction>(t => t.Status == TransactionStatus.Pending)), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateTransactionAsyncAdminCanChangeStatus()
+    {
+        var existing = BuildTransaction("tx-1", TransactionStatus.Pending);
+        var command = new UpdateTransactionCommand
+        {
+            PayerPersonId = "user-1",
+            PayeePersonId = "user-2",
+            Amount = 15m,
+            CurrencyCode = "EUR",
+            TransactionDateUtc = DateTime.UtcNow,
+            Description = "Updated",
+            Status = TransactionStatus.Completed,
+        };
+
+        _repositoryMock.Setup(r => r.GetByIdAsync("tx-1")).ReturnsAsync(existing);
+        _repositoryMock.Setup(r => r.UpdateAsync("tx-1", It.IsAny<Transaction>())).Returns(Task.CompletedTask);
+
+        await _sut.UpdateTransactionAsync("tx-1", "admin-1", PersonRole.ADMIN, command);
+
+        _repositoryMock.Verify(r => r.UpdateAsync("tx-1", It.Is<Transaction>(t => t.Status == TransactionStatus.Completed)), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateTransactionAsyncPendingEditResetsConfirmations()
+    {
+        var existing = BuildTransaction("tx-1", TransactionStatus.Pending);
+        existing.ConfirmedByPersonIds = ["user-1"];
+        var command = new UpdateTransactionCommand
+        {
+            PayerPersonId = "user-1",
+            PayeePersonId = "user-2",
+            Amount = 20m,
+            CurrencyCode = "EUR",
+            TransactionDateUtc = DateTime.UtcNow,
+            Description = "Edited",
+        };
+
+        _repositoryMock.Setup(r => r.GetByIdAsync("tx-1")).ReturnsAsync(existing);
+        _repositoryMock.Setup(r => r.UpdateAsync("tx-1", It.IsAny<Transaction>())).Returns(Task.CompletedTask);
+
+        await _sut.UpdateTransactionAsync("tx-1", "user-1", PersonRole.USER, command);
+
+        _repositoryMock.Verify(r => r.UpdateAsync("tx-1", It.Is<Transaction>(t =>
+            t.ConfirmedByPersonIds.Count == 1 && t.ConfirmedByPersonIds.Contains("user-1"))), Times.Once);
+    }
+
+    [Fact]
+    public async Task ConfirmTransactionAsyncAddsConfirmationAndReturnsDto()
+    {
+        var transaction = BuildTransaction("tx-1");
+        _repositoryMock.Setup(r => r.GetByIdAsync("tx-1")).ReturnsAsync(transaction);
+        _repositoryMock.Setup(r => r.UpdateAsync("tx-1", It.IsAny<Transaction>())).Returns(Task.CompletedTask);
+
+        var result = await _sut.ConfirmTransactionAsync("tx-1", "user-2", PersonRole.USER);
+
+        _domainServiceMock.Verify(d => d.EnsureCanConfirm(It.IsAny<Transaction>(), "user-2"), Times.Once);
+        _repositoryMock.Verify(r => r.UpdateAsync("tx-1", It.IsAny<Transaction>()), Times.Once);
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public async Task ConfirmTransactionAsyncBothConfirmedSetsStatusToCompleted()
+    {
+        var transaction = BuildTransaction("tx-1");
+        transaction.ConfirmedByPersonIds = ["user-1"];
+        _repositoryMock.Setup(r => r.GetByIdAsync("tx-1")).ReturnsAsync(transaction);
+        _repositoryMock.Setup(r => r.UpdateAsync("tx-1", It.IsAny<Transaction>())).Returns(Task.CompletedTask);
+
+        var result = await _sut.ConfirmTransactionAsync("tx-1", "user-2", PersonRole.USER);
+
+        Assert.Equal(TransactionStatus.Completed, result.Status);
+    }
+
+    [Fact]
+    public async Task ConfirmTransactionAsyncMissingTransactionThrowsTransactionNotFoundException()
+    {
+        _repositoryMock.Setup(r => r.GetByIdAsync("missing")).ReturnsAsync((Transaction?)null);
+
+        await Assert.ThrowsAsync<TransactionNotFoundException>(() =>
+            _sut.ConfirmTransactionAsync("missing", "user-1", PersonRole.USER));
+    }
+
+    [Fact]
+    public async Task RefuseTransactionAsyncSetsCancelledAndReturnsDto()
+    {
+        var transaction = BuildTransaction("tx-1");
+        _repositoryMock.Setup(r => r.GetByIdAsync("tx-1")).ReturnsAsync(transaction);
+        _repositoryMock.Setup(r => r.UpdateAsync("tx-1", It.IsAny<Transaction>())).Returns(Task.CompletedTask);
+
+        var result = await _sut.RefuseTransactionAsync("tx-1", "user-2", PersonRole.USER);
+
+        _domainServiceMock.Verify(d => d.EnsureCanRefuse(It.IsAny<Transaction>(), "user-2"), Times.Once);
+        Assert.Equal(TransactionStatus.Cancelled, result.Status);
+    }
+
+    [Fact]
+    public async Task RefuseTransactionAsyncMissingTransactionThrowsTransactionNotFoundException()
+    {
+        _repositoryMock.Setup(r => r.GetByIdAsync("missing")).ReturnsAsync((Transaction?)null);
+
+        await Assert.ThrowsAsync<TransactionNotFoundException>(() =>
+            _sut.RefuseTransactionAsync("missing", "user-1", PersonRole.USER));
+    }
+
+    private static Transaction BuildTransaction(string id, TransactionStatus status = TransactionStatus.Pending) =>
         new()
         {
             Id = id,
@@ -357,7 +571,8 @@ public class TransactionApplicationServiceTests
             CurrencyCode = "EUR",
             TransactionDateUtc = DateTime.UtcNow,
             Description = "Shared taxi",
-            Status = TransactionStatus.Completed,
+            Status = status,
+            ConfirmedByPersonIds = [],
             CreatedAtUtc = DateTime.UtcNow,
             UpdatedAtUtc = DateTime.UtcNow,
         };

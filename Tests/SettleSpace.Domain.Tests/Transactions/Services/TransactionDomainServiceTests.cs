@@ -92,6 +92,35 @@ public class TransactionDomainServiceTests
     }
 
     [Fact]
+    public void EnsureCanUpdateUserWhenPendingDoesNotThrow()
+    {
+        var transaction = BuildTransaction(createdByPersonId: "payer-1");
+
+        var ex = Record.Exception(() => _sut.EnsureCanUpdate(transaction, "payer-1", PersonRole.USER));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void EnsureCanUpdateUserWhenNotPendingThrowsUnauthorizedTransactionAccessException()
+    {
+        var transaction = BuildTransaction(createdByPersonId: "payer-1", status: TransactionStatus.Completed);
+
+        Assert.Throws<UnauthorizedTransactionAccessException>(
+            () => _sut.EnsureCanUpdate(transaction, "payer-1", PersonRole.USER));
+    }
+
+    [Fact]
+    public void EnsureCanUpdateManagerWhenCompletedDoesNotThrow()
+    {
+        var transaction = BuildTransaction(createdByPersonId: "manager-1", status: TransactionStatus.Completed);
+
+        var ex = Record.Exception(() => _sut.EnsureCanUpdate(transaction, "manager-1", PersonRole.MANAGER));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
     public void EnsureCanDeleteAdminDoesNotThrow()
     {
         var transaction = BuildTransaction(createdByPersonId: "someone-else");
@@ -99,6 +128,110 @@ public class TransactionDomainServiceTests
         var ex = Record.Exception(() => _sut.EnsureCanDelete(transaction, "admin-1", PersonRole.ADMIN));
 
         Assert.Null(ex);
+    }
+
+    [Fact]
+    public void EnsureCanDeleteUserAlwaysThrowsUnauthorizedTransactionAccessException()
+    {
+        var transaction = BuildTransaction(createdByPersonId: "payer-1");
+
+        Assert.Throws<UnauthorizedTransactionAccessException>(
+            () => _sut.EnsureCanDelete(transaction, "payer-1", PersonRole.USER));
+    }
+
+    [Fact]
+    public void EnsureCanDeleteManagerWhenCreatorDoesNotThrow()
+    {
+        var transaction = BuildTransaction(createdByPersonId: "manager-1");
+
+        var ex = Record.Exception(() => _sut.EnsureCanDelete(transaction, "manager-1", PersonRole.MANAGER));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void EnsureCanDeleteManagerWhenNotCreatorThrowsUnauthorizedTransactionAccessException()
+    {
+        var transaction = BuildTransaction(createdByPersonId: "someone-else");
+
+        Assert.Throws<UnauthorizedTransactionAccessException>(
+            () => _sut.EnsureCanDelete(transaction, "manager-1", PersonRole.MANAGER));
+    }
+
+    [Fact]
+    public void EnsureCanConfirmWhenInvolvedAndPendingAndNotYetConfirmedDoesNotThrow()
+    {
+        var transaction = BuildTransaction(payerPersonId: "payer-1", payeePersonId: "payee-1");
+
+        var ex = Record.Exception(() => _sut.EnsureCanConfirm(transaction, "payee-1"));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void EnsureCanConfirmWhenNotInvolvedThrowsUnauthorizedTransactionAccessException()
+    {
+        var transaction = BuildTransaction();
+
+        Assert.Throws<UnauthorizedTransactionAccessException>(
+            () => _sut.EnsureCanConfirm(transaction, "other-person"));
+    }
+
+    [Fact]
+    public void EnsureCanConfirmWhenNotPendingThrowsUnauthorizedTransactionAccessException()
+    {
+        var transaction = BuildTransaction(status: TransactionStatus.Completed);
+
+        Assert.Throws<UnauthorizedTransactionAccessException>(
+            () => _sut.EnsureCanConfirm(transaction, "payee-1"));
+    }
+
+    [Fact]
+    public void EnsureCanConfirmWhenAlreadyConfirmedThrowsUnauthorizedTransactionAccessException()
+    {
+        var transaction = BuildTransaction();
+        transaction.ConfirmedByPersonIds = ["payee-1"];
+
+        Assert.Throws<UnauthorizedTransactionAccessException>(
+            () => _sut.EnsureCanConfirm(transaction, "payee-1"));
+    }
+
+    [Fact]
+    public void EnsureCanRefuseWhenInvolvedAndPendingAndNotYetConfirmedDoesNotThrow()
+    {
+        var transaction = BuildTransaction();
+
+        var ex = Record.Exception(() => _sut.EnsureCanRefuse(transaction, "payee-1"));
+
+        Assert.Null(ex);
+    }
+
+    [Fact]
+    public void EnsureCanRefuseWhenNotInvolvedThrowsUnauthorizedTransactionAccessException()
+    {
+        var transaction = BuildTransaction();
+
+        Assert.Throws<UnauthorizedTransactionAccessException>(
+            () => _sut.EnsureCanRefuse(transaction, "other-person"));
+    }
+
+    [Fact]
+    public void EnsureCanRefuseWhenNotPendingThrowsUnauthorizedTransactionAccessException()
+    {
+        var transaction = BuildTransaction(status: TransactionStatus.Cancelled);
+
+        Assert.Throws<UnauthorizedTransactionAccessException>(
+            () => _sut.EnsureCanRefuse(transaction, "payee-1"));
+    }
+
+    [Fact]
+    public void EnsureCanRefuseWhenAlreadyConfirmedThrowsUnauthorizedTransactionAccessException()
+    {
+        var transaction = BuildTransaction();
+        transaction.ConfirmedByPersonIds = ["payer-1"];
+
+        Assert.Throws<UnauthorizedTransactionAccessException>(
+            () => _sut.EnsureCanRefuse(transaction, "payer-1"));
     }
 
     [Fact]
@@ -133,7 +266,8 @@ public class TransactionDomainServiceTests
         string id = "tx-1",
         string payerPersonId = "payer-1",
         string payeePersonId = "payee-1",
-        string createdByPersonId = "payer-1") =>
+        string createdByPersonId = "payer-1",
+        TransactionStatus status = TransactionStatus.Pending) =>
         new()
         {
             Id = id,
@@ -144,7 +278,7 @@ public class TransactionDomainServiceTests
             CurrencyCode = "EUR",
             TransactionDateUtc = DateTime.UtcNow,
             Description = "Shared bill",
-            Status = TransactionStatus.Pending,
+            Status = status,
             CreatedAtUtc = DateTime.UtcNow,
             UpdatedAtUtc = DateTime.UtcNow,
         };

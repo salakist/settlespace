@@ -23,6 +23,7 @@ public class TransactionMapper : ITransactionMapper
             Description = entity.Description,
             Category = entity.Category,
             Status = entity.Status,
+            ConfirmedByPersonIds = entity.ConfirmedByPersonIds,
             CreatedAtUtc = entity.CreatedAtUtc,
             UpdatedAtUtc = entity.UpdatedAtUtc,
         };
@@ -79,7 +80,7 @@ public class TransactionMapper : ITransactionMapper
             TransactionDateUtc = command.TransactionDateUtc,
             Description = command.Description,
             Category = command.Category,
-            Status = command.Status,
+            Status = command.Status ?? TransactionStatus.Pending,
             CreatedAtUtc = createdAtUtc,
             UpdatedAtUtc = updatedAtUtc,
         };

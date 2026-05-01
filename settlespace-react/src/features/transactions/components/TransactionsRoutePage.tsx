@@ -1,5 +1,10 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
-import { canUpdateOrDeleteTransaction } from '../../../shared/auth/permissions';
+import {
+  canConfirmTransaction,
+  canDeleteTransaction,
+  canRefuseTransaction,
+  canUpdateTransaction,
+} from '../../../shared/auth/permissions';
 import { usePersonDirectory } from '../../persons/hooks/usePersonDirectory';
 import { PersonRole, Transaction } from '../../../shared/types';
 import { useTransactions } from '../hooks/useTransactions';
@@ -32,8 +37,10 @@ const TransactionsRoutePage: React.FC<TransactionsRoutePageProps> = ({ currentPe
     editingTransaction,
     error,
     handleCancel,
+    handleConfirm,
     handleDelete,
     handleEdit,
+    handleRefuse,
     handleSave,
     handleSearch,
     loading,
@@ -57,8 +64,23 @@ const TransactionsRoutePage: React.FC<TransactionsRoutePageProps> = ({ currentPe
     });
   }, [handleSearch, searchQuery]);
 
-  const canManageTransaction = useCallback(
-    (transaction: Transaction) => canUpdateOrDeleteTransaction(role, currentPersonId, transaction),
+  const canUpdateTx = useCallback(
+    (transaction: Transaction) => canUpdateTransaction(role, currentPersonId, transaction),
+    [currentPersonId, role],
+  );
+
+  const canDeleteTx = useCallback(
+    (transaction: Transaction) => canDeleteTransaction(role, currentPersonId, transaction),
+    [currentPersonId, role],
+  );
+
+  const canConfirmTx = useCallback(
+    (transaction: Transaction) => canConfirmTransaction(role, currentPersonId, transaction),
+    [currentPersonId, role],
+  );
+
+  const canRefuseTx = useCallback(
+    (transaction: Transaction) => canRefuseTransaction(role, currentPersonId, transaction),
     [currentPersonId, role],
   );
 
@@ -76,12 +98,17 @@ const TransactionsRoutePage: React.FC<TransactionsRoutePageProps> = ({ currentPe
       role={role}
       initialQuery={searchQuery}
       listPath={listPath}
-      canManage={canManageTransaction}
+      canUpdate={canUpdateTx}
+      canDelete={canDeleteTx}
+      canConfirm={canConfirmTx}
+      canRefuse={canRefuseTx}
       onSearch={setQueryToUrl}
       onSave={handleSave}
       onCancel={handleCancel}
       onEdit={handleEdit}
       onDelete={handleDelete}
+      onConfirm={handleConfirm}
+      onRefuse={handleRefuse}
       onAdd={showCreateForm}
     />
   );

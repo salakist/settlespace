@@ -9,6 +9,10 @@ Transactions API context for authenticated, user-scoped transaction CRUD.
 - Own transaction mapping between commands, domain models, and DTO responses.
 - Own application-service orchestration and authorization checks for transactions.
 - Own search-to-filter orchestration via `POST /transactions/search`; validation is delegated to `TransactionSearchFilter.Validate()` in the domain.
+- Non-admin creates always force `Status = Pending`; `TransactionMutationCommand.Status` is nullable and defaults to `Pending` in the mapper when null.
+- `ConfirmTransactionAsync`: adds `loggedPersonId` to `ConfirmedByPersonIds`; sets `Status = Completed` when `IsFullyConfirmed()`.
+- `RefuseTransactionAsync`: sets `Status = Cancelled` and clears `ConfirmedByPersonIds`.
+- Controller routes: `POST /api/transactions/{id}/confirm` and `POST /api/transactions/{id}/refuse`.
 
 ## Key files
 - `TransactionsController.cs`

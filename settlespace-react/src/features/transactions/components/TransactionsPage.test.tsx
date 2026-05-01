@@ -88,12 +88,17 @@ const defaultProps = {
   role: PersonRole.User,
   initialQuery: {},
   listPath: APP_ROUTES.TRANSACTIONS,
-  canManage: jest.fn(() => true),
+  canUpdate: jest.fn(() => true),
+  canDelete: jest.fn(() => true),
+  canConfirm: jest.fn(() => false),
+  canRefuse: jest.fn(() => false),
   onSearch: jest.fn(),
   onSave: jest.fn().mockResolvedValue(undefined),
   onCancel: jest.fn(),
   onEdit: jest.fn(),
   onDelete: jest.fn(),
+  onConfirm: jest.fn(),
+  onRefuse: jest.fn(),
   onAdd: jest.fn(),
 };
 
