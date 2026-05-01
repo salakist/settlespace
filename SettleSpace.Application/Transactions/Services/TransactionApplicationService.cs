@@ -1,9 +1,9 @@
+using SettleSpace.Application.Persons.Services;
 using SettleSpace.Application.Transactions.Commands;
 using SettleSpace.Application.Transactions.Queries;
 using SettleSpace.Application.Transactions.Mapping;
 using SettleSpace.Domain.Persons;
 using SettleSpace.Domain.Persons.Entities;
-using SettleSpace.Domain.Transactions.Entities;
 using SettleSpace.Domain.Transactions.Exceptions;
 using SettleSpace.Domain.Transactions;
 using SettleSpace.Domain.Transactions.Services;
@@ -14,9 +14,10 @@ public class TransactionApplicationService(
     IPersonRepository personRepository,
     ITransactionRepository repository,
     ITransactionDomainService domainService,
-    ITransactionMapper transactionMapper) : ITransactionApplicationService
+    ITransactionMapper transactionMapper,
+    IPersonDisplayNameResolver personDisplayNameResolver) : ITransactionApplicationService
 {
-    public async Task<List<Transaction>> SearchTransactionsAsync(string loggedPersonId, PersonRole loggedRole, TransactionSearchQuery query)
+    public async Task<List<TransactionDto>> SearchTransactionsAsync(string loggedPersonId, PersonRole loggedRole, TransactionSearchQuery query)
     {
         var filter = transactionMapper.ToSearchFilter(query, loggedPersonId);
         filter.Validate();
@@ -34,23 +35,32 @@ public class TransactionApplicationService(
         }
 
         var transactions = await repository.SearchAsync(filter);
-        return domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
+        var readable = domainService.FilterReadableTransactions(transactions, loggedPersonId, loggedRole);
+        var relatedPersonIds = readable.SelectMany(t => t.GetRelatedPersonIds()).ToList();
+        var personDisplayNames = await personDisplayNameResolver.ResolveAsync(relatedPersonIds);
+
+        return readable.ConvertAll(t => transactionMapper.ToDto(t, personDisplayNames));
     }
 
-    public async Task<Transaction> GetTransactionByIdAsync(string id, string loggedPersonId, PersonRole loggedRole)
+    public async Task<TransactionDto> GetTransactionByIdAsync(string id, string loggedPersonId, PersonRole loggedRole)
     {
         var transaction = await repository.GetByIdAsync(id) ?? throw new TransactionNotFoundException(id);
         domainService.EnsureCanRead(transaction, loggedPersonId, loggedRole);
-        return transaction;
+        var personDisplayNames = await personDisplayNameResolver.ResolveAsync(transaction.GetRelatedPersonIds());
+
+        return transactionMapper.ToDto(transaction, personDisplayNames);
     }
 
-    public async Task<Transaction> CreateTransactionAsync(string loggedPersonId, PersonRole loggedRole, CreateTransactionCommand command)
+    public async Task<TransactionDto> CreateTransactionAsync(string loggedPersonId, PersonRole loggedRole, CreateTransactionCommand command)
     {
         var transaction = transactionMapper.ToEntity(command, loggedPersonId);
         domainService.EnsureCanCreate(transaction, loggedPersonId, loggedRole);
         transaction.Validate();
 
-        return await repository.AddAsync(transaction);
+        var created = await repository.AddAsync(transaction);
+        var personDisplayNames = await personDisplayNameResolver.ResolveAsync(created.GetRelatedPersonIds());
+
+        return transactionMapper.ToDto(created, personDisplayNames);
     }
 
     public async Task UpdateTransactionAsync(string id, string loggedPersonId, PersonRole loggedRole, UpdateTransactionCommand command)

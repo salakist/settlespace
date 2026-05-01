@@ -27,7 +27,7 @@ public class TransactionMapperTests
             UpdatedAtUtc = DateTime.UtcNow,
         };
 
-        var dto = _sut.ToDto(entity);
+        var dto = _sut.ToDto(entity, new Dictionary<string, string>(StringComparer.Ordinal));
 
         Assert.Equal(entity.Id, dto.Id);
         Assert.Equal(entity.PayerPersonId, dto.PayerPersonId);

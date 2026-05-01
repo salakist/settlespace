@@ -23,6 +23,7 @@ Transactions API context for authenticated, user-scoped transaction CRUD.
 
 ## Dependencies
 - Domain transaction aggregate and transaction domain services
+- `IPersonDisplayNameResolver` for display name enrichment (injected into application service)
 - Repository interfaces resolved through DI
 
 ## Source-of-truth note

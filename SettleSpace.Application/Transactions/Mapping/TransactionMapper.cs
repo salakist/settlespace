@@ -7,16 +7,16 @@ namespace SettleSpace.Application.Transactions.Mapping;
 
 public class TransactionMapper : ITransactionMapper
 {
-    public TransactionDto ToDto(Transaction entity, IReadOnlyDictionary<string, string>? personDisplayNames = null) =>
+    public TransactionDto ToDto(Transaction entity, IReadOnlyDictionary<string, string> personDisplayNames) =>
         new()
         {
             Id = entity.Id,
             PayerPersonId = entity.PayerPersonId,
-            PayerDisplayName = ResolvePersonDisplayName(personDisplayNames, entity.PayerPersonId),
+            PayerDisplayName = personDisplayNames.GetValueOrDefault(entity.PayerPersonId, entity.PayerPersonId),
             PayeePersonId = entity.PayeePersonId,
-            PayeeDisplayName = ResolvePersonDisplayName(personDisplayNames, entity.PayeePersonId),
+            PayeeDisplayName = personDisplayNames.GetValueOrDefault(entity.PayeePersonId, entity.PayeePersonId),
             CreatedByPersonId = entity.CreatedByPersonId,
-            CreatedByDisplayName = ResolvePersonDisplayName(personDisplayNames, entity.CreatedByPersonId),
+            CreatedByDisplayName = personDisplayNames.GetValueOrDefault(entity.CreatedByPersonId, entity.CreatedByPersonId),
             Amount = entity.Amount,
             CurrencyCode = entity.CurrencyCode,
             TransactionDateUtc = entity.TransactionDateUtc,
@@ -83,19 +83,5 @@ public class TransactionMapper : ITransactionMapper
             CreatedAtUtc = createdAtUtc,
             UpdatedAtUtc = updatedAtUtc,
         };
-    }
-
-    private static string ResolvePersonDisplayName(
-        IReadOnlyDictionary<string, string>? personDisplayNames,
-        string personId)
-    {
-        if (personDisplayNames != null
-            && personDisplayNames.TryGetValue(personId, out var displayName)
-            && !string.IsNullOrWhiteSpace(displayName))
-        {
-            return displayName;
-        }
-
-        return personId;
     }
 }

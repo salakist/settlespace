@@ -4,7 +4,6 @@ using SettleSpace.Domain.Auth;
 using SettleSpace.Application.Transactions.Commands;
 using SettleSpace.Application.Transactions.Queries;
 using SettleSpace.Application.Transactions;
-using SettleSpace.Application.Transactions.Mapping;
 using SettleSpace.Application.Transactions.Services;
 using SettleSpace.Domain.Persons.Entities;
 using SettleSpace.Domain.Transactions.Entities;
@@ -18,20 +17,13 @@ namespace SettleSpace.Application.Tests.Transactions;
 public class TransactionsControllerTests
 {
     private readonly Mock<ITransactionApplicationService> _serviceMock = new();
-    private readonly Mock<SettleSpace.Application.Persons.Services.IPersonDisplayNameResolver> _personDisplayNameResolverMock = new();
     private readonly Mock<IAuthService> _authServiceMock = new();
     private readonly TransactionsController _controller;
 
     public TransactionsControllerTests()
     {
-        _personDisplayNameResolverMock
-            .Setup(resolver => resolver.ResolveAsync(It.IsAny<List<string>>()))
-            .ReturnsAsync([]);
-
         _controller = new TransactionsController(
             _serviceMock.Object,
-            new TransactionMapper(),
-            _personDisplayNameResolverMock.Object,
             _authServiceMock.Object);
     }
 
@@ -48,7 +40,7 @@ public class TransactionsControllerTests
             Description = "Coffee",
             Status = TransactionStatus.Completed,
         };
-        var created = BuildTransaction("507f1f77bcf86cd799439011");
+        var created = BuildTransactionDto("507f1f77bcf86cd799439011");
         _serviceMock.Setup(s => s.CreateTransactionAsync("user-1", PersonRole.USER, command)).ReturnsAsync(created);
         SetUser("user-1", PersonRole.USER);
 
@@ -85,7 +77,7 @@ public class TransactionsControllerTests
     {
         var query = new TransactionSearchQuery { FreeText = "dinner" };
         _serviceMock.Setup(s => s.SearchTransactionsAsync("user-1", PersonRole.USER, query))
-            .ReturnsAsync([BuildTransaction("tx-1")]);
+            .ReturnsAsync([BuildTransactionDto("tx-1")]);
         SetUser("user-1", PersonRole.USER);
 
         var result = await _controller.SearchTransactions(query);
@@ -150,13 +142,16 @@ public class TransactionsControllerTests
             .Returns((personId, role));
     }
 
-    private static Transaction BuildTransaction(string id) =>
+    private static TransactionDto BuildTransactionDto(string id) =>
         new()
         {
             Id = id,
             PayerPersonId = "user-1",
+            PayerDisplayName = "user-1",
             PayeePersonId = "user-2",
+            PayeeDisplayName = "user-2",
             CreatedByPersonId = "user-1",
+            CreatedByDisplayName = "user-1",
             Amount = 12m,
             CurrencyCode = "EUR",
             TransactionDateUtc = DateTime.UtcNow,

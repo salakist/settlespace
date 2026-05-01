@@ -1,8 +1,6 @@
 using SettleSpace.Application.Authentication.Services;
-using SettleSpace.Application.Persons.Services;
 using SettleSpace.Application.Transactions.Commands;
 using SettleSpace.Application.Transactions.Queries;
-using SettleSpace.Application.Transactions.Mapping;
 using SettleSpace.Application.Transactions.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,8 +12,6 @@ namespace SettleSpace.Application.Transactions;
 [Route("api/[controller]")]
 public class TransactionsController(
     ITransactionApplicationService applicationService,
-    ITransactionMapper transactionMapper,
-    IPersonDisplayNameResolver personDisplayNameResolver,
     IAuthService authService) : ControllerBase
 {
     [HttpPost("search")]
@@ -25,11 +21,7 @@ public class TransactionsController(
     public async Task<ActionResult<List<TransactionDto>>> SearchTransactions([FromBody] TransactionSearchQuery query)
     {
         var (personId, personRole) = authService.ResolveAuthContext(User);
-        var transactions = await applicationService.SearchTransactionsAsync(personId, personRole, query);
-        var relatedPersonIds = transactions.SelectMany(transaction => transaction.GetRelatedPersonIds()).ToList();
-        var personDisplayNames = await personDisplayNameResolver.ResolveAsync(relatedPersonIds);
-
-        return Ok(transactions.ConvertAll(transaction => transactionMapper.ToDto(transaction, personDisplayNames)));
+        return Ok(await applicationService.SearchTransactionsAsync(personId, personRole, query));
     }
 
     [HttpGet("{id:length(24)}")]
@@ -40,10 +32,7 @@ public class TransactionsController(
     public async Task<ActionResult<TransactionDto>> GetById(string id)
     {
         var (personId, personRole) = authService.ResolveAuthContext(User);
-        var transaction = await applicationService.GetTransactionByIdAsync(id, personId, personRole);
-        var personDisplayNames = await personDisplayNameResolver.ResolveAsync(transaction.GetRelatedPersonIds());
-
-        return Ok(transactionMapper.ToDto(transaction, personDisplayNames));
+        return Ok(await applicationService.GetTransactionByIdAsync(id, personId, personRole));
     }
 
     [HttpPost]
@@ -54,10 +43,9 @@ public class TransactionsController(
     public async Task<IActionResult> Post([FromBody] CreateTransactionCommand command)
     {
         var (personId, personRole) = authService.ResolveAuthContext(User);
-        var transaction = await applicationService.CreateTransactionAsync(personId, personRole, command);
-        var personDisplayNames = await personDisplayNameResolver.ResolveAsync(transaction.GetRelatedPersonIds());
+        var dto = await applicationService.CreateTransactionAsync(personId, personRole, command);
 
-        return CreatedAtAction(nameof(GetById), new { id = transaction.Id }, transactionMapper.ToDto(transaction, personDisplayNames));
+        return CreatedAtAction(nameof(GetById), new { id = dto.Id }, dto);
     }
 
     [HttpPut("{id:length(24)}")]

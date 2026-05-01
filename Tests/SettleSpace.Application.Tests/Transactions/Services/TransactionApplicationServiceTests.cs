@@ -1,3 +1,4 @@
+using SettleSpace.Application.Persons.Services;
 using SettleSpace.Application.Transactions.Commands;
 using SettleSpace.Application.Transactions.Queries;
 using SettleSpace.Application.Transactions.Mapping;
@@ -17,12 +18,22 @@ public class TransactionApplicationServiceTests
     private readonly Mock<IPersonRepository> _personRepositoryMock = new();
     private readonly Mock<ITransactionRepository> _repositoryMock = new();
     private readonly Mock<ITransactionDomainService> _domainServiceMock = new();
+    private readonly Mock<IPersonDisplayNameResolver> _personDisplayNameResolverMock = new();
     private readonly ITransactionMapper _mapper = new TransactionMapper();
     private readonly TransactionApplicationService _sut;
 
     public TransactionApplicationServiceTests()
     {
-        _sut = new TransactionApplicationService(_personRepositoryMock.Object, _repositoryMock.Object, _domainServiceMock.Object, _mapper);
+        _personDisplayNameResolverMock
+            .Setup(r => r.ResolveAsync(It.IsAny<List<string>>()))
+            .ReturnsAsync(new Dictionary<string, string>(StringComparer.Ordinal));
+
+        _sut = new TransactionApplicationService(
+            _personRepositoryMock.Object,
+            _repositoryMock.Object,
+            _domainServiceMock.Object,
+            _mapper,
+            _personDisplayNameResolverMock.Object);
     }
 
     [Fact]

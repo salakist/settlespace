@@ -22,6 +22,8 @@ Debts API context for authenticated, user-scoped debt summaries and settlement a
 ## Dependencies
 - Domain debts services and debt models
 - Domain transaction repository contract resolved through DI
+- `IPersonDisplayNameResolver` for display name enrichment (injected into application service)
+- `ITransactionMapper` for transaction DTO mapping (injected into `DebtMapper`)
 
 ## Source-of-truth note
 Cross-context application policy (DI, middleware, and artifact ownership) is defined in the parent
