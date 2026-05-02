@@ -2,6 +2,8 @@ using SettleSpace.Application.Persons.Services;
 using SettleSpace.Application.Transactions.Commands;
 using SettleSpace.Application.Transactions.Queries;
 using SettleSpace.Application.Transactions.Mapping;
+using SettleSpace.Application.Notifications.Services;
+using SettleSpace.Domain.Notifications.Entities;
 using SettleSpace.Domain.Persons;
 using SettleSpace.Domain.Persons.Entities;
 using SettleSpace.Domain.Transactions.Exceptions;
@@ -16,7 +18,8 @@ public class TransactionApplicationService(
     ITransactionRepository repository,
     ITransactionDomainService domainService,
     ITransactionMapper transactionMapper,
-    IPersonDisplayNameResolver personDisplayNameResolver) : ITransactionApplicationService
+    IPersonDisplayNameResolver personDisplayNameResolver,
+    INotificationApplicationService notificationService) : ITransactionApplicationService
 {
     public async Task<List<TransactionDto>> SearchTransactionsAsync(string loggedPersonId, PersonRole loggedRole, TransactionSearchQuery query)
     {
@@ -67,6 +70,14 @@ public class TransactionApplicationService(
 
         var created = await repository.AddAsync(transaction);
         var personDisplayNames = await personDisplayNameResolver.ResolveAsync(created.GetRelatedPersonIds());
+
+        var recipientsToNotify = new[] { created.PayerPersonId, created.PayeePersonId }
+            .Except(created.ConfirmedByPersonIds, StringComparer.Ordinal);
+
+        foreach (var recipientId in recipientsToNotify)
+        {
+            await notificationService.CreateAsync(recipientId, NotificationType.TransactionPendingConfirmation, created.Id);
+        }
 
         return transactionMapper.ToDto(created, personDisplayNames);
     }

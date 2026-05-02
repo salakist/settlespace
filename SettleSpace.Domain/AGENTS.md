@@ -10,6 +10,7 @@ Pure domain layer router for business invariants and contracts.
 
 ## Context AGENTS
 - `Auth/AGENTS.md` - password generation, validation, and hashing contracts/services.
+- `Notifications/AGENTS.md` - notification entity, repository contract, and exceptions.
 - `Persons/AGENTS.md` - person aggregate, repository contract, domain service, exceptions.
 - `Transactions/AGENTS.md` - transaction aggregate, repository contract, domain service, exceptions.
 - `Debts/AGENTS.md` - derived debt models, debt computation rules, and settlement validation.

@@ -46,20 +46,24 @@ SettleSpace.sln
 
 ### Backend context AGENTS
 - `SettleSpace.Application/Authentication/AGENTS.md`
+- `SettleSpace.Application/Notifications/AGENTS.md`
 - `SettleSpace.Application/Persons/AGENTS.md`
 - `SettleSpace.Application/Transactions/AGENTS.md`
 - `SettleSpace.Application/Debts/AGENTS.md`
 - `SettleSpace.Application/Middleware/AGENTS.md`
 - `SettleSpace.Domain/Auth/AGENTS.md`
+- `SettleSpace.Domain/Notifications/AGENTS.md`
 - `SettleSpace.Domain/Persons/AGENTS.md`
 - `SettleSpace.Domain/Transactions/AGENTS.md`
 - `SettleSpace.Domain/Debts/AGENTS.md`
+- `SettleSpace.Infrastructure/Notifications/AGENTS.md`
 - `SettleSpace.Infrastructure/Persons/AGENTS.md`
 - `SettleSpace.Infrastructure/Transactions/AGENTS.md`
 
 ### Frontend feature AGENTS
 - `settlespace-react/src/features/auth/AGENTS.md`
 - `settlespace-react/src/features/home/AGENTS.md`
+- `settlespace-react/src/features/notifications/AGENTS.md`
 - `settlespace-react/src/features/persons/AGENTS.md`
 - `settlespace-react/src/features/profile/AGENTS.md`
 - `settlespace-react/src/features/transactions/AGENTS.md`

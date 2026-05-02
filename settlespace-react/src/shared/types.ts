@@ -10,6 +10,18 @@ export enum TransactionStatus {
   Cancelled = 'Cancelled',
 }
 
+export enum NotificationType {
+  TransactionPendingConfirmation = 'TransactionPendingConfirmation',
+}
+
+export interface Notification {
+  id?: string;
+  type: NotificationType;
+  transactionId?: string;
+  isRead: boolean;
+  createdAtUtc: string;
+}
+
 export function getEnumValues<TEnum extends Record<string, string>>(
   enumType: TEnum,
 ): Array<TEnum[keyof TEnum]> {

@@ -20,6 +20,8 @@ import { canAccessPersonsPage } from '../shared/auth/permissions';
 import { BRAND_HEADER_ALT_TEXT } from '../shared/components/constants';
 import { SESSION_EXPIRED_MESSAGE } from '../shared/constants/messages';
 import { BRAND_HEADER_SRC } from '../shared/theme/surfaceStyles';
+import { NotificationsProvider } from '../features/notifications/context/NotificationsContext';
+import NotificationBell from '../features/notifications/components/NotificationBell';
 
 function getPrimaryTabValue(pathname: string, tabs: readonly { value: string }[]): string | false {
   if (pathname === APP_ROUTES.PROFILE) {
@@ -227,7 +229,8 @@ function App() {
   return (
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
-      <div className="App">
+      <NotificationsProvider>
+        <div className="App">
         <Container maxWidth="md">
           <Stack sx={{ pt: 4, mb: 3 }} spacing={1.5}>
             <Box
@@ -284,6 +287,7 @@ function App() {
                   spacing={1.5}
                   sx={{ minWidth: 'fit-content' }}
                 >
+                  <NotificationBell />
                   <Button
                     onClick={() => navigate(APP_ROUTES.PROFILE)}
                     variant={isProfileRoute ? 'contained' : 'outlined'}
@@ -383,6 +387,7 @@ function App() {
           </Routes>
         </Container>
       </div>
+      </NotificationsProvider>
     </ThemeProvider>
   );
 }

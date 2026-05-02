@@ -3,6 +3,8 @@ using SettleSpace.Application.Transactions.Commands;
 using SettleSpace.Application.Transactions.Queries;
 using SettleSpace.Application.Transactions.Mapping;
 using SettleSpace.Application.Transactions.Services;
+using SettleSpace.Application.Notifications.Services;
+using SettleSpace.Domain.Notifications.Entities;
 using SettleSpace.Domain.Persons;
 using SettleSpace.Domain.Persons.Entities;
 using SettleSpace.Domain.Transactions;
@@ -19,6 +21,7 @@ public class TransactionApplicationServiceTests
     private readonly Mock<ITransactionRepository> _repositoryMock = new();
     private readonly Mock<ITransactionDomainService> _domainServiceMock = new();
     private readonly Mock<IPersonDisplayNameResolver> _personDisplayNameResolverMock = new();
+    private readonly Mock<INotificationApplicationService> _notificationServiceMock = new();
     private readonly ITransactionMapper _mapper = new TransactionMapper();
     private readonly TransactionApplicationService _sut;
 
@@ -28,12 +31,17 @@ public class TransactionApplicationServiceTests
             .Setup(r => r.ResolveAsync(It.IsAny<List<string>>()))
             .ReturnsAsync(new Dictionary<string, string>(StringComparer.Ordinal));
 
+        _notificationServiceMock
+            .Setup(n => n.CreateAsync(It.IsAny<string>(), It.IsAny<NotificationType>(), It.IsAny<string?>()))
+            .Returns(Task.CompletedTask);
+
         _sut = new TransactionApplicationService(
             _personRepositoryMock.Object,
             _repositoryMock.Object,
             _domainServiceMock.Object,
             _mapper,
-            _personDisplayNameResolverMock.Object);
+            _personDisplayNameResolverMock.Object,
+            _notificationServiceMock.Object);
     }
 
     [Fact]
@@ -57,6 +65,60 @@ public class TransactionApplicationServiceTests
 
         _domainServiceMock.Verify(d => d.EnsureCanCreate(It.IsAny<Transaction>(), "user-1", PersonRole.USER), Times.Once);
         Assert.Equal("EUR", result.CurrencyCode);
+    }
+
+    [Fact]
+    public async Task CreateTransactionAsyncCreatesNotificationForNonConfirmedParties()
+    {
+        var command = new CreateTransactionCommand
+        {
+            PayerPersonId = "user-1",
+            PayeePersonId = "user-2",
+            Amount = 10m,
+            CurrencyCode = "EUR",
+            TransactionDateUtc = DateTime.UtcNow,
+            Description = "Lunch",
+        };
+
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Transaction>()))
+            .ReturnsAsync((Transaction tx) => { tx.Id = "tx-1"; return tx; });
+
+        await _sut.CreateTransactionAsync("user-3", PersonRole.ADMIN, command);
+
+        // Admin created the transaction; neither payer nor payee auto-confirmed, so both get a notification.
+        _notificationServiceMock.Verify(
+            n => n.CreateAsync("user-1", NotificationType.TransactionPendingConfirmation, It.IsAny<string?>()),
+            Times.Once);
+        _notificationServiceMock.Verify(
+            n => n.CreateAsync("user-2", NotificationType.TransactionPendingConfirmation, It.IsAny<string?>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateTransactionAsyncDoesNotNotifyCreatorWhenCreatorIsParty()
+    {
+        var command = new CreateTransactionCommand
+        {
+            PayerPersonId = "user-1",
+            PayeePersonId = "user-2",
+            Amount = 10m,
+            CurrencyCode = "EUR",
+            TransactionDateUtc = DateTime.UtcNow,
+            Description = "Lunch",
+        };
+
+        _repositoryMock.Setup(r => r.AddAsync(It.IsAny<Transaction>()))
+            .ReturnsAsync((Transaction tx) => { tx.Id = "tx-1"; return tx; });
+
+        // user-1 is the payer AND the creator, so they are auto-confirmed and should NOT get a notification.
+        await _sut.CreateTransactionAsync("user-1", PersonRole.USER, command);
+
+        _notificationServiceMock.Verify(
+            n => n.CreateAsync("user-1", NotificationType.TransactionPendingConfirmation, It.IsAny<string?>()),
+            Times.Never);
+        _notificationServiceMock.Verify(
+            n => n.CreateAsync("user-2", NotificationType.TransactionPendingConfirmation, It.IsAny<string?>()),
+            Times.Once);
     }
 
     [Fact]
